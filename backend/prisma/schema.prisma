@@ -1,0 +1,375 @@
+// Schéma Prisma pour Aux P'tits Pois - AMAP Website
+// Base de données : PostgreSQL
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+
+// GESTION DES UTILISATEURS //
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  password      String
+  firstName     String
+  lastName      String
+  phone         String?
+  role          Role      @default(CUSTOMER)
+  emailVerified Boolean   @default(false)
+  deletedAt     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  addresses         Address[]
+  orders            Order[]
+  cartReservations  CartReservation[]
+  blogPosts         BlogPost[]
+  notifications     NotificationEmail[]
+
+  @@index([email])
+  @@map("users")
+}
+
+enum Role {
+  CUSTOMER
+  ADMIN
+  PRODUCER
+}
+
+model Address {
+  id         String      @id @default(cuid())
+  userId     String
+  street     String
+  city       String
+  postalCode String
+  country    String      @default("France")
+  isDefault  Boolean     @default(false)
+  type       AddressType
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("addresses")
+}
+
+enum AddressType {
+  BILLING
+  DELIVERY
+}
+
+
+// GESTION DES PRODUCTEURS & PRODUITS // 
+
+model Producer {
+  id          String   @id @default(cuid())
+  name        String
+  description String   @db.Text
+  image       String?
+  email       String   @unique
+  phone       String?
+  specialty   String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  products Product[]
+
+  @@map("producers")
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  producerId  String
+  name        String
+  description String   @db.Text
+  unit        String   // kg, pièce, litre, botte, etc.
+  origin      String?
+  image       String?
+  deletedAt   DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  producer          Producer            @relation(fields: [producerId], references: [id], onDelete: Cascade)
+  basketTypeProducts BasketTypeProduct[]
+
+  @@index([producerId])
+  @@map("products")
+}
+
+
+// GESTION DES PANIERS // 
+
+model BasketType {
+  id          String   @id @default(cuid())
+  name        String
+  description String   @db.Text
+  price       Float
+  image       String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  products        BasketTypeProduct[]
+  availabilities  BasketAvailability[]
+
+  @@map("basket_types")
+}
+
+// Table de liaison Many-to-Many entre BasketType et Product
+model BasketTypeProduct {
+  id           String  @id @default(cuid())
+  basketTypeId String
+  productId    String
+  quantity     Decimal @db.Decimal(10, 3) // Quantité de ce produit dans le panier
+
+  // Relations
+  basketType BasketType @relation(fields: [basketTypeId], references: [id], onDelete: Cascade)
+  product    Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([basketTypeId, productId])
+  @@index([basketTypeId])
+  @@index([productId])
+  @@map("basket_type_products")
+}
+
+model BasketAvailability {
+  id                 String   @id @default(cuid())
+  basketTypeId       String
+  availableQuantity  Int      @db.Integer @default(0)// Stock disponible
+  distributionDate   DateTime // Date de distribution
+  pickupLocationId   String
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  // Relations
+  basketType       BasketType        @relation(fields: [basketTypeId], references: [id], onDelete: Cascade)
+  pickupLocation   PickupLocation    @relation(fields: [pickupLocationId], references: [id])
+  orderItems       OrderItem[]
+  cartReservations CartReservation[]
+
+  @@index([basketTypeId])
+  @@index([pickupLocationId])
+  @@index([distributionDate])
+  @@map("basket_availabilities")
+}
+
+
+// POINTS DE RETRAIT // 
+
+model PickupLocation {
+  id          String   @id @default(cuid())
+  name        String
+  address     String
+  city        String
+  postalCode  String
+  description String?  @db.Text
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  basketAvailabilities BasketAvailability[]
+  orders               Order[]
+
+  @@map("pickup_locations")
+}
+
+
+// GESTION DES COMMANDES // 
+
+model Order {
+  id               String      @id @default(cuid())
+  userId           String
+  orderNumber      String      @unique
+  status           OrderStatus @default(PENDING)
+  totalAmount      Float
+  paymentIntentId  String?     // Stripe Payment Intent ID
+  pickupLocationId String
+  pickupDate       DateTime
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  // Relations
+  user           User           @relation(fields: [userId], references: [id])
+  pickupLocation PickupLocation @relation(fields: [pickupLocationId], references: [id])
+  orderItems     OrderItem[]
+  payments       Payment[]
+
+  @@index([userId])
+  @@index([orderNumber])
+  @@index([status])
+  @@map("orders")
+}
+
+enum OrderStatus {
+  PENDING      // En attente de paiement
+  PAID         // Payé
+  PREPARING    // En préparation
+  READY        // Prêt pour retrait
+  COMPLETED    // Récupéré
+  CANCELLED    // Annulé
+  REFUNDED     // Remboursé
+}
+
+model OrderItem {
+  id                    String   @id @default(cuid())
+  orderId               String
+  basketAvailabilityId  String
+  quantity              Int
+  priceAtOrder          Float    // Prix au moment de la commande
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  // Relations
+  order              Order              @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  basketAvailability BasketAvailability @relation(fields: [basketAvailabilityId], references: [id])
+
+  @@index([orderId])
+  @@index([basketAvailabilityId])
+  @@map("order_items")
+}
+
+
+// GESTION DES PAIEMENTS // 
+
+model Payment {
+  id              String        @id @default(cuid())
+  orderId         String
+  amount          Float
+  status          PaymentStatus @default(PENDING)
+  paymentMethod   String?       // card, sepa, etc.
+  stripePaymentId String?       // Stripe Payment ID
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  // Relations
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([stripePaymentId])
+  @@map("payments")
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+}
+
+
+// RÉSERVATION TEMPORAIRE (PANIER) //
+
+model CartReservation {
+  id                   String   @id @default(cuid())
+  userId               String
+  basketAvailabilityId String
+  quantity             Int
+  expiresAt            DateTime // Expiration de la réservation (ex: 15 minutes)
+  createdAt            DateTime @default(now())
+
+  // Relations
+  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  basketAvailability BasketAvailability @relation(fields: [basketAvailabilityId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([basketAvailabilityId])
+  @@index([expiresAt])
+  @@map("cart_reservations")
+}
+
+
+// GESTION DES THÈMES SAISONNIERS //
+
+model ThemeConfig {
+  id              String   @id @default(cuid())
+  season          Season   @unique
+  primaryColor    String
+  secondaryColor  String
+  accentColor     String
+  backgroundColor String?
+  backgroundImage String?
+  isActive        Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("theme_configs")
+}
+
+enum Season {
+  SPRING  // Printemps
+  SUMMER  // Été
+  AUTUMN  // Automne
+  WINTER  // Hiver
+}
+
+
+// BLOG / ACTUALITÉS // 
+
+model BlogPost {
+  id          String    @id @default(cuid())
+  title       String
+  slug        String    @unique
+  content     String    @db.Text
+  excerpt     String?   @db.Text
+  image       String?
+  authorId    String
+  isPublished Boolean   @default(false)
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  author User @relation(fields: [authorId], references: [id])
+
+  @@index([authorId])
+  @@index([slug])
+  @@map("blog_posts")
+}
+
+// NOTIFICATIONS / EMAILS //
+
+model NotificationEmail {
+  id        String              @id @default(cuid())
+  userId    String
+  type      NotificationEmailType
+  subject   String
+  content   String              @db.Text
+  sentAt    DateTime?
+  status    EmailStatus         @default(PENDING)
+  createdAt DateTime            @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@map("notification_emails")
+}
+
+enum NotificationEmailType {
+  WELCOME
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+  ORDER_CONFIRMATION
+  PAYMENT_CONFIRMATION
+  ORDER_READY
+  ORDER_REMINDER
+  ORDER_CANCELLED
+}
+
+enum EmailStatus {
+  PENDING
+  SENT
+  FAILED
+}
