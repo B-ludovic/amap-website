@@ -33,6 +33,12 @@ body {
   width: 100%;
 }
 
+/* Main content */
+.main-content {
+  min-height: calc(100vh - 200px);
+  padding: var(--spacing-xl) 0;
+}
+
 /* Typographie */
 h1, h2, h3, h4, h5, h6 {
   font-weight: var(--font-weight-bold);
