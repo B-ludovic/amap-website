@@ -4,7 +4,7 @@ import { asyncHandler } from './error.middleware.js';
 import { HttpUnauthorizedError, HttpForbiddenError } from '../utils/httpErrors.js';
 
 // Middleware d'authentification
-export const authMiddleware = asyncHandler(async (req, res, next) => {
+const authMiddleware = asyncHandler(async (req, res, next) => {
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -34,11 +34,8 @@ export const authMiddleware = asyncHandler(async (req, res, next) => {
 
         // Vérifier que l'utilisateur existe et n'est pas supprimé
         if (!user || user.deletedAt) {
-            throw new HttpUnauthorizedError('Utilisateur non trouvé veuillez vous reconnecter.');
+            throw new HttpUnauthorizedError('Utilisateur non trouvé ou compte supprimé.');
         }
-            if (user.deletedAt) {
-                throw new HttpForbiddenError('Compte supprimé. Veuillez contacter le support pour plus d\'informations.');  
-            }
 
         req.user = user;
         next();
@@ -49,3 +46,5 @@ export const authMiddleware = asyncHandler(async (req, res, next) => {
         throw error;
     }
 });
+
+export default authMiddleware;
