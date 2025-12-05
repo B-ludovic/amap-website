@@ -551,7 +551,7 @@ Si tu veux contribuer :
 
 ## Auteur
 
-Ton nom - Aux P'tits Pois
+Ludovic Pour Aux P'tits Pois
 
 ## License
 
