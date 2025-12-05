@@ -47,4 +47,4 @@ const authMiddleware = asyncHandler(async (req, res, next) => {
     }
 });
 
-export default authMiddleware;
+export { authMiddleware };
