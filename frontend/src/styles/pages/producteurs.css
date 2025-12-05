@@ -1,0 +1,19 @@
+/* Page Producteurs - Aux P'tits Pois */
+
+.producteurs-page {
+  padding: var(--spacing-2xl) 0;
+}
+
+/* Grille de producteurs */
+.producers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: var(--spacing-2xl);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .producers-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import { Mail } from 'lucide-react';
 
 function Footer() {
   const currentYear = new Date().getFullYear();
@@ -147,12 +148,7 @@ function Footer() {
               className="footer-social-link"
               aria-label="Email"
             >
-              <Image 
-                src="/icons/mail.png" 
-                alt="Email" 
-                width={20} 
-                height={20}
-              />
+              <Mail size={20} />
             </a>
           </div>
         </div>

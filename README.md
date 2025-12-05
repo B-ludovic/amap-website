@@ -1,72 +1,88 @@
-# 🌱 Aux P'tits Pois
+# 🌱 Aux P'tits Pois - AMAP Website
 
 Site web pour AMAP avec réservation de paniers et paiement en ligne.
 
-## C'est quoi ce projet ?
+## 📝 Description
 
 Aux P'tits Pois c'est une plateforme pour une AMAP (Association pour le Maintien d'une Agriculture Paysanne). 
 
-Les gens peuvent :
-- Voir les producteurs et leurs produits
-- Réserver des paniers
+Les utilisateurs peuvent :
+- Consulter les producteurs et leurs produits
+- Réserver des paniers de produits locaux
 - Payer en ligne avec Stripe
 - Choisir un point de retrait
 
 Les admins peuvent :
 - Gérer les paniers et les stocks
-- Changer le thème du site selon les saisons
-- Voir toutes les commandes
+- Personnaliser le thème selon les saisons
+- Suivre les commandes et les paiements
 
-## Stack technique
+## 🛠 Stack technique
 
 **Frontend :**
-- Next.js (React)
-- CSS pur (pas de framework CSS)
-- JavaScript (pas de TypeScript)
+- Next.js 15.5.7 (App Router)
+- React 19
+- CSS vanilla avec variables CSS
+- JavaScript (pas de TypeScript pour l'instant)
 
 **Backend :**
-- Node.js + Express
+- Node.js + Express 4.21.1
 - PostgreSQL
-- Prisma ORM
+- Prisma ORM 5.22.0
 
-**Paiement :**
-- Stripe
+**Autres :**
+- Stripe pour les paiements
+- Nodemailer pour les emails
+- JWT pour l'authentification
+- bcryptjs pour le hashing des mots de passe
 
-**Emails :**
-- Nodemailer
-
-## Structure du projet
+## 📂 Structure du projet
 ```
-aux-ptits-pois/
-├── frontend/          # Application Next.js
+amap-website/
+├── frontend/               # Application Next.js
 │   ├── src/
-│   │   ├── app/      # Pages
+│   │   ├── app/           # Pages (App Router)
+│   │   │   ├── layout.js
+│   │   │   ├── page.js    # Page d'accueil
+│   │   │   └── paniers/   # Route /paniers
 │   │   ├── components/
+│   │   │   ├── home/      # Composants page d'accueil
+│   │   │   ├── layout/    # Header, Footer
+│   │   │   └── baskets/   # Composants paniers
 │   │   └── styles/
+│   │       ├── variables.css    # Variables CSS + thèmes
+│   │       ├── globals.css      # Styles globaux
+│   │       ├── components/      # Styles des composants
+│   │       └── pages/           # Styles des pages
+│   ├── public/
+│   │   └── icons/         # 100+ icônes PNG
 │   └── package.json
 │
-├── backend/           # API Express
+├── backend/               # API Express
 │   ├── src/
-│   │   ├── routes/
-│   │   ├── controllers/
-│   │   ├── middlewares/
-│   │   └── services/
+│   │   ├── routes/        # Routes API
+│   │   ├── controllers/   # Logique métier
+│   │   ├── middlewares/   # Auth, validation, etc.
+│   │   ├── services/      # Services (email, stripe, stock)
+│   │   └── utils/         # Utilitaires
 │   ├── prisma/
+│   │   ├── schema.prisma  # Schéma de la base
+│   │   └── seed.js        # Données de test
 │   └── package.json
 │
 └── README.md
 ```
 
-## Installation
+## 🚀 Installation
 
 ### Prérequis
 
-Tu dois avoir installé sur ton PC :
-- Node.js (version 18 ou plus)
-- PostgreSQL
+- Node.js v18 ou supérieur
+- PostgreSQL 14+
 - npm ou yarn
+- Un compte Stripe (mode test pour le développement)
 
-### Étapes d'installation
+### Installation du backend
 
 1. Clone le repo
 ```bash
@@ -74,30 +90,249 @@ git clone https://github.com/ton-username/aux-ptits-pois.git
 cd aux-ptits-pois
 ```
 
-2. Installe le backend
+2. Installe les dépendances backend
 ```bash
 cd backend
 npm install
 ```
 
-3. Configure la base de données
+3. Configure les variables d'environnement
 
-Crée un fichier `.env` dans le dossier `backend/` :
+Crée un fichier `.env` dans `backend/` :
 ```env
 DATABASE_URL="postgresql://user:password@localhost:5432/aux_ptits_pois"
 PORT=4000
 NODE_ENV=development
 
-JWT_SECRET="ton-super-secret-jwt-ici"
+# JWT
+JWT_SECRET="votre-secret-jwt-super-securise"
 JWT_EXPIRE="7d"
 
-STRIPE_SECRET_KEY="sk_test_..."
-STRIPE_WEBHOOK_SECRET="whsec_..."
+# Stripe
+STRIPE_SECRET_KEY="sk_test_votre_cle_stripe"
+STRIPE_WEBHOOK_SECRET="whsec_votre_webhook_secret"
 
+# Email (exemple avec Gmail)
 EMAIL_HOST="smtp.gmail.com"
 EMAIL_PORT=587
-EMAIL_USER="ton-email@gmail.com"
-EMAIL_PASSWORD="ton-mot-de-passe"
+EMAIL_USER="votre.email@gmail.com"
+EMAIL_PASSWORD="votre-mot-de-passe-app"
+EMAIL_FROM="noreply@auxptitspois.com"
+
+# Frontend URL
+FRONTEND_URL="http://localhost:3000"
+```
+
+4. Crée la base de données PostgreSQL
+```bash
+createdb amap_db
+```
+
+5. Applique les migrations Prisma
+```bash
+npx prisma migrate dev
+```
+
+6. (Optionnel) Remplis la base avec des données de test
+```bash
+npm run seed
+```
+
+7. Lance le serveur backend
+```bash
+npm run dev
+```
+
+Le backend sera accessible sur **http://localhost:4000**
+
+### Installation du frontend
+
+1. Dans un nouveau terminal, installe les dépendances frontend
+```bash
+cd frontend
+npm install
+```
+
+2. Configure les variables d'environnement
+
+Crée un fichier `.env.local` dans `frontend/` :
+```env
+NEXT_PUBLIC_API_URL="http://localhost:4000/api"
+NEXT_PUBLIC_STRIPE_PUBLIC_KEY="pk_test_votre_cle_publique_stripe"
+```
+
+3. Lance le serveur de développement
+```bash
+npm run dev
+```
+
+Le site sera accessible sur **http://localhost:3000**
+
+## 📋 Commandes disponibles
+
+### Backend
+```bash
+npm run dev          # Lance le serveur en mode dev (nodemon)
+npm start            # Lance le serveur en production
+npm run migrate      # Applique les migrations Prisma
+npm run seed         # Remplit la base avec des données de test
+npx prisma studio    # Ouvre l'interface Prisma Studio
+```
+
+### Frontend
+```bash
+npm run dev          # Lance Next.js en mode développement
+npm run build        # Build pour la production
+npm start            # Lance le serveur de production
+npm run lint         # Vérifie le code avec ESLint
+```
+
+## ✨ Fonctionnalités
+
+### Implémenté ✅
+- Page d'accueil avec Hero, Featured Baskets, Why Us, How It Works
+- Page /paniers avec filtres et liste des paniers
+- Header responsive avec menu mobile
+- Footer avec liens et réseaux sociaux
+- Système de thèmes saisonniers (4 saisons)
+- Services backend : email, stripe, stock management
+- Gestion des réservations avec expiration (15min)
+- Base de données complète avec Prisma
+
+### En cours de développement 🚧
+- Authentification utilisateur (JWT prêt, UI à faire)
+- Intégration API frontend ↔ backend
+- Page détail d'un panier
+- Panier utilisateur et checkout
+- Dashboard admin
+- Gestion des producteurs
+
+### À venir 📅
+- Pages producteurs
+- Blog
+- Notifications en temps réel
+- Export des commandes (CSV)
+- Tests unitaires et d'intégration
+
+## 🗄️ Base de données
+
+### Modèles principaux
+
+- **User** : Utilisateurs (CLIENT, ADMIN, SUPER_ADMIN)
+- **Producer** : Producteurs locaux
+- **Product** : Produits individuels
+- **BasketType** : Types de paniers (Découverte, Famille, etc.)
+- **BasketAvailability** : Stocks disponibles par semaine
+- **Order** : Commandes (statuts: PENDING, PAID, READY, COMPLETED, CANCELLED)
+- **OrderItem** : Lignes de commande
+- **Payment** : Paiements Stripe
+- **CartReservation** : Réservations temporaires (15min)
+- **ThemeConfig** : Configuration des thèmes saisonniers
+
+Voir le schéma complet : `backend/prisma/schema.prisma`
+
+## 🎨 Thèmes et design
+
+Le site utilise un système de thèmes saisonniers définis dans `frontend/src/styles/variables.css` :
+
+- **Printemps** 🌸 (actif par défaut) : Vert pastel (#a7f3d0), Jaune (#fcd34d)
+- **Été** ☀️ : Jaune vif, Orange
+- **Automne** 🍂 : Orange, Rouge
+- **Hiver** ❄️ : Bleu clair, Bleu indigo
+
+Les couleurs s'appliquent automatiquement via `[data-theme="spring"]` sur le body.
+
+## 📧 Emails automatiques
+
+Le système envoie des emails HTML stylisés pour :
+- Bienvenue nouvel utilisateur
+- Confirmation d'email
+- Réinitialisation de mot de passe
+- Confirmation de commande
+- Confirmation de paiement
+- Commande prête pour retrait
+- Rappel de retrait J-1
+- Annulation de commande
+
+Templates dans `backend/src/services/email.service.js`
+
+## 🔒 Sécurité
+
+- Mots de passe hashés avec bcryptjs (10 rounds)
+- Authentification JWT avec expiration
+- Middleware auth pour routes protégées
+- Protection CORS configurée
+- Validation des données d'entrée
+- Sanitization des inputs
+- Gestion sécurisée des webhooks Stripe
+
+## 🌐 API Endpoints (backend)
+
+### Auth
+- `POST /api/auth/register` - Créer un compte
+- `POST /api/auth/login` - Se connecter
+- `GET /api/auth/me` - Profil utilisateur (protégé)
+
+### Baskets
+- `GET /api/baskets` - Liste des paniers disponibles
+- `GET /api/baskets/:id` - Détail d'un panier
+
+### Orders
+- `POST /api/orders` - Créer une commande
+- `GET /api/orders/my-orders` - Mes commandes (protégé)
+- `GET /api/orders/:id` - Détail d'une commande (protégé)
+
+### Payments
+- `POST /api/payments/create-intent` - Créer un PaymentIntent Stripe
+- `POST /api/payments/confirm` - Confirmer un paiement
+- `POST /api/payments/webhook` - Webhook Stripe
+
+### Admin (routes protégées)
+- `GET /api/admin/orders` - Toutes les commandes
+- `PUT /api/admin/orders/:id/status` - Changer le statut
+- Gestion producteurs, produits, thèmes...
+
+## 🐛 Problèmes courants
+
+**Le backend ne démarre pas**
+- Vérifie que PostgreSQL tourne : `pg_isready`
+- Vérifie les credentials dans `.env`
+- Vérifie que la base `amap_db` existe
+
+**Erreur Prisma "Client not generated"**
+```bash
+npx prisma generate
+```
+
+**Le frontend ne charge pas les icônes**
+- Vérifie que `/frontend/public/icons/` contient les fichiers PNG
+- Redémarre le serveur Next.js
+
+**CORS error entre frontend et backend**
+- Vérifie que `FRONTEND_URL` est correct dans le backend `.env`
+- Le backend doit tourner sur port 4000
+
+## 🤝 Contribution
+
+Les contributions sont les bienvenues !
+
+1. Fork le projet
+2. Crée une branche (`git checkout -b feature/nouvelle-fonctionnalite`)
+3. Commit tes changements (`git commit -m 'Ajout nouvelle fonctionnalité'`)
+4. Push vers la branche (`git push origin feature/nouvelle-fonctionnalite`)
+5. Ouvre une Pull Request
+
+## 📜 License
+
+MIT License - voir le fichier LICENSE pour plus de détails
+
+## 👨‍💻 Auteur
+
+**Ludovic B.** - [B-ludovic](https://github.com/B-ludovic)
+
+---
+
+Fait avec ❤️ pour les AMAP et l'agriculture locale
 EMAIL_FROM="noreply@auxptitspois.com"
 
 FRONTEND_URL="http://localhost:3000"

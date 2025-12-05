@@ -5,8 +5,10 @@ import '../styles/globals.css';
 import '../styles/components/header.css';
 import '../styles/components/footer.css';
 import '../styles/components/basket-card.css';
+import '../styles/components/producer-card.css';
 import '../styles/pages/home.css';
 import '../styles/pages/panier.css';
+import '../styles/pages/producteurs.css';
 
 const metadata = {
   title: 'Aux P\'tits Pois - AMAP locale',

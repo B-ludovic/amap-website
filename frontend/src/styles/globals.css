@@ -219,13 +219,15 @@ button {
 .textarea,
 .select {
   width: 100%;
-  padding: var(--spacing-sm) var(--spacing-md);
-  font-size: var(--font-size-base);
-  border: var(--border-width) solid var(--border-color);
-  border-radius: var(--border-radius-md);
+  height: var(--input-height);
+  padding: 0 var(--input-padding-x);
+  font-size: var(--input-font-size);
+  border: var(--border-width) solid var(--input-border-color);
+  border-radius: var(--input-border-radius);
+  box-sizing: border-box;
   background-color: var(--white);
   color: var(--text-primary);
-  transition: all var(--transition-fast);
+  transition: var(--input-transition);
 }
 
 .input:focus,
@@ -242,7 +244,9 @@ button {
 }
 
 .textarea {
+  height: auto;
   min-height: 120px;
+  padding: var(--input-padding-y) var(--input-padding-x);
   resize: vertical;
 }
 
