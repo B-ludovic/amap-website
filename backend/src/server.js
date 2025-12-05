@@ -101,7 +101,7 @@ const startServer = async () => {
   }
 };
 
-// === GESTION DE L'ARRÊT PROPRE DU SERVEUR ===
+// GESTION DE L'ARRÊT PROPRE DU SERVEUR
 
 // Quand on fait Ctrl+C dans le terminal
 process.on('SIGINT', async () => {
