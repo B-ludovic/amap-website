@@ -9,6 +9,7 @@ import '../styles/components/producer-card.css';
 import '../styles/pages/home.css';
 import '../styles/pages/panier.css';
 import '../styles/pages/producteurs.css';
+import '../styles/pages/auth.css';
 
 const metadata = {
   title: 'Aux P\'tits Pois - AMAP locale',
