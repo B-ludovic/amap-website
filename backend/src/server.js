@@ -6,6 +6,14 @@ import { connectDB, disconnectDB } from './config/database.js';
 import { errorHandler } from './middlewares/error.middleware.js';
 import { httpStatusCodes } from './utils/httpErrors.js';
 
+// Import des routes 
+import authRoutes from './routes/auth.routes.js';
+import producersRoutes from './routes/producers.routes.js';
+import basketsRoutes from './routes/baskets.routes.js';
+import ordersRoutes from './routes/orders.routes.js';
+import paymentsRoutes from './routes/payments.routes.js';
+import adminRoutes from './routes/admin.routes.js';
+
 // Charge les variables d'environnement
 dotenv.config();
 
@@ -30,7 +38,8 @@ app.use(express.json());
 // Parse les données de formulaire URL-encoded
 app.use(express.urlencoded({ extended: true }));
 
-// === ROUTES ===
+// ROUTES
+
 
 // Route de base
 app.get('/api', (req, res) => {
@@ -49,7 +58,14 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// TODO: Ajouter les routes ici
+
+// Routes de l'application
+app.use('/api/auth', authRoutes);
+app.use('/api/producers', producersRoutes);
+app.use('/api/baskets', basketsRoutes);
+app.use('/api/orders', ordersRoutes);
+app.use('/api/payments', paymentsRoutes);
+app.use('/api/admin', adminRoutes);
 
 
 // Route 404 - si aucune route ne correspond
