@@ -1,29 +1,41 @@
 {
-  "name": "backend",
+  "name": "aux-ptits-pois-backend",
   "version": "1.0.0",
-  "description": "API backend pour le site Aux P'tits Pois",
-  "main": "src/index.js",
+  "description": "API Backend pour Aux P'tits Pois",
+  "main": "src/server.js",
+  "type": "module",
   "scripts": {
-    "start": "node src/index.js",
-    "dev": "nodemon src/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js",
+    "migrate": "npx prisma migrate dev",
+    "migrate:prod": "npx prisma migrate deploy",
+    "seed": "node prisma/seed.js",
+    "generate": "npx prisma generate",
+    "studio": "npx prisma studio"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "api",
+    "express",
+    "prisma"
+  ],
+  "author": "Ton nom",
+  "license": "MIT",
   "dependencies": {
-    "@prisma/client": "^7.1.0",
+    "@prisma/client": "^5.22.0",
+    "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
-    "dotenv": "^17.2.3",
-    "express": "^5.2.1",
-    "express-rate-limit": "^8.2.1",
-    "express-validator": "^7.3.1",
-    "helmet": "^8.1.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.1",
+    "express-rate-limit": "^7.4.1",
+    "express-validator": "^7.2.0",
+    "helmet": "^8.0.0",
+    "jsonwebtoken": "^9.0.2",
     "nodemailer": "^7.0.11",
-    "stripe": "^20.0.0"
+    "stripe": "^17.3.1",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
-    "nodemon": "^3.1.11",
-    "prisma": "^7.1.0"
+    "nodemon": "^3.1.7",
+    "prisma": "^5.22.0"
   }
 }
