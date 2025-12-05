@@ -357,34 +357,34 @@ async function main() {
     data: [
       {
         season: 'SPRING',
-        primaryColor: '#86efac',
-        secondaryColor: '#4ade80',
-        accentColor: '#fbbf24',
-        backgroundColor: '#ffffff',
+        primaryColor: '#a7f3d0',
+        secondaryColor: '#fcd34d',
+        accentColor: '#fb923c',
+        backgroundColor: '#fef3f9',
         isActive: true // Printemps par défaut
       },
       {
         season: 'SUMMER',
-        primaryColor: '#fbbf24',
-        secondaryColor: '#f59e0b',
-        accentColor: '#ef4444',
+        primaryColor: '#fef08a',
+        secondaryColor: '#fde047',
+        accentColor: '#fb923c',
         backgroundColor: '#fffbeb',
         isActive: false
       },
       {
         season: 'AUTUMN',
-        primaryColor: '#fb923c',
-        secondaryColor: '#ea580c',
-        accentColor: '#b91c1c',
+        primaryColor: '#fdba74',
+        secondaryColor: '#fb923c',
+        accentColor: '#dc2626',
         backgroundColor: '#fff7ed',
         isActive: false
       },
       {
         season: 'WINTER',
-        primaryColor: '#60a5fa',
-        secondaryColor: '#3b82f6',
-        accentColor: '#1e3a8a',
-        backgroundColor: '#eff6ff',
+        primaryColor: '#a5b4fc',
+        secondaryColor: '#818cf8',
+        accentColor: '#6366f1',
+        backgroundColor: '#eef2ff',
         isActive: false
       }
     ]
