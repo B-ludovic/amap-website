@@ -1,4 +1,3 @@
-import Stripe from 'stripe';
 import { prisma } from '../config/database.js';
 import { asyncHandler } from '../middlewares/error.middleware.js';
 import {
@@ -8,8 +7,12 @@ import {
   HttpConflictError,
   httpStatusCodes
 } from '../utils/httpErrors.js';
+import { 
+  createPaymentIntent as createStripePaymentIntent,
+  verifyPaymentStatus
+} from '../services/stripe.service.js';
+import Stripe from 'stripe';
 
-// Initialiser Stripe avec la clé secrète
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 // CRÉER UN PAYMENT INTENT 
@@ -51,20 +54,16 @@ const createPaymentIntent = asyncHandler(async (req, res) => {
     );
   }
 
-  // Créer le Payment Intent avec Stripe
-  // Le montant doit être en centimes (donc multiplier par 100)
-  const paymentIntent = await stripe.paymentIntents.create({
-    amount: Math.round(order.totalAmount * 100), // Convertir en centimes
-    currency: 'eur',
-    metadata: {
-      orderId: order.id,
-      orderNumber: order.orderNumber,
-      userId: userId
-    },
-    description: `Commande ${order.orderNumber} - Aux P'tits Pois`,
-    // Informations pour la facturation (optionnel mais recommandé)
-    receipt_email: order.user.email,
-  });
+  // Créer le Payment Intent via le service Stripe
+  const paymentIntent = await createStripePaymentIntent(
+    order.totalAmount,
+    order.orderNumber,
+    order.user.email,
+    {
+      userId: userId,
+      orderId: order.id
+    }
+  );
 
   // Mettre à jour la commande avec le Payment Intent ID
   await prisma.order.update({
@@ -103,12 +102,8 @@ const confirmPayment = asyncHandler(async (req, res) => {
     throw new HttpBadRequestError('Payment Intent ID requis');
   }
 
-  // Récupérer le Payment Intent depuis Stripe
-  const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
-
-  if (!paymentIntent) {
-    throw new HttpNotFoundError('Payment Intent introuvable');
-  }
+  // Vérifier le statut via le service Stripe
+  const paymentStatus = await verifyPaymentStatus(paymentIntentId);
 
   // Récupérer la commande
   const order = await prisma.order.findFirst({
@@ -127,7 +122,7 @@ const confirmPayment = asyncHandler(async (req, res) => {
   }
 
   // Vérifier le statut du paiement
-  if (paymentIntent.status === 'succeeded') {
+  if (paymentStatus.status === 'succeeded') {
     // Mettre à jour la commande et le paiement dans une transaction
     const updatedOrder = await prisma.$transaction(async (tx) => {
       // Mettre à jour le statut de la commande
@@ -158,7 +153,7 @@ const confirmPayment = asyncHandler(async (req, res) => {
         },
         data: {
           status: 'SUCCEEDED',
-          paymentMethod: paymentIntent.payment_method_types[0] || 'card'
+          paymentMethod: paymentStatus.paymentMethod || 'card'
         }
       });
 
@@ -166,6 +161,8 @@ const confirmPayment = asyncHandler(async (req, res) => {
     });
 
     // TODO: Envoyer un email de confirmation de paiement
+    // import { sendPaymentConfirmationEmail } from '../services/email.service.js';
+    // await sendPaymentConfirmationEmail(updatedOrder, req.user);
 
     res.json({
       success: true,
@@ -185,7 +182,7 @@ const confirmPayment = asyncHandler(async (req, res) => {
     });
 
     throw new HttpBadRequestError(
-      `Le paiement n'a pas abouti. Statut : ${paymentIntent.status}`
+      `Le paiement n'a pas abouti. Statut : ${paymentStatus.status}`
     );
   }
 });

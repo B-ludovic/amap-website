@@ -283,6 +283,7 @@ model CartReservation {
   user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   basketAvailability BasketAvailability @relation(fields: [basketAvailabilityId], references: [id], onDelete: Cascade)
 
+  @@unique([userId, basketAvailabilityId])
   @@index([userId])
   @@index([basketAvailabilityId])
   @@index([expiresAt])
