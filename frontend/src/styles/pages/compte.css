@@ -1,0 +1,151 @@
+/* Page Mon Compte - Aux P'tits Pois */
+
+.compte-page {
+  padding: var(--spacing-2xl) 0;
+}
+
+/* Header */
+.compte-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-2xl);
+}
+
+/* Grille */
+.compte-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-xl);
+}
+
+/* Cards */
+.compte-card {
+  background-color: var(--white);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.compte-card-header {
+  padding: var(--spacing-lg);
+  border-bottom: var(--border-width) solid var(--border-color);
+}
+
+.compte-card-title {
+  font-size: var(--font-size-xl);
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.compte-card-body {
+  padding: var(--spacing-lg);
+}
+
+.compte-card-footer {
+  padding: var(--spacing-lg);
+  border-top: var(--border-width) solid var(--border-color);
+}
+
+/* Informations */
+.compte-info-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-md) 0;
+  border-bottom: var(--border-width) solid var(--border-color);
+}
+
+.compte-info-group:last-child {
+  border-bottom: none;
+}
+
+.compte-info-icon {
+  color: var(--accent-color);
+  flex-shrink: 0;
+}
+
+.compte-info-label {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  font-weight: var(--font-weight-medium);
+}
+
+.compte-info-value {
+  font-size: var(--font-size-base);
+  color: var(--text-primary);
+  margin-left: calc(20px + var(--spacing-sm));
+}
+
+.compte-info-group .badge {
+  align-self: flex-start;
+  margin-left: calc(20px + var(--spacing-sm));
+}
+
+/* Actions rapides */
+.compte-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.compte-action-link {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius-md);
+  background-color: var(--background-color);
+  transition: all var(--transition-fast);
+  text-decoration: none;
+}
+
+.compte-action-link:hover {
+  background-color: var(--primary-color);
+  transform: translateX(4px);
+}
+
+.compte-action-link:hover .compte-action-title,
+.compte-action-link:hover .compte-action-description {
+  color: var(--white);
+}
+
+.compte-action-icon {
+  font-size: var(--font-size-3xl);
+  flex-shrink: 0;
+}
+
+.compte-action-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.compte-action-title {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  transition: color var(--transition-fast);
+}
+
+.compte-action-description {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  transition: color var(--transition-fast);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .compte-header {
+    flex-direction: column;
+    gap: var(--spacing-md);
+    align-items: stretch;
+  }
+
+  .compte-grid {
+    grid-template-columns: 1fr;
+  }
+}

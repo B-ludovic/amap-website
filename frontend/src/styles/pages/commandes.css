@@ -1,0 +1,146 @@
+/* Page Commandes - Aux P'tits Pois */
+
+.commandes-page {
+  padding: var(--spacing-2xl) 0;
+}
+
+/* Back link */
+.back-link {
+  display: inline-block;
+  color: var(--accent-color);
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--spacing-sm);
+  transition: color var(--transition-fast);
+}
+
+.back-link:hover {
+  color: var(--secondary-color);
+}
+
+/* Orders list */
+.orders-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+/* Order card */
+.order-card {
+  background-color: var(--white);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+  transition: all var(--transition-base);
+}
+
+.order-card:hover {
+  box-shadow: var(--shadow-lg);
+}
+
+.order-card-header {
+  padding: var(--spacing-lg);
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--spacing-md);
+}
+
+.order-card-number {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.order-card-date {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  margin: var(--spacing-xs) 0 0 0;
+}
+
+.order-card-body {
+  padding: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+/* Items */
+.order-items {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.order-item {
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: center;
+  font-size: var(--font-size-base);
+}
+
+.order-item-quantity {
+  font-weight: var(--font-weight-semibold);
+  color: var(--accent-color);
+}
+
+.order-item-name {
+  color: var(--text-primary);
+}
+
+/* Details */
+.order-details {
+  padding-top: var(--spacing-md);
+  border-top: var(--border-width) solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.order-detail {
+  display: flex;
+  gap: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+}
+
+.order-detail-label {
+  color: var(--text-secondary);
+  font-weight: var(--font-weight-medium);
+}
+
+.order-detail-value {
+  color: var(--text-primary);
+}
+
+/* Footer */
+.order-card-footer {
+  padding: var(--spacing-lg);
+  border-top: var(--border-width) solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.order-total {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--accent-color);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .order-card-header {
+    flex-direction: column;
+  }
+
+  .order-card-footer {
+    flex-direction: column;
+    gap: var(--spacing-md);
+    align-items: stretch;
+  }
+
+  .order-card-footer .btn {
+    width: 100%;
+  }
+}

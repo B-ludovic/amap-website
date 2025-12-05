@@ -229,6 +229,42 @@ button {
   transition: var(--input-transition);
 }
 
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon {
+  position: absolute;
+  left: var(--input-padding-x);
+  color: var(--text-secondary);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.input-with-icon {
+  padding-left: calc(var(--input-padding-x) * 2 + 20px);
+}
+
+.input-toggle {
+  position: absolute;
+  right: var(--input-padding-x);
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: var(--spacing-xs);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color var(--transition-fast);
+}
+
+.input-toggle:hover {
+  color: var(--accent-color);
+}
+
 .input:focus,
 .textarea:focus,
 .select:focus {

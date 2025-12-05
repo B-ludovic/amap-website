@@ -10,6 +10,8 @@ import '../styles/pages/home.css';
 import '../styles/pages/panier.css';
 import '../styles/pages/producteurs.css';
 import '../styles/pages/auth.css';
+import '../styles/pages/compte.css';
+import '../styles/pages/commandes.css';
 
 const metadata = {
   title: 'Aux P\'tits Pois - AMAP locale',
