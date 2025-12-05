@@ -20,10 +20,10 @@ const generateToken = (userId) => {
 
 // Inscription d'un nouvel utilisateur
 const register = asyncHandler(async (req, res) => {
-    const { email, password, fristName, lastName } = req.body;
+    const { email, password, firstName, lastName, phone } = req.body;
 
     // Verifier que tous les champs sont fournis
-    if (!email || !password || !fristName || !lastName) {
+    if (!email || !password || !firstName || !lastName) {
         throw new HttpBadRequestError('Tous les champs sont requis.');
     }
 
@@ -52,7 +52,7 @@ const register = asyncHandler(async (req, res) => {
     const token = generateToken(user.id);
 
     res.status(httpStatusCodes.CREATED).json({
-        succes: true, 
+        success: true, 
         message: 'Inscription réussie! Veuillez vérifier votre email pour confirmer votre compte.',
         data: {
             user: {
@@ -98,7 +98,7 @@ const login = asyncHandler(async (req, res) => {
     const token = generateToken(user.id);
 
     res.json({
-        succes: true, 
+        success: true, 
         message: 'Connexion réussie!',
         data: {
             user: {
@@ -138,7 +138,7 @@ const getMe = asyncHandler(async (req, res) => {
     }
 
     res.json({
-        succes: true,
+        success: true,
         data: {
             user,
         }
@@ -152,7 +152,7 @@ const confirmEmail = asyncHandler(async (req, res) => {
     // Trouver l'utilisateur par le token de confirmation
 
     res.json({
-        succes: true,
+        success: true,
         message: 'Email confirmé avec succès!',
     });
 });
@@ -177,7 +177,7 @@ const resendConfirmationEmail = asyncHandler(async (req, res) => {
     // Envoyer l'email de confirmation
 
     res.json({
-        succes: true,
+        success: true,
         message: 'Email de confirmation renvoyé avec succès!',
     });
 });
@@ -201,7 +201,7 @@ const forgotPassword = asyncHandler(async (req, res) => {
     // TODO: Sauvegarder le token et sa date d'expiration dans la base de données
 
     return res.json({
-        succes: true,
+        success: true,
         message: 'Si un compte avec cet email existe, un email de réinitialisation a été envoyé.',
     });
 });
@@ -218,7 +218,7 @@ const resetPassword = asyncHandler(async (req, res) => {
     // TODO : Vérifier le token et mettre à jour le mot de passe de l'utilisateur
 
     res.json({
-        succes: true,
+        success: true,
         message: 'Mot de passe réinitialisé avec succès!',
     });
 });
