@@ -17,9 +17,13 @@
   
   /* COULEURS DE FEEDBACK */
   --success-color: #86efac;
+  --success-color-dark: #4ade80;
   --error-color: #fca5a5;
+  --error-color-dark: #f87171;
   --warning-color: #fde047;
+  --warning-color-dark: #facc15;
   --info-color: #bae6fd;
+  --info-color-dark: #7dd3fc;
   
   /* ESPACEMENTS */
   --spacing-xs: 0.25rem;    /* 4px */
