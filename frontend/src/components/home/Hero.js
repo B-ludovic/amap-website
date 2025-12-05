@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 
-export default function Hero() {
+function Hero() {
   return (
     <section className="hero">
       <div className="container">
@@ -55,3 +55,5 @@ export default function Hero() {
     </section>
   );
 }
+
+export default Hero;

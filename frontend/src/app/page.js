@@ -3,7 +3,7 @@ import FeaturedBasket from '../components/home/FeaturedBasket';
 import WhyUs from '../components/home/WhyUs';
 import HowItWorks from '../components/home/HowItWorks';
 
-export default function Home() {
+function Home() {
   return (
     <>
       <Hero />
@@ -13,3 +13,5 @@ export default function Home() {
     </>
   );
 }
+
+export default Home;

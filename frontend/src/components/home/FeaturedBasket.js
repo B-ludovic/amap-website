@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 
-export default function FeaturedBaskets() {
+function FeaturedBaskets() {
   const [baskets, setBaskets] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -94,3 +94,5 @@ export default function FeaturedBaskets() {
     </section>
   );
 }
+
+export default FeaturedBaskets;

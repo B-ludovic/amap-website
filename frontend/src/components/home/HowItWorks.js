@@ -1,4 +1,4 @@
-export default function HowItWorks() {
+function HowItWorks() {
   const steps = [
     {
       number: '1',
@@ -40,3 +40,5 @@ export default function HowItWorks() {
     </section>
   );
 }
+
+export default HowItWorks;

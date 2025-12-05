@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 
-export default function Footer() {
+function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
@@ -160,3 +160,5 @@ export default function Footer() {
     </footer>
   );
 }
+
+export default Footer;

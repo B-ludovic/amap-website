@@ -1,6 +1,6 @@
 import Image from 'next/image';
 
-export default function WhyUs() {
+function WhyUs() {
   const reasons = [
     {
       icon: '/icons/bio.png',
@@ -51,3 +51,5 @@ export default function WhyUs() {
     </section>
   );
 }
+
+export default WhyUs;
