@@ -1,11 +1,11 @@
 /* Variables CSS pour Aux P'tits Pois */
 
 :root {
-  /* COULEURS PRINTEMPS (par défaut) */
-  --primary-color: #a7f3d0;
-  --secondary-color: #fcd34d;
-  --accent-color: #fb923c;
-  --background-color: #fef3f9;
+  /* COULEURS PRINTEMPS (par défaut) - Terre & Nature */
+  --primary-color: #6b9d5a;
+  --secondary-color: #d4a574;
+  --accent-color: #c85a3f;
+  --background-color: #f9f7f4;
   
   /* COULEURS NEUTRES */
   --text-primary: #2d3748;

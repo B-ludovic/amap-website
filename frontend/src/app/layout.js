@@ -12,6 +12,7 @@ import '../styles/pages/producteurs.css';
 import '../styles/pages/auth.css';
 import '../styles/pages/compte.css';
 import '../styles/pages/commandes.css';
+import '../styles/pages/basket-detail.css';
 
 const metadata = {
   title: 'Aux P\'tits Pois - AMAP locale',
