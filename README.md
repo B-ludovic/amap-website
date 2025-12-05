@@ -17,12 +17,40 @@ Les admins peuvent :
 - Personnaliser le thème selon les saisons
 - Suivre les commandes et les paiements
 
+## 📸 Screenshots
+
+### Page d'accueil
+![Page d'accueil](screenshots/home.png)
+*Hero section avec CTA, paniers en vedette, pourquoi nous choisir et comment ça marche*
+
+### Page Paniers
+![Liste des paniers](screenshots/panier.png)
+*Liste des paniers disponibles avec filtres par prix et tri*
+
+### Inscription
+![Page d'inscription](screenshots/inscription.png)
+*Formulaire d'inscription avec validation et icônes Lucide React*
+
+### Connexion
+![Page de connexion](screenshots/connexion.png)
+*Formulaire de connexion avec toggle de visibilité du mot de passe*
+
+---
+
+**Autres pages disponibles :**
+- `/producteurs` - Nos producteurs locaux
+- `/compte` - Mon compte utilisateur avec profil et actions rapides
+- `/commandes` - Historique des commandes avec badges de statut
+
+> 🚧 Le site est toujours en développement actif !
+
 ## 🛠 Stack technique
 
 **Frontend :**
 - Next.js 15.5.7 (App Router)
 - React 19
 - CSS vanilla avec variables CSS
+- Lucide React (icônes)
 - JavaScript (pas de TypeScript pour l'instant)
 
 **Backend :**
@@ -42,13 +70,19 @@ amap-website/
 ├── frontend/               # Application Next.js
 │   ├── src/
 │   │   ├── app/           # Pages (App Router)
-│   │   │   ├── layout.js
+│   │   │   ├── layout.js  # Layout principal
 │   │   │   ├── page.js    # Page d'accueil
-│   │   │   └── paniers/   # Route /paniers
+│   │   │   ├── paniers/   # Route /paniers
+│   │   │   ├── producteurs/  # Route /producteurs
+│   │   │   ├── auth/      # Routes /auth/login et /auth/register
+│   │   │   ├── compte/    # Route /compte
+│   │   │   └── commandes/ # Route /commandes
 │   │   ├── components/
 │   │   │   ├── home/      # Composants page d'accueil
 │   │   │   ├── layout/    # Header, Footer
-│   │   │   └── baskets/   # Composants paniers
+│   │   │   ├── baskets/   # BasketCard, BasketFilters
+│   │   │   ├── producers/ # ProducerCard
+│   │   │   └── auth/      # LoginForm, RegisterForm
 │   │   └── styles/
 │   │       ├── variables.css    # Variables CSS + thèmes
 │   │       ├── globals.css      # Styles globaux
@@ -191,28 +225,34 @@ npm run lint         # Vérifie le code avec ESLint
 
 ### Implémenté ✅
 - Page d'accueil avec Hero, Featured Baskets, Why Us, How It Works
-- Page /paniers avec filtres et liste des paniers
+- Page `/paniers` avec filtres et liste des paniers
+- Page `/producteurs` avec liste des producteurs
+- Pages authentification : `/auth/login` et `/auth/register`
+- Page `/compte` avec profil utilisateur et actions rapides
+- Page `/commandes` avec historique des commandes
 - Header responsive avec menu mobile
 - Footer avec liens et réseaux sociaux
 - Système de thèmes saisonniers (4 saisons)
+- Formulaires avec icônes Lucide React et validation
+- Toggle de visibilité du mot de passe (Eye/EyeOff)
 - Services backend : email, stripe, stock management
 - Gestion des réservations avec expiration (15min)
 - Base de données complète avec Prisma
 
 ### En cours de développement 🚧
-- Authentification utilisateur (JWT prêt, UI à faire)
-- Intégration API frontend ↔ backend
-- Page détail d'un panier
-- Panier utilisateur et checkout
-- Dashboard admin
-- Gestion des producteurs
+- Intégration API frontend ↔ backend (données mockées pour l'instant)
+- Page détail d'un panier individuel
+- Panier utilisateur et processus de checkout
+- Dashboard admin complet
+- Upload d'images pour producteurs/produits
 
 ### À venir 📅
-- Pages producteurs
-- Blog
+- Page détail producteur
+- Blog avec articles
 - Notifications en temps réel
-- Export des commandes (CSV)
+- Export des commandes (CSV/PDF)
 - Tests unitaires et d'intégration
+- Page Contact
 
 ## 🗄️ Base de données
 
@@ -241,6 +281,16 @@ Le site utilise un système de thèmes saisonniers définis dans `frontend/src/s
 - **Hiver** ❄️ : Bleu clair, Bleu indigo
 
 Les couleurs s'appliquent automatiquement via `[data-theme="spring"]` sur le body.
+
+### Icônes
+- **Lucide React** : Pour les icônes UI (Mail, Lock, Eye, User, Phone, Shield, Package, MapPin, Calendar, etc.)
+- **PNG custom** : Pour les icônes métier (paniers, producteurs, etc.) dans `/public/icons/`
+
+### Formulaires
+- Inputs standardisés avec hauteur de 48px via CSS variables
+- Icônes intégrées dans les champs (position left)
+- Toggle Eye/EyeOff pour les mots de passe
+- Validation côté client avec messages d'erreur
 
 ## 📧 Emails automatiques
 
@@ -307,6 +357,10 @@ npx prisma generate
 **Le frontend ne charge pas les icônes**
 - Vérifie que `/frontend/public/icons/` contient les fichiers PNG
 - Redémarre le serveur Next.js
+
+**Les icônes Lucide React ne s'affichent pas**
+- Vérifie que `lucide-react` est bien installé : `npm install lucide-react`
+- Vérifie les imports : `import { Mail, Lock, Eye } from 'lucide-react'`
 
 **CORS error entre frontend et backend**
 - Vérifie que `FRONTEND_URL` est correct dans le backend `.env`
