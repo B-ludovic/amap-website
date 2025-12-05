@@ -1,9 +1,10 @@
-import Header from '@/components/layout/Header';
-import Footer from '@/components/layout/Footer';
-import '../src/styles/variables.css';
-import '../src/styles/globals.css';
-import '../src/styles/components/header.css';
-import '../src/styles/components/footer.css';
+import Header from '../components/layout/header';
+import Footer from '../components/layout/Footer';
+import '../styles/variables.css';
+import '../styles/globals.css';
+import '../styles/components/header.css';
+import '../styles/components/footer.css';
+import '../styles/pages/home.css';
 
 export const metadata = {
   title: 'Aux P\'tits Pois - AMAP locale',
