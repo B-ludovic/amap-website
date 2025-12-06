@@ -5,20 +5,28 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Package, MapPin, ShoppingBasket, User, Mail, Phone, Shield } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useModal } from '../../contexts/ModalContext';
 
 function ComptePage() {
   const router = useRouter();
-  const { user, loading, logout } = useAuth();
+  const { user, loading, isAuthenticated, logout } = useAuth();
+  const { showConfirm } = useModal();
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (!loading && !isAuthenticated) {
       router.push('/auth/login');
     }
-  }, [user, loading, router]);
+  }, [isAuthenticated, loading, router]);
 
   const handleLogout = () => {
-    logout();
-    router.push('/');
+    showConfirm(
+      'Déconnexion',
+      'Êtes-vous sûr de vouloir vous déconnecter ?',
+      () => {
+        logout();
+        router.push('/');
+      }
+    );
   };
 
   if (loading) {
