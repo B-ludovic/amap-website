@@ -6,6 +6,7 @@ import {
   HttpConflictError,
   httpStatusCodes
 } from '../utils/httpErrors.js';
+import { showModal } from '../utils/modal.js';
 
 
 // GESTION DES PRODUCTEURS //
@@ -912,12 +913,13 @@ const getStats = asyncHandler(async (req, res) => {
 
 // GESTION DES EXEMPLES //
 
-const getExampleStats = asyncHandler(async (req, res) => {
+// Récupérer les stats des exemples
+export const getExampleStats = asyncHandler(async (req, res) => {
   const [producers, products, baskets, pickupLocations] = await Promise.all([
     prisma.producer.count({ where: { isExample: true } }),
     prisma.product.count({ where: { isExample: true } }),
     prisma.basketType.count({ where: { isExample: true } }),
-    prisma.pickupLocation.count({ where: { isExample: true } })
+    prisma.pickupLocation.count({ where: { isExample: true } }),
   ]);
 
   res.json({
@@ -929,6 +931,92 @@ const getExampleStats = asyncHandler(async (req, res) => {
       pickupLocations,
       total: producers + products + baskets + pickupLocations
     }
+  });
+});
+
+// Supprimer tous les exemples
+export const deleteAllExamples = asyncHandler(async (req, res) => {
+  await prisma.$transaction(async (tx) => {
+    // 1. Supprimer les OrderItems liés aux paniers exemples
+    const deletedOrderItems = await tx.orderItem.deleteMany({
+      where: {
+        basketAvailability: {
+          basketType: { isExample: true }
+        }
+      }
+    });
+
+    // 2. Supprimer les Orders liés aux paniers exemples OU aux lieux exemples
+    const deletedOrders = await tx.order.deleteMany({
+      where: {
+        OR: [
+          {
+            basketAvailability: {
+              basketType: { isExample: true }
+            }
+          },
+          {
+            pickupLocation: { isExample: true }
+          }
+        ]
+      }
+    });
+
+    // 3. Supprimer les BasketAvailability (disponibilités)
+    const deletedAvailabilities = await tx.basketAvailability.deleteMany({
+      where: {
+        OR: [
+          { basketType: { isExample: true } },
+          { pickupLocation: { isExample: true } }
+        ]
+      }
+    });
+
+    // 4. Supprimer les BasketTypeProduct (composition des paniers)
+    const deletedBasketProducts = await tx.basketTypeProduct.deleteMany({
+      where: {
+        OR: [
+          { basketType: { isExample: true } },
+          { product: { isExample: true } }
+        ]
+      }
+    });
+
+    // 5. Supprimer les BasketTypes (types de paniers)
+    const deletedBaskets = await tx.basketType.deleteMany({
+      where: { isExample: true }
+    });
+
+    // 6. Supprimer les Products
+    const deletedProducts = await tx.product.deleteMany({
+      where: { isExample: true }
+    });
+
+    // 7. Supprimer les PickupLocations
+    const deletedPickupLocations = await tx.pickupLocation.deleteMany({
+      where: { isExample: true }
+    });
+
+    // 8. Supprimer les Producers (en dernier car Products dépend d'eux)
+    const deletedProducers = await tx.producer.deleteMany({
+      where: { isExample: true }
+    });
+
+    console.log('Exemples supprimés:', {
+      orderItems: deletedOrderItems.count,
+      orders: deletedOrders.count,
+      availabilities: deletedAvailabilities.count,
+      basketProducts: deletedBasketProducts.count,
+      baskets: deletedBaskets.count,
+      products: deletedProducts.count,
+      pickupLocations: deletedPickupLocations.count,
+      producers: deletedProducers.count,
+    });
+  });
+
+  res.json({
+    success: true,
+    message: 'Tous les exemples ont été supprimés avec succès'
   });
 });
 
@@ -953,5 +1041,6 @@ export {
   updateBlogPost,
   deleteBlogPost,
   getStats,
-  getExampleStats
+  getExampleStats,
+  deleteAllExamples
 };

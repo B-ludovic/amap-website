@@ -20,6 +20,8 @@ import {
   createBlogPost,
   updateBlogPost,
   deleteBlogPost,
+  getExampleStats,
+  deleteAllExamples
 } from '../controllers/admin.controller.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { adminOnly } from '../middlewares/role.middleware.js';
@@ -66,8 +68,8 @@ router.delete('/blog/:id', deleteBlogPost);
 router.get('/stats', getStats);
 
 // GESTION DES EXEMPLES DE DONNÉES
-router.get('/example/stats', getExampleStats);
-router.delete('/examples', deleteExampleData);
+router.get('/examples/stats', getExampleStats);
+router.delete('/examples', deleteAllExamples);
 
 
 export default router;
