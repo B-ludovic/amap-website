@@ -1,6 +1,6 @@
-# 🌱 Aux P'tits Pois - AMAP Website
+# 🌱 Aux P'tits Pois - Site AMAP
 
-Site web pour AMAP avec réservation de paniers et paiement en ligne.
+Site web pour une AMAP avec réservation de paniers et paiement en ligne.
 
 ## 📝 Description
 
@@ -50,54 +50,222 @@ Les admins peuvent :
 ## 🛠 Stack technique
 
 **Frontend :**
-- Next.js 15.5.7 (App Router)
+- Next.js 15 (App Router)
 - React 19
-- CSS vanilla avec variables CSS
-- Lucide React (icônes)
-- JavaScript (pas de TypeScript pour l'instant)
+- CSS vanilla
+- Lucide React pour les icônes
 
 **Backend :**
-- Node.js + Express 4.21.1
+- Node.js + Express
 - PostgreSQL
-- Prisma ORM 5.22.0
+- Prisma ORM
 
 **Autres :**
 - Stripe pour les paiements
+- JWT pour l'auth
 - Nodemailer pour les emails
-- JWT pour l'authentification
-- bcryptjs pour le hashing des mots de passe
 
-## 📂 Structure du projet
+## Installation
+
+### Prérequis
+
+- Node.js v18+
+- PostgreSQL 14+
+- Un compte Stripe (mode test)
+
+### Backend
+
+```bash
+cd backend
+npm install
+```
+
+Crée un `.env` :
+```env
+DATABASE_URL="postgresql://user:password@localhost:5432/amap_db"
+PORT=4000
+
+JWT_SECRET="ton-secret-jwt"
+JWT_EXPIRE="7d"
+
+STRIPE_SECRET_KEY="sk_test_..."
+STRIPE_WEBHOOK_SECRET="whsec_..."
+
+EMAIL_HOST="smtp.gmail.com"
+EMAIL_PORT=587
+EMAIL_USER="ton-email@gmail.com"
+EMAIL_PASSWORD="ton-mot-de-passe"
+
+FRONTEND_URL="http://localhost:3000"
+```
+
+Lance les migrations et le seed :
+```bash
+npx prisma migrate dev
+npm run seed
+npm run dev
+```
+
+Le backend tourne sur http://localhost:4000
+
+### Frontend
+
+```bash
+cd frontend
+npm install
+```
+
+Crée un `.env.local` :
+```env
+NEXT_PUBLIC_API_URL="http://localhost:4000/api"
+NEXT_PUBLIC_STRIPE_PUBLIC_KEY="pk_test_..."
+```
+
+Lance le dev server :
+```bash
+npm run dev
+```
+
+Le site est sur http://localhost:3000
+
+## Fonctionnalités
+
+### ✅ Déjà fait
+- Pages publiques (accueil, paniers, producteurs)
+- Auth (login, register)
+- Réservation de paniers avec expiration (15min)
+- Paiement Stripe
+- Dashboard admin
+- Gestion producteurs avec flag `isExample`
+- Gestion produits avec flag `isExample`
+- Système de thèmes saisonniers
+- Emails automatiques
+- API complète avec routes protégées
+
+### 🚧 En cours
+- Page détail panier
+- Gestion des paniers (composition, stocks)
+- Upload d'images
+- Gestion des points de retrait
+
+### 📅 À venir
+- Blog
+- Page contact
+- Export CSV des commandes
+- Notifications temps réel
+
+## Base de données
+
+Modèles principaux :
+- **User** : Utilisateurs (CLIENT, ADMIN)
+- **Producer** : Producteurs (avec flag `isExample`)
+- **Product** : Produits (avec flag `isExample`)
+- **BasketType** : Types de paniers (avec flag `isExample`)
+- **BasketAvailability** : Stocks disponibles
+- **Order** : Commandes
+- **Payment** : Paiements Stripe
+- **PickupLocation** : Points de retrait (avec flag `isExample`)
+
+Flag `isExample` : permet de marquer des données comme exemples pour les supprimer en masse depuis l'admin.
+
+## Routes API principales
+
+### Auth
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `GET /api/auth/me`
+
+### Admin (protégé, admin only)
+- `GET /api/admin/producers` - Liste producteurs
+- `POST /api/admin/producers` - Créer producteur
+- `PUT /api/admin/producers/:id` - Modifier
+- `DELETE /api/admin/producers/:id` - Supprimer
+- `GET /api/admin/products` - Liste produits
+- `POST /api/admin/products` - Créer produit
+- `PUT /api/admin/products/:id` - Modifier
+- `DELETE /api/admin/products/:id` - Supprimer
+- `GET /api/admin/stats` - Stats dashboard
+- `GET /api/admin/examples/stats` - Stats données exemples
+- `DELETE /api/admin/examples` - Supprimer tous les exemples
+
+## Commandes utiles
+
+**Backend :**
+```bash
+npm run dev          # Mode développement
+npm run migrate      # Migrations Prisma
+npm run seed         # Données de test
+npx prisma studio    # Interface graphique DB
+```
+
+**Frontend :**
+```bash
+npm run dev          # Mode développement
+npm run build        # Build production
+```
+
+## Structure du projet
+
 ```
 amap-website/
-├── frontend/               # Application Next.js
+├── frontend/
 │   ├── src/
-│   │   ├── app/           # Pages (App Router)
-│   │   │   ├── layout.js  # Layout principal
-│   │   │   ├── page.js    # Page d'accueil
-│   │   │   ├── paniers/   # Route /paniers
-│   │   │   ├── producteurs/  # Route /producteurs
-│   │   │   ├── auth/      # Routes /auth/login et /auth/register
-│   │   │   ├── compte/    # Route /compte
-│   │   │   └── commandes/ # Route /commandes
-│   │   ├── components/
-│   │   │   ├── home/      # Composants page d'accueil
-│   │   │   ├── layout/    # Header, Footer
-│   │   │   ├── baskets/   # BasketCard, BasketFilters
-│   │   │   ├── producers/ # ProducerCard
-│   │   │   └── auth/      # LoginForm, RegisterForm
-│   │   └── styles/
-│   │       ├── variables.css    # Variables CSS + thèmes
-│   │       ├── globals.css      # Styles globaux
-│   │       ├── components/      # Styles des composants
-│   │       └── pages/           # Styles des pages
-│   ├── public/
-│   │   └── icons/         # 100+ icônes PNG
-│   └── package.json
+│   │   ├── app/              # Pages Next.js
+│   │   ├── components/       # Composants React
+│   │   ├── contexts/         # AuthContext, ModalContext
+│   │   ├── lib/              # api.js
+│   │   └── styles/           # CSS
+│   └── public/
 │
-├── backend/               # API Express
-│   ├── src/
-│   │   ├── routes/        # Routes API
+└── backend/
+    ├── src/
+    │   ├── routes/           # Routes Express
+    │   ├── controllers/      # Logique métier
+    │   ├── middlewares/      # Auth, errors
+    │   ├── services/         # Email, Stripe, Stock
+    │   └── utils/            # Helpers
+    └── prisma/
+        ├── schema.prisma     # Schéma DB
+        └── seed.js           # Données test
+```
+
+## Données exemples
+
+Le système de flag `isExample` permet de :
+- Tester l'application avec des vraies données
+- Identifier facilement les données de test (badge orange)
+- Les supprimer en un clic depuis l'admin
+
+Exemples créés par le seed :
+- 3 producteurs
+- 15 produits
+- 6 paniers
+- 3 points de retrait
+
+Pour supprimer tous les exemples : Admin → Paramètres → "Supprimer tous les exemples"
+
+## Problèmes courants
+
+**Backend ne démarre pas**
+- Vérifie PostgreSQL : `pg_isready`
+- Vérifie `.env`
+
+**Erreur Prisma**
+```bash
+npx prisma generate
+```
+
+**CORS error**
+- Vérifie `FRONTEND_URL` dans le backend
+- Vérifie `NEXT_PUBLIC_API_URL` dans le frontend
+
+## Auteur
+
+Ludovic B. - [B-ludovic](https://github.com/B-ludovic)
+
+## License
+
+MIT
 │   │   ├── controllers/   # Logique métier
 │   │   ├── middlewares/   # Auth, validation, etc.
 │   │   ├── services/      # Services (email, stripe, stock)

@@ -124,6 +124,158 @@ const deleteProducer = asyncHandler(async (req, res) => {
   });
 });
 
+// RÉCUPÉRER TOUS LES PRODUCTEURS
+const getAllProducers = asyncHandler(async (req, res) => {
+  const producers = await prisma.producer.findMany({
+    orderBy: {
+      name: 'asc'
+    },
+    include: {
+      _count: {
+        select: { products: true }
+      }
+    }
+  });
+
+  res.json({
+    success: true,
+    data: producers
+  });
+});
+
+// GESTION DES PRODUITS //
+
+// CRÉER UN PRODUIT
+const createProduct = asyncHandler(async (req, res) => {
+  const { name, producerId, unit, origin, description, isExample } = req.body;
+
+  if (!name || !producerId || !unit) {
+    throw new HttpBadRequestError('Nom, producteur et unité requis');
+  }
+
+  const producer = await prisma.producer.findUnique({
+    where: { id: producerId }
+  });
+
+  if (!producer) {
+    throw new HttpNotFoundError('Producteur introuvable');
+  }
+
+  const product = await prisma.product.create({
+    data: {
+      name,
+      producerId,
+      unit,
+      origin,
+      description,
+      isExample: isExample || false
+    },
+    include: {
+      producer: true
+    }
+  });
+
+  res.status(httpStatusCodes.CREATED).json({
+    success: true,
+    message: 'Produit créé avec succès',
+    data: { product }
+  });
+});
+
+// MODIFIER UN PRODUIT
+const updateProduct = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { name, producerId, unit, origin, description, isExample } = req.body;
+
+  const product = await prisma.product.findUnique({
+    where: { id }
+  });
+
+  if (!product) {
+    throw new HttpNotFoundError('Produit introuvable');
+  }
+
+  if (producerId) {
+    const producer = await prisma.producer.findUnique({
+      where: { id: producerId }
+    });
+
+    if (!producer) {
+      throw new HttpNotFoundError('Producteur introuvable');
+    }
+  }
+
+  const updatedProduct = await prisma.product.update({
+    where: { id },
+    data: {
+      name,
+      producerId,
+      unit,
+      origin,
+      description,
+      isExample
+    },
+    include: {
+      producer: true
+    }
+  });
+
+  res.json({
+    success: true,
+    message: 'Produit modifié avec succès',
+    data: { product: updatedProduct }
+  });
+});
+
+// SUPPRIMER UN PRODUIT
+const deleteProduct = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  const product = await prisma.product.findUnique({
+    where: { id },
+    include: {
+      basketTypes: true
+    }
+  });
+
+  if (!product) {
+    throw new HttpNotFoundError('Produit introuvable');
+  }
+
+  if (product.basketTypes.length > 0) {
+    throw new HttpConflictError(
+      'Impossible de supprimer ce produit car il est utilisé dans des paniers. ' +
+      'Veuillez d\'abord le retirer des paniers.'
+    );
+  }
+
+  await prisma.product.delete({
+    where: { id }
+  });
+
+  res.json({
+    success: true,
+    message: 'Produit supprimé avec succès'
+  });
+});
+
+// RÉCUPÉRER TOUS LES PRODUITS
+const getAllProducts = asyncHandler(async (req, res) => {
+  const products = await prisma.product.findMany({
+    orderBy: {
+      name: 'asc'
+    },
+    include: {
+      producer: true
+    }
+  });
+
+  res.json({
+    success: true,
+    data: products
+  });
+});
+
 // GESTION DES TYPES DE PANIERS //
 
 // CRÉER UN TYPE DE PANIER 
@@ -1023,6 +1175,11 @@ export {
   createProducer,
   updateProducer,
   deleteProducer,
+  getAllProducers,
+  createProduct,
+  updateProduct,
+  deleteProduct,
+  getAllProducts,
   createBasketType,
   updateBasketType,
   deleteBasketType,

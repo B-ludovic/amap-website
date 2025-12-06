@@ -3,6 +3,11 @@ import {
   createProducer,
   updateProducer,
   deleteProducer,
+  getAllProducers,
+  createProduct,
+  updateProduct,
+  deleteProduct,
+  getAllProducts,
   createBasketType,
   updateBasketType,
   deleteBasketType,
@@ -32,9 +37,16 @@ const router = express.Router();
 router.use(authMiddleware, adminOnly);
 
 // GESTION DES PRODUCTEURS
+router.get('/producers', getAllProducers);
 router.post('/producers', createProducer);
 router.put('/producers/:id', updateProducer);
 router.delete('/producers/:id', deleteProducer);
+
+// GESTION DES PRODUITS
+router.get('/products', getAllProducts);
+router.post('/products', createProduct);
+router.put('/products/:id', updateProduct);
+router.delete('/products/:id', deleteProduct);
 
 // GESTION DES TYPES DE PANIERS
 router.post('/basket-types', createBasketType);
