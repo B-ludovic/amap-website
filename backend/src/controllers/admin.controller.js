@@ -6,7 +6,6 @@ import {
   HttpConflictError,
   httpStatusCodes
 } from '../utils/httpErrors.js';
-import { showModal } from '../utils/modal.js';
 
 
 // GESTION DES PRODUCTEURS //
@@ -914,7 +913,7 @@ const getStats = asyncHandler(async (req, res) => {
 // GESTION DES EXEMPLES //
 
 // Récupérer les stats des exemples
-export const getExampleStats = asyncHandler(async (req, res) => {
+const getExampleStats = asyncHandler(async (req, res) => {
   const [producers, products, baskets, pickupLocations] = await Promise.all([
     prisma.producer.count({ where: { isExample: true } }),
     prisma.product.count({ where: { isExample: true } }),
@@ -935,7 +934,7 @@ export const getExampleStats = asyncHandler(async (req, res) => {
 });
 
 // Supprimer tous les exemples
-export const deleteAllExamples = asyncHandler(async (req, res) => {
+const deleteAllExamples = asyncHandler(async (req, res) => {
   await prisma.$transaction(async (tx) => {
     // 1. Supprimer les OrderItems liés aux paniers exemples
     const deletedOrderItems = await tx.orderItem.deleteMany({

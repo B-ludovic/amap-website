@@ -3,8 +3,9 @@
 import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "../../contexts/AuthContext";
-import AdminSidebar from "./components/AdminSidebar";
-import AdminHeader from "./components/AdminHeader";
+import AdminSidebar from "../../components/admin/AdminSidebar";
+import AdminHeader from "../../components/admin/AdminHeader";
+import "../../styles/admin/layout.css";
 
 export default function AdminLayout({ children }) {
     const router = useRouter();
