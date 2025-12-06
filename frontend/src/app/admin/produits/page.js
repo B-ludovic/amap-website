@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import api from "../../../lib/api";
 import { useModal } from "../../../contexts/ModalContext";
-import { Plus, Search, Edit, Trash2 } from "lucide-react";
+import { Plus, Search, Edit, Trash2, Filter } from "lucide-react";
 import ProductModal from "../../../components/admin/ProductModal";
 
 export default function AdminProductsPage() {

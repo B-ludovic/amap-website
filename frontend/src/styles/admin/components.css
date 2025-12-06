@@ -90,6 +90,49 @@
   font-weight: var(--font-weight-medium);
 }
 
+/* Filters */
+.admin-filters {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background-color: var(--background-color);
+  border-radius: var(--border-radius-md);
+  border: 1px solid transparent;
+  transition: all var(--transition-fast);
+}
+
+.admin-filters svg {
+  color: var(--text-light);
+  flex-shrink: 0;
+}
+
+.admin-filter-select {
+  border: none;
+  background: none;
+  outline: none;
+  font-size: var(--font-size-base);
+  color: var(--text-primary);
+  cursor: pointer;
+  min-width: 150px;
+}
+
+.admin-filter-select:focus {
+  color: var(--accent-color);
+}
+
+/* Unit badge */
+.admin-unit-badge {
+  display: inline-block;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background-color: var(--background-color);
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-secondary);
+  text-transform: lowercase;
+}
+
 /* Table */
 .admin-table-container {
   background-color: var(--white);
