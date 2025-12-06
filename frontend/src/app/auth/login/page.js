@@ -5,12 +5,14 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '../../../contexts/AuthContext';
 import { auth as authApi } from '../../../lib/api';
+import { useModal } from '../../../contexts/ModalContext';
 import LoginForm from '../../../components/auth/LoginForm';
+import api from '../../../lib/api';
 
 function LoginPage() {
   const router = useRouter();
   const { login } = useAuth();
-  const [error, setError] = useState('');
+  const { showError, setError } = useModal();
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async (credentials) => {
