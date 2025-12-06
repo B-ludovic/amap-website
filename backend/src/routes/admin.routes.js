@@ -65,4 +65,9 @@ router.delete('/blog/:id', deleteBlogPost);
 // STATISTIQUES
 router.get('/stats', getStats);
 
+// GESTION DES EXEMPLES DE DONNÉES
+router.get('/example/stats', getExampleStats);
+router.delete('/examples', deleteExampleData);
+
+
 export default router;
