@@ -77,6 +77,7 @@ model Producer {
   phone       String?
   specialty   String?
   isActive    Boolean  @default(true)
+  isExample   Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -93,6 +94,7 @@ model Product {
   description String   @db.Text
   unit        String   // kg, pièce, litre, botte, etc.
   origin      String?
+  isExample   Boolean  @default(false)
   image       String?
   deletedAt   DateTime?
   createdAt   DateTime @default(now())
@@ -116,6 +118,7 @@ model BasketType {
   price       Float
   image       String?
   isActive    Boolean  @default(true)
+  isExample   Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -175,6 +178,7 @@ model PickupLocation {
   postalCode  String
   description String?  @db.Text
   isActive    Boolean  @default(true)
+  isExample   Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

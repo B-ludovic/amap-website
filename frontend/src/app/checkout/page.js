@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useCart } from '../../contexts/CartContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useModal } from '../../contexts/ModalContext';
+import { orders as ordersApi, payments as paymentsApi } from '../../lib/api';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
 import StripePaymentForm from '../../components/checkout/StripePaymentForm';
@@ -47,33 +48,18 @@ function CheckoutPage() {
     setLoading(true);
 
     try {
-      const token = localStorage.getItem('token');
-
       // Préparer les items pour la commande
       const orderItems = cart.map(item => ({
         basketAvailabilityId: item.availabilityId,
         quantity: item.quantity
       }));
 
-      // Appeler l'API réelle pour créer la commande
-      const response = await fetch('http://localhost:4000/api/orders', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          items: orderItems,
-          pickupLocationId: cart[0].pickupLocation.id,
-          pickupDate: cart[0].distributionDate
-        })
+      // Appeler l'API pour créer la commande
+      const orderData = await ordersApi.create({
+        items: orderItems,
+        pickupLocationId: cart[0].pickupLocation.id,
+        pickupDate: cart[0].distributionDate
       });
-
-      const orderData = await response.json();
-
-      if (!response.ok) {
-        throw new Error(orderData.error?.message || 'Erreur lors de la création de la commande');
-      }
 
       setOrderId(orderData.data.id);
 
@@ -92,25 +78,8 @@ function CheckoutPage() {
 
   const createPaymentIntent = async (orderId) => {
     try {
-      const token = localStorage.getItem('token');
-
-      // Appeler l'API réelle pour créer le Payment Intent
-      const response = await fetch('http://localhost:4000/api/payments/create-intent', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          orderId: orderId
-        })
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error?.message || 'Erreur lors de la création du Payment Intent');
-      }
+      // Appeler l'API pour créer le Payment Intent
+      const data = await paymentsApi.createPaymentIntent(orderId);
 
       setClientSecret(data.data.clientSecret);
       setLoading(false);
@@ -127,19 +96,8 @@ function CheckoutPage() {
 
   const handlePaymentSuccess = async (paymentIntent) => {
     try {
-      const token = localStorage.getItem('token');
-
       // Confirmer le paiement côté serveur
-      await fetch('http://localhost:4000/api/payments/confirm', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          paymentIntentId: paymentIntent.id
-        })
-      });
+      await paymentsApi.confirm(paymentIntent.id);
 
       // Vider le panier
       clearCart();
