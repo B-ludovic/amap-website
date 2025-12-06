@@ -55,36 +55,36 @@ function CheckoutPage() {
         quantity: item.quantity
       }));
 
-      // TODO: Appeler l'API réelle pour créer la commande
-      // const response = await fetch('http://localhost:4000/api/orders', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //     'Authorization': `Bearer ${token}`
-      //   },
-      //   body: JSON.stringify({
-      //     items: orderItems,
-      //     pickupLocationId: cart[0].pickupLocation.id,
-      //     pickupDate: cart[0].distributionDate
-      //   })
-      // });
+      // Appeler l'API réelle pour créer la commande
+      const response = await fetch('http://localhost:4000/api/orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          items: orderItems,
+          pickupLocationId: cart[0].pickupLocation.id,
+          pickupDate: cart[0].distributionDate
+        })
+      });
 
-      // const orderData = await response.json();
+      const orderData = await response.json();
 
-      // Simulation
-      setTimeout(() => {
-        const mockOrderId = 'ORDER-' + Date.now();
-        setOrderId(mockOrderId);
+      if (!response.ok) {
+        throw new Error(orderData.error?.message || 'Erreur lors de la création de la commande');
+      }
 
-        // Créer le Payment Intent
-        createPaymentIntent(mockOrderId);
-      }, 1000);
+      setOrderId(orderData.data.id);
+
+      // Créer le Payment Intent
+      createPaymentIntent(orderData.data.id);
 
     } catch (error) {
       console.error('Erreur lors de la création de la commande:', error);
       showError(
         'Erreur de commande',
-        'Une erreur est survenue lors de la création de la commande. Veuillez réessayer.'
+        error.message || 'Une erreur est survenue lors de la création de la commande. Veuillez réessayer.'
       );
       setLoading(false);
     }
@@ -94,27 +94,26 @@ function CheckoutPage() {
     try {
       const token = localStorage.getItem('token');
 
-      // TODO: Appeler l'API réelle pour créer le Payment Intent
-      // const response = await fetch('http://localhost:4000/api/payments/create-payment-intent', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //     'Authorization': `Bearer ${token}`
-      //   },
-      //   body: JSON.stringify({
-      //     orderId: orderId
-      //   })
-      // });
+      // Appeler l'API réelle pour créer le Payment Intent
+      const response = await fetch('http://localhost:4000/api/payments/create-intent', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          orderId: orderId
+        })
+      });
 
-      // const data = await response.json();
-      // setClientSecret(data.data.clientSecret);
+      const data = await response.json();
 
-      // Simulation (en prod, tu recevras le vrai clientSecret de l'API)
-      setTimeout(() => {
-        // Pour tester, utilise un vrai Payment Intent de ton compte Stripe test
-        setClientSecret('pi_test_secret_simulation');
-        setLoading(false);
-      }, 500);
+      if (!response.ok) {
+        throw new Error(data.error?.message || 'Erreur lors de la création du Payment Intent');
+      }
+
+      setClientSecret(data.data.clientSecret);
+      setLoading(false);
 
     } catch (error) {
       console.error('Erreur lors de la création du Payment Intent:', error);
@@ -130,17 +129,17 @@ function CheckoutPage() {
     try {
       const token = localStorage.getItem('token');
 
-      // TODO: Confirmer le paiement côté serveur
-      // await fetch('http://localhost:4000/api/payments/confirm', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //     'Authorization': `Bearer ${token}`
-      //   },
-      //   body: JSON.stringify({
-      //     paymentIntentId: paymentIntent.id
-      //   })
-      // });
+      // Confirmer le paiement côté serveur
+      await fetch('http://localhost:4000/api/payments/confirm', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          paymentIntentId: paymentIntent.id
+        })
+      });
 
       // Vider le panier
       clearCart();
