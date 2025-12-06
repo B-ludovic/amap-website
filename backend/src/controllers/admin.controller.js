@@ -910,6 +910,28 @@ const getStats = asyncHandler(async (req, res) => {
   });
 });
 
+// GESTION DES EXEMPLES //
+
+const getExampleStats = asyncHandler(async (req, res) => {
+  const [producers, products, baskets, pickupLocations] = await Promise.all([
+    prisma.producer.count({ where: { isExample: true } }),
+    prisma.product.count({ where: { isExample: true } }),
+    prisma.basketType.count({ where: { isExample: true } }),
+    prisma.pickupLocation.count({ where: { isExample: true } })
+  ]);
+
+  res.json({
+    success: true,
+    data: {
+      producers,
+      products,
+      baskets,
+      pickupLocations,
+      total: producers + products + baskets + pickupLocations
+    }
+  });
+});
+
 export {
   createProducer,
   updateProducer,
@@ -930,5 +952,6 @@ export {
   createBlogPost,
   updateBlogPost,
   deleteBlogPost,
-  getStats
+  getStats,
+  getExampleStats
 };
