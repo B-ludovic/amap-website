@@ -101,7 +101,8 @@ async function main() {
       email: 'contact@fermedeslilas.fr',
       phone: '0145678901',
       specialty: 'Légumes de saison',
-      isActive: true
+      isActive: true,
+      isExample: true
     }
   });
 
@@ -112,7 +113,8 @@ async function main() {
       email: 'contact@vergersdulsoleil.fr',
       phone: '0156789012',
       specialty: 'Fruits et légumes',
-      isActive: true
+      isActive: true,
+      isExample: true
     }
   });
 
@@ -123,7 +125,8 @@ async function main() {
       email: 'contact@fermedubonheur.fr',
       phone: '0167890123',
       specialty: 'Produits laitiers',
-      isActive: true
+      isActive: true,
+      isExample: true
     }
   });
 
@@ -138,7 +141,8 @@ async function main() {
       name: 'Carottes',
       description: 'Carottes bio croquantes et sucrées',
       unit: 'kg',
-      origin: 'Île-de-France'
+      origin: 'Île-de-France',
+      isExample: true
     }
   });
 
@@ -148,7 +152,8 @@ async function main() {
       name: 'Tomates',
       description: 'Tomates anciennes variées',
       unit: 'kg',
-      origin: 'Île-de-France'
+      origin: 'Île-de-France',
+      isExample: true
     }
   });
 
@@ -158,7 +163,8 @@ async function main() {
       name: 'Salade',
       description: 'Mélange de salades de saison',
       unit: 'pièce',
-      origin: 'Île-de-France'
+      origin: 'Île-de-France',
+      isExample: true
     }
   });
 
@@ -178,7 +184,8 @@ async function main() {
       name: 'Poires',
       description: 'Poires Williams bio',
       unit: 'kg',
-      origin: 'Normandie'
+      origin: 'Normandie',
+      isExample: true
     }
   });
 
@@ -188,7 +195,8 @@ async function main() {
       name: 'Fromage de chèvre',
       description: 'Fromage de chèvre frais fermier',
       unit: 'pièce',
-      origin: 'Auvergne'
+      origin: 'Auvergne',
+      isExample: true
     }
   });
 
@@ -198,7 +206,8 @@ async function main() {
       name: 'Yaourt nature',
       description: 'Yaourt au lait de chèvre',
       unit: 'lot de 4',
-      origin: 'Auvergne'
+      origin: 'Auvergne',
+      isExample: true
     }
   });
 
@@ -230,6 +239,7 @@ async function main() {
       description: 'Un grand panier pour toute la famille. Pour 4 à 5 personnes.',
       price: 45.00,
       isActive: true,
+      isExample: true,
       products: {
         create: [
           { productId: carotte.id, quantity: 2.5 },
@@ -249,6 +259,7 @@ async function main() {
       description: 'Un panier 100% fruits de saison.',
       price: 18.00,
       isActive: true,
+      isExample: true,
       products: {
         create: [
           { productId: pomme.id, quantity: 2.0 },
@@ -270,7 +281,8 @@ async function main() {
       city: 'Paris',
       postalCode: '75001',
       description: 'Retrait tous les mercredis de 17h à 19h',
-      isActive: true
+      isActive: true,
+      isExample: true
     }
   });
 
@@ -281,7 +293,8 @@ async function main() {
       city: 'Lyon',
       postalCode: '69001',
       description: 'Retrait tous les vendredis de 16h à 18h',
-      isActive: true
+      isActive: true,
+      isExample: true
     }
   });
 
