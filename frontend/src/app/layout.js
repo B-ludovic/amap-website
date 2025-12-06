@@ -19,6 +19,9 @@ import '../styles/pages/compte.css';
 import '../styles/pages/commandes.css';
 import '../styles/pages/basket-detail.css';
 import '../styles/pages/checkout.css';
+import '../styles/admin/dashboard.css';
+import '../styles/admin/layout.css';
+import '../styles/admin/components.css';
 
 
 const metadata = {
