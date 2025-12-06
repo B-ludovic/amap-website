@@ -25,6 +25,9 @@ Les admins peuvent :
 
 ### Page Paniers
 ![Liste des paniers](screenshots/panier.png)
+*Paniers vers le paiement*
+
+![Page d'accueil](screenshots/example-panier.png.png)
 *Liste des paniers disponibles avec filtres par prix et tri*
 
 ### Inscription
