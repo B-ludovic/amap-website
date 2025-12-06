@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import api from "../../lib/api";
-import { useModal } from "../../hooks/useModal";
+import api from "../../../lib/api";
+import { useModal } from "../../../contexts/ModalContext";
 import { Plus, Search, Edit, Trash2 } from "lucide-react";
-import ProducerModal from "../../components/admin/ProducerModal";
+import ProducerModal from "../../../components/admin/ProducerModal";
 
 
 
