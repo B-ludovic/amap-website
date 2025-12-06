@@ -239,6 +239,38 @@ export const admin = {
     },
   },
 
+  // Produits
+  products: {
+    getAll: async () => {
+      return fetchAPI('/admin/products', {
+        requiresAuth: true,
+      });
+    },
+
+    create: async (productData) => {
+      return fetchAPI('/admin/products', {
+        method: 'POST',
+        body: productData,
+        requiresAuth: true,
+      });
+    },
+
+    update: async (id, productData) => {
+      return fetchAPI(`/admin/products/${id}`, {
+        method: 'PUT',
+        body: productData,
+        requiresAuth: true,
+      });
+    },
+
+    delete: async (id) => {
+      return fetchAPI(`/admin/products/${id}`, {
+        method: 'DELETE',
+        requiresAuth: true,
+      });
+    },
+  },
+
   // Paniers
   baskets: {
     getAll: async () => {
