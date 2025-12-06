@@ -5,17 +5,17 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '../../../contexts/AuthContext';
 import { auth as authApi } from '../../../lib/api';
+import { useModal } from '../../../contexts/ModalContext';
 import RegisterForm from '../../../components/auth/RegisterForm';
 
 function RegisterPage() {
   const router = useRouter();
   const { login } = useAuth();
-  const [error, setError] = useState('');
+  const { showError } = useModal();
   const [loading, setLoading] = useState(false);
 
   const handleRegister = async (userData) => {
     setLoading(true);
-    setError('');
 
     try {
       const data = await authApi.register(userData);
@@ -26,7 +26,7 @@ function RegisterPage() {
       // Redirection vers la page d'accueil
       router.push('/');
     } catch (err) {
-      setError(err.message);
+      showError('Erreur d\'inscription', err.message);
     } finally {
       setLoading(false);
     }
@@ -42,12 +42,6 @@ function RegisterPage() {
               Créez votre compte pour commencer à commander vos paniers.
             </p>
           </div>
-
-          {error && (
-            <div className="alert alert-error">
-              {error}
-            </div>
-          )}
 
           <RegisterForm onSubmit={handleRegister} loading={loading} />
 

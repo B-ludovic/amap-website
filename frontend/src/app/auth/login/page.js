@@ -7,17 +7,15 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { auth as authApi } from '../../../lib/api';
 import { useModal } from '../../../contexts/ModalContext';
 import LoginForm from '../../../components/auth/LoginForm';
-import api from '../../../lib/api';
 
 function LoginPage() {
   const router = useRouter();
   const { login } = useAuth();
-  const { showError, setError } = useModal();
+  const { showError } = useModal();
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async (credentials) => {
     setLoading(true);
-    setError('');
 
     try {
       const data = await authApi.login(credentials);
@@ -28,7 +26,7 @@ function LoginPage() {
       // Redirection vers la page d'accueil
       router.push('/');
     } catch (err) {
-      setError(err.message);
+      showError('Erreur de connexion', err.message);
     } finally {
       setLoading(false);
     }
@@ -44,12 +42,6 @@ function LoginPage() {
               Connectez-vous pour accéder à votre compte et commander vos paniers.
             </p>
           </div>
-
-          {error && (
-            <div className="alert alert-error">
-              {error}
-            </div>
-          )}
 
           <LoginForm onSubmit={handleLogin} loading={loading} />
 
