@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '../../../contexts/AuthContext';
+import { auth as authApi } from '../../../lib/api';
 import RegisterForm from '../../../components/auth/RegisterForm';
 
 function RegisterPage() {
@@ -17,20 +18,7 @@ function RegisterPage() {
     setError('');
 
     try {
-      // TODO: Appeler l'API réelle
-      const response = await fetch('http://localhost:4000/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(userData),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error?.message || 'Erreur lors de l&apos;inscription');
-      }
+      const data = await authApi.register(userData);
 
       // Sauvegarder le token et mettre à jour le contexte
       login(data.data.token, data.data.user);

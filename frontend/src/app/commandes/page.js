@@ -4,59 +4,28 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, MapPin, Calendar } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
+import { orders as ordersApi } from '../lib/api';
 
 function CommandesPage() {
   const router = useRouter();
+  const { user } = useAuth();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchOrders();
-  }, []);
+    if (user) {
+      fetchOrders();
+    } else {
+      router.push('/auth/login');
+    }
+  }, [user, router]);
 
   const fetchOrders = async () => {
-    const token = localStorage.getItem('token');
-
-    if (!token) {
-      router.push('/auth/login');
-      return;
-    }
-
     try {
-      // TODO: Appeler l'API réelle
-      // const response = await fetch('http://localhost:4000/api/orders/my-orders', {
-      //   headers: {
-      //     'Authorization': `Bearer ${token}`
-      //   }
-      // });
-
-      // Simulation
-      setTimeout(() => {
-        setOrders([
-          {
-            id: 1,
-            orderNumber: 'APP-1702345678901-1234',
-            status: 'PAID',
-            totalAmount: 25.00,
-            pickupDate: '2024-12-15T10:00:00.000Z',
-            pickupLocation: {
-              name: 'Place du Marché - Paris'
-            },
-            orderItems: [
-              {
-                quantity: 1,
-                basketAvailability: {
-                  basketType: {
-                    name: 'Panier Découverte'
-                  }
-                }
-              }
-            ],
-            createdAt: '2024-12-01T14:30:00.000Z'
-          }
-        ]);
-        setLoading(false);
-      }, 500);
+      const data = await ordersApi.getMy();
+      setOrders(data.data);
+      setLoading(false);
     } catch (error) {
       console.error('Erreur:', error);
       setLoading(false);

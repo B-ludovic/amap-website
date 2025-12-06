@@ -2,15 +2,19 @@
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { ShoppingCart } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { ShoppingCart, LogOut } from 'lucide-react';
 import { useCart } from '../../contexts/CartContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { useModal } from '../../contexts/ModalContext';
 
 function Header() {
+  const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const { getItemCount } = useCart();
+  const { showConfirm } = useModal();
 
   // Détecter le scroll pour changer le style du header
   useEffect(() => {
@@ -28,6 +32,17 @@ function Header() {
 
   const closeMenu = () => {
     setIsMenuOpen(false);
+  };
+
+  const handleLogout = () => {
+    showConfirm(
+      'Déconnexion',
+      'Êtes-vous sûr de vouloir vous déconnecter ?',
+      () => {
+        logout();
+        router.push('/');
+      }
+    );
   };
 
   const itemCount = getItemCount();
@@ -76,6 +91,9 @@ function Header() {
                 <Link href="/compte/commandes" className="btn btn-primary btn-sm">
                   Mes Commandes
                 </Link>
+                <button onClick={handleLogout} className="btn btn-outline btn-sm" aria-label="Se déconnecter">
+                  <LogOut size={18} />
+                </button>
               </>
             ) : (
               <>
@@ -133,6 +151,10 @@ function Header() {
                 <Link href="/compte/commandes" className="mobile-nav-link" onClick={closeMenu}>
                   Mes Commandes
                 </Link>
+                <button onClick={() => { closeMenu(); handleLogout(); }} className="btn btn-outline">
+                  <LogOut size={18} />
+                  Se déconnecter
+                </button>
               </>
             ) : (
               <>

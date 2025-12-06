@@ -187,7 +187,7 @@ export const orders = {
 export const payments = {
   // Créer un Payment Intent
   createPaymentIntent: async (orderId) => {
-    return fetchAPI('/payments/create-payment-intent', {
+    return fetchAPI('/payments/create-intent', {
       method: 'POST',
       body: { orderId },
       requiresAuth: true,

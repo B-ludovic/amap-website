@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '../../../contexts/AuthContext';
+import { auth as authApi } from '../../../lib/api';
 import LoginForm from '../../../components/auth/LoginForm';
 
 function LoginPage() {
@@ -17,20 +18,7 @@ function LoginPage() {
     setError('');
 
     try {
-      // TODO: Appeler l'API réelle
-      const response = await fetch('http://localhost:4000/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(credentials),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error?.message || 'Erreur lors de la connexion');
-      }
+      const data = await authApi.login(credentials);
 
       // Sauvegarder le token et mettre à jour le contexte
       login(data.data.token, data.data.user);
