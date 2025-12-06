@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import RegisterForm from '../../../components/auth/RegisterForm';
 
-export default function RegisterPage() {
+function RegisterPage() {
   const router = useRouter();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -75,3 +75,5 @@ export default function RegisterPage() {
     </div>
   );
 }
+
+export default RegisterPage;

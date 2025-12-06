@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, MapPin, Calendar } from 'lucide-react';
 
-export default function CommandesPage() {
+function CommandesPage() {
   const router = useRouter();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -177,3 +177,5 @@ export default function CommandesPage() {
     </div>
   );
 }
+
+export default CommandesPage;

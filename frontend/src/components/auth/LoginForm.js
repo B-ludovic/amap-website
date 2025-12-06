@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 
-export default function LoginForm({ onSubmit, loading }) {
+function LoginForm({ onSubmit, loading }) {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -120,3 +120,5 @@ export default function LoginForm({ onSubmit, loading }) {
     </form>
   );
 }
+
+export default LoginForm;

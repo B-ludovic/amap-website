@@ -2,11 +2,14 @@
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import { ShoppingCart } from 'lucide-react';
+import { useCart } from '../../contexts/CartContext';
 
 function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [user, setUser] = useState(null);
+  const { getItemCount } = useCart();
 
   // Détecter le scroll pour changer le style du header
   useEffect(() => {
@@ -34,6 +37,8 @@ function Header() {
   const closeMenu = () => {
     setIsMenuOpen(false);
   };
+
+  const itemCount = getItemCount();
 
   return (
     <header className={`header ${isScrolled ? 'header-scrolled' : ''}`}>
@@ -63,6 +68,14 @@ function Header() {
 
           {/* Actions */}
           <div className="header-actions">
+            {/* Panier */}
+            <Link href="/panier" className="header-cart-link">
+              <ShoppingCart size={24} />
+              {itemCount > 0 && (
+                <span className="header-cart-badge">{itemCount}</span>
+              )}
+            </Link>
+
             {user ? (
               <>
                 <Link href="/compte" className="nav-link">
@@ -115,6 +128,10 @@ function Header() {
             </Link>
 
             <div className="mobile-nav-divider"></div>
+
+            <Link href="/panier" className="mobile-nav-link" onClick={closeMenu}>
+              Panier {itemCount > 0 && `(${itemCount})`}
+            </Link>
 
             {user ? (
               <>

@@ -5,10 +5,12 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Tractor, MapPin, ShoppingCart, CreditCard } from 'lucide-react';
+import { useCart } from '../../../contexts/CartContext';
 
-export default function BasketDetailPage() {
+function BasketDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const { addToCart } = useCart();
   const [basket, setBasket] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState('');
@@ -241,15 +243,19 @@ export default function BasketDetailPage() {
       return;
     }
 
-    // TODO: Ajouter au panier
-    console.log('Ajout au panier:', {
+    // Ajouter au panier
+    addToCart({
       basketId: basket.id,
-      date: selectedDate,
-      location: selectedLocation,
-      quantity
+      basketName: basket.name,
+      basketImage: basket.image,
+      price: basket.price,
+      quantity: quantity,
+      availabilityId: selectedAvailability.id,
+      distributionDate: selectedAvailability.distributionDate,
+      pickupLocation: selectedAvailability.pickupLocation,
     });
 
-    alert('Panier ajouté ! (fonctionnalité à implémenter)');
+    alert('Panier ajouté avec succès !');
   };
 
   const handleBuyNow = () => {
@@ -484,3 +490,5 @@ export default function BasketDetailPage() {
     </div>
   );
 }
+
+export default BasketDetailPage;

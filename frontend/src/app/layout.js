@@ -1,5 +1,6 @@
-import Header from '../components/layout/header';
+import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
+import { CartProvider } from '../contexts/CartContext';
 import '../styles/variables.css';
 import '../styles/globals.css';
 import '../styles/components/header.css';
@@ -8,6 +9,7 @@ import '../styles/components/basket-card.css';
 import '../styles/components/producer-card.css';
 import '../styles/pages/home.css';
 import '../styles/pages/panier.css';
+import '../styles/pages/cart.css';
 import '../styles/pages/producteurs.css';
 import '../styles/pages/auth.css';
 import '../styles/pages/compte.css';
@@ -23,11 +25,13 @@ function RootLayout({ children }) {
   return (
     <html lang="fr">
       <body>
+        <CartProvider>
         <Header />
         <main className="main-content">
           {children}
         </main>
         <Footer />
+        </CartProvider>
       </body>
     </html>
   );

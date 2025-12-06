@@ -2,7 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Mail, Phone } from 'lucide-react';
 
-export default function ProducerCard({ producer }) {
+function ProducerCard({ producer }) {
   return (
     <article className="producer-card">
       <div className="producer-card-header">
@@ -58,3 +58,5 @@ export default function ProducerCard({ producer }) {
     </article>
   );
 }
+
+export default ProducerCard;

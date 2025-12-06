@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import LoginForm from '../../../components/auth/LoginForm';
 
-export default function LoginPage() {
+function LoginPage() {
   const router = useRouter();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -78,3 +78,6 @@ export default function LoginPage() {
     </div>
   );
 }
+
+
+export default LoginPage;

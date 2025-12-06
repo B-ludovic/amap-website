@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { Mail } from 'lucide-react';
+ 
 
 function Footer() {
   const currentYear = new Date().getFullYear();

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Mail, Lock, User, Phone, Eye, EyeOff } from 'lucide-react';
 
-export default function RegisterForm({ onSubmit, loading }) {
+function RegisterForm({ onSubmit, loading }) {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -245,3 +245,5 @@ export default function RegisterForm({ onSubmit, loading }) {
     </form>
   );
 }
+
+export default RegisterForm;

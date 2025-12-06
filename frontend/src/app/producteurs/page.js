@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import ProducerCard from '../../components/producers/ProducerCard';
 
-export default function ProducteursPage() {
+function ProducteursPage() {
   const [producers, setProducers] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -90,3 +90,5 @@ export default function ProducteursPage() {
     </div>
   );
 }
+
+export default ProducteursPage;

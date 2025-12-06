@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Package, MapPin, ShoppingBasket, User, Mail, Phone, Shield } from 'lucide-react';
 
-export default function ComptePage() {
+function ComptePage() {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -158,3 +158,5 @@ export default function ComptePage() {
     </div>
   );
 }
+
+export default ComptePage;
