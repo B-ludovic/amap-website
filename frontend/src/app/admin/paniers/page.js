@@ -26,7 +26,7 @@ export default function AdminBasketsPage() {
     setLoading(true);
     try {
       const [basketsRes, productsRes] = await Promise.all([
-        api.baskets.getAll(),
+        api.admin.baskets.getAll(),
         api.admin.products.getAll()
       ]);
       setBaskets(basketsRes.data);

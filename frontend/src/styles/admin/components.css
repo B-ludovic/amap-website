@@ -133,6 +133,84 @@
   text-transform: lowercase;
 }
 
+/* Product count badge */
+.admin-product-count {
+  display: inline-block;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background-color: rgba(251, 146, 60, 0.1);
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--accent-color);
+}
+
+/* Basket composition */
+.basket-composition-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-md);
+}
+
+.basket-composition-empty {
+  padding: var(--spacing-xl);
+  text-align: center;
+  background-color: var(--background-color);
+  border-radius: var(--border-radius-md);
+  color: var(--text-secondary);
+}
+
+.basket-composition-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.basket-composition-item {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  background-color: var(--background-color);
+  border-radius: var(--border-radius-md);
+  align-items: center;
+}
+
+.basket-composition-item-product {
+  flex: 1;
+}
+
+.basket-composition-item-quantity {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  width: 150px;
+}
+
+.basket-composition-item-unit {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.basket-composition-item-remove {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--border-radius-md);
+  background-color: transparent;
+  color: var(--error-color-dark);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.basket-composition-item-remove:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
 /* Table */
 .admin-table-container {
   background-color: var(--white);

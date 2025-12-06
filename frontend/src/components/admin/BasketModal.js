@@ -160,7 +160,7 @@ export default function BasketModal({ basket, products, onClose }) {
 
   return (
     <div className="modal-overlay" onClick={() => onClose(false)}>
-      <div className="modal-container modal-xl" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-container modal-lg" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="modal-header">
           <h2 className="modal-title">
