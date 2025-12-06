@@ -33,7 +33,7 @@ export default function AdminDashboard() {
     };
 
     fetchStats();
-  }, [showError]);
+  }, []);
 
   if (loading) {
     return (

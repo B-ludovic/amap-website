@@ -22,6 +22,7 @@ import '../styles/pages/checkout.css';
 import '../styles/admin/dashboard.css';
 import '../styles/admin/layout.css';
 import '../styles/admin/components.css';
+import '../styles/admin/parametres.css';
 
 
 const metadata = {

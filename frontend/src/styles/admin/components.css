@@ -501,6 +501,36 @@
   margin: 0;
 }
 
+/* User role badge */
+.user-role-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background-color: var(--background-color);
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Order count */
+.admin-order-count {
+  display: inline-block;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background-color: var(--background-color);
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+/* Role selection in modal */
+.role-select-btn {
+  width: 100%;
+  text-align: left;
+  font-size: var(--font-size-base);
+}
+
 /* Responsive */
 @media (max-width: 1024px) {
   .admin-toolbar {

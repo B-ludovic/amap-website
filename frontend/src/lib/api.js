@@ -1,3 +1,38 @@
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+
+async function fetchAPI(endpoint, options = {}) {
+  const { method = 'GET', body, requiresAuth = false } = options;
+
+  const headers = {
+    'Content-Type': 'application/json',
+  };
+
+  if (requiresAuth) {
+    const token = localStorage.getItem('token');
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+  }
+
+  const config = {
+    method,
+    headers,
+  };
+
+  if (body) {
+    config.body = JSON.stringify(body);
+  }
+
+  const response = await fetch(`${API_URL}${endpoint}`, config);
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'Une erreur est survenue');
+  }
+
+  return response.json();
+}
+
 export const admin = {
   // Producteurs
   producers: {
@@ -242,3 +277,9 @@ export const admin = {
     },
   },
 };
+
+const api = {
+  admin,
+};
+
+export default api;

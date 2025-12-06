@@ -30,6 +30,33 @@ const SEASONS = [
     { value: 'WINTER', label: 'Hiver', icon: Snowflake },
 ];
 
+const SEASON_COLORS = {
+    SPRING: {
+        primaryColor: '#6b9d5a',
+        secondaryColor: '#d4a574',
+        accentColor: '#c85a3f',
+        backgroundColor: '#f9f7f4',
+    },
+    SUMMER: {
+        primaryColor: '#f59e0b',
+        secondaryColor: '#fcd34d',
+        accentColor: '#fb923c',
+        backgroundColor: '#fffbeb',
+    },
+    AUTUMN: {
+        primaryColor: '#c2410c',
+        secondaryColor: '#d97706',
+        accentColor: '#ea580c',
+        backgroundColor: '#fff7ed',
+    },
+    WINTER: {
+        primaryColor: '#0891b2',
+        secondaryColor: '#06b6d4',
+        accentColor: '#0284c7',
+        backgroundColor: '#f0f9ff',
+    },
+};
+
 export default function AdminParametresPage() {
     const { showConfirm, showSuccess, showError } = useModal();
 
@@ -67,6 +94,7 @@ export default function AdminParametresPage() {
 
     useEffect(() => {
         fetchData();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const fetchData = async () => {
@@ -153,7 +181,16 @@ export default function AdminParametresPage() {
     };
 
     const handleThemeChange = (field, value) => {
-        setThemeData(prev => ({ ...prev, [field]: value }));
+        if (field === 'season') {
+            // Quand on change de saison, appliquer les couleurs correspondantes
+            setThemeData(prev => ({
+                ...prev,
+                season: value,
+                ...SEASON_COLORS[value]
+            }));
+        } else {
+            setThemeData(prev => ({ ...prev, [field]: value }));
+        }
     };
 
     if (loading) {
