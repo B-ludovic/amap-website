@@ -407,6 +407,22 @@ export const admin = {
       });
     },
   },
+
+  // Exemples
+  examples: {
+    getStats: async () => {
+      return fetchAPI('/admin/examples/stats', {
+        requiresAuth: true,
+      });
+    },
+
+    deleteAll: async () => {
+      return fetchAPI('/admin/examples', {
+        method: 'DELETE',
+        requiresAuth: true,
+      });
+    },
+  },
 };
 
 // Export de l'API complète
