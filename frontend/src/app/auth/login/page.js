@@ -3,10 +3,12 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useAuth } from '../../../contexts/AuthContext';
 import LoginForm from '../../../components/auth/LoginForm';
 
 function LoginPage() {
   const router = useRouter();
+  const { login } = useAuth();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -30,9 +32,8 @@ function LoginPage() {
         throw new Error(data.error?.message || 'Erreur lors de la connexion');
       }
 
-      // Sauvegarder le token
-      localStorage.setItem('token', data.data.token);
-      localStorage.setItem('user', JSON.stringify(data.data.user));
+      // Sauvegarder le token et mettre à jour le contexte
+      login(data.data.token, data.data.user);
 
       // Redirection vers la page d'accueil
       router.push('/');

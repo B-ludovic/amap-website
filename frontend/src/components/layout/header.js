@@ -4,11 +4,12 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { ShoppingCart } from 'lucide-react';
 import { useCart } from '../../contexts/CartContext';
+import { useAuth } from '../../contexts/AuthContext';
 
 function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [user, setUser] = useState(null);
+  const { user } = useAuth();
   const { getItemCount } = useCart();
 
   // Détecter le scroll pour changer le style du header
@@ -19,15 +20,6 @@ function Header() {
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  // Récupérer l'utilisateur connecté
-  useEffect(() => {
-    // TODO: Récupérer le user depuis localStorage ou context
-    const token = localStorage.getItem('token');
-    if (token) {
-      setUser({ firstName: 'Marie' });
-    }
   }, []);
 
   const toggleMenu = () => {

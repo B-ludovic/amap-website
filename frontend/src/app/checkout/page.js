@@ -3,34 +3,47 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '../../contexts/CartContext';
+import { useAuth } from '../../contexts/AuthContext';
+import { useModal } from '../../contexts/ModalContext';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements } from '@stripe/react-stripe-js';
+import StripePaymentForm from '../../components/checkout/StripePaymentForm';
 import Image from 'next/image';
-import { CreditCard, Lock, MapPin, Calendar } from 'lucide-react';
+import { MapPin, Calendar } from 'lucide-react';
+
+// Charger Stripe avec la clé publique
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY);
 
 function CheckoutPage() {
   const router = useRouter();
   const { cart, getTotal, clearCart } = useCart();
+  const { user, loading: authLoading } = useAuth();
+  const { showError } = useModal();
   const [loading, setLoading] = useState(false);
-  const [user, setUser] = useState(null);
+  const [clientSecret, setClientSecret] = useState('');
+  const [orderId, setOrderId] = useState(null);
 
   useEffect(() => {
     // Vérifier l'authentification
-    const token = localStorage.getItem('token');
-    const userData = localStorage.getItem('user');
-
-    if (!token || !userData) {
+    if (!authLoading && !user) {
       router.push('/auth/login');
       return;
     }
 
-    setUser(JSON.parse(userData));
-
     // Vérifier que le panier n'est pas vide
-    if (cart.length === 0) {
+    if (user && cart.length === 0) {
       router.push('/panier');
+      return;
     }
-  }, [cart, router]);
 
-  const handleSubmitOrder = async () => {
+    // Créer la commande et le Payment Intent
+    if (user && cart.length > 0) {
+      createOrder();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cart, router, user, authLoading]);
+
+  const createOrder = async () => {
     setLoading(true);
 
     try {
@@ -56,22 +69,95 @@ function CheckoutPage() {
       //   })
       // });
 
+      // const orderData = await response.json();
+
       // Simulation
       setTimeout(() => {
-        console.log('Commande créée:', orderItems);
-        
-        // Vider le panier
-        clearCart();
-        
-        // Rediriger vers la page de confirmation
-        router.push('/checkout/success');
-      }, 2000);
+        const mockOrderId = 'ORDER-' + Date.now();
+        setOrderId(mockOrderId);
+
+        // Créer le Payment Intent
+        createPaymentIntent(mockOrderId);
+      }, 1000);
 
     } catch (error) {
       console.error('Erreur lors de la création de la commande:', error);
-      alert('Une erreur est survenue. Veuillez réessayer.');
+      showError(
+        'Erreur de commande',
+        'Une erreur est survenue lors de la création de la commande. Veuillez réessayer.'
+      );
       setLoading(false);
     }
+  };
+
+  const createPaymentIntent = async (orderId) => {
+    try {
+      const token = localStorage.getItem('token');
+
+      // TODO: Appeler l'API réelle pour créer le Payment Intent
+      // const response = await fetch('http://localhost:4000/api/payments/create-payment-intent', {
+      //   method: 'POST',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //     'Authorization': `Bearer ${token}`
+      //   },
+      //   body: JSON.stringify({
+      //     orderId: orderId
+      //   })
+      // });
+
+      // const data = await response.json();
+      // setClientSecret(data.data.clientSecret);
+
+      // Simulation (en prod, tu recevras le vrai clientSecret de l'API)
+      setTimeout(() => {
+        // Pour tester, utilise un vrai Payment Intent de ton compte Stripe test
+        setClientSecret('pi_test_secret_simulation');
+        setLoading(false);
+      }, 500);
+
+    } catch (error) {
+      console.error('Erreur lors de la création du Payment Intent:', error);
+      showError(
+        'Erreur de paiement',
+        'Une erreur est survenue lors de la préparation du paiement. Veuillez réessayer.'
+      );
+      setLoading(false);
+    }
+  };
+
+  const handlePaymentSuccess = async (paymentIntent) => {
+    try {
+      const token = localStorage.getItem('token');
+
+      // TODO: Confirmer le paiement côté serveur
+      // await fetch('http://localhost:4000/api/payments/confirm', {
+      //   method: 'POST',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //     'Authorization': `Bearer ${token}`
+      //   },
+      //   body: JSON.stringify({
+      //     paymentIntentId: paymentIntent.id
+      //   })
+      // });
+
+      // Vider le panier
+      clearCart();
+
+      // Rediriger vers la page de confirmation
+      router.push('/checkout/success');
+    } catch (error) {
+      console.error('Erreur lors de la confirmation du paiement:', error);
+      showError(
+        'Erreur de confirmation',
+        'Le paiement a réussi mais une erreur est survenue. Veuillez contacter le support.'
+      );
+    }
+  };
+
+  const handlePaymentError = (error) => {
+    console.error('Erreur de paiement:', error);
   };
 
   const formatDate = (dateString) => {
@@ -83,7 +169,7 @@ function CheckoutPage() {
     });
   };
 
-  if (!user) {
+  if (authLoading || loading) {
     return (
       <div className="checkout-page">
         <div className="container">
@@ -92,6 +178,26 @@ function CheckoutPage() {
       </div>
     );
   }
+
+  if (!user) {
+    return null; // Le useEffect va rediriger
+  }
+
+  // Options pour Stripe Elements
+  const stripeOptions = {
+    clientSecret,
+    appearance: {
+      theme: 'stripe',
+      variables: {
+        colorPrimary: '#c85a3f',
+        colorBackground: '#ffffff',
+        colorText: '#2d3748',
+        colorDanger: '#f87171',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        borderRadius: '8px',
+      },
+    },
+  };
 
   return (
     <div className="checkout-page">
@@ -172,21 +278,18 @@ function CheckoutPage() {
               </div>
             </div>
 
-            {/* Paiement */}
-            <div className="checkout-section">
-              <h2 className="checkout-section-title">
-                <Lock size={20} /> Paiement sécurisé
-              </h2>
-              <div className="checkout-payment-info">
-                <p className="checkout-payment-text">
-                  Le paiement sera traité de manière sécurisée via Stripe.
-                </p>
-                <p className="checkout-payment-note">
-                  En cliquant sur "Passer la commande", vous serez redirigé vers
-                  notre page de paiement sécurisée.
-                </p>
+            {/* Paiement Stripe */}
+            {clientSecret && (
+              <div className="checkout-section">
+                <Elements stripe={stripePromise} options={stripeOptions}>
+                  <StripePaymentForm
+                    onSuccess={handlePaymentSuccess}
+                    onError={handlePaymentError}
+                    amount={getTotal()}
+                  />
+                </Elements>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Récapitulatif */}
@@ -203,7 +306,6 @@ function CheckoutPage() {
                         alt={item.basketName}
                         width={50}
                         height={50}
-                        style={{ objectFit: 'contain' }}
                       />
                     </div>
                     <div className="checkout-summary-item-info">
@@ -240,25 +342,6 @@ function CheckoutPage() {
                   {getTotal().toFixed(2)}€
                 </span>
               </div>
-
-              <button
-                onClick={handleSubmitOrder}
-                disabled={loading}
-                className="btn btn-primary btn-lg checkout-submit-btn"
-              >
-                {loading ? (
-                  'Traitement en cours...'
-                ) : (
-                  <>
-                    <CreditCard size={20} />
-                    Passer la commande
-                  </>
-                )}
-              </button>
-
-              <p className="checkout-security-note">
-                <Lock size={16} /> Paiement 100% sécurisé
-              </p>
             </div>
           </div>
         </div>

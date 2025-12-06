@@ -1,6 +1,7 @@
 'use client';
 
 import { useCart } from '../../contexts/CartContext';
+import { useModal } from '../../contexts/ModalContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -9,6 +10,7 @@ import { Trash2, ShoppingBag, CreditCard, Calendar, MapPin } from 'lucide-react'
 export default function PanierPage() {
   const router = useRouter();
   const { cart, removeFromCart, updateQuantity, getTotal, clearCart } = useCart();
+  const { showWarning } = useModal();
 
   const handleCheckout = () => {
     const token = localStorage.getItem('token');
@@ -19,7 +21,7 @@ export default function PanierPage() {
     }
 
     if (cart.length === 0) {
-      alert('Votre panier est vide');
+      showWarning('Panier vide', 'Votre panier est vide');
       return;
     }
 

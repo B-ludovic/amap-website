@@ -1,49 +1,23 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Package, MapPin, ShoppingBasket, User, Mail, Phone, Shield } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
 
 function ComptePage() {
   const router = useRouter();
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { user, loading, logout } = useAuth();
 
   useEffect(() => {
-    checkAuth();
-  }, []);
-
-  const checkAuth = async () => {
-    const token = localStorage.getItem('token');
-    const userData = localStorage.getItem('user');
-
-    if (!token || !userData) {
-      router.push('/auth/login');
-      return;
-    }
-
-    try {
-      // TODO: Appeler l'API pour vérifier le token et récupérer les infos à jour
-      // const response = await fetch('http://localhost:4000/api/auth/me', {
-      //   headers: {
-      //     'Authorization': `Bearer ${token}`
-      //   }
-      // });
-
-      setUser(JSON.parse(userData));
-      setLoading(false);
-    } catch (error) {
-      console.error('Erreur:', error);
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+    if (!loading && !user) {
       router.push('/auth/login');
     }
-  };
+  }, [user, loading, router]);
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    logout();
     router.push('/');
   };
 
@@ -55,6 +29,10 @@ function ComptePage() {
         </div>
       </div>
     );
+  }
+
+  if (!user) {
+    return null; // Le useEffect va rediriger
   }
 
   return (

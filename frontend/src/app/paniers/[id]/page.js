@@ -6,11 +6,13 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Tractor, MapPin, ShoppingCart, CreditCard } from 'lucide-react';
 import { useCart } from '../../../contexts/CartContext';
+import { useModal } from '../../../contexts/ModalContext';
 
 function BasketDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { addToCart } = useCart();
+  const { showWarning, showSuccess } = useModal();
   const [basket, setBasket] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState('');
@@ -234,12 +236,18 @@ function BasketDetailPage() {
 
   const handleAddToCart = () => {
     if (!selectedDate || !selectedLocation) {
-      alert('Veuillez sélectionner une date et un point de retrait');
+      showWarning(
+        'Information manquante',
+        'Veuillez sélectionner une date et un point de retrait'
+      );
       return;
     }
 
     if (quantity > maxQuantity) {
-      alert(`Quantité maximale disponible : ${maxQuantity}`);
+      showWarning(
+        'Quantité non disponible',
+        `Quantité maximale disponible : ${maxQuantity}`
+      );
       return;
     }
 
@@ -255,7 +263,10 @@ function BasketDetailPage() {
       pickupLocation: selectedAvailability.pickupLocation,
     });
 
-    alert('Panier ajouté avec succès !');
+    showSuccess(
+      'Panier ajouté !',
+      'Le panier a été ajouté à votre commande avec succès.'
+    );
   };
 
   const handleBuyNow = () => {
@@ -267,12 +278,18 @@ function BasketDetailPage() {
     }
 
     if (!selectedDate || !selectedLocation) {
-      alert('Veuillez sélectionner une date et un point de retrait');
+      showWarning(
+        'Information manquante',
+        'Veuillez sélectionner une date et un point de retrait'
+      );
       return;
     }
 
     if (quantity > maxQuantity) {
-      alert(`Quantité maximale disponible : ${maxQuantity}`);
+      showWarning(
+        'Quantité non disponible',
+        `Quantité maximale disponible : ${maxQuantity}`
+      );
       return;
     }
 
