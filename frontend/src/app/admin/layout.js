@@ -6,6 +6,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminHeader from "../../components/admin/AdminHeader";
 import "../../styles/admin/layout.css";
+import "../../styles/admin/components.css";
 
 export default function AdminLayout({ children }) {
     const router = useRouter();

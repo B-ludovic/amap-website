@@ -68,7 +68,7 @@ export default function Modal({
         {/* Contenu */}
         <div className="modal-content">
           {title && <h2 className="modal-title">{title}</h2>}
-          {message && <p className="modal-message">{message}</p>}
+          {message && <div className="modal-message">{message}</div>}
         </div>
 
         {/* Actions */}

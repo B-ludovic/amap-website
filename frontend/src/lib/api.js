@@ -278,8 +278,39 @@ export const admin = {
   },
 };
 
+// Routes d'authentification (publiques)
+export const auth = {
+  register: async (userData) => {
+    return fetchAPI('/auth/register', {
+      method: 'POST',
+      body: userData,
+    });
+  },
+
+  login: async (credentials) => {
+    return fetchAPI('/auth/login', {
+      method: 'POST',
+      body: credentials,
+    });
+  },
+
+  logout: async () => {
+    return fetchAPI('/auth/logout', {
+      method: 'POST',
+      requiresAuth: true,
+    });
+  },
+
+  me: async () => {
+    return fetchAPI('/auth/me', {
+      requiresAuth: true,
+    });
+  },
+};
+
 const api = {
   admin,
+  auth,
 };
 
 export default api;

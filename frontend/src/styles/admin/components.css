@@ -513,6 +513,18 @@
   font-weight: var(--font-weight-medium);
 }
 
+.user-role-icon[data-color="#6b7280"] {
+  color: #6b7280;
+}
+
+.user-role-icon[data-color="#10b981"] {
+  color: #10b981;
+}
+
+.user-role-icon[data-color="#f59e0b"] {
+  color: #f59e0b;
+}
+
 /* Order count */
 .admin-order-count {
   display: inline-block;
@@ -524,11 +536,80 @@
   color: var(--text-primary);
 }
 
+/* Role selection modal */
+.role-modal-content {
+  text-align: left;
+}
+
+.role-modal-user {
+  margin-bottom: var(--spacing-md);
+}
+
+.role-modal-current {
+  margin-bottom: var(--spacing-md);
+  color: var(--text-secondary);
+}
+
+.role-select-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
 /* Role selection in modal */
 .role-select-btn {
   width: 100%;
   text-align: left;
   font-size: var(--font-size-base);
+  padding: var(--spacing-md);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  background: var(--white);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  transition: all var(--transition-fast);
+}
+
+.role-select-btn:hover {
+  border-color: var(--accent-color);
+  background: rgba(251, 146, 60, 0.05);
+}
+
+.role-select-btn-active {
+  border: 2px solid var(--accent-color);
+  background: rgba(251, 146, 60, 0.1);
+}
+
+.role-select-btn-active:hover {
+  background: rgba(251, 146, 60, 0.1);
+}
+
+.role-select-icon[data-color="#6b7280"] {
+  color: #6b7280;
+}
+
+.role-select-icon[data-color="#10b981"] {
+  color: #10b981;
+}
+
+.role-select-icon[data-color="#f59e0b"] {
+  color: #f59e0b;
+}
+
+.role-select-label {
+  font-weight: var(--font-weight-normal);
+}
+
+.role-select-btn-active .role-select-label {
+  font-weight: var(--font-weight-semibold);
+}
+
+.role-select-check {
+  margin-left: auto;
+  color: var(--accent-color);
+  font-weight: var(--font-weight-bold);
 }
 
 /* Responsive */
