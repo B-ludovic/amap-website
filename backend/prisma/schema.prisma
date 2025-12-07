@@ -40,6 +40,43 @@ enum UserRole {
   ADMIN       // Administrateur
 }
 
+// DEMANDES D'ABONNEMENTS
+
+model SubscriptionRequest {
+  id            String   @id @default(uuid())
+  
+  firstName     String
+  lastName      String
+  email         String
+  phone         String
+  
+  type          SubscriptionType
+  basketSize    BasketSize
+  pricingType   PricingType  @default(NORMAL)
+  
+  message       String?  @db.Text
+  
+  status        RequestStatus @default(PENDING)
+  adminNotes    String?  @db.Text
+  processedAt   DateTime?
+  processedBy   String?
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([status])
+  @@index([email])
+  @@index([createdAt])
+}
+
+enum RequestStatus {
+  PENDING       // En attente de traitement
+  IN_PROGRESS   // En cours de traitement
+  APPROVED      // Approuvé → abonnement créé
+  REJECTED      // Refusé
+  ARCHIVED      // Archivé
+}
+
 
 // PRODUCTEUR //
 
