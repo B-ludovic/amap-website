@@ -16,7 +16,9 @@ import {
   Palette,
   Settings,
   LogOut,
-  ChevronDown
+  ChevronDown,
+  UserCog,
+  Mail
 } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
@@ -82,6 +84,26 @@ export default function AdminSidebar({ currentPath }) {
       title: 'Utilisateurs',
       icon: Users,
       path: '/admin/utilisateurs'
+    },
+    {
+      title: 'Permanences',
+      icon: UserCog,
+      path: '/admin/permanences'
+    },
+    {
+      title: 'Communication',
+      icon: Mail,
+      path: '/admin/communication'
+    },
+    {
+      title: 'Panier hebdomadaire',
+      icon: ShoppingBasket,
+      path: '/admin/panier-hebdomadaire'
+    },
+    {
+      title: 'Distribution',
+      icon: Calendar,
+      path: '/admin/distribution'
     },
     {
       title: 'Points de retrait',

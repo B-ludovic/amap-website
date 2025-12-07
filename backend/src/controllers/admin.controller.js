@@ -679,7 +679,8 @@ const getAllUsers = asyncHandler(async (req, res) => {
         updatedAt: true,
         _count: {
           select: {
-            orders: true
+            subscriptions: true,
+            shiftVolunteers: true
           }
         }
       },

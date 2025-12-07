@@ -5,6 +5,7 @@ import { CartProvider } from '../contexts/CartContext';
 import { ModalProvider } from '../contexts/ModalContext';
 import '../styles/variables.css';
 import '../styles/globals.css';
+import '../styles/components/modal.css';
 import '../styles/components/header.css';
 import '../styles/components/footer.css';
 import '../styles/components/basket-card.css';

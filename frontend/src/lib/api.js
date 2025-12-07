@@ -311,6 +311,66 @@ export const auth = {
 const api = {
   admin,
   auth,
+  
+  newsletters: {
+    getAll: async (params = {}) => {
+      const queryString = new URLSearchParams(params).toString();
+      return fetchAPI(`/newsletters${queryString ? `?${queryString}` : ''}`, {
+        requiresAuth: true,
+      });
+    },
+
+    getStats: async () => {
+      return fetchAPI('/newsletters/stats', {
+        requiresAuth: true,
+      });
+    },
+
+    getById: async (id) => {
+      return fetchAPI(`/newsletters/${id}`, {
+        requiresAuth: true,
+      });
+    },
+
+    create: async (data) => {
+      return fetchAPI('/newsletters', {
+        method: 'POST',
+        body: data,
+        requiresAuth: true,
+      });
+    },
+
+    update: async (id, data) => {
+      return fetchAPI(`/newsletters/${id}`, {
+        method: 'PUT',
+        body: data,
+        requiresAuth: true,
+      });
+    },
+
+    delete: async (id) => {
+      return fetchAPI(`/newsletters/${id}`, {
+        method: 'DELETE',
+        requiresAuth: true,
+      });
+    },
+
+    send: async (id) => {
+      return fetchAPI(`/newsletters/${id}/send`, {
+        method: 'POST',
+        requiresAuth: true,
+      });
+    },
+
+    schedule: async (id, data) => {
+      return fetchAPI(`/newsletters/${id}/schedule`, {
+        method: 'POST',
+        body: data,
+        requiresAuth: true,
+      });
+    },
+  },
+
   shifts: {
     getAll: async (params = {}) => {
       const queryString = new URLSearchParams(params).toString();
@@ -325,24 +385,45 @@ const api = {
       });
     },
 
-    create: async (shiftData) => {
-      return fetchAPI('/shifts', {
-        method: 'POST',
-        body: shiftData,
+    getMyShifts: async () => {
+      return fetchAPI('/shifts/my-shifts', {
         requiresAuth: true,
       });
     },
 
-    update: async (id, shiftData) => {
+    create: async (data) => {
+      return fetchAPI('/shifts', {
+        method: 'POST',
+        body: data,
+        requiresAuth: true,
+      });
+    },
+
+    update: async (id, data) => {
       return fetchAPI(`/shifts/${id}`, {
         method: 'PUT',
-        body: shiftData,
+        body: data,
         requiresAuth: true,
       });
     },
 
     delete: async (id) => {
       return fetchAPI(`/shifts/${id}`, {
+        method: 'DELETE',
+        requiresAuth: true,
+      });
+    },
+
+    join: async (id, data) => {
+      return fetchAPI(`/shifts/${id}/join`, {
+        method: 'POST',
+        body: data,
+        requiresAuth: true,
+      });
+    },
+
+    leave: async (id) => {
+      return fetchAPI(`/shifts/${id}/leave`, {
         method: 'DELETE',
         requiresAuth: true,
       });
@@ -355,18 +436,110 @@ const api = {
         requiresAuth: true,
       });
     },
+  },
 
-    register: async (id, data) => {
-      return fetchAPI(`/shifts/${id}/register`, {
+  weeklyBaskets: {
+    getAll: async (params = {}) => {
+      const queryString = new URLSearchParams(params).toString();
+      return fetchAPI(`/weekly-baskets${queryString ? `?${queryString}` : ''}`, {
+        requiresAuth: true,
+      });
+    },
+
+    getCurrent: async () => {
+      return fetchAPI('/weekly-baskets/current', {
+        requiresAuth: true,
+      });
+    },
+
+    getById: async (id) => {
+      return fetchAPI(`/weekly-baskets/${id}`, {
+        requiresAuth: true,
+      });
+    },
+
+    create: async (data) => {
+      return fetchAPI('/weekly-baskets', {
         method: 'POST',
         body: data,
         requiresAuth: true,
       });
     },
 
-    unregister: async (volunteerId) => {
-      return fetchAPI(`/shifts/volunteers/${volunteerId}`, {
+    update: async (id, data) => {
+      return fetchAPI(`/weekly-baskets/${id}`, {
+        method: 'PUT',
+        body: data,
+        requiresAuth: true,
+      });
+    },
+
+    delete: async (id) => {
+      return fetchAPI(`/weekly-baskets/${id}`, {
         method: 'DELETE',
+        requiresAuth: true,
+      });
+    },
+
+    publish: async (id) => {
+      return fetchAPI(`/weekly-baskets/${id}/publish`, {
+        method: 'POST',
+        requiresAuth: true,
+      });
+    },
+
+    duplicate: async (id, data) => {
+      return fetchAPI(`/weekly-baskets/${id}/duplicate`, {
+        method: 'POST',
+        body: data,
+        requiresAuth: true,
+      });
+    },
+
+    addProduct: async (id, data) => {
+      return fetchAPI(`/weekly-baskets/${id}/products`, {
+        method: 'POST',
+        body: data,
+        requiresAuth: true,
+      });
+    },
+
+    updateProduct: async (id, productId, data) => {
+      return fetchAPI(`/weekly-baskets/${id}/products/${productId}`, {
+        method: 'PUT',
+        body: data,
+        requiresAuth: true,
+      });
+    },
+
+    removeProduct: async (id, productId) => {
+      return fetchAPI(`/weekly-baskets/${id}/products/${productId}`, {
+        method: 'DELETE',
+        requiresAuth: true,
+      });
+    },
+  },
+
+  distribution: {
+    getList: async (weeklyBasketId, params = {}) => {
+      const queryString = new URLSearchParams(params).toString();
+      return fetchAPI(`/distribution/${weeklyBasketId}${queryString ? `?${queryString}` : ''}`, {
+        requiresAuth: true,
+      });
+    },
+
+    markAsPickedUp: async (pickupId, data) => {
+      if (pickupId === 'new') {
+        return fetchAPI('/distribution/pickup', {
+          method: 'POST',
+          body: data,
+          requiresAuth: true,
+        });
+      }
+      
+      return fetchAPI(`/distribution/pickup/${pickupId}`, {
+        method: 'PUT',
+        body: data,
         requiresAuth: true,
       });
     },
