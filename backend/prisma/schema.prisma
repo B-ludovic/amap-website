@@ -1,198 +1,141 @@
-// GESTION DES PERMANENCES //
+Parfait ! Voici le schema Prisma complet et à jour. Je l'affiche en entier pour que tu puisses le copier/modifier directement :
+prisma// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-
-model Shift {
-  id                String   @id @default(uuid())
-  distributionDate  DateTime
-  startTime         String   @default("18:15")
-  endTime           String   @default("19:15")
-  volunteersNeeded  Int      @default(2)
-  notes             String?  @db.Text
-  
-  volunteers        ShiftVolunteer[]
-  
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  
-  @@index([distributionDate])
+generator client {
+  provider = "prisma-client-js"
 }
 
-model ShiftVolunteer {
-  id        String   @id @default(uuid())
-  shiftId   String
-  userId    String
-  role      String?  // "Préparation", "Distribution", "Accueil"
-  status    VolunteerStatus @default(CONFIRMED)
-  
-  shift     Shift    @relation(fields: [shiftId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  createdAt DateTime @default(now())
-  
-  @@unique([shiftId, userId])
-  @@index([userId])
-}
-
-enum VolunteerStatus {
-  CONFIRMED   // A confirmé sa présence
-  CANCELLED   // S'est désisté
-  ABSENT      // Ne s'est pas présenté
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 
-// NEWSLETTER / COMMUNICATION //
+// UTILISATEUR //
 
-model Newsletter {
-  id          String   @id @default(uuid())
-  subject     String
-  content     String   @db.Text
-  type        NewsletterType @default(GENERAL)
-  target      NewsletterTarget @default(ALL)
-  
-  scheduledFor DateTime?
-  sentAt      DateTime?
-  sentCount   Int      @default(0)
-  openCount   Int      @default(0)
-  
-  createdBy   String
-  author      User     @relation(fields: [createdBy], references: [id])
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  @@index([sentAt])
-  @@index([createdBy])
-}
-
-enum NewsletterType {
-  GENERAL           // Info générale
-  WEEKLY_BASKET     // Panier de la semaine
-  RECIPE            // Recette
-  ALERT             // Alerte (annulation, changement)
-  PRODUCER_NEWS     // Nouvelles des producteurs
-}
-
-enum NewsletterTarget {
-  ALL                 // Tous les adhérents
-  ACTIVE_SUBSCRIBERS  // Abonnements actifs uniquement
-  SOLIDARITY          // Tarif solidaire uniquement (discret)
-  TEST                // Envoi test (admin uniquement)
-}
-
-
-// RECETTES DE CUISINE //
-
-model Recipe {
-  id          String   @id @default(uuid())
-  title       String
-  slug        String   @unique
-  description String?  @db.Text
-  ingredients String   @db.Text  // Format texte ou JSON
-  steps       String   @db.Text
-  
-  prepTime    Int?     // minutes
-  cookTime    Int?     // minutes
-  servings    Int?     // nombre de personnes
-  difficulty  RecipeDifficulty? @default(EASY)
-  season      Season?
-  
-  image       String?
-  tips        String?  @db.Text  // Astuces de préparation
-  
-  authorId    String
-  author      User     @relation(fields: [authorId], references: [id])
-  
-  products    RecipeProduct[]
-  
-  isPublished Boolean  @default(false)
-  publishedAt DateTime?
-  
-  viewCount   Int      @default(0)
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  @@index([slug])
-  @@index([season])
-  @@index([isPublished])
-}
-
-model RecipeProduct {
-  id         String  @id @default(uuid())
-  recipeId   String
-  productId  String
-  quantity   String  // "500g", "2 pièces", "1 bouquet"
-  isOptional Boolean @default(false)
-  
-  recipe     Recipe  @relation(fields: [recipeId], references: [id], onDelete: Cascade)
-  product    Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  
-  @@index([recipeId])
-  @@index([productId])
-}
-
-enum RecipeDifficulty {
-  EASY      // Facile
-  MEDIUM    // Moyen
-  HARD      // Difficile
-}
-
-
-// DEMANDES PRODUCTEURS //
-
-model ProducerInquiry {
-  id            String   @id @default(uuid())
-  
-  // Informations contact
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  password      String
   firstName     String
   lastName      String
-  email         String
-  phone         String
+  phone         String?
+  role          UserRole  @default(MEMBER)
   
-  // Informations exploitation
-  farmName      String
-  address       String
-  city          String
-  postalCode    String
-  distance      Int?     // Distance en km depuis le point de retrait
+  emailVerified Boolean   @default(false)
   
-  // Production
-  products      String   @db.Text  // Types de produits (légumes, fruits, œufs, etc.)
-  isBio         Boolean  @default(false)
-  certifications String?  @db.Text  // AB, Nature & Progrès, etc.
+  subscriptions    Subscription[]
+  shiftVolunteers  ShiftVolunteer[]
+  newsletters      Newsletter[]
+  recipes          Recipe[]
   
-  // Message
-  message       String?  @db.Text
-  availability  String?  // Disponibilité pour rencontre
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
   
-  // Suivi
-  status        InquiryStatus @default(PENDING)
-  adminNotes    String?  @db.Text
-  respondedAt   DateTime?
-  respondedBy   String?
-  
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  
-  @@index([status])
-  @@index([createdAt])
+  @@index([email])
+  @@index([role])
 }
 
-enum InquiryStatus {
-  PENDING       // En attente de traitement
-  IN_PROGRESS   // En cours d'évaluation
-  ACCEPTED      // Accepté → devient producteur
-  REJECTED      // Refusé
-  ARCHIVED      // Archivé
+enum UserRole {
+  MEMBER      // Adhérent simple
+  VOLUNTEER   // Bénévole (+ accès permanences)
+  ADMIN       // Administrateur
 }
 
 
-// ABONNEMENTS (Nouveau modèle) //
+// PRODUCTEUR //
+
+model Producer {
+  id          String   @id @default(uuid())
+  name        String
+  email       String   @unique
+  phone       String?
+  specialty   String?
+  description String?  @db.Text
+  image       String?
+  isActive    Boolean  @default(true)
+  isExample   Boolean  @default(false)
+  
+  products    Product[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([email])
+  @@index([isActive])
+}
+
+
+// PRODUITS //
+
+model Product {
+  id          String      @id @default(uuid())
+  name        String
+  producerId  String
+  unit        ProductUnit
+  category    ProductCategory?
+  description String?     @db.Text
+  image       String?
+  isActive    Boolean     @default(true)
+  isExample   Boolean     @default(false)
+  
+  producer    Producer    @relation(fields: [producerId], references: [id])
+  
+  weeklyBasketItems WeeklyBasketItem[]
+  recipeProducts    RecipeProduct[]
+  
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  deletedAt   DateTime?
+  
+  @@index([producerId])
+  @@index([category])
+  @@index([isActive])
+}
+
+enum ProductUnit {
+  KG      // Kilogramme
+  PIECE   // Pièce
+}
+
+enum ProductCategory {
+  VEGETABLES  // Légumes
+  FRUITS      // Fruits
+  EGGS        // Œufs
+  GROCERY     // Épicerie (farine, pâtes, huile, lentilles)
+}
+
+
+// POINT DE RETRAIT //
+
+model PickupLocation {
+  id          String   @id @default(uuid())
+  name        String
+  address     String
+  city        String
+  postalCode  String
+  
+  schedule    String   @default("Mercredi 18h15 - 19h15")
+  instructions String? @db.Text
+  
+  isActive    Boolean  @default(true)
+  isExample   Boolean  @default(false)
+  
+  subscriptions Subscription[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+
+// ABONNEMENTS //
 
 model Subscription {
   id              String   @id @default(uuid())
   userId          String
-  subscriptionNumber String @unique  // Ex: "SUB-2025-001"
+  subscriptionNumber String @unique
   
   type            SubscriptionType
   basketSize      BasketSize
@@ -207,7 +150,6 @@ model Subscription {
   
   pickupLocationId String
   
-  // Relations
   user            User            @relation(fields: [userId], references: [id])
   pickupLocation  PickupLocation  @relation(fields: [pickupLocationId], references: [id])
   
@@ -265,18 +207,46 @@ model SubscriptionPause {
 }
 
 
+// PAIEMENTS //
+
+model Payment {
+  id                String   @id @default(uuid())
+  subscriptionId    String
+  amount            Float
+  status            PaymentStatus @default(PENDING)
+  
+  stripePaymentId   String?  @unique
+  paymentMethod     String?
+  
+  subscription      Subscription @relation(fields: [subscriptionId], references: [id])
+  
+  createdAt         DateTime @default(now())
+  paidAt            DateTime?
+  
+  @@index([subscriptionId])
+  @@index([status])
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+}
+
+
 // PANIER HEBDOMADAIRE //
 
 model WeeklyBasket {
   id              String   @id @default(uuid())
-  weekNumber      Int      // Numéro de semaine (1-52)
+  weekNumber      Int
   year            Int
   distributionDate DateTime
   
   isPublished     Boolean  @default(false)
   publishedAt     DateTime?
   
-  notes           String?  @db.Text  // Message de la semaine
+  notes           String?  @db.Text
   
   items           WeeklyBasketItem[]
   pickups         WeeklyPickup[]
@@ -294,8 +264,8 @@ model WeeklyBasketItem {
   weeklyBasketId  String
   productId       String
   
-  quantitySmall   Float    // Quantité pour petit panier
-  quantityLarge   Float    // Quantité pour grand panier
+  quantitySmall   Float
+  quantityLarge   Float
   
   weeklyBasket    WeeklyBasket @relation(fields: [weeklyBasketId], references: [id], onDelete: Cascade)
   product         Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
@@ -315,8 +285,8 @@ model WeeklyPickup {
   
   wasPickedUp     Boolean  @default(false)
   pickedUpAt      DateTime?
-  pickedUpBy      String?  // Nom du bénévole qui a validé
-  notes           String?  // Notes (ex: "Récupéré par son voisin")
+  pickedUpBy      String?
+  notes           String?
   
   subscription    Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
   weeklyBasket    WeeklyBasket @relation(fields: [weeklyBasketId], references: [id], onDelete: Cascade)
@@ -329,143 +299,208 @@ model WeeklyPickup {
 }
 
 
-// PRODUITS (Simplifié) //
+// GESTION DES PERMANENCES //
 
-model Product {
-  id          String      @id @default(uuid())
-  name        String
-  producerId  String
-  unit        ProductUnit
-  category    ProductCategory?
-  description String?     @db.Text
-  image       String?
-  isActive    Boolean     @default(true)
-  
-  producer    Producer    @relation(fields: [producerId], references: [id])
-  
-  weeklyBasketItems WeeklyBasketItem[]
-  recipeProducts    RecipeProduct[]
-  
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  deletedAt   DateTime?
-  
-  @@index([producerId])
-  @@index([category])
-  @@index([isActive])
-}
-
-enum ProductUnit {
-  KG      // Kilogramme
-  PIECE   // Pièce
-}
-
-enum ProductCategory {
-  VEGETABLES  // Légumes
-  FRUITS      // Fruits
-  EGGS        // Œufs
-  GROCERY     // Épicerie (farine, pâtes, huile, lentilles)
-}
-
-
-// PAIEMENTS //
-
-model Payment {
+model Shift {
   id                String   @id @default(uuid())
-  subscriptionId    String
-  amount            Float
-  status            PaymentStatus @default(PENDING)
+  distributionDate  DateTime
+  startTime         String   @default("18:15")
+  endTime           String   @default("19:15")
+  volunteersNeeded  Int      @default(2)
+  notes             String?  @db.Text
   
-  stripePaymentId   String?  @unique
-  paymentMethod     String?  // card, sepa_debit, etc.
-  
-  subscription      Subscription @relation(fields: [subscriptionId], references: [id])
+  volunteers        ShiftVolunteer[]
   
   createdAt         DateTime @default(now())
-  paidAt            DateTime?
+  updatedAt         DateTime @updatedAt
   
-  @@index([subscriptionId])
-  @@index([status])
+  @@index([distributionDate])
 }
 
-enum PaymentStatus {
-  PENDING
-  SUCCEEDED
-  FAILED
-  REFUNDED
+model ShiftVolunteer {
+  id        String   @id @default(uuid())
+  shiftId   String
+  userId    String
+  role      String?
+  status    VolunteerStatus @default(CONFIRMED)
+  
+  shift     Shift    @relation(fields: [shiftId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+  
+  @@unique([shiftId, userId])
+  @@index([userId])
+}
+
+enum VolunteerStatus {
+  CONFIRMED
+  CANCELLED
+  ABSENT
 }
 
 
-// UTILISATEUR (Adapté) //
+// NEWSLETTER / COMMUNICATION //
 
-model User {
-  id            String    @id @default(uuid())
-  email         String    @unique
-  password      String
+model Newsletter {
+  id          String   @id @default(uuid())
+  subject     String
+  content     String   @db.Text
+  type        NewsletterType @default(GENERAL)
+  target      NewsletterTarget @default(ALL)
+  
+  scheduledFor DateTime?
+  sentAt      DateTime?
+  sentCount   Int      @default(0)
+  openCount   Int      @default(0)
+  
+  createdBy   String
+  author      User     @relation(fields: [createdBy], references: [id])
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([sentAt])
+  @@index([createdBy])
+}
+
+enum NewsletterType {
+  GENERAL
+  WEEKLY_BASKET
+  RECIPE
+  ALERT
+  PRODUCER_NEWS
+}
+
+enum NewsletterTarget {
+  ALL
+  ACTIVE_SUBSCRIBERS
+  SOLIDARITY
+  TEST
+}
+
+
+// RECETTES DE CUISINE //
+
+model Recipe {
+  id          String   @id @default(uuid())
+  title       String
+  slug        String   @unique
+  description String?  @db.Text
+  ingredients String   @db.Text
+  steps       String   @db.Text
+  
+  prepTime    Int?
+  cookTime    Int?
+  servings    Int?
+  difficulty  RecipeDifficulty? @default(EASY)
+  season      Season?
+  
+  image       String?
+  tips        String?  @db.Text
+  
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id])
+  
+  products    RecipeProduct[]
+  
+  isPublished Boolean  @default(false)
+  publishedAt DateTime?
+  
+  viewCount   Int      @default(0)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([slug])
+  @@index([season])
+  @@index([isPublished])
+}
+
+model RecipeProduct {
+  id         String  @id @default(uuid())
+  recipeId   String
+  productId  String
+  quantity   String
+  isOptional Boolean @default(false)
+  
+  recipe     Recipe  @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  product    Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  @@index([recipeId])
+  @@index([productId])
+}
+
+enum RecipeDifficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum Season {
+  SPRING
+  SUMMER
+  AUTUMN
+  WINTER
+}
+
+
+// DEMANDES PRODUCTEURS //
+
+model ProducerInquiry {
+  id            String   @id @default(uuid())
+  
   firstName     String
   lastName      String
-  phone         String?
-  role          UserRole  @default(MEMBER)
+  email         String
+  phone         String
   
-  emailVerified Boolean   @default(false)
+  farmName      String
+  address       String
+  city          String
+  postalCode    String
+  distance      Int?
   
-  subscriptions    Subscription[]
-  shiftVolunteers  ShiftVolunteer[]
-  newsletters      Newsletter[]
-  recipes          Recipe[]
+  products      String   @db.Text
+  isBio         Boolean  @default(false)
+  certifications String?  @db.Text
   
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  deletedAt     DateTime?
+  message       String?  @db.Text
+  availability  String?
   
-  @@index([email])
-  @@index([role])
+  status        InquiryStatus @default(PENDING)
+  adminNotes    String?  @db.Text
+  respondedAt   DateTime?
+  respondedBy   String?
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([status])
+  @@index([createdAt])
 }
 
-enum UserRole {
-  MEMBER      // Adhérent simple
-  VOLUNTEER   // Bénévole (+ accès permanences)
-  ADMIN       // Administrateur
-}
-
-
-// POINT DE RETRAIT (Unique) //
-
-model PickupLocation {
-  id          String   @id @default(uuid())
-  name        String
-  address     String
-  city        String
-  postalCode  String
-  
-  schedule    String   @default("Mercredi 18h15 - 19h15")
-  instructions String? @db.Text  // Indications d'accès
-  
-  isActive    Boolean  @default(true)
-  
-  subscriptions Subscription[]
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+enum InquiryStatus {
+  PENDING
+  IN_PROGRESS
+  ACCEPTED
+  REJECTED
+  ARCHIVED
 }
 
 
-// PRODUCTEUR (Existant, conservé) //
+// THÈME SAISONNIER (Existant - conservé) //
 
-model Producer {
-  id          String   @id @default(uuid())
-  name        String
-  email       String   @unique
-  phone       String?
-  specialty   String?
-  description String?  @db.Text
-  image       String?
-  isActive    Boolean  @default(true)
+model ThemeConfig {
+  id              String  @id @default(uuid())
+  season          Season  @unique
+  primaryColor    String
+  secondaryColor  String
+  accentColor     String
+  backgroundColor String
+  backgroundImage String?
+  isActive        Boolean @default(false)
   
-  products    Product[]
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  @@index([email])
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
