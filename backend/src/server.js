@@ -13,6 +13,13 @@ import basketsRoutes from './routes/baskets.routes.js';
 import ordersRoutes from './routes/orders.routes.js';
 import paymentsRoutes from './routes/payments.routes.js';
 import adminRoutes from './routes/admin.routes.js';
+import shiftsRoutes from './routes/shifts.routes.js';
+import newslettersRoutes from './routes/newsletters.routes.js';
+import producerInquiriesRoutes from './routes/producer-inquiries.routes.js';
+import weeklyBasketsRoutes from './routes/weekly-baskets.routes.js';
+import subscriptionsRoutes from './routes/subscriptions.routes.js';
+import distributionRoutes from './routes/distribution.routes.js';
+
 
 // Charge les variables d'environnement
 dotenv.config({ path: '.env.local' });
@@ -66,6 +73,15 @@ app.use('/api/baskets', basketsRoutes);
 app.use('/api/orders', ordersRoutes);
 app.use('/api/payments', paymentsRoutes);
 app.use('/api/admin', adminRoutes);
+
+
+// Routes supplémentaires
+app.use('/api/shifts', shiftsRoutes);
+app.use('/api/newsletters', newslettersRoutes);
+app.use('/api/producer-inquiries', producerInquiriesRoutes);
+app.use('/api/weekly-baskets', weeklyBasketsRoutes);
+app.use('/api/subscriptions', subscriptionsRoutes);
+app.use('/api/distribution', distributionRoutes);
 
 
 // Route 404 - si aucune route ne correspond
