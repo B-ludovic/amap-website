@@ -311,6 +311,66 @@ export const auth = {
 const api = {
   admin,
   auth,
+  shifts: {
+    getAll: async (params = {}) => {
+      const queryString = new URLSearchParams(params).toString();
+      return fetchAPI(`/shifts${queryString ? `?${queryString}` : ''}`, {
+        requiresAuth: true,
+      });
+    },
+
+    getById: async (id) => {
+      return fetchAPI(`/shifts/${id}`, {
+        requiresAuth: true,
+      });
+    },
+
+    create: async (shiftData) => {
+      return fetchAPI('/shifts', {
+        method: 'POST',
+        body: shiftData,
+        requiresAuth: true,
+      });
+    },
+
+    update: async (id, shiftData) => {
+      return fetchAPI(`/shifts/${id}`, {
+        method: 'PUT',
+        body: shiftData,
+        requiresAuth: true,
+      });
+    },
+
+    delete: async (id) => {
+      return fetchAPI(`/shifts/${id}`, {
+        method: 'DELETE',
+        requiresAuth: true,
+      });
+    },
+
+    duplicate: async (id, data) => {
+      return fetchAPI(`/shifts/${id}/duplicate`, {
+        method: 'POST',
+        body: data,
+        requiresAuth: true,
+      });
+    },
+
+    register: async (id, data) => {
+      return fetchAPI(`/shifts/${id}/register`, {
+        method: 'POST',
+        body: data,
+        requiresAuth: true,
+      });
+    },
+
+    unregister: async (volunteerId) => {
+      return fetchAPI(`/shifts/volunteers/${volunteerId}`, {
+        method: 'DELETE',
+        requiresAuth: true,
+      });
+    },
+  },
 };
 
 export default api;

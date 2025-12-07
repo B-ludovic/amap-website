@@ -8,20 +8,23 @@ async function main() {
 
   // Nettoyer la base de données (attention en production !)
   console.log('🧹 Nettoyage de la base...');
-  await prisma.notificationEmail.deleteMany();
-  await prisma.blogPost.deleteMany();
-  await prisma.themeConfig.deleteMany();
-  await prisma.cartReservation.deleteMany();
+  await prisma.recipeProduct.deleteMany();
+  await prisma.recipe.deleteMany();
+  await prisma.shiftVolunteer.deleteMany();
+  await prisma.shift.deleteMany();
+  await prisma.newsletter.deleteMany();
+  await prisma.producerInquiry.deleteMany();
+  await prisma.weeklyPickup.deleteMany();
+  await prisma.weeklyBasketItem.deleteMany();
+  await prisma.weeklyBasket.deleteMany();
   await prisma.payment.deleteMany();
-  await prisma.orderItem.deleteMany();
-  await prisma.order.deleteMany();
-  await prisma.basketAvailability.deleteMany();
-  await prisma.basketTypeProduct.deleteMany();
-  await prisma.basketType.deleteMany();
+  await prisma.subscriptionPause.deleteMany();
+  await prisma.subscription.deleteMany();
+  await prisma.subscriptionRequest.deleteMany();
+  await prisma.themeConfig.deleteMany();
   await prisma.product.deleteMany();
   await prisma.producer.deleteMany();
   await prisma.pickupLocation.deleteMany();
-  await prisma.address.deleteMany();
   await prisma.user.deleteMany();
 
   // === UTILISATEURS ===
@@ -41,51 +44,39 @@ async function main() {
     }
   });
 
-  const customer1 = await prisma.user.create({
+  const volunteer = await prisma.user.create({
+    data: {
+      email: 'benevole@auxptitspois.fr',
+      password: hashedPassword,
+      firstName: 'Sophie',
+      lastName: 'Bénévole',
+      phone: '0612345678',
+      role: 'VOLUNTEER',
+      emailVerified: true
+    }
+  });
+
+  const member1 = await prisma.user.create({
     data: {
       email: 'marie.dupont@example.com',
       password: hashedPassword,
       firstName: 'Marie',
       lastName: 'Dupont',
-      phone: '0612345678',
-      role: 'CUSTOMER',
-      emailVerified: true,
-      addresses: {
-        create: [
-          {
-            street: '12 rue des Fleurs',
-            city: 'Paris',
-            postalCode: '75001',
-            country: 'France',
-            isDefault: true,
-            type: 'BILLING'
-          }
-        ]
-      }
+      phone: '0623456789',
+      role: 'MEMBER',
+      emailVerified: true
     }
   });
 
-  const customer2 = await prisma.user.create({
+  const member2 = await prisma.user.create({
     data: {
       email: 'jean.martin@example.com',
       password: hashedPassword,
       firstName: 'Jean',
       lastName: 'Martin',
-      phone: '0698765432',
-      role: 'CUSTOMER',
-      emailVerified: true,
-      addresses: {
-        create: [
-          {
-            street: '45 avenue des Champs',
-            city: 'Lyon',
-            postalCode: '69001',
-            country: 'France',
-            isDefault: true,
-            type: 'BILLING'
-          }
-        ]
-      }
+      phone: '0634567890',
+      role: 'MEMBER',
+      emailVerified: true
     }
   });
 
@@ -140,9 +131,9 @@ async function main() {
       producerId: producer1.id,
       name: 'Carottes',
       description: 'Carottes bio croquantes et sucrées',
-      unit: 'kg',
-      origin: 'Île-de-France',
-      isExample: true
+      unit: 'KG',
+      category: 'VEGETABLES',
+      isActive: true
     }
   });
 
@@ -151,9 +142,9 @@ async function main() {
       producerId: producer1.id,
       name: 'Tomates',
       description: 'Tomates anciennes variées',
-      unit: 'kg',
-      origin: 'Île-de-France',
-      isExample: true
+      unit: 'KG',
+      category: 'VEGETABLES',
+      isActive: true
     }
   });
 
@@ -162,9 +153,9 @@ async function main() {
       producerId: producer1.id,
       name: 'Salade',
       description: 'Mélange de salades de saison',
-      unit: 'pièce',
-      origin: 'Île-de-France',
-      isExample: true
+      unit: 'PIECE',
+      category: 'VEGETABLES',
+      isActive: true
     }
   });
 
@@ -173,8 +164,9 @@ async function main() {
       producerId: producer2.id,
       name: 'Pommes',
       description: 'Pommes bio variétés anciennes',
-      unit: 'kg',
-      origin: 'Normandie'
+      unit: 'KG',
+      category: 'FRUITS',
+      isActive: true
     }
   });
 
@@ -183,185 +175,123 @@ async function main() {
       producerId: producer2.id,
       name: 'Poires',
       description: 'Poires Williams bio',
-      unit: 'kg',
-      origin: 'Normandie',
-      isExample: true
+      unit: 'KG',
+      category: 'FRUITS',
+      isActive: true
     }
   });
 
-  const fromage = await prisma.product.create({
+  const oeuf = await prisma.product.create({
     data: {
       producerId: producer3.id,
-      name: 'Fromage de chèvre',
-      description: 'Fromage de chèvre frais fermier',
-      unit: 'pièce',
-      origin: 'Auvergne',
-      isExample: true
-    }
-  });
-
-  const yaourt = await prisma.product.create({
-    data: {
-      producerId: producer3.id,
-      name: 'Yaourt nature',
-      description: 'Yaourt au lait de chèvre',
-      unit: 'lot de 4',
-      origin: 'Auvergne',
-      isExample: true
+      name: 'Œufs',
+      description: 'Œufs frais de poules élevées en plein air',
+      unit: 'PIECE',
+      category: 'EGGS',
+      isActive: true
     }
   });
 
   console.log('✅ Produits créés');
 
-  // === TYPES DE PANIERS ===
-  console.log('🧺 Création des types de paniers...');
-
-  const panierDecouverte = await prisma.basketType.create({
-    data: {
-      name: 'Panier Découverte',
-      description: 'Un panier varié pour découvrir nos produits locaux. Idéal pour 2 personnes.',
-      price: 25.00,
-      isActive: true,
-      products: {
-        create: [
-          { productId: carotte.id, quantity: 1.5 },
-          { productId: tomate.id, quantity: 1.0 },
-          { productId: salade.id, quantity: 2.0 },
-          { productId: pomme.id, quantity: 1.0 }
-        ]
-      }
-    }
-  });
-
-  const panierFamille = await prisma.basketType.create({
-    data: {
-      name: 'Panier Famille',
-      description: 'Un grand panier pour toute la famille. Pour 4 à 5 personnes.',
-      price: 45.00,
-      isActive: true,
-      isExample: true,
-      products: {
-        create: [
-          { productId: carotte.id, quantity: 2.5 },
-          { productId: tomate.id, quantity: 2.0 },
-          { productId: salade.id, quantity: 3.0 },
-          { productId: pomme.id, quantity: 2.0 },
-          { productId: poire.id, quantity: 1.5 },
-          { productId: fromage.id, quantity: 1.0 }
-        ]
-      }
-    }
-  });
-
-  const panierFruits = await prisma.basketType.create({
-    data: {
-      name: 'Panier Fruits',
-      description: 'Un panier 100% fruits de saison.',
-      price: 18.00,
-      isActive: true,
-      isExample: true,
-      products: {
-        create: [
-          { productId: pomme.id, quantity: 2.0 },
-          { productId: poire.id, quantity: 2.0 }
-        ]
-      }
-    }
-  });
-
-  console.log('✅ Types de paniers créés');
-
   // === POINTS DE RETRAIT ===
-  console.log('📍 Création des points de retrait...');
+  console.log('📍 Création du point de retrait...');
 
-  const pickup1 = await prisma.pickupLocation.create({
+  const pickupLocation = await prisma.pickupLocation.create({
     data: {
-      name: 'Place du Marché - Paris',
+      name: 'Salle des Fêtes',
       address: '12 Place du Marché',
       city: 'Paris',
       postalCode: '75001',
-      description: 'Retrait tous les mercredis de 17h à 19h',
-      isActive: true,
-      isExample: true
+      schedule: 'Mercredi 18h15 - 19h15',
+      instructions: 'Accès par la porte principale, côté parking',
+      isActive: true
     }
   });
 
-  const pickup2 = await prisma.pickupLocation.create({
-    data: {
-      name: 'Maison de Quartier - Lyon',
-      address: '45 rue de la République',
-      city: 'Lyon',
-      postalCode: '69001',
-      description: 'Retrait tous les vendredis de 16h à 18h',
-      isActive: true,
-      isExample: true
-    }
-  });
+  console.log('✅ Point de retrait créé');
 
-  console.log('✅ Points de retrait créés');
+  // === PERMANENCES ===
+  console.log('👥 Création des permanences...');
 
-  // === DISPONIBILITÉS DES PANIERS ===
-  console.log('📦 Création des disponibilités...');
-
-  // Créer des disponibilités pour les 4 prochaines semaines
   const today = new Date();
-  
-  for (let i = 0; i < 4; i++) {
-    const distributionDate = new Date(today);
-    distributionDate.setDate(today.getDate() + (i * 7)); // +7 jours à chaque itération
+  const nextWednesday = new Date(today);
+  nextWednesday.setDate(today.getDate() + ((3 - today.getDay() + 7) % 7 || 7));
 
-    // Panier Découverte - Paris
-    await prisma.basketAvailability.create({
-      data: {
-        basketTypeId: panierDecouverte.id,
-        availableQuantity: 20,
-        distributionDate,
-        pickupLocationId: pickup1.id
+  const shift1 = await prisma.shift.create({
+    data: {
+      distributionDate: nextWednesday,
+      startTime: '18:15',
+      endTime: '19:15',
+      volunteersNeeded: 2,
+      notes: 'Préparation et distribution du panier hebdomadaire'
+    }
+  });
+
+  const nextWednesday2 = new Date(nextWednesday);
+  nextWednesday2.setDate(nextWednesday.getDate() + 7);
+
+  const shift2 = await prisma.shift.create({
+    data: {
+      distributionDate: nextWednesday2,
+      startTime: '18:15',
+      endTime: '19:15',
+      volunteersNeeded: 2
+    }
+  });
+
+  // Inscription du bénévole
+  await prisma.shiftVolunteer.create({
+    data: {
+      shiftId: shift1.id,
+      userId: volunteer.id,
+      role: 'Distribution',
+      status: 'CONFIRMED'
+    }
+  });
+
+  console.log('✅ Permanences créées');
+
+  // === RECETTES ===
+  console.log('📖 Création des recettes...');
+
+  await prisma.recipe.create({
+    data: {
+      title: 'Tarte aux pommes maison',
+      slug: 'tarte-aux-pommes-maison',
+      description: 'Une délicieuse tarte aux pommes traditionnelle',
+      ingredients: JSON.stringify([
+        '4-5 pommes',
+        '1 pâte brisée',
+        '2 cuillères à soupe de sucre',
+        '1 cuillère à café de cannelle'
+      ]),
+      steps: `1. Préchauffer le four à 180°C
+2. Éplucher et couper les pommes en lamelles
+3. Disposer les pommes sur la pâte
+4. Saupoudrer de sucre et cannelle
+5. Enfourner 30-35 minutes`,
+      prepTime: 20,
+      cookTime: 35,
+      servings: 6,
+      difficulty: 'EASY',
+      season: 'AUTUMN',
+      authorId: admin.id,
+      isPublished: true,
+      publishedAt: new Date(),
+      products: {
+        create: [
+          {
+            productId: pomme.id,
+            quantity: '4-5 pièces',
+            isOptional: false
+          }
+        ]
       }
-    });
+    }
+  });
 
-    // Panier Famille - Paris
-    await prisma.basketAvailability.create({
-      data: {
-        basketTypeId: panierFamille.id,
-        availableQuantity: 15,
-        distributionDate,
-        pickupLocationId: pickup1.id
-      }
-    });
-
-    // Panier Fruits - Paris
-    await prisma.basketAvailability.create({
-      data: {
-        basketTypeId: panierFruits.id,
-        availableQuantity: 25,
-        distributionDate,
-        pickupLocationId: pickup1.id
-      }
-    });
-
-    // Panier Découverte - Lyon
-    await prisma.basketAvailability.create({
-      data: {
-        basketTypeId: panierDecouverte.id,
-        availableQuantity: 18,
-        distributionDate,
-        pickupLocationId: pickup2.id
-      }
-    });
-
-    // Panier Famille - Lyon
-    await prisma.basketAvailability.create({
-      data: {
-        basketTypeId: panierFamille.id,
-        availableQuantity: 12,
-        distributionDate,
-        pickupLocationId: pickup2.id
-      }
-    });
-  }
-
-  console.log('✅ Disponibilités créées');
+  console.log('✅ Recettes créées');
 
   // === THÈMES SAISONNIERS ===
   console.log('🎨 Création des thèmes...');
@@ -405,60 +335,14 @@ async function main() {
 
   console.log('✅ Thèmes créés');
 
-  // === ARTICLES DE BLOG ===
-  console.log('📝 Création des articles de blog...');
-
-  await prisma.blogPost.create({
-    data: {
-      title: 'Bienvenue sur Aux P\'tits Pois',
-      slug: 'bienvenue-aux-ptits-pois',
-      content: `
-        Nous sommes ravis de vous accueillir sur notre nouvelle plateforme !
-        
-        Aux P'tits Pois est une AMAP qui vous permet de commander directement 
-        vos paniers de produits locaux et bio auprès de nos producteurs partenaires.
-        
-        Chaque semaine, découvrez nos paniers composés de fruits et légumes de saison,
-        produits laitiers et bien plus encore !
-        
-        Rejoignez notre communauté et soutenez l'agriculture locale.
-      `,
-      excerpt: 'Découvrez notre nouvelle plateforme de commande en ligne pour l\'AMAP Aux P\'tits Pois',
-      authorId: admin.id,
-      isPublished: true,
-      publishedAt: new Date()
-    }
-  });
-
-  await prisma.blogPost.create({
-    data: {
-      title: 'Les légumes de saison en décembre',
-      slug: 'legumes-saison-decembre',
-      content: `
-        En décembre, c'est la saison des légumes d'hiver !
-        
-        Retrouvez dans nos paniers : carottes, poireaux, choux, courges, 
-        panais, navets et bien d'autres légumes qui se conservent bien 
-        et se prêtent à de délicieuses recettes réconfortantes.
-        
-        N'hésitez pas à nous demander des idées de recettes !
-      `,
-      excerpt: 'Découvrez quels légumes privilégier en hiver',
-      authorId: admin.id,
-      isPublished: true,
-      publishedAt: new Date()
-    }
-  });
-
-  console.log('✅ Articles de blog créés');
-
   console.log('');
   console.log('🎉 Seed terminé avec succès !');
   console.log('');
   console.log('📧 Comptes créés :');
   console.log('   Admin : admin@auxptitspois.fr / password123');
-  console.log('   Client 1 : marie.dupont@example.com / password123');
-  console.log('   Client 2 : jean.martin@example.com / password123');
+  console.log('   Bénévole : benevole@auxptitspois.fr / password123');
+  console.log('   Membre 1 : marie.dupont@example.com / password123');
+  console.log('   Membre 2 : jean.martin@example.com / password123');
   console.log('');
 }
 

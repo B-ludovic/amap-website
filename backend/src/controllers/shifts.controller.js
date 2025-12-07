@@ -1,9 +1,9 @@
-import { prisma } from '../utils/prismaClient.js';
+import { prisma } from '../config/database.js';
 import { asyncHandler } from '../middlewares/error.middleware.js';
 import {
-    httpNotFoundError,
-    httpBadRequestError,
-    httpConflictError
+    HttpNotFoundError,
+    HttpBadRequestError,
+    HttpConflictError
 } from '../utils/httpErrors.js';
 
 // RÉCUPÉRER TOUTES LES PERMANENCES
