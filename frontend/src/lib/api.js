@@ -644,6 +644,15 @@ const api = {
   },
 
   subscriptionRequests: {
+    // Public - Submit a subscription request (no auth required)
+    submitRequest: async (data) => {
+      return fetchAPI('/subscription-requests', {
+        method: 'POST',
+        body: data,
+        requiresAuth: false,
+      });
+    },
+
     getAll: async (params = {}) => {
       const queryString = new URLSearchParams(params).toString();
       return fetchAPI(`/subscription-requests${queryString ? `?${queryString}` : ''}`, {
@@ -667,6 +676,14 @@ const api = {
   },
 
   producerInquiries: {
+    submit: async (data) => {
+      return fetchAPI('/producer-inquiries', {
+        method: 'POST',
+        body: data,
+        requiresAuth: false,
+      });
+    },
+
     getAll: async (params = {}) => {
       const queryString = new URLSearchParams(params).toString();
       return fetchAPI(`/producer-inquiries${queryString ? `?${queryString}` : ''}`, {
