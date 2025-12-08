@@ -20,7 +20,7 @@ export default function SubscriptionsPage() {
       priceSolidarity: 177.60,
       weeks: 48,
       features: [
-        'Engagement sur 48 semaines',
+        'Engagement sur 1 an (48 semaines)',
         'Distribution hebdomadaire',
         'Légumes de saison variés',
         'Possibilité de pause (vacances)',
@@ -40,7 +40,7 @@ export default function SubscriptionsPage() {
       priceSolidarity: 278.40,
       weeks: 48,
       features: [
-        'Engagement sur 48 semaines',
+        'Engagement sur 1 an (48 semaines)',
         'Distribution hebdomadaire',
         'Légumes de saison variés',
         'Idéal pour famille',
@@ -62,7 +62,7 @@ export default function SubscriptionsPage() {
       duration: '12 semaines',
       weeks: 12,
       features: [
-        'Engagement sur 12 semaines',
+        'Engagement sur 3 mois (12 semaines)',
         'Distribution hebdomadaire',
         'Parfait pour découvrir l\'AMAP',
         'Paiement en plusieurs fois par chèque',
@@ -82,7 +82,7 @@ export default function SubscriptionsPage() {
       duration: '12 semaines',
       weeks: 12,
       features: [
-        'Engagement sur 12 semaines',
+        'Engagement sur 3 mois (12 semaines)',
         'Distribution hebdomadaire',
         'Idéal pour famille',
         'Parfait pour découvrir l\'AMAP',
