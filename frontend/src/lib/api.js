@@ -544,6 +544,72 @@ const api = {
       });
     },
   },
+
+  subscriptions: {
+    getAll: async (params = {}) => {
+      const queryString = new URLSearchParams(params).toString();
+      return fetchAPI(`/subscriptions${queryString ? `?${queryString}` : ''}`, {
+        requiresAuth: true,
+      });
+    },
+
+    getById: async (id) => {
+      return fetchAPI(`/subscriptions/${id}`, {
+        requiresAuth: true,
+      });
+    },
+
+    getStats: async () => {
+      return fetchAPI('/subscriptions/stats', {
+        requiresAuth: true,
+      });
+    },
+
+    create: async (data) => {
+      return fetchAPI('/subscriptions', {
+        method: 'POST',
+        body: data,
+        requiresAuth: true,
+      });
+    },
+
+    update: async (id, data) => {
+      return fetchAPI(`/subscriptions/${id}`, {
+        method: 'PUT',
+        body: data,
+        requiresAuth: true,
+      });
+    },
+
+    cancel: async (id, data) => {
+      return fetchAPI(`/subscriptions/${id}/cancel`, {
+        method: 'PUT',
+        body: data,
+        requiresAuth: true,
+      });
+    },
+
+    pause: async (id, data) => {
+      return fetchAPI(`/subscriptions/${id}/pause`, {
+        method: 'PUT',
+        body: data,
+        requiresAuth: true,
+      });
+    },
+
+    resume: async (id) => {
+      return fetchAPI(`/subscriptions/${id}/resume`, {
+        method: 'PUT',
+        requiresAuth: true,
+      });
+    },
+
+    getMySubscription: async () => {
+      return fetchAPI('/subscriptions/me', {
+        requiresAuth: true,
+      });
+    },
+  },
 };
 
 export default api;
