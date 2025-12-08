@@ -50,16 +50,19 @@
 .header-nav {
   display: flex;
   align-items: center;
-  gap: var(--spacing-lg);
+  gap: var(--spacing-md);
   flex: 1;
   justify-content: center;
+  margin: 0 var(--spacing-lg);
 }
 
 .nav-link {
   color: var(--text-secondary);
   font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-sm);
   transition: color var(--transition-fast);
   position: relative;
+  white-space: nowrap;
 }
 
 .nav-link::after {
@@ -240,6 +243,20 @@
 }
 
 /* Responsive */
+@media (max-width: 1024px) {
+  .header-nav {
+    gap: var(--spacing-sm);
+  }
+
+  .nav-link {
+    font-size: var(--font-size-xs);
+  }
+
+  .header-actions {
+    gap: var(--spacing-sm);
+  }
+}
+
 @media (max-width: 768px) {
   .header-nav {
     display: none;
@@ -248,11 +265,6 @@
   .header-actions .nav-link,
   .header-actions .btn {
     display: none;
-  }
-
-  /* Garder visible uniquement l'icône panier */
-  .header-cart-link {
-    display: flex;
   }
 
   .header-menu-toggle {
