@@ -80,7 +80,7 @@
 .solidarity-section {
   padding: var(--spacing-3xl) 0;
   text-align: center;
-  background-color: white;
+  background-color: var(--white);
 }
 
 .solidarity-badge {
@@ -153,7 +153,7 @@
   align-items: center;
   justify-content: center;
   background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-  color: white;
+  color: var(--white);
   border-radius: var(--border-radius-md);
   margin: 0 auto var(--spacing-lg);
 }
@@ -205,7 +205,7 @@
   align-items: center;
   justify-content: center;
   background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-  color: white;
+  color: var(--white);
   border-radius: 50%;
   font-size: var(--font-size-2xl);
   font-weight: 700;
@@ -250,7 +250,7 @@
   max-width: 800px;
   margin: 0 auto;
   text-align: center;
-  color: white;
+  color: var(--white);
 }
 
 .join-card h2 {
@@ -265,6 +265,7 @@
   line-height: 1.7;
   margin-bottom: var(--spacing-xl);
   opacity: 0.95;
+  color: var(--white);
 }
 
 /* BOUTONS */
@@ -287,7 +288,7 @@
 
 .btn-primary {
   background-color: var(--primary-color);
-  color: white;
+  color: var(--white);
 }
 
 .btn-primary:hover {
@@ -297,14 +298,14 @@
 }
 
 .btn-secondary {
-  background-color: white;
+  background-color: var(--white);
   color: var(--primary-color);
   border: 2px solid var(--primary-color);
 }
 
 .btn-secondary:hover {
   background-color: var(--primary-color);
-  color: white;
+  color: var(--white);
   transform: translateY(-1px);
 }
 
@@ -315,7 +316,7 @@
 
 /* Section avec bouton dans join-section */
 .join-section .btn-primary {
-  background-color: white;
+  background-color: var(--white);
   color: var(--primary-color);
 }
 

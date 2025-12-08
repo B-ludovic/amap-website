@@ -48,7 +48,7 @@
 
 .producers-hero {
   background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-  color: white;
+  color: var(--white);
   padding: var(--spacing-3xl) 0 var(--spacing-2xl) 0;
   position: relative;
   overflow: hidden;
@@ -77,6 +77,7 @@
   font-weight: 700;
   margin-bottom: var(--spacing-lg);
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  order: 1;
 }
 
 .hero-subtitle {
@@ -89,6 +90,8 @@
   margin-right: auto;
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
   font-weight: 400;
+  color: var(--white);
+  order: 2;
 }
 
 .hero-stats {
@@ -97,6 +100,7 @@
   gap: var(--spacing-lg);
   max-width: 900px;
   margin: 0 auto;
+  order: 3;
 }
 
 .stat-item {
@@ -114,7 +118,7 @@
 .stat-number {
   font-size: var(--font-size-3xl);
   font-weight: 700;
-  color: white;
+  color: var(--white);
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
   line-height: 1.2;
 }
@@ -122,7 +126,7 @@
 .stat-label {
   font-size: var(--font-size-base);
   opacity: 0.95;
-  color: white;
+  color: var(--white);
   font-weight: 500;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
@@ -131,7 +135,7 @@
 
 .producers-intro {
   padding: var(--spacing-3xl) 0;
-  background-color: white;
+  background-color: var(--white);
 }
 
 .intro-card {
@@ -152,7 +156,7 @@
   align-items: center;
   justify-content: center;
   background-color: var(--primary-color);
-  color: white;
+  color: var(--white);
   border-radius: var(--border-radius-md);
 }
 
@@ -231,7 +235,7 @@
   align-items: center;
   gap: var(--spacing-xs);
   background-color: var(--success-color-dark);
-  color: white;
+  color: var(--white);
   padding: var(--spacing-xs) var(--spacing-md);
   border-radius: var(--border-radius-full);
   font-size: var(--font-size-sm);
@@ -357,7 +361,7 @@
 
 .join-cta {
   padding: var(--spacing-3xl) 0;
-  background-color: white;
+  background-color: var(--white);
 }
 
 .cta-card {
@@ -378,7 +382,7 @@
   align-items: center;
   justify-content: center;
   background-color: var(--primary-color);
-  color: white;
+  color: var(--white);
   border-radius: var(--border-radius-md);
 }
 
@@ -407,7 +411,7 @@
 
 .cta-banner {
   text-align: center;
-  color: white;
+  color: var(--white);
   max-width: 800px;
   margin: 0 auto;
 }
@@ -424,6 +428,7 @@
   line-height: 1.7;
   margin-bottom: var(--spacing-xl);
   opacity: 0.95;
+  color: var(--white);
 }
 
 /* BOUTONS */
@@ -446,7 +451,7 @@
 
 .btn-primary {
   background-color: var(--primary-color);
-  color: white;
+  color: var(--white);
 }
 
 .btn-primary:hover {
@@ -462,7 +467,7 @@
 
 /* Boutons dans subscription-cta */
 .subscription-cta .btn-primary {
-  background-color: white;
+  background-color: var(--white);
   color: var(--primary-color);
 }
 
