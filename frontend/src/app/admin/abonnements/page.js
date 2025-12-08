@@ -191,8 +191,8 @@ export default function AdminSubscriptionsPage() {
       {stats && (
         <div className="stats-grid">
           <div className="stat-card">
-            <div className="stat-icon" style={{ background: '#dcfce7' }}>
-              <CreditCard size={24} color="#16a34a" />
+            <div className="stat-icon stat-icon-success">
+              <CreditCard size={24} />
             </div>
             <div className="stat-content">
               <div className="stat-value">{stats.active}</div>
@@ -201,8 +201,8 @@ export default function AdminSubscriptionsPage() {
           </div>
 
           <div className="stat-card">
-            <div className="stat-icon" style={{ background: '#fef3c7' }}>
-              <PauseCircle size={24} color="#ca8a04" />
+            <div className="stat-icon stat-icon-warning">
+              <PauseCircle size={24} />
             </div>
             <div className="stat-content">
               <div className="stat-value">{stats.paused}</div>
@@ -211,8 +211,8 @@ export default function AdminSubscriptionsPage() {
           </div>
 
           <div className="stat-card">
-            <div className="stat-icon" style={{ background: '#fee2e2' }}>
-              <XCircle size={24} color="#dc2626" />
+            <div className="stat-icon stat-icon-danger">
+              <XCircle size={24} />
             </div>
             <div className="stat-content">
               <div className="stat-value">{stats.cancelled}</div>
@@ -221,8 +221,8 @@ export default function AdminSubscriptionsPage() {
           </div>
 
           <div className="stat-card">
-            <div className="stat-icon" style={{ background: '#e0e7ff' }}>
-              <CreditCard size={24} color="#4f46e5" />
+            <div className="stat-icon stat-icon-primary">
+              <CreditCard size={24} />
             </div>
             <div className="stat-content">
               <div className="stat-value">{stats.solidarity}</div>
