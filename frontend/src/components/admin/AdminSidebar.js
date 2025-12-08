@@ -3,11 +3,11 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { 
-  LayoutDashboard, 
-  Tractor, 
-  Package, 
-  ShoppingBasket, 
+import {
+  LayoutDashboard,
+  Tractor,
+  Package,
+  ShoppingBasket,
   Calendar,
   Users,
   MapPin,
@@ -56,6 +56,21 @@ export default function AdminSidebar({ currentPath }) {
       title: 'Producteurs',
       icon: Tractor,
       path: '/admin/producteurs'
+    },
+    {
+      name: 'Abonnements',
+      href: '/admin/abonnements',
+      icon: CreditCard
+    },
+    {
+      name: 'Demandes abonnements',
+      href: '/admin/demandes-abonnements',
+      icon: UserPlus
+    },
+    {
+      name: 'Demandes producteurs',
+      href: '/admin/demandes-producteurs',
+      icon: Sprout
     },
     {
       title: 'Produits',
@@ -122,10 +137,10 @@ export default function AdminSidebar({ currentPath }) {
       <div className="admin-sidebar-header">
         <Link href="/admin" className="admin-logo">
           <span className="admin-logo-icon">
-            <Image 
-              src="/icons/pea.png" 
-              alt="Logo" 
-              width={32} 
+            <Image
+              src="/icons/pea.png"
+              alt="Logo"
+              width={32}
               height={32}
             />
           </span>
@@ -149,8 +164,8 @@ export default function AdminSidebar({ currentPath }) {
                 >
                   <Icon size={20} />
                   <span>{item.title}</span>
-                  <ChevronDown 
-                    size={16} 
+                  <ChevronDown
+                    size={16}
                     className={`admin-nav-chevron ${isOpen ? 'admin-nav-chevron-open' : ''}`}
                   />
                 </button>

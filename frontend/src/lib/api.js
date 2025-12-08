@@ -665,6 +665,36 @@ const api = {
       });
     },
   },
+
+  producerInquiries: {
+    getAll: async (params = {}) => {
+      const queryString = new URLSearchParams(params).toString();
+      return fetchAPI(`/producer-inquiries${queryString ? `?${queryString}` : ''}`, {
+        requiresAuth: true,
+      });
+    },
+
+    getById: async (id) => {
+      return fetchAPI(`/producer-inquiries/${id}`, {
+        requiresAuth: true,
+      });
+    },
+
+    updateStatus: async (id, data) => {
+      return fetchAPI(`/producer-inquiries/${id}/status`, {
+        method: 'PUT',
+        body: data,
+        requiresAuth: true,
+      });
+    },
+
+    delete: async (id) => {
+      return fetchAPI(`/producer-inquiries/${id}`, {
+        method: 'DELETE',
+        requiresAuth: true,
+      });
+    },
+  },
 };
 
 export default api;
