@@ -58,9 +58,6 @@ function Header() {
             <Link href="/" className="nav-link">
               Accueil
             </Link>
-            <Link href="/blog" className="nav-link">
-              Blog
-            </Link>
           </nav>
 
           {/* Actions */}
@@ -105,9 +102,6 @@ function Header() {
           <nav className="mobile-nav">
             <Link href="/" className="mobile-nav-link" onClick={closeMenu}>
               Accueil
-            </Link>
-            <Link href="/blog" className="mobile-nav-link" onClick={closeMenu}>
-              Blog
             </Link>
 
             <div className="mobile-nav-divider"></div>

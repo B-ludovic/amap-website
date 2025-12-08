@@ -37,11 +37,6 @@ function Footer() {
                   Accueil
                 </Link>
               </li>
-              <li>
-                <Link href="/blog" className="footer-link">
-                  Blog
-                </Link>
-              </li>
             </ul>
           </div>
 
