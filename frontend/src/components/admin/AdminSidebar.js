@@ -53,24 +53,29 @@ export default function AdminSidebar({ currentPath }) {
       exact: true
     },
     {
+      title: 'Utilisateurs',
+      icon: Users,
+      path: '/admin/utilisateurs'
+    },
+    {
+      title: 'Demandes abonnements',
+      icon: UserPlus,
+      path: '/admin/demandes-abonnements'
+    },
+    {
+      title: 'Abonnements',
+      icon: CreditCard,
+      path: '/admin/abonnements'
+    },
+    {
+      title: 'Demandes producteurs',
+      icon: Sprout,
+      path: '/admin/demandes-producteurs'
+    },
+    {
       title: 'Producteurs',
       icon: Tractor,
       path: '/admin/producteurs'
-    },
-    {
-      name: 'Abonnements',
-      href: '/admin/abonnements',
-      icon: CreditCard
-    },
-    {
-      name: 'Demandes abonnements',
-      href: '/admin/demandes-abonnements',
-      icon: UserPlus
-    },
-    {
-      name: 'Demandes producteurs',
-      href: '/admin/demandes-producteurs',
-      icon: Sprout
     },
     {
       title: 'Produits',
@@ -88,21 +93,6 @@ export default function AdminSidebar({ currentPath }) {
       path: '/admin/disponibilites'
     },
     {
-      title: 'Utilisateurs',
-      icon: Users,
-      path: '/admin/utilisateurs'
-    },
-    {
-      title: 'Permanences',
-      icon: UserCog,
-      path: '/admin/permanences'
-    },
-    {
-      title: 'Communication',
-      icon: Mail,
-      path: '/admin/communication'
-    },
-    {
       title: 'Panier hebdomadaire',
       icon: ShoppingBasket,
       path: '/admin/panier-hebdomadaire'
@@ -116,6 +106,16 @@ export default function AdminSidebar({ currentPath }) {
       title: 'Points de retrait',
       icon: MapPin,
       path: '/admin/points-retrait'
+    },
+    {
+      title: 'Permanences',
+      icon: UserCog,
+      path: '/admin/permanences'
+    },
+    {
+      title: 'Communication',
+      icon: Mail,
+      path: '/admin/communication'
     },
     {
       title: 'Paramètres',
