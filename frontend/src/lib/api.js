@@ -276,6 +276,38 @@ export const admin = {
       });
     },
   },
+
+  // Points de retrait
+  pickupLocations: {
+    getAll: async () => {
+      return fetchAPI('/admin/pickup-locations', {
+        requiresAuth: true,
+      });
+    },
+
+    create: async (data) => {
+      return fetchAPI('/admin/pickup-locations', {
+        method: 'POST',
+        body: data,
+        requiresAuth: true,
+      });
+    },
+
+    update: async (id, data) => {
+      return fetchAPI(`/admin/pickup-locations/${id}`, {
+        method: 'PUT',
+        body: data,
+        requiresAuth: true,
+      });
+    },
+
+    delete: async (id) => {
+      return fetchAPI(`/admin/pickup-locations/${id}`, {
+        method: 'DELETE',
+        requiresAuth: true,
+      });
+    },
+  },
 };
 
 // Routes d'authentification (publiques)
@@ -606,6 +638,29 @@ const api = {
 
     getMySubscription: async () => {
       return fetchAPI('/subscriptions/me', {
+        requiresAuth: true,
+      });
+    },
+  },
+
+  subscriptionRequests: {
+    getAll: async (params = {}) => {
+      const queryString = new URLSearchParams(params).toString();
+      return fetchAPI(`/subscription-requests${queryString ? `?${queryString}` : ''}`, {
+        requiresAuth: true,
+      });
+    },
+
+    getById: async (id) => {
+      return fetchAPI(`/subscription-requests/${id}`, {
+        requiresAuth: true,
+      });
+    },
+
+    updateStatus: async (id, data) => {
+      return fetchAPI(`/subscription-requests/${id}/status`, {
+        method: 'PUT',
+        body: data,
         requiresAuth: true,
       });
     },

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import api from "../../../lib/api";
 import { useModal } from "../../../contexts/ModalContext";
-import SubscriptionDetailModal from "../../../components/admin/SubscriptionDetailModal";
+import SubscriptionRequestModal from "../../../components/admin/SubscriptionRequestModal";
 import "../../../styles/admin/components.css";
 import "../../../styles/admin/dashboard.css";
 import "../../../styles/admin/layout.css";
