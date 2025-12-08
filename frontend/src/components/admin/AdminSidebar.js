@@ -9,11 +9,8 @@ import {
   Package, 
   ShoppingBasket, 
   Calendar,
-  ShoppingCart,
   Users,
   MapPin,
-  FileText,
-  Palette,
   Settings,
   LogOut,
   ChevronDown,
@@ -76,11 +73,6 @@ export default function AdminSidebar({ currentPath }) {
       path: '/admin/disponibilites'
     },
     {
-      title: 'Commandes',
-      icon: ShoppingCart,
-      path: '/admin/commandes'
-    },
-    {
       title: 'Utilisateurs',
       icon: Users,
       path: '/admin/utilisateurs'
@@ -109,16 +101,6 @@ export default function AdminSidebar({ currentPath }) {
       title: 'Points de retrait',
       icon: MapPin,
       path: '/admin/points-retrait'
-    },
-    {
-      title: 'Blog',
-      icon: FileText,
-      path: '/admin/blog'
-    },
-    {
-      title: 'Thème',
-      icon: Palette,
-      path: '/admin/theme'
     },
     {
       title: 'Paramètres',

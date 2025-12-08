@@ -100,25 +100,33 @@ export default function AdminParametresPage() {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const [examplesRes, themeRes] = await Promise.all([
-                api.admin.examples.getStats(),
-                api.admin.theme.getActive()
-            ]);
+            // Charger les stats exemples si disponibles
+            try {
+                const examplesRes = await api.admin.examples.getStats();
+                setExampleStats(examplesRes.data);
+            } catch (error) {
+                console.log('Pas de stats exemples disponibles');
+                setExampleStats({ total: 0, producers: 0, products: 0, baskets: 0, pickupLocations: 0 });
+            }
 
-            setExampleStats(examplesRes.data);
-
-            if (themeRes.data.theme) {
-                setActiveTheme(themeRes.data.theme);
-                setThemeData({
-                    season: themeRes.data.theme.season,
-                    primaryColor: themeRes.data.theme.primaryColor,
-                    secondaryColor: themeRes.data.theme.secondaryColor,
-                    accentColor: themeRes.data.theme.accentColor,
-                    backgroundColor: themeRes.data.theme.backgroundColor,
-                });
+            // Charger le thème actif si disponible
+            try {
+                const themeRes = await api.admin.theme.getActive();
+                if (themeRes.data.theme) {
+                    setActiveTheme(themeRes.data.theme);
+                    setThemeData({
+                        season: themeRes.data.theme.season,
+                        primaryColor: themeRes.data.theme.primaryColor,
+                        secondaryColor: themeRes.data.theme.secondaryColor,
+                        accentColor: themeRes.data.theme.accentColor,
+                        backgroundColor: themeRes.data.theme.backgroundColor,
+                    });
+                }
+            } catch (error) {
+                console.log('Pas de thème actif, utilisation du thème par défaut');
             }
         } catch (error) {
-            showError('Erreur', 'Impossible de charger les paramètres.');
+            console.error('Erreur lors du chargement:', error);
         } finally {
             setLoading(false);
         }
