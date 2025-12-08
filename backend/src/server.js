@@ -18,6 +18,7 @@ import newslettersRoutes from './routes/newsletters.routes.js';
 import producerInquiriesRoutes from './routes/producer-inquiries.routes.js';
 import weeklyBasketsRoutes from './routes/weekly-baskets.routes.js';
 import subscriptionsRoutes from './routes/subscriptions.routes.js';
+import subscriptionRequestsRoutes from './routes/subscription-requests.routes.js';
 import distributionRoutes from './routes/distribution.routes.js';
 
 
@@ -81,6 +82,7 @@ app.use('/api/newsletters', newslettersRoutes);
 app.use('/api/producer-inquiries', producerInquiriesRoutes);
 app.use('/api/weekly-baskets', weeklyBasketsRoutes);
 app.use('/api/subscriptions', subscriptionsRoutes);
+app.use('/api/subscription-requests', subscriptionRequestsRoutes);
 app.use('/api/distribution', distributionRoutes);
 
 
