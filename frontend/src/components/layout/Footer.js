@@ -38,16 +38,6 @@ function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/paniers" className="footer-link">
-                  Nos Paniers
-                </Link>
-              </li>
-              <li>
-                <Link href="/producteurs" className="footer-link">
-                  Producteurs
-                </Link>
-              </li>
-              <li>
                 <Link href="/blog" className="footer-link">
                   Blog
                 </Link>
@@ -72,11 +62,6 @@ function Footer() {
               <li>
                 <Link href="/compte" className="footer-link">
                   Mon Compte
-                </Link>
-              </li>
-              <li>
-                <Link href="/compte/commandes" className="footer-link">
-                  Mes Commandes
                 </Link>
               </li>
             </ul>

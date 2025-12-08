@@ -3,8 +3,7 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ShoppingCart, LogOut } from 'lucide-react';
-import { useCart } from '../../contexts/CartContext';
+import { LogOut } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useModal } from '../../contexts/ModalContext';
 
@@ -13,7 +12,6 @@ function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const { user, logout } = useAuth();
-  const { getItemCount } = useCart();
   const { showConfirm } = useModal();
 
   // Détecter le scroll pour changer le style du header
@@ -45,8 +43,6 @@ function Header() {
     );
   };
 
-  const itemCount = getItemCount();
-
   return (
     <header className={`header ${isScrolled ? 'header-scrolled' : ''}`}>
       <div className="container">
@@ -62,12 +58,6 @@ function Header() {
             <Link href="/" className="nav-link">
               Accueil
             </Link>
-            <Link href="/paniers" className="nav-link">
-              Nos Paniers
-            </Link>
-            <Link href="/producteurs" className="nav-link">
-              Producteurs
-            </Link>
             <Link href="/blog" className="nav-link">
               Blog
             </Link>
@@ -75,21 +65,10 @@ function Header() {
 
           {/* Actions */}
           <div className="header-actions">
-            {/* Panier */}
-            <Link href="/panier" className="header-cart-link">
-              <ShoppingCart size={24} />
-              {itemCount > 0 && (
-                <span className="header-cart-badge">{itemCount}</span>
-              )}
-            </Link>
-
             {user ? (
               <>
                 <Link href="/compte" className="nav-link">
                   Bonjour {user.firstName}
-                </Link>
-                <Link href="/compte/commandes" className="btn btn-primary btn-sm">
-                  Mes Commandes
                 </Link>
                 <button onClick={handleLogout} className="btn btn-outline btn-sm" aria-label="Se déconnecter">
                   <LogOut size={18} />
@@ -127,29 +106,16 @@ function Header() {
             <Link href="/" className="mobile-nav-link" onClick={closeMenu}>
               Accueil
             </Link>
-            <Link href="/paniers" className="mobile-nav-link" onClick={closeMenu}>
-              Nos Paniers
-            </Link>
-            <Link href="/producteurs" className="mobile-nav-link" onClick={closeMenu}>
-              Producteurs
-            </Link>
             <Link href="/blog" className="mobile-nav-link" onClick={closeMenu}>
               Blog
             </Link>
 
             <div className="mobile-nav-divider"></div>
 
-            <Link href="/panier" className="mobile-nav-link" onClick={closeMenu}>
-              Panier {itemCount > 0 && `(${itemCount})`}
-            </Link>
-
             {user ? (
               <>
                 <Link href="/compte" className="mobile-nav-link" onClick={closeMenu}>
                   Mon Compte
-                </Link>
-                <Link href="/compte/commandes" className="mobile-nav-link" onClick={closeMenu}>
-                  Mes Commandes
                 </Link>
                 <button onClick={() => { closeMenu(); handleLogout(); }} className="btn btn-outline">
                   <LogOut size={18} />
