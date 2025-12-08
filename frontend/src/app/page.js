@@ -2,6 +2,7 @@
 
 import { ShoppingBasket, Users, Heart, Leaf, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import '../styles/public/home.css';
 
 export default function HomePage() {
@@ -30,7 +31,13 @@ export default function HomePage() {
         </div>
         <div className="hero-image">
           <div className="hero-image-placeholder">
-            🥕🥬🍅
+            <Image 
+              src="/agriculteurs.png" 
+              alt="Agriculteur local"
+              width={400}
+              height={400}
+              priority
+            />
           </div>
         </div>
       </section>
