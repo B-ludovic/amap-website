@@ -337,6 +337,8 @@
   text-align: center;
   max-width: 700px;
   margin: 0 auto;
+  background-color: var(--secondary-color);
+  box-shadow: var(--shadow-md);
 }
 
 .cta-card h2 {

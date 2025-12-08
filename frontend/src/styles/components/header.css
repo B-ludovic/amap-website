@@ -19,7 +19,7 @@
   align-items: center;
   justify-content: space-between;
   padding: var(--spacing-md) 0;
-  gap: var(--spacing-lg);
+  gap: 5rem;
 }
 
 /* Logo */
@@ -32,6 +32,7 @@
   color: var(--text-primary);
   text-decoration: none;
   transition: transform var(--transition-fast);
+  flex-shrink: 0;
 }
 
 .header-logo:hover {
@@ -52,8 +53,8 @@
   align-items: center;
   gap: var(--spacing-md);
   flex: 1;
-  justify-content: center;
-  margin: 0 var(--spacing-lg);
+  justify-content: flex-start;
+  margin-left: var(--spacing-md);
 }
 
 .nav-link {
@@ -97,6 +98,7 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-md);
+  flex-shrink: 0;
 }
 
 .header-icon {

@@ -20,7 +20,7 @@
   gap: var(--spacing-3xl);
   align-items: center;
   padding: var(--spacing-3xl) var(--spacing-lg);
-  background: linear-gradient(135deg, rgba(107, 157, 90, 0.05) 0%, rgba(107, 157, 90, 0.02) 100%);
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
   min-height: 600px;
 }
 
@@ -38,14 +38,14 @@
 
 .hero-subtitle {
   font-size: var(--font-size-xl);
-  color: var(--primary-color);
+  color: var(--text-secondary);
   font-weight: 600;
   margin-bottom: var(--spacing-lg);
 }
 
 .hero-description {
   font-size: var(--font-size-lg);
-  color: var(--text-secondary);
+  color: var(--white);
   line-height: 1.7;
   margin-bottom: var(--spacing-2xl);
 }
@@ -300,7 +300,7 @@
 .btn-primary:hover {
   background-color: var(--primary-hover);
   transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-xl);
 }
 
 .btn-secondary {
@@ -312,6 +312,7 @@
 .btn-secondary:hover {
   background-color: var(--primary-color);
   color: var(--white);
+  box-shadow: var(--shadow-md);
   transform: translateY(-1px);
 }
 
