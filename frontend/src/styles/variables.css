@@ -3,6 +3,7 @@
 :root {
   /* COULEURS PRINTEMPS (par défaut) - Terre & Nature */
   --primary-color: #6b9d5a;
+  --primary-hover: #5a8a4a;
   --secondary-color: #d4a574;
   --accent-color: #c85a3f;
   --background-color: #f9f7f4;
