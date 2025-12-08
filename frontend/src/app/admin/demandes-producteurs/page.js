@@ -8,7 +8,7 @@ import "../../../styles/admin/components.css";
 import "../../../styles/admin/dashboard.css";
 import "../../../styles/admin/layout.css";
 import "../../../styles/admin/requests.css";
-import { Sprout, Eye, Check, X, Clock, Archive, MaPin } from "lucide-react";
+import { Sprout, Eye, Check, X, Clock, Archive, MapPin } from "lucide-react";
 
 export default function AdminProducerInquiriesPage() {
   const [inquiries, setInquiries] = useState([]);

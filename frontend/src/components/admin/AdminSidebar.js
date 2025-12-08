@@ -15,7 +15,10 @@ import {
   LogOut,
   ChevronDown,
   UserCog,
-  Mail
+  Mail,
+  UserPlus,
+  CreditCard,
+  Sprout
 } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
