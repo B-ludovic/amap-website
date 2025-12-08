@@ -58,6 +58,18 @@ function Header() {
             <Link href="/" className="nav-link">
               Accueil
             </Link>
+            <Link href="/nos-abonnements" className="nav-link">
+              Nos Abonnements
+            </Link>
+            <Link href="/panier-semaine" className="nav-link">
+              Panier de la semaine
+            </Link>
+            <Link href="/nos-producteurs" className="nav-link">
+              Nos Producteurs
+            </Link>
+            <Link href="/devenir-producteur" className="nav-link">
+              Devenir Producteur
+            </Link>
           </nav>
 
           {/* Actions */}
@@ -102,6 +114,18 @@ function Header() {
           <nav className="mobile-nav">
             <Link href="/" className="mobile-nav-link" onClick={closeMenu}>
               Accueil
+            </Link>
+            <Link href="/nos-abonnements" className="mobile-nav-link" onClick={closeMenu}>
+              Nos Abonnements
+            </Link>
+            <Link href="/panier-semaine" className="mobile-nav-link" onClick={closeMenu}>
+              Panier de la semaine
+            </Link>
+            <Link href="/nos-producteurs" className="mobile-nav-link" onClick={closeMenu}>
+              Nos Producteurs
+            </Link>
+            <Link href="/devenir-producteur" className="mobile-nav-link" onClick={closeMenu}>
+              Devenir Producteur
             </Link>
 
             <div className="mobile-nav-divider"></div>

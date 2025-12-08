@@ -37,6 +37,26 @@ function Footer() {
                   Accueil
                 </Link>
               </li>
+              <li>
+                <Link href="/nos-abonnements" className="footer-link">
+                  Nos Abonnements
+                </Link>
+              </li>
+              <li>
+                <Link href="/panier-semaine" className="footer-link">
+                  Panier de la semaine
+                </Link>
+              </li>
+              <li>
+                <Link href="/nos-producteurs" className="footer-link">
+                  Nos Producteurs
+                </Link>
+              </li>
+              <li>
+                <Link href="/devenir-producteur" className="footer-link">
+                  Devenir Producteur
+                </Link>
+              </li>
             </ul>
           </div>
 
