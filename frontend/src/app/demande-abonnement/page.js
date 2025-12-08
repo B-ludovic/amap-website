@@ -1,0 +1,410 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { ShoppingBasket, User, Mail, Phone, MessageSquare, CheckCircle, Heart } from 'lucide-react';
+import { useModal } from '../../contexts/ModalContext';
+import api from '../../lib/api';
+import '../../styles/public/subscription-request.css';
+
+
+export default function SubscriptionRequestPage() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const { showModal } = useModal();
+
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    type: searchParams.get('type') || 'ANNUAL',
+    basketSize: searchParams.get('size') || 'SMALL',
+    pricingType: 'NORMAL',
+    message: ''
+  });
+
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+
+  const subscriptionInfo = {
+    ANNUAL: {
+      SMALL: { name: 'Annuel - Petit Panier', price: 888, priceSolidarity: 177.60, weight: '2-4 kg', weeks: 48 },
+      LARGE: { name: 'Annuel - Grand Panier', price: 1392, priceSolidarity: 278.40, weight: '6-8 kg', weeks: 48 }
+    },
+    DISCOVERY: {
+      SMALL: { name: 'Découverte - Petit Panier', price: 222, priceSolidarity: 44.40, weight: '2-4 kg', weeks: 12 },
+      LARGE: { name: 'Découverte - Grand Panier', price: 348, priceSolidarity: 69.60, weight: '6-8 kg', weeks: 12 }
+    }
+  };
+
+  const currentSubscription = subscriptionInfo[formData.type][formData.basketSize];
+
+  const validate = () => {
+    const newErrors = {};
+
+    if (!formData.firstName.trim()) {
+      newErrors.firstName = 'Prénom requis';
+    }
+
+    if (!formData.lastName.trim()) {
+      newErrors.lastName = 'Nom requis';
+    }
+
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email requis';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Email invalide';
+    }
+
+    if (!formData.phone.trim()) {
+      newErrors.phone = 'Téléphone requis';
+    } else if (!/^[0-9\s\-\+\(\)]{10,}$/.test(formData.phone)) {
+      newErrors.phone = 'Numéro de téléphone invalide';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!validate()) {
+      showModal('Veuillez corriger les erreurs du formulaire', 'error');
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      await api.subscriptionRequests.submitRequest(formData);
+
+      setSubmitted(true);
+      showModal('Demande envoyée avec succès !', 'success');
+    } catch (error) {
+      showModal(
+        error.response?.data?.message || 'Une erreur est survenue',
+        'error'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (submitted) {
+    return (
+      <div className="subscription-request-page">
+        <div className="container">
+          <div className="success-card">
+            <div className="success-icon">
+              <CheckCircle size={64} />
+            </div>
+            <h1>Demande envoyée avec succès !</h1>
+            <p className="success-message">
+              Merci pour votre demande d'abonnement à Aux P'tits Pois. 
+              Nous avons bien reçu votre formulaire et nous vous recontacterons 
+              très prochainement par email ou téléphone pour finaliser votre inscription.
+            </p>
+
+            <div className="next-steps">
+              <h2>Prochaines étapes</h2>
+              <ol>
+                <li>Nous étudions votre demande (sous 48h)</li>
+                <li>Nous vous contactons pour valider les informations</li>
+                <li>Vous effectuez le paiement (chèque, virement ou espèces)</li>
+                <li>Votre abonnement est activé</li>
+                <li>Vous recevez votre premier panier le mercredi suivant !</li>
+              </ol>
+            </div>
+
+            <div className="success-actions">
+              <button 
+                className="btn btn-primary"
+                onClick={() => router.push('/')}
+              >
+                Retour à l'accueil
+              </button>
+              <button 
+                className="btn btn-secondary"
+                onClick={() => router.push('/panier-semaine')}
+              >
+                Voir le panier de la semaine
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="subscription-request-page">
+      <div className="container">
+        {/* En-tête */}
+        <div className="page-header">
+          <h1>Demande d'abonnement</h1>
+          <p className="page-subtitle">
+            Remplissez ce formulaire et nous vous recontacterons pour finaliser votre inscription
+          </p>
+        </div>
+
+        <div className="request-layout">
+          {/* Formulaire */}
+          <div className="request-form-container">
+            <form onSubmit={handleSubmit} className="request-form">
+              {/* Type d'abonnement */}
+              <div className="form-section">
+                <h2>
+                  <ShoppingBasket size={24} />
+                  Votre abonnement
+                </h2>
+
+                <div className="form-group">
+                  <label htmlFor="type">Type d'abonnement *</label>
+                  <select
+                    id="type"
+                    name="type"
+                    value={formData.type}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="ANNUAL">Abonnement Annuel</option>
+                    <option value="DISCOVERY">Abonnement Découverte (3 mois)</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="basketSize">Taille du panier *</label>
+                  <select
+                    id="basketSize"
+                    name="basketSize"
+                    value={formData.basketSize}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="SMALL">Petit panier (2-4 kg)</option>
+                    <option value="LARGE">Grand panier (6-8 kg)</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="pricingType">Tarification *</label>
+                  <select
+                    id="pricingType"
+                    name="pricingType"
+                    value={formData.pricingType}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="NORMAL">Tarif normal (100%)</option>
+                    <option value="SOLIDARITY">Tarif solidaire (20%)</option>
+                  </select>
+                  <small className="form-hint">
+                    Le tarif solidaire est proposé en partenariat avec le Secours Catholique. 
+                    Votre demande sera étudiée après réception du formulaire.
+                  </small>
+                </div>
+              </div>
+
+              {/* Informations personnelles */}
+              <div className="form-section">
+                <h2>
+                  <User size={24} />
+                  Vos informations
+                </h2>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="firstName">Prénom *</label>
+                    <input
+                      type="text"
+                      id="firstName"
+                      name="firstName"
+                      value={formData.firstName}
+                      onChange={handleChange}
+                      className={errors.firstName ? 'input-error' : ''}
+                      required
+                    />
+                    {errors.firstName && (
+                      <span className="error-message">{errors.firstName}</span>
+                    )}
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="lastName">Nom *</label>
+                    <input
+                      type="text"
+                      id="lastName"
+                      name="lastName"
+                      value={formData.lastName}
+                      onChange={handleChange}
+                      className={errors.lastName ? 'input-error' : ''}
+                      required
+                    />
+                    {errors.lastName && (
+                      <span className="error-message">{errors.lastName}</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="email">
+                    <Mail size={18} />
+                    Email *
+                  </label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    className={errors.email ? 'input-error' : ''}
+                    required
+                  />
+                  {errors.email && (
+                    <span className="error-message">{errors.email}</span>
+                  )}
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="phone">
+                    <Phone size={18} />
+                    Téléphone *
+                  </label>
+                  <input
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    placeholder="06 12 34 56 78"
+                    className={errors.phone ? 'input-error' : ''}
+                    required
+                  />
+                  {errors.phone && (
+                    <span className="error-message">{errors.phone}</span>
+                  )}
+                </div>
+              </div>
+
+              {/* Message */}
+              <div className="form-section">
+                <h2>
+                  <MessageSquare size={24} />
+                  Message (optionnel)
+                </h2>
+
+                <div className="form-group">
+                  <label htmlFor="message">
+                    Informations complémentaires, questions...
+                  </label>
+                  <textarea
+                    id="message"
+                    name="message"
+                    value={formData.message}
+                    onChange={handleChange}
+                    rows="4"
+                    placeholder="Ex: Allergies, préférences, disponibilités..."
+                  />
+                </div>
+              </div>
+
+              {/* Submit */}
+              <div className="form-actions">
+                <button
+                  type="submit"
+                  className="btn btn-primary btn-lg btn-block"
+                  disabled={loading}
+                >
+                  {loading ? 'Envoi en cours...' : 'Envoyer ma demande'}
+                </button>
+                <p className="form-notice">
+                  * Champs obligatoires. Vos données sont uniquement utilisées pour 
+                  le traitement de votre demande d'abonnement.
+                </p>
+              </div>
+            </form>
+          </div>
+
+          {/* Récapitulatif */}
+          <div className="request-summary">
+            <div className="summary-card">
+              <h3>Récapitulatif</h3>
+
+              <div className="summary-item">
+                <span className="summary-label">Abonnement</span>
+                <span className="summary-value">{currentSubscription.name}</span>
+              </div>
+
+              <div className="summary-item">
+                <span className="summary-label">Poids</span>
+                <span className="summary-value">{currentSubscription.weight}</span>
+              </div>
+
+              {currentSubscription.duration && (
+                <div className="summary-item">
+                  <span className="summary-label">Durée</span>
+                  <span className="summary-value">{currentSubscription.duration}</span>
+                </div>
+              )}
+
+              <div className="summary-divider" />
+
+              <div className="summary-item">
+                <span className="summary-label">Tarif normal</span>
+                <span className="summary-value price">{currentSubscription.price}€</span>
+              </div>
+
+              {formData.pricingType === 'SOLIDARITY' && (
+                <div className="summary-item solidarity">
+                  <span className="summary-label">
+                    <Heart size={16} />
+                    Tarif solidaire
+                  </span>
+                  <span className="summary-value price">{currentSubscription.priceSolidarity}€</span>
+                </div>
+              )}
+
+              <div className="summary-note">
+                Le paiement se fera après validation de votre demande, 
+                par chèque, virement ou espèces.
+              </div>
+            </div>
+
+            <div className="info-card">
+              <h4>Distribution</h4>
+              <p>
+                <strong>Chaque mercredi</strong><br />
+                18h15 - 19h15
+              </p>
+              <p className="info-detail">
+                Vous composez vous-même votre panier parmi les légumes disponibles 
+                selon votre formule.
+              </p>
+            </div>
+
+            <div className="info-card">
+              <h4>Prochaines étapes</h4>
+              <ol className="steps-list">
+                <li>Validation de votre demande</li>
+                <li>Contact par email/téléphone</li>
+                <li>Paiement de l'abonnement</li>
+                <li>Activation et premier panier !</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
