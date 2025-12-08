@@ -1,6 +1,4 @@
-/* ========================================
-   DEVENIR PRODUCTEUR
-   ======================================== */
+/* DEVENIR PRODUCTEUR */
 
 /* Container principal */
 .become-producer-page {
@@ -14,9 +12,7 @@
   padding: 0 var(--spacing-lg);
 }
 
-/* ========================================
-   HERO SECTION
-   ======================================== */
+/* HERO SECTION */
 
 .producer-hero {
   background: linear-gradient(135deg, var(--primary-color) 0%, #5a8a4a 100%);
@@ -59,9 +55,7 @@
   margin: 0 auto;
 }
 
-/* ========================================
-   POURQUOI NOUS REJOINDRE
-   ======================================== */
+/* POURQUOI NOUS REJOINDRE */
 
 .why-join {
   padding: var(--spacing-3xl) 0;
@@ -115,18 +109,16 @@
 }
 
 .benefit-card p {
-  font-size: var(--font-size-md);
+  font-size: var(--font-size-base);
   color: var(--text-secondary);
   line-height: 1.6;
 }
 
-/* ========================================
-   CRITÈRES REQUIS
-   ======================================== */
+/* CRITÈRES REQUIS */
 
 .criteria-section {
   padding: var(--spacing-3xl) 0;
-  background-color: var(--surface-color);
+  background-color: #f5f5f5;
 }
 
 .criteria-list {
@@ -173,14 +165,12 @@
 }
 
 .criteria-content p {
-  font-size: var(--font-size-md);
+  font-size: var(--font-size-base);
   color: var(--text-secondary);
   line-height: 1.6;
 }
 
-/* ========================================
-   TÉMOIGNAGE
-   ======================================== */
+/* TÉMOIGNAGE */
 
 .testimonial-section {
   padding: var(--spacing-3xl) 0;
@@ -249,9 +239,7 @@
   color: var(--text-light);
 }
 
-/* ========================================
-   FORMULAIRE
-   ======================================== */
+/* FORMULAIRE */
 
 .form-section {
   padding: var(--spacing-3xl) 0;
@@ -272,7 +260,7 @@
 }
 
 .form-header p {
-  font-size: var(--font-size-md);
+  font-size: var(--font-size-base);
   color: var(--text-secondary);
   line-height: 1.6;
 }
@@ -336,7 +324,7 @@
 .form-group textarea,
 .form-group select {
   padding: var(--input-padding-y) var(--input-padding-x);
-  font-size: var(--font-size-md);
+  font-size: var(--font-size-base);
   border: var(--input-border);
   border-radius: var(--border-radius-md);
   background-color: var(--input-bg);
@@ -388,7 +376,7 @@
   align-items: center;
   gap: var(--spacing-sm);
   cursor: pointer;
-  font-size: var(--font-size-md);
+  font-size: var(--font-size-base);
   color: var(--text-primary);
 }
 
@@ -418,9 +406,7 @@
   max-width: 600px;
 }
 
-/* ========================================
-   PAGE DE SUCCÈS
-   ======================================== */
+/* PAGE DE SUCCÈS */
 
 .success-card {
   max-width: 800px;
@@ -460,7 +446,7 @@
 }
 
 .next-steps {
-  background-color: var(--surface-color);
+  background-color: #f5f5f5;
   padding: var(--spacing-xl);
   border-radius: var(--border-radius-md);
   margin-bottom: var(--spacing-2xl);
@@ -488,7 +474,7 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-md);
-  font-size: var(--font-size-md);
+  font-size: var(--font-size-base);
   color: var(--text-secondary);
 }
 
@@ -512,16 +498,14 @@
   justify-content: center;
 }
 
-/* ========================================
-   BOUTONS
-   ======================================== */
+/* BOUTONS */
 
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   padding: var(--input-padding-y) var(--input-padding-x);
-  font-size: var(--font-size-md);
+  font-size: var(--font-size-base);
   font-weight: 500;
   border-radius: var(--border-radius-md);
   border: none;
@@ -542,7 +526,7 @@
 }
 
 .btn-primary:hover:not(:disabled) {
-  background-color: var(--primary-hover);
+  background-color: #5a8a4a;
   transform: translateY(-1px);
   box-shadow: var(--shadow-md);
 }
@@ -556,9 +540,7 @@
   width: 100%;
 }
 
-/* ========================================
-   RESPONSIVE
-   ======================================== */
+/* RESPONSIVE */
 
 @media (max-width: 1024px) {
   .hero-content h1 {
@@ -588,7 +570,7 @@
   }
 
   .hero-subtitle {
-    font-size: var(--font-size-md);
+    font-size: var(--font-size-base);
   }
 
   .why-join,
@@ -637,7 +619,7 @@
   }
 
   .testimonial-card blockquote {
-    font-size: var(--font-size-md);
+    font-size: var(--font-size-base);
   }
 
   .form-row {
@@ -700,7 +682,7 @@
   }
 
   .success-message {
-    font-size: var(--font-size-md);
+    font-size: var(--font-size-base);
   }
 
   .next-steps {

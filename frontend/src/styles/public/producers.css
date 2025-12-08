@@ -44,7 +44,7 @@
 }
 
 .empty-state p {
-  font-size: var(--font-size-md);
+  font-size: var(--font-size-base);
   color: var(--text-secondary);
 }
 
@@ -164,7 +164,7 @@
 }
 
 .intro-content p {
-  font-size: var(--font-size-md);
+  font-size: var(--font-size-base);
   color: var(--text-secondary);
   line-height: 1.7;
 }
@@ -175,7 +175,7 @@
 
 .producers-list {
   padding: var(--spacing-3xl) 0;
-  background-color: var(--surface-color);
+  background-color: #f5f5f5;
 }
 
 .producers-grid {
@@ -206,7 +206,7 @@
   width: 100%;
   height: 200px;
   overflow: hidden;
-  background-color: var(--surface-color);
+  background-color: #f5f5f5;
 }
 
 .producer-image img {
@@ -319,7 +319,7 @@
 }
 
 .product-tag.more {
-  background-color: var(--surface-color);
+  background-color: #f5f5f5;
   color: var(--text-light);
 }
 
@@ -399,7 +399,7 @@
 }
 
 .cta-content p {
-  font-size: var(--font-size-md);
+  font-size: var(--font-size-base);
   color: var(--text-secondary);
   line-height: 1.7;
   margin-bottom: var(--spacing-lg);
@@ -440,8 +440,8 @@
   align-items: center;
   justify-content: center;
   gap: var(--spacing-xs);
-  padding: var(--input-padding-y) var(--input-padding-x);
-  font-size: var(--font-size-md);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  font-size: var(--font-size-base);
   font-weight: 500;
   border-radius: var(--border-radius-md);
   border: none;
@@ -457,7 +457,7 @@
 }
 
 .btn-primary:hover {
-  background-color: var(--primary-hover);
+  background-color: #5a8a4a;
   transform: translateY(-1px);
   box-shadow: var(--shadow-md);
 }
@@ -506,7 +506,7 @@
   }
 
   .hero-subtitle {
-    font-size: var(--font-size-md);
+    font-size: var(--font-size-base);
   }
 
   .hero-stats {
@@ -562,7 +562,7 @@
   }
 
   .cta-banner p {
-    font-size: var(--font-size-md);
+    font-size: var(--font-size-base);
   }
 }
 
@@ -586,7 +586,7 @@
 
   .intro-content p,
   .cta-content p {
-    font-size: var(--font-size-sm);
+    font-size: var(--font-size-base);
   }
 
   .producer-image {
@@ -607,6 +607,6 @@
 
   .btn-lg {
     padding: var(--spacing-sm) var(--spacing-lg);
-    font-size: var(--font-size-md);
+    font-size: var(--font-size-base);
   }
 }

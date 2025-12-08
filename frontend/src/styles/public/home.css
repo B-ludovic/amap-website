@@ -114,7 +114,7 @@
 
 .values-section {
   padding: var(--spacing-3xl) 0;
-  background-color: var(--surface-color);
+  background-color: #f5f5f5;
 }
 
 .section-title {
@@ -166,7 +166,7 @@
 }
 
 .value-card p {
-  font-size: var(--font-size-md);
+  font-size: var(--font-size-base);
   color: var(--text-secondary);
   line-height: 1.6;
 }
@@ -220,7 +220,7 @@
 }
 
 .step-card p {
-  font-size: var(--font-size-md);
+  font-size: var(--font-size-base);
   color: var(--text-secondary);
   line-height: 1.6;
 }
@@ -235,7 +235,7 @@
 
 .producers-section {
   padding: var(--spacing-3xl) 0;
-  background-color: var(--surface-color);
+  background-color: #f5f5f5;
   text-align: center;
 }
 
@@ -275,7 +275,7 @@
   justify-content: center;
   gap: var(--spacing-xs);
   padding: var(--input-padding-y) var(--input-padding-x);
-  font-size: var(--font-size-md);
+  font-size: var(--font-size-base);
   font-weight: 500;
   border-radius: var(--border-radius-md);
   border: none;
@@ -291,7 +291,7 @@
 }
 
 .btn-primary:hover {
-  background-color: var(--primary-hover);
+  background-color: #5a8a4a;
   transform: translateY(-1px);
   box-shadow: var(--shadow-md);
 }
@@ -367,7 +367,7 @@
   }
 
   .hero-description {
-    font-size: var(--font-size-md);
+    font-size: var(--font-size-base);
   }
 
   .hero-actions {
@@ -398,7 +398,7 @@
 
   .section-description,
   .join-card p {
-    font-size: var(--font-size-md);
+    font-size: var(--font-size-base);
   }
 
   .values-grid,
@@ -418,7 +418,7 @@
   }
 
   .hero-subtitle {
-    font-size: var(--font-size-md);
+    font-size: var(--font-size-base);
   }
 
   .hero-actions {
@@ -462,6 +462,6 @@
 
   .btn-lg {
     padding: var(--spacing-sm) var(--spacing-lg);
-    font-size: var(--font-size-md);
+    font-size: var(--font-size-base);
   }
 }
