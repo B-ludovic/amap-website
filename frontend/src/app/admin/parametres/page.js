@@ -92,6 +92,16 @@ export default function AdminParametresPage() {
         ordersEnabled: true,
     });
 
+    const [pickupData, setPickupData] = useState({
+        id: null,
+        name: '',
+        address: '',
+        city: '',
+        postalCode: '',
+        schedule: 'Mercredi 18h15 - 19h15',
+        instructions: '',
+    });
+
     useEffect(() => {
         fetchData();
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -124,6 +134,25 @@ export default function AdminParametresPage() {
                 }
             } catch (error) {
                 console.log('Pas de thème actif, utilisation du thème par défaut');
+            }
+
+            // Charger le point de retrait unique
+            try {
+                const pickupRes = await api.admin.pickupLocations.getAll();
+                if (pickupRes.data.pickupLocations && pickupRes.data.pickupLocations.length > 0) {
+                    const pickup = pickupRes.data.pickupLocations[0]; // Récupérer le premier (unique)
+                    setPickupData({
+                        id: pickup.id,
+                        name: pickup.name,
+                        address: pickup.address,
+                        city: pickup.city,
+                        postalCode: pickup.postalCode,
+                        schedule: pickup.schedule,
+                        instructions: pickup.instructions || '',
+                    });
+                }
+            } catch (error) {
+                console.log('Pas de point de retrait configuré');
             }
         } catch (error) {
             console.error('Erreur lors du chargement:', error);
@@ -188,6 +217,40 @@ export default function AdminParametresPage() {
         }
     };
 
+    const handleSavePickup = async () => {
+        setSaving(true);
+        try {
+            if (pickupData.id) {
+                // Mettre à jour le point de retrait existant
+                await api.admin.pickupLocations.update(pickupData.id, {
+                    name: pickupData.name,
+                    address: pickupData.address,
+                    city: pickupData.city,
+                    postalCode: pickupData.postalCode,
+                    schedule: pickupData.schedule,
+                    instructions: pickupData.instructions,
+                });
+            } else {
+                // Créer un nouveau point de retrait
+                const response = await api.admin.pickupLocations.create({
+                    name: pickupData.name,
+                    address: pickupData.address,
+                    city: pickupData.city,
+                    postalCode: pickupData.postalCode,
+                    schedule: pickupData.schedule,
+                    instructions: pickupData.instructions,
+                    isActive: true,
+                });
+                setPickupData({ ...pickupData, id: response.data.pickupLocation.id });
+            }
+            showSuccess('Point de retrait sauvegardé', 'Les informations ont été mises à jour.');
+        } catch (error) {
+            showError('Erreur', error.response?.data?.message || error.message);
+        } finally {
+            setSaving(false);
+        }
+    };
+
     const handleThemeChange = (field, value) => {
         if (field === 'season') {
             // Quand on change de saison, appliquer les couleurs correspondantes
@@ -247,11 +310,11 @@ export default function AdminParametresPage() {
                         Informations générales
                     </button>
                     <button
-                        onClick={() => setActiveTab('orders')}
-                        className={`admin-tab ${activeTab === 'orders' ? 'admin-tab-active' : ''}`}
+                        onClick={() => setActiveTab('pickup')}
+                        className={`admin-tab ${activeTab === 'pickup' ? 'admin-tab-active' : ''}`}
                     >
-                        <ShoppingCart size={18} />
-                        Commandes
+                        <MapPin size={18} />
+                        Point de retrait
                     </button>
                 </div>
 
@@ -571,85 +634,108 @@ export default function AdminParametresPage() {
                         </div>
                     )}
 
-                    {/* CONFIGURATION DES COMMANDES */}
-                    {activeTab === 'orders' && (
+                    {/* POINT DE RETRAIT */}
+                    {activeTab === 'pickup' && (
                         <div className="admin-section">
-                            <h2 className="admin-section-title">Configuration des commandes</h2>
+                            <h2 className="admin-section-title">Point de retrait</h2>
                             <p className="admin-section-description">
-                                Paramètres liés aux commandes et aux paiements.
+                                Configurez l'adresse et les horaires du point de retrait unique de votre AMAP.
                             </p>
 
                             <div className="form-grid">
-                                <div className="form-group">
-                                    <label htmlFor="minOrderDelay" className="form-label">
-                                        Délai minimum de commande (heures)
+                                <div className="form-group form-group-full">
+                                    <label htmlFor="pickupName" className="form-label">
+                                        Nom du lieu
                                     </label>
                                     <input
-                                        type="number"
-                                        id="minOrderDelay"
-                                        value={orderConfig.minOrderDelay}
-                                        onChange={(e) => setOrderConfig({ ...orderConfig, minOrderDelay: parseInt(e.target.value) })}
+                                        type="text"
+                                        id="pickupName"
+                                        value={pickupData.name}
+                                        onChange={(e) => setPickupData({ ...pickupData, name: e.target.value })}
+                                        placeholder="Ex: Maison des associations"
                                         className="input"
-                                        min="0"
                                     />
-                                    <p className="form-help">
-                                        Les clients doivent commander au moins {orderConfig.minOrderDelay}h avant la distribution
-                                    </p>
+                                </div>
+
+                                <div className="form-group form-group-full">
+                                    <label htmlFor="pickupAddress" className="form-label">
+                                        Adresse complète
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id="pickupAddress"
+                                        value={pickupData.address}
+                                        onChange={(e) => setPickupData({ ...pickupData, address: e.target.value })}
+                                        placeholder="12 rue de la République"
+                                        className="input"
+                                    />
                                 </div>
 
                                 <div className="form-group">
-                                    <label htmlFor="minOrderAmount" className="form-label">
-                                        Montant minimum de commande (€)
+                                    <label htmlFor="pickupCity" className="form-label">
+                                        Ville
                                     </label>
                                     <input
-                                        type="number"
-                                        id="minOrderAmount"
-                                        value={orderConfig.minOrderAmount}
-                                        onChange={(e) => setOrderConfig({ ...orderConfig, minOrderAmount: parseFloat(e.target.value) })}
+                                        type="text"
+                                        id="pickupCity"
+                                        value={pickupData.city}
+                                        onChange={(e) => setPickupData({ ...pickupData, city: e.target.value })}
+                                        placeholder="Paris"
                                         className="input"
-                                        step="0.01"
-                                        min="0"
                                     />
-                                    <p className="form-help">
-                                        Mettez 0 pour désactiver
-                                    </p>
                                 </div>
 
                                 <div className="form-group">
-                                    <label htmlFor="serviceFee" className="form-label">
-                                        Frais de service (€)
+                                    <label htmlFor="pickupPostalCode" className="form-label">
+                                        Code postal
                                     </label>
                                     <input
-                                        type="number"
-                                        id="serviceFee"
-                                        value={orderConfig.serviceFee}
-                                        onChange={(e) => setOrderConfig({ ...orderConfig, serviceFee: parseFloat(e.target.value) })}
+                                        type="text"
+                                        id="pickupPostalCode"
+                                        value={pickupData.postalCode}
+                                        onChange={(e) => setPickupData({ ...pickupData, postalCode: e.target.value })}
+                                        placeholder="75001"
                                         className="input"
-                                        step="0.01"
-                                        min="0"
+                                    />
+                                </div>
+
+                                <div className="form-group form-group-full">
+                                    <label htmlFor="pickupSchedule" className="form-label">
+                                        Horaires de retrait
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id="pickupSchedule"
+                                        value={pickupData.schedule}
+                                        onChange={(e) => setPickupData({ ...pickupData, schedule: e.target.value })}
+                                        placeholder="Mercredi 18h15 - 19h15"
+                                        className="input"
                                     />
                                     <p className="form-help">
-                                        Frais ajoutés à chaque commande
+                                        Indiquez les jours et heures de distribution
                                     </p>
                                 </div>
 
                                 <div className="form-group form-group-full">
-                                    <label className="form-checkbox">
-                                        <input
-                                            type="checkbox"
-                                            checked={orderConfig.ordersEnabled}
-                                            onChange={(e) => setOrderConfig({ ...orderConfig, ordersEnabled: e.target.checked })}
-                                        />
-                                        <span>Autoriser les commandes</span>
+                                    <label htmlFor="pickupInstructions" className="form-label">
+                                        Instructions d'accès
                                     </label>
+                                    <textarea
+                                        id="pickupInstructions"
+                                        value={pickupData.instructions}
+                                        onChange={(e) => setPickupData({ ...pickupData, instructions: e.target.value })}
+                                        placeholder="Code porte: 1234A, Parking disponible rue adjacente..."
+                                        className="textarea"
+                                        rows="4"
+                                    />
                                     <p className="form-help">
-                                        Si désactivé, les clients ne pourront pas passer de nouvelles commandes
+                                        Informations pratiques pour les adhérents (code porte, parking, etc.)
                                     </p>
                                 </div>
                             </div>
 
                             <button
-                                onClick={handleSaveOrderConfig}
+                                onClick={handleSavePickup}
                                 disabled={saving}
                                 className="btn btn-primary"
                             >

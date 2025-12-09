@@ -497,7 +497,7 @@ const api = {
   distribution: {
     getList: async (weeklyBasketId, params = {}) => {
       const queryString = new URLSearchParams(params).toString();
-      return fetchAPI(`/distribution/${weeklyBasketId}${queryString ? `?${queryString}` : ''}`, {
+      return fetchAPI(`/distribution/list/${weeklyBasketId}${queryString ? `?${queryString}` : ''}`, {
         requiresAuth: true,
       });
     },
@@ -514,6 +514,18 @@ const api = {
       return fetchAPI(`/distribution/pickup/${pickupId}`, {
         method: 'PUT',
         body: data,
+        requiresAuth: true,
+      });
+    },
+
+    getStats: async (weeklyBasketId) => {
+      return fetchAPI(`/distribution/stats/${weeklyBasketId}`, {
+        requiresAuth: true,
+      });
+    },
+
+    export: async (weeklyBasketId) => {
+      return fetchAPI(`/distribution/export/${weeklyBasketId}`, {
         requiresAuth: true,
       });
     },

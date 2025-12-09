@@ -213,6 +213,27 @@
   color: #4f46e5;
 }
 
+/* Basket Size Badges */
+.basket-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.basket-badge.basket-small {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.basket-badge.basket-large {
+  background: #e0e7ff;
+  color: #4f46e5;
+}
+
 /* Empty State */
 .empty-state {
   text-align: center;

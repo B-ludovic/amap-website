@@ -96,11 +96,6 @@ export default function AdminSidebar({ currentPath }) {
       path: '/admin/distribution'
     },
     {
-      title: 'Points de retrait',
-      icon: MapPin,
-      path: '/admin/points-retrait'
-    },
-    {
       title: 'Permanences',
       icon: UserCog,
       path: '/admin/permanences'

@@ -89,9 +89,9 @@ export default function AdminSubscriptionRequestsPage() {
 
   const getBasketSizeBadge = (size) => {
     return size === 'SMALL' ? (
-      <span className="basket-badge basket-small">Petit panier (2-4 kg)</span>
+      <span className="badge badge-info">Petit panier (2-4 kg)</span>
     ) : (
-      <span className="basket-badge basket-large">Grand panier (6-8 kg)</span>
+      <span className="badge badge-primary">Grand panier (6-8 kg)</span>
     );
   };
 
@@ -99,7 +99,7 @@ export default function AdminSubscriptionRequestsPage() {
     return pricingType === 'SOLIDARITY' ? (
       <span className="badge badge-warning">Tarif solidaire</span>
     ) : (
-      <span className="badge">Tarif normal</span>
+      <span className="badge badge-secondary">Tarif normal</span>
     );
   };
 

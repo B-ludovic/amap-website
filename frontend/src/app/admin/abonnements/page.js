@@ -246,6 +246,7 @@ export default function AdminSubscriptionsPage() {
 
         <div className="toolbar-filters">
           <select
+            className="filter-select"
             value={filters.status}
             onChange={(e) => handleFilterChange('status', e.target.value)}
           >
@@ -258,6 +259,7 @@ export default function AdminSubscriptionsPage() {
           </select>
 
           <select
+            className="filter-select"
             value={filters.type}
             onChange={(e) => handleFilterChange('type', e.target.value)}
           >
@@ -267,6 +269,7 @@ export default function AdminSubscriptionsPage() {
           </select>
 
           <select
+            className="filter-select"
             value={filters.pricingType}
             onChange={(e) => handleFilterChange('pricingType', e.target.value)}
           >
