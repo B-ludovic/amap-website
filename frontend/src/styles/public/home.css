@@ -31,16 +31,18 @@
 .hero-title {
   font-size: var(--font-size-4xl);
   font-weight: 700;
-  color: var(--text-primary);
+  color: var(--white);
   margin-bottom: var(--spacing-md);
   line-height: 1.2;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .hero-subtitle {
   font-size: var(--font-size-xl);
-  color: var(--text-secondary);
+  color: var(--white);
   font-weight: 600;
   margin-bottom: var(--spacing-lg);
+  opacity: 0.95;
 }
 
 .hero-description {
@@ -293,14 +295,17 @@
 }
 
 .btn-primary {
-  background-color: var(--primary-color);
+  background: var(--gradient-button);
   color: var(--white);
+  box-shadow: var(--shadow-md);
+  border: none;
 }
 
 .btn-primary:hover {
   background-color: var(--primary-hover);
   transform: translateY(-1px);
   box-shadow: var(--shadow-xl);
+  color: var(--text-primary);
 }
 
 .btn-secondary {
@@ -321,15 +326,35 @@
   font-size: var(--font-size-lg);
 }
 
-/* Section avec bouton dans join-section */
-.join-section .btn-primary {
-  background-color: var(--white);
+/* Section avec bouton dans hero et join-section */
+.hero-section .btn-primary,
+.hero-section .btn-secondary {
+  background: var(--white);
   color: var(--primary-color);
+  font-weight: 600;
+  box-shadow: var(--shadow-lg);
+}
+
+.hero-section .btn-primary:hover,
+.hero-section .btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.9);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-xl);
+}
+
+.join-section .btn-primary {
+  background: var(--white) !important;
+  color: var(--text-primary) !important;
+  font-weight: 600;
+  box-shadow: var(--shadow-lg);
+  border: 2px solid transparent;
 }
 
 .join-section .btn-primary:hover {
-  background-color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.95) !important;
   transform: translateY(-2px);
+  box-shadow: var(--shadow-xl);
+  color: var(--text-primary) !important;
 }
 
 /* RESPONSIVE */

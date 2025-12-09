@@ -626,10 +626,10 @@ async function main() {
       },
       {
         season: 'AUTUMN',
-        primaryColor: '#fdba74',
-        secondaryColor: '#fb923c',
-        accentColor: '#dc2626',
-        backgroundColor: '#fff7ed',
+        primaryColor: '#f4a460',
+        secondaryColor: '#daa520',
+        accentColor: '#cd853f',
+        backgroundColor: '#fffaf0',
         isActive: false
       },
       {
