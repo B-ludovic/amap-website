@@ -966,19 +966,37 @@ const getStats = asyncHandler(async (req, res) => {
 
 // Récupérer les stats des exemples
 const getExampleStats = asyncHandler(async (req, res) => {
-  const [producers, products, pickupLocations] = await Promise.all([
+  const [
+    exampleProducers,
+    exampleProducts,
+    examplePickupLocations,
+    totalProducers,
+    totalProducts,
+    totalPickupLocations
+  ] = await Promise.all([
     prisma.producer.count({ where: { isExample: true } }),
     prisma.product.count({ where: { isExample: true } }),
     prisma.pickupLocation.count({ where: { isExample: true } }),
+    prisma.producer.count(),
+    prisma.product.count(),
+    prisma.pickupLocation.count(),
   ]);
 
   res.json({
     success: true,
     data: {
-      producers,
-      products,
-      pickupLocations,
-      total: producers + products + pickupLocations
+      examples: {
+        producers: exampleProducers,
+        products: exampleProducts,
+        pickupLocations: examplePickupLocations,
+        total: exampleProducers + exampleProducts + examplePickupLocations
+      },
+      totals: {
+        producers: totalProducers,
+        products: totalProducts,
+        pickupLocations: totalPickupLocations,
+        total: totalProducers + totalProducts + totalPickupLocations
+      }
     }
   });
 });

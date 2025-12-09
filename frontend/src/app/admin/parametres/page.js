@@ -63,6 +63,7 @@ export default function AdminParametresPage() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [exampleStats, setExampleStats] = useState(null);
+    const [totalStats, setTotalStats] = useState(null);
     const [activeTheme, setActiveTheme] = useState('null');
 
     // Onglet actif
@@ -113,10 +114,12 @@ export default function AdminParametresPage() {
             // Charger les stats exemples si disponibles
             try {
                 const examplesRes = await api.admin.examples.getStats();
-                setExampleStats(examplesRes.data);
+                setExampleStats(examplesRes.data.examples);
+                setTotalStats(examplesRes.data.totals);
             } catch (error) {
                 console.log('Pas de stats exemples disponibles');
-                setExampleStats({ total: 0, producers: 0, products: 0, baskets: 0, pickupLocations: 0 });
+                setExampleStats({ total: 0, producers: 0, products: 0, pickupLocations: 0 });
+                setTotalStats({ total: 0, producers: 0, products: 0, pickupLocations: 0 });
             }
 
             // Charger le thème actif si disponible
@@ -329,8 +332,52 @@ export default function AdminParametresPage() {
                                 Vous pouvez les supprimer une fois que vous avez ajouté vos propres données.
                             </p>
 
+                            {/* Stats totales */}
+                            {totalStats && (
+                                <>
+                                    <h3 style={{ marginTop: '2rem', marginBottom: '1rem', fontSize: '1.1rem', color: 'var(--text-dark)' }}>
+                                        📊 Données totales en base
+                                    </h3>
+                                    <div className="examples-stats-grid">
+                                        <div className="examples-stat-card">
+                                            <div className="examples-stat-icon">
+                                                <Tractor size={24} />
+                                            </div>
+                                            <div>
+                                                <p className="examples-stat-value">{totalStats.producers}</p>
+                                                <p className="examples-stat-label">Producteur(s)</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="examples-stat-card">
+                                            <div className="examples-stat-icon">
+                                                <Carrot size={24} />
+                                            </div>
+                                            <div>
+                                                <p className="examples-stat-value">{totalStats.products}</p>
+                                                <p className="examples-stat-label">Produit(s)</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="examples-stat-card">
+                                            <div className="examples-stat-icon">
+                                                <MapPin size={24} />
+                                            </div>
+                                            <div>
+                                                <p className="examples-stat-value">{totalStats.pickupLocations}</p>
+                                                <p className="examples-stat-label">Point(s) de retrait</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+
+                            {/* Stats exemples */}
                             {exampleStats && exampleStats.total > 0 ? (
                                 <>
+                                    <h3 style={{ marginTop: '2rem', marginBottom: '1rem', fontSize: '1.1rem', color: 'var(--text-dark)' }}>
+                                        🧪 Données d'exemple uniquement
+                                    </h3>
                                     <div className="examples-stats-grid">
                                         <div className="examples-stat-card">
                                             <div className="examples-stat-icon">
@@ -349,16 +396,6 @@ export default function AdminParametresPage() {
                                             <div>
                                                 <p className="examples-stat-value">{exampleStats.products}</p>
                                                 <p className="examples-stat-label">Produit(s)</p>
-                                            </div>
-                                        </div>
-
-                                        <div className="examples-stat-card">
-                                            <div className="examples-stat-icon">
-                                                <ShoppingBasket size={24} />
-                                            </div>
-                                            <div>
-                                                <p className="examples-stat-value">{exampleStats.baskets}</p>
-                                                <p className="examples-stat-label">Panier(s)</p>
                                             </div>
                                         </div>
 
