@@ -17,6 +17,7 @@ export default function WeeklyBasketModal({ basket, onClose }) {
   });
   const [composition, setComposition] = useState([]);
   const [errors, setErrors] = useState({});
+  const [weightWarnings, setWeightWarnings] = useState({ small: false, large: false });
 
   useEffect(() => {
     fetchProducts();
@@ -47,7 +48,7 @@ export default function WeeklyBasketModal({ basket, onClose }) {
   const fetchProducts = async () => {
     try {
       const response = await api.admin.products.getAll();
-      setProducts(response.data.products || []);
+      setProducts(response.data || []);
     } catch (error) {
       console.error('Erreur produits:', error);
     }
@@ -75,6 +76,31 @@ export default function WeeklyBasketModal({ basket, onClose }) {
     setComposition(prev => prev.filter((_, i) => i !== index));
   };
 
+  const calculateTotalWeight = (size) => {
+    return composition.reduce((total, item) => {
+      if (!item.product || item.product.unit !== 'KG') return total;
+      const quantity = size === 'small' ? item.quantitySmall : item.quantityLarge;
+      return total + (parseFloat(quantity) || 0);
+    }, 0);
+  };
+
+  const checkWeightLimits = () => {
+    const smallWeight = calculateTotalWeight('small');
+    const largeWeight = calculateTotalWeight('large');
+    
+    setWeightWarnings({
+      small: smallWeight < 2 || smallWeight > 4,
+      large: largeWeight < 6 || largeWeight > 8
+    });
+    
+    return {
+      small: smallWeight,
+      large: largeWeight,
+      smallValid: smallWeight >= 2 && smallWeight <= 4,
+      largeValid: largeWeight >= 6 && largeWeight <= 8
+    };
+  };
+
   const handleProductChange = (index, field, value) => {
     setComposition(prev => {
       const newComposition = [...prev];
@@ -95,6 +121,9 @@ export default function WeeklyBasketModal({ basket, onClose }) {
       
       return newComposition;
     });
+    
+    // Recalculer les poids après modification
+    setTimeout(() => checkWeightLimits(), 0);
   };
 
   const validate = () => {
@@ -122,6 +151,15 @@ export default function WeeklyBasketModal({ basket, onClose }) {
 
     if (hasInvalidProducts) {
       newErrors.composition = 'Tous les produits doivent avoir des quantités valides';
+    }
+
+    // Vérification des poids
+    const weights = checkWeightLimits();
+    if (!weights.smallValid) {
+      newErrors.weightSmall = `Poids Petit panier: ${weights.small.toFixed(2)} kg (recommandé: 2-4 kg)`;
+    }
+    if (!weights.largeValid) {
+      newErrors.weightLarge = `Poids Grand panier: ${weights.large.toFixed(2)} kg (recommandé: 6-8 kg)`;
     }
 
     setErrors(newErrors);
@@ -270,6 +308,27 @@ export default function WeeklyBasketModal({ basket, onClose }) {
                 <span className="error-message">{errors.composition}</span>
               )}
 
+              {/* Affichage des poids totaux */}
+              {composition.length > 0 && composition.some(item => item.product?.unit === 'KG') && (
+                <div className="weight-summary">
+                  <div className={`weight-info ${weightWarnings.small ? 'weight-warning' : 'weight-ok'}`}>
+                    <strong>Poids Petit panier:</strong> {calculateTotalWeight('small').toFixed(2)} kg
+                    <span className="weight-range">(recommandé: 2-4 kg)</span>
+                  </div>
+                  <div className={`weight-info ${weightWarnings.large ? 'weight-warning' : 'weight-ok'}`}>
+                    <strong>Poids Grand panier:</strong> {calculateTotalWeight('large').toFixed(2)} kg
+                    <span className="weight-range">(recommandé: 6-8 kg)</span>
+                  </div>
+                </div>
+              )}
+
+              {errors.weightSmall && (
+                <span className="error-message">{errors.weightSmall}</span>
+              )}
+              {errors.weightLarge && (
+                <span className="error-message">{errors.weightLarge}</span>
+              )}
+
               {composition.length === 0 ? (
                 <div className="empty-composition">
                   <ShoppingBasket size={32} />
@@ -280,6 +339,7 @@ export default function WeeklyBasketModal({ basket, onClose }) {
                   {composition.map((item, index) => (
                     <div key={index} className="basket-composition-item">
                       <div className="composition-product-select">
+                        <label>Produit</label>
                         <select
                           value={item.productId}
                           onChange={(e) => handleProductChange(index, 'productId', e.target.value)}
@@ -289,9 +349,15 @@ export default function WeeklyBasketModal({ basket, onClose }) {
                           {products.map(product => (
                             <option key={product.id} value={product.id}>
                               {product.name} ({product.producer.name})
+                              {product.stock != null && ` - Stock: ${product.stock} ${product.unit === 'KG' ? 'kg' : 'pièce(s)'}`}
                             </option>
                           ))}
                         </select>
+                        {item.product && item.product.stock != null && (
+                          <small className="stock-info">
+                            Stock disponible: {item.product.stock} {item.product.unit === 'KG' ? 'kg' : 'pièce(s)'}
+                          </small>
+                        )}
                       </div>
 
                       <div className="composition-quantities">
@@ -306,7 +372,6 @@ export default function WeeklyBasketModal({ basket, onClose }) {
                             placeholder="0"
                             required
                           />
-                          <span className="unit">{item.product?.unit || 'kg'}</span>
                         </div>
 
                         <div className="quantity-input">
@@ -320,7 +385,6 @@ export default function WeeklyBasketModal({ basket, onClose }) {
                             placeholder="0"
                             required
                           />
-                          <span className="unit">{item.product?.unit || 'kg'}</span>
                         </div>
                       </div>
 
@@ -328,6 +392,7 @@ export default function WeeklyBasketModal({ basket, onClose }) {
                         type="button"
                         className="btn-remove-product"
                         onClick={() => handleRemoveProduct(index)}
+                        aria-label="Supprimer ce produit"
                       >
                         <Trash2 size={18} />
                       </button>

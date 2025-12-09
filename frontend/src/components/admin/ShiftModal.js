@@ -1,13 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
+import { X, UserPlus, Trash2 } from 'lucide-react';
 import { useModal } from '../../contexts/ModalContext';
 import api from '../../lib/api';
 
 export default function ShiftModal({ shift, onClose }) {
   const { showSuccess, showError } = useModal();
   const [loading, setLoading] = useState(false);
+  const [users, setUsers] = useState([]);
+  const [selectedVolunteers, setSelectedVolunteers] = useState([]);
   const [formData, setFormData] = useState({
     distributionDate: '',
     startTime: '18:15',
@@ -18,6 +20,8 @@ export default function ShiftModal({ shift, onClose }) {
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
+    fetchUsers();
+    
     if (shift) {
       // Formater la date pour l'input date (YYYY-MM-DD)
       const date = new Date(shift.distributionDate);
@@ -30,8 +34,50 @@ export default function ShiftModal({ shift, onClose }) {
         volunteersNeeded: shift.volunteersNeeded || 2,
         notes: shift.notes || '',
       });
+
+      // Charger les bénévoles assignés
+      if (shift.volunteers && shift.volunteers.length > 0) {
+        setSelectedVolunteers(shift.volunteers.map(v => ({
+          userId: v.user.id,
+          userName: `${v.user.firstName} ${v.user.lastName}`,
+          status: v.status
+        })));
+      }
     }
   }, [shift]);
+
+  const fetchUsers = async () => {
+    try {
+      const response = await api.admin.users.getAll();
+      // S'assurer que users est un tableau
+      const usersData = Array.isArray(response.data) ? response.data : (response.data?.users || []);
+      setUsers(usersData);
+    } catch (error) {
+      console.error('Erreur chargement utilisateurs:', error);
+      setUsers([]);
+    }
+  };
+
+  const handleAddVolunteer = () => {
+    setSelectedVolunteers(prev => [...prev, { userId: '', userName: '', status: 'CONFIRMED' }]);
+  };
+
+  const handleVolunteerChange = (index, userId) => {
+    const user = users.find(u => u.id === userId);
+    setSelectedVolunteers(prev => {
+      const updated = [...prev];
+      updated[index] = {
+        userId,
+        userName: user ? `${user.firstName} ${user.lastName}` : '',
+        status: 'CONFIRMED'
+      };
+      return updated;
+    });
+  };
+
+  const handleRemoveVolunteer = (index) => {
+    setSelectedVolunteers(prev => prev.filter((_, i) => i !== index));
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -80,6 +126,12 @@ export default function ShiftModal({ shift, onClose }) {
       const dataToSend = {
         ...formData,
         volunteersNeeded: parseInt(formData.volunteersNeeded),
+        volunteers: selectedVolunteers
+          .filter(v => v.userId)
+          .map(v => ({
+            userId: v.userId,
+            status: v.status
+          }))
       };
 
       if (shift) {
@@ -200,6 +252,72 @@ export default function ShiftModal({ shift, onClose }) {
                 onChange={handleChange}
                 placeholder="Instructions particulières, consignes..."
               />
+            </div>
+
+            {/* Bénévoles assignés */}
+            <div className="form-group">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-sm)' }}>
+                <label>Bénévoles assignés</label>
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  onClick={handleAddVolunteer}
+                >
+                  <UserPlus size={16} />
+                  Ajouter un bénévole
+                </button>
+              </div>
+
+              {selectedVolunteers.length === 0 ? (
+                <div style={{ 
+                  textAlign: 'center', 
+                  padding: 'var(--spacing-lg)', 
+                  background: 'var(--background-color)', 
+                  borderRadius: 'var(--border-radius-sm)',
+                  color: 'var(--text-secondary)'
+                }}>
+                  <p>Aucun bénévole assigné</p>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
+                  {selectedVolunteers.map((volunteer, index) => (
+                    <div key={index} style={{ 
+                      display: 'flex', 
+                      gap: 'var(--spacing-sm)', 
+                      alignItems: 'center',
+                      padding: 'var(--spacing-sm)',
+                      background: 'var(--background-color)',
+                      borderRadius: 'var(--border-radius-sm)'
+                    }}>
+                      <select
+                        value={volunteer.userId}
+                        onChange={(e) => handleVolunteerChange(index, e.target.value)}
+                        style={{ flex: 1 }}
+                        required
+                      >
+                        <option value="">Sélectionner un membre</option>
+                        {users.map(user => (
+                          <option 
+                            key={user.id} 
+                            value={user.id}
+                            disabled={selectedVolunteers.some((v, i) => i !== index && v.userId === user.id)}
+                          >
+                            {user.firstName} {user.lastName} ({user.email})
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        type="button"
+                        className="btn btn-icon"
+                        onClick={() => handleRemoveVolunteer(index)}
+                        title="Retirer"
+                      >
+                        <Trash2 size={18} color="var(--error-color-dark)" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 

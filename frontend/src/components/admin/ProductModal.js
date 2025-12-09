@@ -19,6 +19,7 @@ export default function ProductModal({ product, producers, onClose }) {
     unit: 'KG',
     category: '',
     description: '',
+    stock: '',
     isExample: false,
   });
   const [errors, setErrors] = useState({});
@@ -31,6 +32,7 @@ export default function ProductModal({ product, producers, onClose }) {
         unit: product.unit || 'KG',
         category: product.category || '',
         description: product.description || '',
+        stock: product.stock != null ? product.stock.toString() : '',
         isExample: product.isExample ?? false,
       });
     }
@@ -189,6 +191,27 @@ export default function ProductModal({ product, producers, onClose }) {
                 <option value="EGGS">Œufs</option>
                 <option value="GROCERY">Épicerie</option>
               </select>
+            </div>
+
+            {/* Stock */}
+            <div className="form-group">
+              <label htmlFor="stock" className="form-label">
+                Stock disponible
+              </label>
+              <input
+                type="number"
+                id="stock"
+                name="stock"
+                value={formData.stock}
+                onChange={handleChange}
+                className="input"
+                placeholder="0"
+                step="0.1"
+                min="0"
+              />
+              <p className="form-help">
+                En {formData.unit === 'KG' ? 'kilogrammes' : 'pièces'}
+              </p>
             </div>
 
             {/* Description */}

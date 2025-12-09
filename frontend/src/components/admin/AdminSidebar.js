@@ -86,16 +86,6 @@ export default function AdminSidebar({ currentPath }) {
       path: '/admin/produits'
     },
     {
-      title: 'Paniers',
-      icon: ShoppingBasket,
-      path: '/admin/paniers'
-    },
-    {
-      title: 'Disponibilités',
-      icon: Calendar,
-      path: '/admin/disponibilites'
-    },
-    {
       title: 'Panier hebdomadaire',
       icon: ShoppingBasket,
       path: '/admin/panier-hebdomadaire'

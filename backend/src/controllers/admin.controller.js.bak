@@ -147,7 +147,7 @@ const getAllProducers = asyncHandler(async (req, res) => {
 
 // CRÉER UN PRODUIT
 const createProduct = asyncHandler(async (req, res) => {
-  const { name, producerId, unit, category, description, stock, isExample } = req.body;
+  const { name, producerId, unit, category, description, isExample } = req.body;
 
   if (!name || !producerId || !unit) {
     throw new HttpBadRequestError('Nom, producteur et unité requis');
@@ -168,7 +168,6 @@ const createProduct = asyncHandler(async (req, res) => {
       unit,
       category,
       description,
-      stock: stock ? parseFloat(stock) : 0,
       isExample: isExample || false
     },
     include: {
@@ -186,7 +185,7 @@ const createProduct = asyncHandler(async (req, res) => {
 // MODIFIER UN PRODUIT
 const updateProduct = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { name, producerId, unit, category, description, stock, isExample } = req.body;
+  const { name, producerId, unit, category, description, isExample } = req.body;
 
   const product = await prisma.product.findUnique({
     where: { id }
@@ -214,7 +213,6 @@ const updateProduct = asyncHandler(async (req, res) => {
       unit,
       category,
       description,
-      stock: stock !== undefined ? parseFloat(stock) : undefined,
       isExample
     },
     include: {
@@ -439,9 +437,9 @@ const deleteBasketType = asyncHandler(async (req, res) => {
   });
 });
 
+// GESTION DES DISPONIBILITÉS DE PANIERS 
 
-
-
+// GESTION DES COMMANDES //
 
 // RÉCUPÉRER TOUTES LES COMMANDES 
 const getAllOrders = asyncHandler(async (req, res) => {
@@ -966,9 +964,10 @@ const getStats = asyncHandler(async (req, res) => {
 
 // Récupérer les stats des exemples
 const getExampleStats = asyncHandler(async (req, res) => {
-  const [producers, products, pickupLocations] = await Promise.all([
+  const [producers, products, baskets, pickupLocations] = await Promise.all([
     prisma.producer.count({ where: { isExample: true } }),
     prisma.product.count({ where: { isExample: true } }),
+    prisma.basketType.count({ where: { isExample: true } }),
     prisma.pickupLocation.count({ where: { isExample: true } }),
   ]);
 
@@ -977,8 +976,9 @@ const getExampleStats = asyncHandler(async (req, res) => {
     data: {
       producers,
       products,
+      baskets,
       pickupLocations,
-      total: producers + products + pickupLocations
+      total: producers + products + baskets + pickupLocations
     }
   });
 });
@@ -986,22 +986,77 @@ const getExampleStats = asyncHandler(async (req, res) => {
 // Supprimer tous les exemples
 const deleteAllExamples = asyncHandler(async (req, res) => {
   await prisma.$transaction(async (tx) => {
-    // 1. Supprimer les Products
+    // 1. Supprimer les OrderItems liés aux paniers exemples
+    const deletedOrderItems = await tx.orderItem.deleteMany({
+      where: {
+        basketAvailability: {
+          basketType: { isExample: true }
+        }
+      }
+    });
+
+    // 2. Supprimer les Orders liés aux paniers exemples OU aux lieux exemples
+    const deletedOrders = await tx.order.deleteMany({
+      where: {
+        OR: [
+          {
+            basketAvailability: {
+              basketType: { isExample: true }
+            }
+          },
+          {
+            pickupLocation: { isExample: true }
+          }
+        ]
+      }
+    });
+
+    // 3. Supprimer les BasketAvailability (disponibilités)
+    const deletedAvailabilities = await tx.basketAvailability.deleteMany({
+      where: {
+        OR: [
+          { basketType: { isExample: true } },
+          { pickupLocation: { isExample: true } }
+        ]
+      }
+    });
+
+    // 4. Supprimer les BasketTypeProduct (composition des paniers)
+    const deletedBasketProducts = await tx.basketTypeProduct.deleteMany({
+      where: {
+        OR: [
+          { basketType: { isExample: true } },
+          { product: { isExample: true } }
+        ]
+      }
+    });
+
+    // 5. Supprimer les BasketTypes (types de paniers)
+    const deletedBaskets = await tx.basketType.deleteMany({
+      where: { isExample: true }
+    });
+
+    // 6. Supprimer les Products
     const deletedProducts = await tx.product.deleteMany({
       where: { isExample: true }
     });
 
-    // 2. Supprimer les PickupLocations
+    // 7. Supprimer les PickupLocations
     const deletedPickupLocations = await tx.pickupLocation.deleteMany({
       where: { isExample: true }
     });
 
-    // 3. Supprimer les Producers (en dernier car Products dépend d'eux)
+    // 8. Supprimer les Producers (en dernier car Products dépend d'eux)
     const deletedProducers = await tx.producer.deleteMany({
       where: { isExample: true }
     });
 
     console.log('Exemples supprimés:', {
+      orderItems: deletedOrderItems.count,
+      orders: deletedOrders.count,
+      availabilities: deletedAvailabilities.count,
+      basketProducts: deletedBasketProducts.count,
+      baskets: deletedBaskets.count,
       products: deletedProducts.count,
       pickupLocations: deletedPickupLocations.count,
       producers: deletedProducers.count,

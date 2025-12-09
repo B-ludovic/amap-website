@@ -332,7 +332,7 @@ export default function AdminWeeklyBasketPage() {
                     onClick={() => handleDelete(basket.id)}
                     title="Supprimer"
                   >
-                    <Trash2 size={18} />
+                    <Trash2 size={18} color="var(--error-color-dark)" />
                   </button>
                 )}
               </div>

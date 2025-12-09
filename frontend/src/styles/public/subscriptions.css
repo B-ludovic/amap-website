@@ -338,7 +338,7 @@
   max-width: 700px;
   margin: 0 auto;
   background-color: var(--secondary-color);
-  box-shadow: var(--shadow-xl);
+  box-shadow: linear-gradient(--var(--primary-color), var(--secondary-color)) 0 0 0 4px;
 }
 
 .cta-card h2 {

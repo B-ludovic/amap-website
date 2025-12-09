@@ -3,7 +3,8 @@ import { asyncHandler } from '../middlewares/error.middleware.js';
 import {
     HttpNotFoundError,
     HttpBadRequestError,
-    HttpConflictError
+    HttpConflictError,
+    httpStatusCodes
 } from '../utils/httpErrors.js';
 
 // RÉCUPÉRER TOUTES LES PERMANENCES
@@ -89,7 +90,7 @@ const getShiftById = asyncHandler(async (req, res) => {
 
 // CRÉER UNE PERMANENCE (ADMIN)
 const createShift = asyncHandler(async (req, res) => {
-  const { distributionDate, startTime, endTime, volunteersNeeded, notes } = req.body;
+  const { distributionDate, startTime, endTime, volunteersNeeded, notes, volunteers } = req.body;
 
   if (!distributionDate) {
     throw new HttpBadRequestError('Date de distribution requise');
@@ -101,7 +102,27 @@ const createShift = asyncHandler(async (req, res) => {
       startTime: startTime || '18:15',
       endTime: endTime || '19:15',
       volunteersNeeded: volunteersNeeded || 2,
-      notes
+      notes,
+      volunteers: volunteers && volunteers.length > 0 ? {
+        create: volunteers.map(v => ({
+          userId: v.userId,
+          status: v.status || 'CONFIRMED'
+        }))
+      } : undefined
+    },
+    include: {
+      volunteers: {
+        include: {
+          user: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true
+            }
+          }
+        }
+      }
     }
   });
 
@@ -115,12 +136,29 @@ const createShift = asyncHandler(async (req, res) => {
 // MODIFIER UNE PERMANENCE (ADMIN)
 const updateShift = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { distributionDate, startTime, endTime, volunteersNeeded, notes } = req.body;
+  const { distributionDate, startTime, endTime, volunteersNeeded, notes, volunteers } = req.body;
 
   const shift = await prisma.shift.findUnique({ where: { id } });
 
   if (!shift) {
     throw new HttpNotFoundError('Permanence introuvable');
+  }
+
+  // Si des bénévoles sont fournis, supprimer les anciens et créer les nouveaux
+  if (volunteers && Array.isArray(volunteers)) {
+    await prisma.shiftVolunteer.deleteMany({
+      where: { shiftId: id }
+    });
+
+    if (volunteers.length > 0) {
+      await prisma.shiftVolunteer.createMany({
+        data: volunteers.map(v => ({
+          shiftId: id,
+          userId: v.userId,
+          status: v.status || 'CONFIRMED'
+        }))
+      });
+    }
   }
 
   const updatedShift = await prisma.shift.update({
@@ -139,7 +177,8 @@ const updateShift = asyncHandler(async (req, res) => {
             select: {
               id: true,
               firstName: true,
-              lastName: true
+              lastName: true,
+              email: true
             }
           }
         }

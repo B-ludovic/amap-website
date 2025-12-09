@@ -148,7 +148,7 @@ const getCurrentWeeklyBasket = asyncHandler(async (req, res) => {
 
 // CRÉER UN PANIER HEBDOMADAIRE
 const createWeeklyBasket = asyncHandler(async (req, res) => {
-  const { weekNumber, year, distributionDate, notes } = req.body;
+  const { weekNumber, year, distributionDate, notes, items } = req.body;
 
   if (!weekNumber || !year || !distributionDate) {
     throw new HttpBadRequestError('Numéro de semaine, année et date de distribution requis');
@@ -168,12 +168,31 @@ const createWeeklyBasket = asyncHandler(async (req, res) => {
     throw new HttpConflictError('Un panier existe déjà pour cette semaine');
   }
 
+  // Créer le panier avec ses items
   const basket = await prisma.weeklyBasket.create({
     data: {
       weekNumber: parseInt(weekNumber),
       year: parseInt(year),
       distributionDate: new Date(distributionDate),
-      notes
+      notes,
+      items: items && items.length > 0 ? {
+        create: items.map(item => ({
+          productId: item.productId,
+          quantitySmall: parseFloat(item.quantitySmall),
+          quantityLarge: parseFloat(item.quantityLarge)
+        }))
+      } : undefined
+    },
+    include: {
+      items: {
+        include: {
+          product: {
+            include: {
+              producer: true
+            }
+          }
+        }
+      }
     }
   });
 
@@ -187,12 +206,32 @@ const createWeeklyBasket = asyncHandler(async (req, res) => {
 // MODIFIER UN PANIER HEBDOMADAIRE
 const updateWeeklyBasket = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { distributionDate, notes } = req.body;
+  const { distributionDate, notes, items } = req.body;
 
   const basket = await prisma.weeklyBasket.findUnique({ where: { id } });
 
   if (!basket) {
     throw new HttpNotFoundError('Panier hebdomadaire introuvable');
+  }
+
+  // Si des items sont fournis, supprimer les anciens et créer les nouveaux
+  if (items && Array.isArray(items)) {
+    // Supprimer tous les items existants
+    await prisma.weeklyBasketItem.deleteMany({
+      where: { weeklyBasketId: id }
+    });
+
+    // Créer les nouveaux items
+    if (items.length > 0) {
+      await prisma.weeklyBasketItem.createMany({
+        data: items.map(item => ({
+          weeklyBasketId: id,
+          productId: item.productId,
+          quantitySmall: parseFloat(item.quantitySmall),
+          quantityLarge: parseFloat(item.quantityLarge)
+        }))
+      });
+    }
   }
 
   const updated = await prisma.weeklyBasket.update({
@@ -204,7 +243,11 @@ const updateWeeklyBasket = asyncHandler(async (req, res) => {
     include: {
       items: {
         include: {
-          product: true
+          product: {
+            include: {
+              producer: true
+            }
+          }
         }
       }
     }

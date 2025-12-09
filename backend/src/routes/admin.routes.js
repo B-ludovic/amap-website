@@ -8,13 +8,6 @@ import {
   updateProduct,
   deleteProduct,
   getAllProducts,
-  createBasketType,
-  updateBasketType,
-  getAllBasketTypes,
-  deleteBasketType,
-  createBasketAvailability,
-  updateBasketAvailability,
-  deleteBasketAvailability,
   getAllOrders,
   updateOrderStatus,
   getStats,
@@ -48,17 +41,6 @@ router.get('/products', getAllProducts);
 router.post('/products', createProduct);
 router.put('/products/:id', updateProduct);
 router.delete('/products/:id', deleteProduct);
-
-// GESTION DES TYPES DE PANIERS
-router.get('/basket-types', getAllBasketTypes);
-router.post('/basket-types', createBasketType);
-router.put('/basket-types/:id', updateBasketType);
-router.delete('/basket-types/:id', deleteBasketType);
-
-// GESTION DES DISPONIBILITÉS DE PANIERS
-router.post('/basket-availabilities', createBasketAvailability);
-router.put('/basket-availabilities/:id', updateBasketAvailability);
-router.delete('/basket-availabilities/:id', deleteBasketAvailability);
 
 // GESTION DES COMMANDES
 router.get('/orders', getAllOrders);

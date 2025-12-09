@@ -98,64 +98,6 @@ export const admin = {
     },
   },
 
-  // Paniers (basket-types)
-  baskets: {
-    getAll: async () => {
-      return fetchAPI('/admin/basket-types', {
-        requiresAuth: true,
-      });
-    },
-
-    create: async (basketData) => {
-      return fetchAPI('/admin/basket-types', {
-        method: 'POST',
-        body: basketData,
-        requiresAuth: true,
-      });
-    },
-
-    update: async (id, basketData) => {
-      return fetchAPI(`/admin/basket-types/${id}`, {
-        method: 'PUT',
-        body: basketData,
-        requiresAuth: true,
-      });
-    },
-
-    delete: async (id) => {
-      return fetchAPI(`/admin/basket-types/${id}`, {
-        method: 'DELETE',
-        requiresAuth: true,
-      });
-    },
-  },
-
-  // Disponibilités (basket-availabilities)
-  availabilities: {
-    create: async (availabilityData) => {
-      return fetchAPI('/admin/basket-availabilities', {
-        method: 'POST',
-        body: availabilityData,
-        requiresAuth: true,
-      });
-    },
-
-    update: async (id, availabilityData) => {
-      return fetchAPI(`/admin/basket-availabilities/${id}`, {
-        method: 'PUT',
-        body: availabilityData,
-        requiresAuth: true,
-      });
-    },
-
-    delete: async (id) => {
-      return fetchAPI(`/admin/basket-availabilities/${id}`, {
-        method: 'DELETE',
-        requiresAuth: true,
-      });
-    },
-  },
-
   // Commandes
   orders: {
     getAll: async (params = {}) => {

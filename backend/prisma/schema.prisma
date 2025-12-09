@@ -111,6 +111,7 @@ model Product {
   category    ProductCategory?
   description String?     @db.Text
   image       String?
+  stock       Float?      @default(0)
   isActive    Boolean     @default(true)
   isExample   Boolean     @default(false)
   

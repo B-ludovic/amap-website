@@ -19,10 +19,12 @@
   /* COULEURS DE FEEDBACK */
   --success-color: #86efac;
   --success-color-dark: #4ade80;
+  --success-light: #f0fdf4;
   --error-color: #fca5a5;
   --error-color-dark: #f87171;
   --warning-color: #fde047;
   --warning-color-dark: #facc15;
+  --warning-light: #fefce8;
   --info-color: #bae6fd;
   --info-color-dark: #7dd3fc;
   
