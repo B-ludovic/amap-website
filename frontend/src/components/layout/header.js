@@ -2,13 +2,14 @@
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { LogOut } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useModal } from '../../contexts/ModalContext';
 
 function Header() {
   const router = useRouter();
+  const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const { user, logout } = useAuth();
@@ -55,19 +56,19 @@ function Header() {
 
           {/* Navigation desktop */}
           <nav className="header-nav">
-            <Link href="/" className="nav-link">
+            <Link href="/" className={`nav-link ${pathname === '/' ? 'active' : ''}`}>
               Accueil
             </Link>
-            <Link href="/nos-abonnements" className="nav-link">
+            <Link href="/nos-abonnements" className={`nav-link ${pathname === '/nos-abonnements' ? 'active' : ''}`}>
               Nos Abonnements
             </Link>
-            <Link href="/panier-semaine" className="nav-link">
+            <Link href="/panier-semaine" className={`nav-link ${pathname === '/panier-semaine' ? 'active' : ''}`}>
               Panier de la semaine
             </Link>
-            <Link href="/nos-producteurs" className="nav-link">
+            <Link href="/nos-producteurs" className={`nav-link ${pathname === '/nos-producteurs' ? 'active' : ''}`}>
               Nos Producteurs
             </Link>
-            <Link href="/devenir-producteur" className="nav-link">
+            <Link href="/devenir-producteur" className={`nav-link ${pathname === '/devenir-producteur' ? 'active' : ''}`}>
               Devenir Producteur
             </Link>
           </nav>

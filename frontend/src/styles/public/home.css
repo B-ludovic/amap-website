@@ -340,6 +340,7 @@
   background: rgba(255, 255, 255, 0.9);
   transform: translateY(-2px);
   box-shadow: var(--shadow-xl);
+  color: var(--text-primary)
 }
 
 .join-section .btn-primary {

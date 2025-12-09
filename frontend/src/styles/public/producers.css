@@ -467,15 +467,17 @@
 
 /* Boutons dans subscription-cta */
 .subscription-cta .btn-primary {
-  background-color: var(--secondary-color);
-  color: var(--text-primary);
-  box-shadow: var(--shadow-xl);
+  background: var(--white) !important;
+  color: var(--text-primary) !important;
+  font-weight: 600;
+  box-shadow: var(--shadow-lg);
 }
 
 .subscription-cta .btn-primary:hover {
-  background-color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.95) !important;
   transform: translateY(-2px);
-  color: var(--text-primary);
+  box-shadow: var(--shadow-xl);
+  color: var(--text-primary) !important;
 }
 
 /* RESPONSIVE */
