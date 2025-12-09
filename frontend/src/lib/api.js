@@ -155,7 +155,7 @@ export const admin = {
   theme: {
     getActive: async () => {
       return fetchAPI('/admin/theme/active', {
-        requiresAuth: true,
+        requiresAuth: false,
       });
     },
 
