@@ -5,14 +5,12 @@ Plateforme web moderne pour la gestion d'une AMAP (Association pour le Maintien 
 ## 📸 Aperçu
 
 ### Interface publique
-![Page d'accueil](screenshots/home.png)
-![Page producteurs](screenshots/producteurs.png)
-![Panier de la semaine](screenshots/panier-semaine.png)
+![Page d'accueil](screenshots/accueil.png)
+![Page producteurs](screenshots/nos-producteurs.png)
+![Page inscription](screenshots/inscription.png)
+![Page nos abonnements](screenshots/nos-abonnement.png)
 
-### Interface administration
-![Dashboard admin](screenshots/admin-dashboard.png)
-![Gestion paniers hebdomadaires](screenshots/admin-panier.png)
-![Gestion permanences](screenshots/admin-permanences.png)
+
 
 ## 📋 Description
 
