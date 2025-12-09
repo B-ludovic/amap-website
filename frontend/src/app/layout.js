@@ -2,6 +2,7 @@ import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import { AuthProvider } from '../contexts/AuthContext';
 import { ModalProvider } from '../contexts/ModalContext';
+import { ThemeProvider } from '../contexts/ThemeContext';
 import '../styles/variables.css';
 import '../styles/globals.css';
 import '../styles/components/modal.css';
@@ -30,15 +31,17 @@ function RootLayout({ children }) {
   return (
     <html lang="fr">
       <body>
-        <AuthProvider>
-          <ModalProvider>
-            <Header />
-            <main className="main-content">
-              {children}
-            </main>
-            <Footer />
-          </ModalProvider>
-        </AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <ModalProvider>
+              <Header />
+              <main className="main-content">
+                {children}
+              </main>
+              <Footer />
+            </ModalProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
