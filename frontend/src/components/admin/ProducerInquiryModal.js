@@ -10,7 +10,7 @@ export default function ProducerInquiryModal({ inquiry, onClose }) {
   const [adminNotes, setAdminNotes] = useState(inquiry.adminNotes || '');
   const [loading, setLoading] = useState(false);
   
-  const { showModal } = useModal();
+  const { showSuccess, showError } = useModal();
 
   const handleUpdateStatus = async (newStatus, createProducer = false) => {
     try {
@@ -23,16 +23,16 @@ export default function ProducerInquiryModal({ inquiry, onClose }) {
       });
 
       if (createProducer && response.data.producer) {
-        showModal('Producteur créé avec succès !', 'success');
+        showSuccess('Succès', 'Producteur créé avec succès !');
       } else {
-        showModal('Statut mis à jour avec succès', 'success');
+        showSuccess('Succès', 'Statut mis à jour avec succès');
       }
 
       onClose(true);
     } catch (error) {
-      showModal(
-        error.response?.data?.message || 'Erreur lors de la mise à jour',
-        'error'
+      showError(
+        'Erreur',
+        error.response?.data?.message || 'Erreur lors de la mise à jour'
       );
     } finally {
       setLoading(false);

@@ -25,7 +25,7 @@ export default function AdminPermanencesPage() {
     const [selectedShift, setSelectedShift] = useState(null);
     const [filter, setFilter] = useState('upcoming');
 
-    const { showModal } = useModal();
+    const { showSuccess, showError } = useModal();
 
     useEffect(() => {
         fetchShifts();
@@ -45,7 +45,7 @@ export default function AdminPermanencesPage() {
       const response = await api.shifts.getAll(params);
       setShifts(response.data);
     } catch (error) {
-      showModal('Erreur lors du chargement des permanences', 'error');
+      showError('Erreur', 'Erreur lors du chargement des permanences');
     } finally {
       setLoading(false);
     }
@@ -68,10 +68,10 @@ export default function AdminPermanencesPage() {
 
     try {
       await api.shifts.delete(shiftId);
-      showModal('Permanence supprimée avec succès', 'success');
+      showSuccess('Succès', 'Permanence supprimée avec succès');
       fetchShifts();
     } catch (error) {
-      showModal(error.response?.data?.message || 'Erreur lors de la suppression', 'error');
+      showError('Erreur', error.response?.data?.message || 'Erreur lors de la suppression');
     }
   };
 
@@ -82,10 +82,10 @@ export default function AdminPermanencesPage() {
 
     try {
       await api.shifts.duplicate(shift.id, { newDate });
-      showModal('Permanence dupliquée avec succès', 'success');
+      showSuccess('Succès', 'Permanence dupliquée avec succès');
       fetchShifts();
     } catch (error) {
-      showModal(error.response?.data?.message || 'Erreur lors de la duplication', 'error');
+      showError('Erreur', error.response?.data?.message || 'Erreur lors de la duplication');
     }
   };
 

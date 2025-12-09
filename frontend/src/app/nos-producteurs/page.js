@@ -11,7 +11,7 @@ import '../../styles/public/producers.css';
 export default function ProducersPage() {
   const [producers, setProducers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { showModal } = useModal();
+  const { showError } = useModal();
 
   useEffect(() => {
     fetchProducers();
@@ -21,13 +21,13 @@ export default function ProducersPage() {
     try {
       setLoading(true);
       const response = await api.producers.getAll();
-      // Filtrer pour n'afficher que les producteurs actifs et non-exemples
-      const activeProducers = response.data.filter(
-        producer => producer.isActive && !producer.isExample
+      // Filtrer pour n'afficher que les producteurs actifs
+      const activeProducers = response.data.producers.filter(
+        producer => producer.isActive
       );
       setProducers(activeProducers);
     } catch (error) {
-      showModal('Erreur lors du chargement des producteurs', 'error');
+      showError('Erreur', 'Impossible de charger les producteurs');
     } finally {
       setLoading(false);
     }

@@ -32,7 +32,7 @@ export default function AdminSubscriptionsPage() {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedSubscription, setSelectedSubscription] = useState(null);
   
-  const { showModal } = useModal();
+  const { showSuccess, showError } = useModal();
 
   useEffect(() => {
     fetchSubscriptions();
@@ -50,7 +50,7 @@ export default function AdminSubscriptionsPage() {
       const response = await api.subscriptions.getAll(params);
       setSubscriptions(response.data.subscriptions);
     } catch (error) {
-      showModal('Erreur lors du chargement des abonnements', 'error');
+      showError('Erreur', 'Erreur lors du chargement des abonnements');
     } finally {
       setLoading(false);
     }
@@ -71,7 +71,7 @@ export default function AdminSubscriptionsPage() {
       setSelectedSubscription(response.data);
       setIsDetailModalOpen(true);
     } catch (error) {
-      showModal('Erreur lors du chargement des détails', 'error');
+      showError('Erreur', 'Erreur lors du chargement des détails');
     }
   };
 
@@ -88,11 +88,11 @@ export default function AdminSubscriptionsPage() {
         endDate,
         reason
       });
-      showModal('Abonnement mis en pause', 'success');
+      showSuccess('Succès', 'Abonnement mis en pause');
       fetchSubscriptions();
       fetchStats();
     } catch (error) {
-      showModal(error.response?.data?.message || 'Erreur lors de la mise en pause', 'error');
+      showError('Erreur', error.response?.data?.message || 'Erreur lors de la mise en pause');
     }
   };
 
@@ -101,11 +101,11 @@ export default function AdminSubscriptionsPage() {
 
     try {
       await api.subscriptions.resume(subscriptionId);
-      showModal('Abonnement réactivé', 'success');
+      showSuccess('Succès', 'Abonnement réactivé');
       fetchSubscriptions();
       fetchStats();
     } catch (error) {
-      showModal(error.response?.data?.message || 'Erreur lors de la réactivation', 'error');
+      showError('Erreur', error.response?.data?.message || 'Erreur lors de la réactivation');
     }
   };
 
@@ -117,11 +117,11 @@ export default function AdminSubscriptionsPage() {
 
     try {
       await api.subscriptions.cancel(subscriptionId, { reason });
-      showModal('Abonnement annulé', 'success');
+      showSuccess('Succès', 'Abonnement annulé');
       fetchSubscriptions();
       fetchStats();
     } catch (error) {
-      showModal(error.response?.data?.message || 'Erreur lors de l\'annulation', 'error');
+      showError('Erreur', error.response?.data?.message || 'Erreur lors de l\'annulation');
     }
   };
 

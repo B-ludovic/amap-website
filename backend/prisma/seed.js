@@ -192,6 +192,316 @@ async function main() {
     }
   });
 
+  // Légumes supplémentaires
+  await prisma.product.create({
+    data: {
+      producerId: producer1.id,
+      name: 'Courgettes',
+      description: 'Courgettes vertes et jaunes',
+      unit: 'KG',
+      category: 'VEGETABLES',
+      isActive: true
+    }
+  });
+
+  await prisma.product.create({
+    data: {
+      producerId: producer1.id,
+      name: 'Aubergines',
+      description: 'Aubergines violettes bio',
+      unit: 'KG',
+      category: 'VEGETABLES',
+      isActive: true
+    }
+  });
+
+  await prisma.product.create({
+    data: {
+      producerId: producer1.id,
+      name: 'Poivrons',
+      description: 'Poivrons rouges, verts et jaunes',
+      unit: 'KG',
+      category: 'VEGETABLES',
+      isActive: true
+    }
+  });
+
+  await prisma.product.create({
+    data: {
+      producerId: producer1.id,
+      name: 'Concombres',
+      description: 'Concombres croquants',
+      unit: 'PIECE',
+      category: 'VEGETABLES',
+      isActive: true
+    }
+  });
+
+  await prisma.product.create({
+    data: {
+      producerId: producer1.id,
+      name: 'Radis',
+      description: 'Radis roses de 18 jours',
+      unit: 'KG',
+      category: 'VEGETABLES',
+      isActive: true
+    }
+  });
+
+  await prisma.product.create({
+    data: {
+      producerId: producer1.id,
+      name: 'Épinards',
+      description: 'Jeunes pousses d\'épinards',
+      unit: 'KG',
+      category: 'VEGETABLES',
+      isActive: true
+    }
+  });
+
+  await prisma.product.create({
+    data: {
+      producerId: producer1.id,
+      name: 'Brocoli',
+      description: 'Brocoli frais',
+      unit: 'PIECE',
+      category: 'VEGETABLES',
+      isActive: true
+    }
+  });
+
+  await prisma.product.create({
+    data: {
+      producerId: producer1.id,
+      name: 'Chou-fleur',
+      description: 'Chou-fleur blanc',
+      unit: 'PIECE',
+      category: 'VEGETABLES',
+      isActive: true
+    }
+  });
+
+  await prisma.product.create({
+    data: {
+      producerId: producer1.id,
+      name: 'Haricots verts',
+      description: 'Haricots verts fins',
+      unit: 'KG',
+      category: 'VEGETABLES',
+      isActive: true
+    }
+  });
+
+  await prisma.product.create({
+    data: {
+      producerId: producer1.id,
+      name: 'Betteraves',
+      description: 'Betteraves rouges',
+      unit: 'KG',
+      category: 'VEGETABLES',
+      isActive: true
+    }
+  });
+
+  await prisma.product.create({
+    data: {
+      producerId: producer1.id,
+      name: 'Courge butternut',
+      description: 'Courge butternut douce',
+      unit: 'KG',
+      category: 'VEGETABLES',
+      isActive: true
+    }
+  });
+
+  await prisma.product.create({
+    data: {
+      producerId: producer1.id,
+      name: 'Potiron',
+      description: 'Potiron de saison',
+      unit: 'KG',
+      category: 'VEGETABLES',
+      isActive: true
+    }
+  });
+
+  await prisma.product.create({
+    data: {
+      producerId: producer1.id,
+      name: 'Poireaux',
+      description: 'Poireaux frais',
+      unit: 'KG',
+      category: 'VEGETABLES',
+      isActive: true
+    }
+  });
+
+  await prisma.product.create({
+    data: {
+      producerId: producer1.id,
+      name: 'Navets',
+      description: 'Navets nouveaux',
+      unit: 'KG',
+      category: 'VEGETABLES',
+      isActive: true
+    }
+  });
+
+  await prisma.product.create({
+    data: {
+      producerId: producer1.id,
+      name: 'Pommes de terre',
+      description: 'Pommes de terre variété Charlotte',
+      unit: 'KG',
+      category: 'VEGETABLES',
+      isActive: true
+    }
+  });
+
+  // Fruits supplémentaires
+  await prisma.product.create({
+    data: {
+      producerId: producer2.id,
+      name: 'Fraises',
+      description: 'Fraises gariguettes',
+      unit: 'KG',
+      category: 'FRUITS',
+      isActive: true
+    }
+  });
+
+  await prisma.product.create({
+    data: {
+      producerId: producer2.id,
+      name: 'Framboises',
+      description: 'Framboises fraîches',
+      unit: 'KG',
+      category: 'FRUITS',
+      isActive: true
+    }
+  });
+
+  await prisma.product.create({
+    data: {
+      producerId: producer2.id,
+      name: 'Myrtilles',
+      description: 'Myrtilles bio',
+      unit: 'KG',
+      category: 'FRUITS',
+      isActive: true
+    }
+  });
+
+  await prisma.product.create({
+    data: {
+      producerId: producer2.id,
+      name: 'Cerises',
+      description: 'Cerises burlat',
+      unit: 'KG',
+      category: 'FRUITS',
+      isActive: true
+    }
+  });
+
+  await prisma.product.create({
+    data: {
+      producerId: producer2.id,
+      name: 'Abricots',
+      description: 'Abricots de pays',
+      unit: 'KG',
+      category: 'FRUITS',
+      isActive: true
+    }
+  });
+
+  await prisma.product.create({
+    data: {
+      producerId: producer2.id,
+      name: 'Pêches',
+      description: 'Pêches jaunes',
+      unit: 'KG',
+      category: 'FRUITS',
+      isActive: true
+    }
+  });
+
+  await prisma.product.create({
+    data: {
+      producerId: producer2.id,
+      name: 'Prunes',
+      description: 'Prunes reines-claudes',
+      unit: 'KG',
+      category: 'FRUITS',
+      isActive: true
+    }
+  });
+
+  await prisma.product.create({
+    data: {
+      producerId: producer2.id,
+      name: 'Raisin',
+      description: 'Raisin blanc et noir',
+      unit: 'KG',
+      category: 'FRUITS',
+      isActive: true
+    }
+  });
+
+  await prisma.product.create({
+    data: {
+      producerId: producer2.id,
+      name: 'Melons',
+      description: 'Melons charentais',
+      unit: 'PIECE',
+      category: 'FRUITS',
+      isActive: true
+    }
+  });
+
+  await prisma.product.create({
+    data: {
+      producerId: producer2.id,
+      name: 'Pastèques',
+      description: 'Pastèques sucrées',
+      unit: 'PIECE',
+      category: 'FRUITS',
+      isActive: true
+    }
+  });
+
+  await prisma.product.create({
+    data: {
+      producerId: producer2.id,
+      name: 'Kiwis',
+      description: 'Kiwis de France',
+      unit: 'KG',
+      category: 'FRUITS',
+      isActive: true
+    }
+  });
+
+  await prisma.product.create({
+    data: {
+      producerId: producer2.id,
+      name: 'Oranges',
+      description: 'Oranges bio',
+      unit: 'KG',
+      category: 'FRUITS',
+      isActive: true
+    }
+  });
+
+  await prisma.product.create({
+    data: {
+      producerId: producer2.id,
+      name: 'Citrons',
+      description: 'Citrons de Menton',
+      unit: 'KG',
+      category: 'FRUITS',
+      isActive: true
+    }
+  });
+
   console.log('✅ Produits créés');
 
   // === POINTS DE RETRAIT ===

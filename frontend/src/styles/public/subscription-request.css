@@ -52,7 +52,7 @@
 .request-form-container {
   background: var(--white);
   border-radius: var(--border-radius-lg);
-  padding: var(--spacing-2xl);
+  padding: var(--spacing-xl);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   border: 1px solid #e5e5e5;
 }
@@ -66,14 +66,13 @@
 /* SECTIONS DU FORMULAIRE */
 
 .form-section {
-  padding-bottom: var(--spacing-xl);
-  border-bottom: 2px solid #f0f0f0;
+  padding: var(--spacing-xl);
+  background: #fafafa;
+  border-radius: var(--border-radius-md);
   margin-bottom: var(--spacing-xl);
 }
 
 .form-section:last-of-type {
-  border-bottom: none;
-  padding-bottom: 0;
   margin-bottom: 0;
 }
 

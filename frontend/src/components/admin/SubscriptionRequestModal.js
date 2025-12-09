@@ -12,7 +12,7 @@ export default function SubscriptionRequestModal({ request, onClose }) {
   const [loading, setLoading] = useState(false);
   const [showCreateSubscription, setShowCreateSubscription] = useState(false);
   
-  const { showModal } = useModal();
+  const { showSuccess, showError, showWarning } = useModal();
 
   const handleUpdateStatus = async (newStatus) => {
     try {
@@ -23,12 +23,12 @@ export default function SubscriptionRequestModal({ request, onClose }) {
         adminNotes
       });
 
-      showModal('Statut mis à jour avec succès', 'success');
+      showSuccess('Succès', 'Statut mis à jour avec succès');
       onClose(true);
     } catch (error) {
-      showModal(
-        error.response?.data?.message || 'Erreur lors de la mise à jour',
-        'error'
+      showError(
+        'Erreur',
+        error.response?.data?.message || 'Erreur lors de la mise à jour'
       );
     } finally {
       setLoading(false);
@@ -60,7 +60,7 @@ export default function SubscriptionRequestModal({ request, onClose }) {
         // Si l'utilisateur existe déjà, le récupérer
         if (error.response?.status === 409) {
           // TODO: Récupérer l'utilisateur existant par email
-          showModal('Un utilisateur avec cet email existe déjà. Veuillez créer l\'abonnement manuellement.', 'warning');
+          showWarning('Attention', 'Un utilisateur avec cet email existe déjà. Veuillez créer l\'abonnement manuellement.');
           return;
         }
         throw error;
@@ -71,7 +71,7 @@ export default function SubscriptionRequestModal({ request, onClose }) {
       const activeLocation = locationsResponse.data.find(loc => loc.isActive);
       
       if (!activeLocation) {
-        showModal('Aucun point de retrait actif trouvé', 'error');
+        showError('Erreur', 'Aucun point de retrait actif trouvé');
         return;
       }
 
@@ -117,12 +117,12 @@ export default function SubscriptionRequestModal({ request, onClose }) {
         adminNotes: adminNotes + '\n\nAbonnement créé automatiquement.'
       });
 
-      showModal('Abonnement créé avec succès !', 'success');
+      showSuccess('Succès', 'Abonnement créé avec succès !');
       onClose(true);
     } catch (error) {
-      showModal(
-        error.response?.data?.message || 'Erreur lors de la création de l\'abonnement',
-        'error'
+      showError(
+        'Erreur',
+        error.response?.data?.message || 'Erreur lors de la création de l\'abonnement'
       );
     } finally {
       setLoading(false);

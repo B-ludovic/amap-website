@@ -6,15 +6,8 @@ import { useModal } from '../../contexts/ModalContext';
 import api from '../../lib/api';
 
 const UNITS = [
-  { value: 'kg', label: 'Kilogramme (kg)' },
-  { value: 'g', label: 'Gramme (g)' },
-  { value: 'pièce', label: 'Pièce' },
-  { value: 'botte', label: 'Botte' },
-  { value: 'bouquet', label: 'Bouquet' },
-  { value: 'litre', label: 'Litre (L)' },
-  { value: 'lot', label: 'Lot' },
-  { value: 'barquette', label: 'Barquette' },
-  { value: 'sachet', label: 'Sachet' },
+  { value: 'KG', label: 'Kilogramme (kg)' },
+  { value: 'PIECE', label: 'Pièce' },
 ];
 
 export default function ProductModal({ product, producers, onClose }) {
@@ -23,8 +16,8 @@ export default function ProductModal({ product, producers, onClose }) {
   const [formData, setFormData] = useState({
     name: '',
     producerId: '',
-    unit: 'kg',
-    origin: '',
+    unit: 'KG',
+    category: '',
     description: '',
     isExample: false,
   });
@@ -35,8 +28,8 @@ export default function ProductModal({ product, producers, onClose }) {
       setFormData({
         name: product.name || '',
         producerId: product.producerId || '',
-        unit: product.unit || 'kg',
-        origin: product.origin || '',
+        unit: product.unit || 'KG',
+        category: product.category || '',
         description: product.description || '',
         isExample: product.isExample ?? false,
       });
@@ -178,20 +171,24 @@ export default function ProductModal({ product, producers, onClose }) {
               {errors.unit && <span className="form-error">{errors.unit}</span>}
             </div>
 
-            {/* Origine */}
+            {/* Catégorie */}
             <div className="form-group">
-              <label htmlFor="origin" className="form-label">
-                Origine
+              <label htmlFor="category" className="form-label">
+                Catégorie
               </label>
-              <input
-                type="text"
-                id="origin"
-                name="origin"
-                value={formData.origin}
+              <select
+                id="category"
+                name="category"
+                value={formData.category}
                 onChange={handleChange}
-                className="input"
-                placeholder="Ex: Île-de-France"
-              />
+                className="select"
+              >
+                <option value="">Aucune catégorie</option>
+                <option value="VEGETABLES">Légumes</option>
+                <option value="FRUITS">Fruits</option>
+                <option value="EGGS">Œufs</option>
+                <option value="GROCERY">Épicerie</option>
+              </select>
             </div>
 
             {/* Description */}

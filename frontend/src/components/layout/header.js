@@ -76,6 +76,11 @@ function Header() {
           <div className="header-actions">
             {user ? (
               <>
+                {user.role === 'ADMIN' && (
+                  <Link href="/admin" className="nav-link">
+                    Admin
+                  </Link>
+                )}
                 <Link href="/compte" className="nav-link">
                   Bonjour {user.firstName}
                 </Link>
@@ -132,6 +137,11 @@ function Header() {
 
             {user ? (
               <>
+                {user.role === 'ADMIN' && (
+                  <Link href="/admin" className="mobile-nav-link" onClick={closeMenu}>
+                    Administration
+                  </Link>
+                )}
                 <Link href="/compte" className="mobile-nav-link" onClick={closeMenu}>
                   Mon Compte
                 </Link>

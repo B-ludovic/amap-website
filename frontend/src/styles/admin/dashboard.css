@@ -92,6 +92,15 @@
   font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-bold);
   color: var(--text-primary);
+  margin-bottom: var(--spacing-xs);
+}
+
+.admin-stat-subtitle {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 /* Section */

@@ -24,7 +24,7 @@ export default function AdminDistributionPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   
-  const { showModal } = useModal();
+  const { showSuccess, showError, showWarning } = useModal();
 
   useEffect(() => {
     fetchCurrentBasket();
@@ -63,7 +63,7 @@ export default function AdminDistributionPage() {
         pending: response.data.pending
       });
     } catch (error) {
-      showModal('Erreur lors du chargement de la liste', 'error');
+      showError('Erreur', 'Erreur lors du chargement de la liste');
     } finally {
       setLoading(false);
     }
@@ -87,16 +87,16 @@ export default function AdminDistributionPage() {
         });
       }
 
-      showModal(
-        newStatus ? 'Retrait validé' : 'Retrait annulé',
-        'success'
+      showSuccess(
+        'Succès',
+        newStatus ? 'Retrait validé' : 'Retrait annulé'
       );
       
       fetchDistributionList();
     } catch (error) {
-      showModal(
-        error.response?.data?.message || 'Erreur lors de la mise à jour',
-        'error'
+      showError(
+        'Erreur',
+        error.response?.data?.message || 'Erreur lors de la mise à jour'
       );
     }
   };
@@ -121,19 +121,19 @@ export default function AdminDistributionPage() {
         });
       }
 
-      showModal('Note ajoutée avec succès', 'success');
+      showSuccess('Succès', 'Note ajoutée avec succès');
       fetchDistributionList();
     } catch (error) {
-      showModal('Erreur lors de l\'ajout de la note', 'error');
+      showError('Erreur', 'Erreur lors de l\'ajout de la note');
     }
   };
 
   const handleExport = async () => {
     try {
       // TODO: Implémenter l'export CSV
-      showModal('Export en cours de développement', 'info');
+      showWarning('Info', 'Export en cours de développement');
     } catch (error) {
-      showModal('Erreur lors de l\'export', 'error');
+      showError('Erreur', 'Erreur lors de l\'export');
     }
   };
 

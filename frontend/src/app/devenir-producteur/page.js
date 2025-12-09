@@ -9,7 +9,7 @@ import '../../styles/public/become-producer.css';
 
 export default function BecomeProducerPage() {
   const router = useRouter();
-  const { showModal } = useModal();
+  const { showModal, showSuccess, showError } = useModal();
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -96,21 +96,30 @@ export default function BecomeProducerPage() {
     e.preventDefault();
 
     if (!validate()) {
-      showModal('Veuillez corriger les erreurs du formulaire', 'error');
+      showError('Erreur', 'Veuillez corriger les erreurs du formulaire');
       return;
     }
 
     try {
       setLoading(true);
 
-      await api.producerInquiries.submit(formData);
+      // Préparer les données en convertissant les champs numériques
+      const dataToSubmit = {
+        ...formData,
+        distance: formData.distance ? parseInt(formData.distance) : null,
+        certifications: formData.certifications || null,
+        message: formData.message || null,
+        availability: formData.availability || null
+      };
+
+      await api.producerInquiries.submit(dataToSubmit);
 
       setSubmitted(true);
-      showModal('Candidature envoyée avec succès !', 'success');
+      showSuccess('Succès', 'Candidature envoyée avec succès !');
     } catch (error) {
-      showModal(
-        error.response?.data?.message || 'Une erreur est survenue',
-        'error'
+      showError(
+        'Erreur',
+        error.response?.data?.message || 'Une erreur est survenue'
       );
     } finally {
       setLoading(false);

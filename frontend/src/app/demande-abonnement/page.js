@@ -11,7 +11,7 @@ import '../../styles/public/subscription-request.css';
 export default function SubscriptionRequestPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { showModal } = useModal();
+  const { showSuccess, showError } = useModal();
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -80,7 +80,7 @@ export default function SubscriptionRequestPage() {
     e.preventDefault();
 
     if (!validate()) {
-      showModal('Veuillez corriger les erreurs du formulaire', 'error');
+      showError('Erreur', 'Veuillez corriger les erreurs du formulaire');
       return;
     }
 
@@ -90,11 +90,11 @@ export default function SubscriptionRequestPage() {
       await api.subscriptionRequests.submitRequest(formData);
 
       setSubmitted(true);
-      showModal('Demande envoyée avec succès !', 'success');
+      showSuccess('Succès', 'Demande envoyée avec succès !');
     } catch (error) {
-      showModal(
-        error.response?.data?.message || 'Une erreur est survenue',
-        'error'
+      showError(
+        'Erreur',
+        error.response?.data?.message || 'Une erreur est survenue'
       );
     } finally {
       setLoading(false);

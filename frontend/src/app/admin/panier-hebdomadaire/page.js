@@ -26,7 +26,7 @@ export default function AdminWeeklyBasketPage() {
   const [selectedBasket, setSelectedBasket] = useState(null);
   const [filter, setFilter] = useState('upcoming');
   
-  const { showModal } = useModal();
+  const { showSuccess, showError } = useModal();
 
   useEffect(() => {
     fetchBaskets();
@@ -47,7 +47,7 @@ export default function AdminWeeklyBasketPage() {
       const response = await api.weeklyBaskets.getAll(params);
       setBaskets(response.data);
     } catch (error) {
-      showModal('Erreur lors du chargement des paniers', 'error');
+      showError('Erreur', 'Erreur lors du chargement des paniers');
     } finally {
       setLoading(false);
     }
@@ -79,11 +79,11 @@ export default function AdminWeeklyBasketPage() {
 
     try {
       await api.weeklyBaskets.delete(basketId);
-      showModal('Panier supprimé avec succès', 'success');
+      showSuccess('Succès', 'Panier supprimé avec succès');
       fetchBaskets();
       fetchCurrentBasket();
     } catch (error) {
-      showModal(error.response?.data?.message || 'Erreur lors de la suppression', 'error');
+      showError('Erreur', error.response?.data?.message || 'Erreur lors de la suppression');
     }
   };
 
@@ -94,11 +94,11 @@ export default function AdminWeeklyBasketPage() {
 
     try {
       await api.weeklyBaskets.publish(basketId);
-      showModal('Panier publié avec succès', 'success');
+      showSuccess('Succès', 'Panier publié avec succès');
       fetchBaskets();
       fetchCurrentBasket();
     } catch (error) {
-      showModal(error.response?.data?.message || 'Erreur lors de la publication', 'error');
+      showError('Erreur', error.response?.data?.message || 'Erreur lors de la publication');
     }
   };
 
@@ -115,10 +115,10 @@ export default function AdminWeeklyBasketPage() {
         year: parseInt(year),
         distributionDate
       });
-      showModal('Panier dupliqué avec succès', 'success');
+      showSuccess('Succès', 'Panier dupliqué avec succès');
       fetchBaskets();
     } catch (error) {
-      showModal(error.response?.data?.message || 'Erreur lors de la duplication', 'error');
+      showError('Erreur', error.response?.data?.message || 'Erreur lors de la duplication');
     }
   };
 

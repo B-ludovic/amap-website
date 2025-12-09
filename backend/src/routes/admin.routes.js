@@ -10,6 +10,7 @@ import {
   getAllProducts,
   createBasketType,
   updateBasketType,
+  getAllBasketTypes,
   deleteBasketType,
   createBasketAvailability,
   updateBasketAvailability,
@@ -49,6 +50,7 @@ router.put('/products/:id', updateProduct);
 router.delete('/products/:id', deleteProduct);
 
 // GESTION DES TYPES DE PANIERS
+router.get('/basket-types', getAllBasketTypes);
 router.post('/basket-types', createBasketType);
 router.put('/basket-types/:id', updateBasketType);
 router.delete('/basket-types/:id', deleteBasketType);

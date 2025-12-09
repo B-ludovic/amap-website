@@ -19,7 +19,7 @@ export default function NewsletterModal({ newsletter, onClose }) {
   const [sendMode, setSendMode] = useState(null); // null, 'now', 'schedule'
   const [scheduledFor, setScheduledFor] = useState('');
   
-  const { showModal } = useModal();
+  const { showSuccess, showError } = useModal();
   const { user } = useAuth();
   const isEdit = !!newsletter;
 
@@ -66,31 +66,31 @@ export default function NewsletterModal({ newsletter, onClose }) {
 
       if (isEdit) {
         await api.newsletters.update(newsletter.id, formData);
-        showModal('Newsletter modifiée avec succès', 'success');
+        showSuccess('Succès', 'Newsletter modifiée avec succès');
       } else {
         const response = await api.newsletters.create(formData);
         
         // Si envoi immédiat
         if (sendMode === 'now') {
           await api.newsletters.send(response.data.id);
-          showModal('Newsletter créée et envoyée avec succès', 'success');
+          showSuccess('Succès', 'Newsletter créée et envoyée avec succès');
         } 
         // Si programmation
         else if (sendMode === 'schedule') {
           await api.newsletters.schedule(response.data.id, { scheduledFor });
-          showModal('Newsletter programmée avec succès', 'success');
+          showSuccess('Succès', 'Newsletter programmée avec succès');
         } 
         // Sinon juste brouillon
         else {
-          showModal('Newsletter sauvegardée en brouillon', 'success');
+          showSuccess('Succès', 'Newsletter sauvegardée en brouillon');
         }
       }
 
       onClose(true);
     } catch (error) {
-      showModal(
-        error.response?.data?.message || 'Une erreur est survenue',
-        'error'
+      showError(
+        'Erreur',
+        error.response?.data?.message || 'Une erreur est survenue'
       );
     } finally {
       setLoading(false);

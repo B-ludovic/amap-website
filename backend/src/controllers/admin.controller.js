@@ -147,7 +147,7 @@ const getAllProducers = asyncHandler(async (req, res) => {
 
 // CRÉER UN PRODUIT
 const createProduct = asyncHandler(async (req, res) => {
-  const { name, producerId, unit, origin, description, isExample } = req.body;
+  const { name, producerId, unit, category, description, isExample } = req.body;
 
   if (!name || !producerId || !unit) {
     throw new HttpBadRequestError('Nom, producteur et unité requis');
@@ -166,7 +166,7 @@ const createProduct = asyncHandler(async (req, res) => {
       name,
       producerId,
       unit,
-      origin,
+      category,
       description,
       isExample: isExample || false
     },
@@ -185,7 +185,7 @@ const createProduct = asyncHandler(async (req, res) => {
 // MODIFIER UN PRODUIT
 const updateProduct = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { name, producerId, unit, origin, description, isExample } = req.body;
+  const { name, producerId, unit, category, description, isExample } = req.body;
 
   const product = await prisma.product.findUnique({
     where: { id }
@@ -211,7 +211,7 @@ const updateProduct = asyncHandler(async (req, res) => {
       name,
       producerId,
       unit,
-      origin,
+      category,
       description,
       isExample
     },
@@ -382,6 +382,27 @@ const updateBasketType = asyncHandler(async (req, res) => {
     success: true,
     message: 'Type de panier modifié avec succès',
     data: { basketType: updatedBasketType }
+  });
+});
+
+// RÉCUPÉRER TOUS LES TYPES DE PANIERS
+const getAllBasketTypes = asyncHandler(async (req, res) => {
+  const basketTypes = await prisma.basketType.findMany({
+    include: {
+      availabilities: {
+        include: {
+          weeklyBasket: true
+        }
+      }
+    },
+    orderBy: {
+      size: 'asc'
+    }
+  });
+
+  res.json({
+    success: true,
+    basketTypes
   });
 });
 
@@ -992,46 +1013,35 @@ const deleteBlogPost = asyncHandler(async (req, res) => {
 // STATISTIQUES //
 
 const getStats = asyncHandler(async (req, res) => {
-  // Récupérer différentes stats en parallèle
-  const [
-    totalUsers,
-    totalOrders,
-    totalRevenue,
-    pendingOrders,
-    completedOrders,
-    totalProducers,
-    totalBasketTypes,
-    recentOrders
-  ] = await Promise.all([
-    // Nombre total d'utilisateurs (non supprimés)
-    prisma.user.count({
+  try {
+    // Récupérer différentes stats une par une pour identifier laquelle échoue
+    const totalUsers = await prisma.user.count({
       where: { deletedAt: null }
-    }),
-    // Nombre total de commandes
-    prisma.order.count(),
-    // Revenu total (commandes payées)
-    prisma.order.aggregate({
-      where: { status: { in: ['PAID', 'PREPARING', 'READY', 'COMPLETED'] } },
-      _sum: { totalAmount: true }
-    }),
-    // Commandes en attente
-    prisma.order.count({
+    });
+
+    const totalProducers = await prisma.producer.count({
+      where: { isActive: true }
+    });
+
+    const totalProducts = await prisma.product.count({
+      where: { isActive: true, deletedAt: null }
+    });
+
+    const totalSubscriptions = await prisma.subscription.count();
+
+    const activeSubscriptions = await prisma.subscription.count({
+      where: { status: 'ACTIVE' }
+    });
+
+    const pendingRequests = await prisma.subscriptionRequest.count({
       where: { status: 'PENDING' }
-    }),
-    // Commandes terminées
-    prisma.order.count({
-      where: { status: 'COMPLETED' }
-    }),
-    // Nombre de producteurs
-    prisma.producer.count({
-      where: { isActive: true }
-    }),
-    // Nombre de types de paniers
-    prisma.basketType.count({
-      where: { isActive: true }
-    }),
-    // 10 dernières commandes
-    prisma.order.findMany({
+    });
+
+    const producerInquiries = await prisma.producerInquiry.count({
+      where: { status: 'PENDING' }
+    });
+
+    const recentActivities = await prisma.subscription.findMany({
       take: 10,
       orderBy: { createdAt: 'desc' },
       include: {
@@ -1041,26 +1051,34 @@ const getStats = asyncHandler(async (req, res) => {
             lastName: true,
             email: true
           }
+        },
+        pickupLocation: {
+          select: {
+            name: true
+          }
         }
       }
-    })
-  ]);
+    });
 
-  res.json({
-    success: true,
-    data: {
-      stats: {
-        users: totalUsers,
-        orders: totalOrders,
-        revenue: totalRevenue._sum.totalAmount || 0,
-        pendingOrders,
-        completedOrders,
-        producers: totalProducers,
-        basketTypes: totalBasketTypes
-      },
-      recentOrders
-    }
-  });
+    res.json({
+      success: true,
+      data: {
+        stats: {
+          users: totalUsers,
+          producers: totalProducers,
+          products: totalProducts,
+          subscriptions: totalSubscriptions,
+          activeSubscriptions: activeSubscriptions,
+          pendingRequests: pendingRequests,
+          producerInquiries: producerInquiries
+        },
+        recentActivities: recentActivities
+      }
+    });
+  } catch (error) {
+    console.error('Erreur dans getStats:', error);
+    throw error;
+  }
 });
 
 // GESTION DES EXEMPLES //
@@ -1183,6 +1201,7 @@ export {
   getAllProducts,
   createBasketType,
   updateBasketType,
+  getAllBasketTypes,
   deleteBasketType,
   createBasketAvailability,
   updateBasketAvailability,

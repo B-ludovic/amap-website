@@ -17,7 +17,7 @@ export default function AdminSubscriptionRequestsPage() {
     const [selectedRequest, setSelectedRequest] = useState(null);
     const [filter, setFilter] = useState('PENDING');
 
-    const { showModal } = useModal();
+    const { showError } = useModal();
 
     useEffect(() => {
         fetchRequests();
@@ -30,7 +30,7 @@ export default function AdminSubscriptionRequestsPage() {
       const response = await api.subscriptionRequests.getAll(params);
       setRequests(response.data.requests);
     } catch (error) {
-      showModal('Erreur lors du chargement des demandes', 'error');
+      showError('Erreur', 'Erreur lors du chargement des demandes');
     } finally {
       setLoading(false);
     }

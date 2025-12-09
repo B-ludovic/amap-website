@@ -84,13 +84,14 @@ export default function AdminDashboard() {
               </div>
             </Link>
 
-            <Link href="/admin/commandes" className="admin-stat-card">
+            <Link href="/admin/abonnements" className="admin-stat-card">
               <div className="admin-stat-icon orders">
                 <ShoppingCart size={24} />
               </div>
               <div className="admin-stat-content">
-                <p className="admin-stat-label">Commandes</p>
-                <p className="admin-stat-value">{stats.stats.orders}</p>
+                <p className="admin-stat-label">Abonnements</p>
+                <p className="admin-stat-value">{stats.stats.subscriptions}</p>
+                <p className="admin-stat-subtitle">{stats.stats.activeSubscriptions} actifs</p>
               </div>
             </Link>
 
@@ -104,52 +105,49 @@ export default function AdminDashboard() {
               </div>
             </Link>
 
-            <div className="admin-stat-card">
+            <Link href="/admin/demandes-abonnements" className="admin-stat-card">
               <div className="admin-stat-icon revenue">
                 <TrendingUp size={24} />
               </div>
               <div className="admin-stat-content">
-                <p className="admin-stat-label">Revenu total</p>
-                <p className="admin-stat-value">{stats.stats.revenue.toFixed(2)} €</p>
+                <p className="admin-stat-label">Demandes en attente</p>
+                <p className="admin-stat-value">{stats.stats.pendingRequests}</p>
+                <p className="admin-stat-subtitle">{stats.stats.pendingRequests} abonnements · {stats.stats.producerInquiries} producteurs</p>
               </div>
-            </div>
+            </Link>
           </div>
         )}
 
         <div className="admin-section">
-          <h2 className="admin-section-title">Commandes récentes</h2>
-          {stats?.recentOrders && stats.recentOrders.length > 0 ? (
+          <h2 className="admin-section-title">Activités récentes</h2>
+          {stats?.recentActivities && stats.recentActivities.length > 0 ? (
             <div className="admin-table-container">
               <table className="admin-table">
                 <thead>
                   <tr>
-                    <th>Numéro</th>
                     <th>Client</th>
-                    <th>Montant</th>
+                    <th>Type</th>
+                    <th>Taille</th>
                     <th>Statut</th>
                     <th>Date</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {stats.recentOrders.map((order) => (
+                  {stats.recentActivities.map((activity) => (
                     <tr 
-                      key={order.id}
-                      onClick={() => router.push(`/admin/commandes/${order.id}`)}
+                      key={activity.id}
+                      onClick={() => router.push(`/admin/abonnements`)}
                       className="admin-table-row-clickable"
                     >
+                      <td>{activity.user?.firstName} {activity.user?.lastName}</td>
+                      <td>{activity.type === 'ANNUAL' ? 'Annuel' : 'Découverte'}</td>
+                      <td>{activity.basketSize === 'SMALL' ? 'Petit' : 'Grand'}</td>
                       <td>
-                        <span className="admin-order-number">
-                          #{order.orderNumber || order.id.slice(0, 8)}
+                        <span className={`admin-status-badge admin-status-${activity.status.toLowerCase()}`}>
+                          {activity.status}
                         </span>
                       </td>
-                      <td>{order.user?.firstName} {order.user?.lastName}</td>
-                      <td className="admin-table-amount">{order.totalAmount.toFixed(2)} €</td>
-                      <td>
-                        <span className={`admin-status-badge admin-status-${order.status.toLowerCase()}`}>
-                          {order.status}
-                        </span>
-                      </td>
-                      <td>{new Date(order.createdAt).toLocaleDateString('fr-FR')}</td>
+                      <td>{new Date(activity.createdAt).toLocaleDateString('fr-FR')}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -158,7 +156,7 @@ export default function AdminDashboard() {
           ) : (
             <div className="admin-empty-state">
               <ShoppingCart size={48} />
-              <p>Aucune commande récente</p>
+              <p>Aucune activité récente</p>
             </div>
           )}
         </div>

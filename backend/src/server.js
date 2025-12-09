@@ -9,9 +9,6 @@ import { httpStatusCodes } from './utils/httpErrors.js';
 // Import des routes 
 import authRoutes from './routes/auth.routes.js';
 import producersRoutes from './routes/producers.routes.js';
-import basketsRoutes from './routes/baskets.routes.js';
-import ordersRoutes from './routes/orders.routes.js';
-import paymentsRoutes from './routes/payments.routes.js';
 import adminRoutes from './routes/admin.routes.js';
 import shiftsRoutes from './routes/shifts.routes.js';
 import newslettersRoutes from './routes/newsletters.routes.js';
@@ -70,9 +67,6 @@ app.get('/api/health', (req, res) => {
 // Routes de l'application
 app.use('/api/auth', authRoutes);
 app.use('/api/producers', producersRoutes);
-app.use('/api/baskets', basketsRoutes);
-app.use('/api/orders', ordersRoutes);
-app.use('/api/payments', paymentsRoutes);
 app.use('/api/admin', adminRoutes);
 
 

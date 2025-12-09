@@ -17,7 +17,7 @@ export default function AdminProducerInquiriesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedInquiry, setSelectedInquiry] = useState(null);
   
-  const { showModal } = useModal();
+  const { showError } = useModal();
 
   useEffect(() => {
     fetchInquiries();
@@ -30,7 +30,7 @@ export default function AdminProducerInquiriesPage() {
       const response = await api.producerInquiries.getAll(params);
       setInquiries(response.data.inquiries);
     } catch (error) {
-      showModal('Erreur lors du chargement des demandes', 'error');
+      showError('Erreur', 'Erreur lors du chargement des demandes');
     } finally {
       setLoading(false);
     }

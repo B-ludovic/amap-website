@@ -66,6 +66,7 @@ export default function ProducerModal({ producer, onClose }) {
     e.preventDefault();
 
     if (!validate()) {
+      showError('Formulaire incomplet', 'Veuillez remplir tous les champs obligatoires');
       return;
     }
 
@@ -83,7 +84,8 @@ export default function ProducerModal({ producer, onClose }) {
       }
       onClose(true); // true = refresh la liste
     } catch (error) {
-      showError('Erreur', error.message);
+      console.error('Erreur création producteur:', error);
+      showError('Erreur', error?.message || error?.toString() || 'Une erreur est survenue');
     } finally {
       setLoading(false);
     }
@@ -107,8 +109,9 @@ export default function ProducerModal({ producer, onClose }) {
         </div>
 
         {/* Body */}
-        <form onSubmit={handleSubmit} className="modal-body">
-          <div className="form-grid">
+        <form onSubmit={handleSubmit}>
+          <div className="modal-body">
+            <div className="form-grid">
             {/* Nom */}
             <div className="form-group">
               <label htmlFor="name" className="form-label required">
@@ -220,7 +223,7 @@ export default function ProducerModal({ producer, onClose }) {
               </p>
             </div>
           </div>
-        </form>
+        </div>
 
         {/* Footer */}
         <div className="modal-footer">
@@ -234,13 +237,13 @@ export default function ProducerModal({ producer, onClose }) {
           </button>
           <button
             type="submit"
-            onClick={handleSubmit}
             className="btn btn-primary"
             disabled={loading}
           >
             {loading ? 'Enregistrement...' : producer ? 'Modifier' : 'Créer'}
           </button>
         </div>
+        </form>
       </div>
     </div>
   );

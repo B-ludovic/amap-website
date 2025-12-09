@@ -27,7 +27,7 @@ export default function AdminCommunicationPage() {
     const [selectedNewsletter, setSelectedNewsletter] = useState(null);
     const [filter, setFilter] = useState('all');
 
-    const { showModal } = useModal();
+    const { showSuccess, showError } = useModal();
 
     useEffect(() => {
         fetchNewsletters();
@@ -47,7 +47,7 @@ export default function AdminCommunicationPage() {
       const response = await api.newsletters.getAll(params);
       setNewsletters(response.data.newsletters);
     } catch (error) {
-      showModal('Erreur lors du chargement des newsletters', 'error');
+      showError('Erreur', 'Erreur lors du chargement des newsletters');
     } finally {
       setLoading(false);
     }
@@ -79,11 +79,11 @@ export default function AdminCommunicationPage() {
 
     try {
       await api.newsletters.delete(newsletterId);
-      showModal('Newsletter supprimée avec succès', 'success');
+      showSuccess('Succès', 'Newsletter supprimée avec succès');
       fetchNewsletters();
       fetchStats();
     } catch (error) {
-      showModal(error.response?.data?.message || 'Erreur lors de la suppression', 'error');
+      showError('Erreur', error.response?.data?.message || 'Erreur lors de la suppression');
     }
   };
 
@@ -94,11 +94,11 @@ export default function AdminCommunicationPage() {
 
     try {
       const response = await api.newsletters.send(newsletterId);
-      showModal(`Newsletter envoyée à ${response.data.sentCount} destinataire(s)`, 'success');
+      showSuccess('Succès', `Newsletter envoyée à ${response.data.sentCount} destinataire(s)`);
       fetchNewsletters();
       fetchStats();
     } catch (error) {
-      showModal(error.response?.data?.message || 'Erreur lors de l\'envoi', 'error');
+      showError('Erreur', error.response?.data?.message || 'Erreur lors de l\'envoi');
     }
   };
 

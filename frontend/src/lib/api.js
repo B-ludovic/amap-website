@@ -643,6 +643,20 @@ const api = {
     },
   },
 
+  producers: {
+    getAll: async () => {
+      return fetchAPI('/producers', {
+        requiresAuth: false,
+      });
+    },
+
+    getById: async (id) => {
+      return fetchAPI(`/producers/${id}`, {
+        requiresAuth: false,
+      });
+    },
+  },
+
   subscriptionRequests: {
     // Public - Submit a subscription request (no auth required)
     submitRequest: async (data) => {

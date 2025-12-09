@@ -20,7 +20,7 @@ const getAllProducers = asyncHandler(async (req, res) => {
           name: true,
           description: true,
           unit: true,
-          origin: true,
+          category: true,
           image: true,
         }
       }
@@ -55,7 +55,7 @@ const getProducerById = asyncHandler(async (req, res) => {
           name: true,
           description: true,
           unit: true,
-          origin: true,
+          category: true,
           image: true,
           createdAt: true,
         }

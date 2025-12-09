@@ -11,7 +11,7 @@ import '../../styles/public/weekly-basket.css';
 export default function WeeklyBasketPublicPage() {
   const [basket, setBasket] = useState(null);
   const [loading, setLoading] = useState(true);
-  const { showModal } = useModal();
+  const { showError } = useModal();
 
   useEffect(() => {
     fetchCurrentBasket();
@@ -23,7 +23,7 @@ export default function WeeklyBasketPublicPage() {
       const response = await api.weeklyBaskets.getCurrent();
       setBasket(response.data);
     } catch (error) {
-      showModal('Erreur lors du chargement du panier', 'error');
+      showError('Erreur', 'Erreur lors du chargement du panier');
     } finally {
       setLoading(false);
     }
