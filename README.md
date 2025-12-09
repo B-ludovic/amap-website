@@ -6,9 +6,31 @@ Plateforme web moderne pour la gestion d'une AMAP (Association pour le Maintien 
 
 ### Interface publique
 ![Page d'accueil](screenshots/accueil.png)
-![Page producteurs](screenshots/nos-producteurs.png)
-![Page inscription](screenshots/inscription.png)
-![Page nos abonnements](screenshots/nos-abonnement.png)
+*Page d'accueil avec hero section dynamique*
+
+![Nos producteurs](screenshots/nos-producteurs.png)
+*Liste des producteurs partenaires*
+
+![Nos abonnements](screenshots/nos-abonnement.png)
+*Page de présentation des abonnements avec tarif solidaire*
+
+![Inscription](screenshots/inscription.png)
+*Formulaire d'inscription des nouveaux membres*
+
+### Thèmes saisonniers
+Le site propose 4 thèmes qui s'adaptent aux saisons :
+
+![Thème Printemps](screenshots/theme-printemps.png)
+*Thème Printemps - Tons verts et naturels*
+
+![Thème Été](screenshots/theme-ete.png)
+*Thème Été - Couleurs chaudes et lumineuses*
+
+![Thème Automne](screenshots/theme-automne.png)
+*Thème Automne - Palette douce et chaleureuse*
+
+![Thème Hiver](screenshots/theme-hiver.png)
+*Thème Hiver - Nuances douces et apaisantes*
 
 
 
@@ -158,10 +180,13 @@ Après avoir lancé le seed, vous pouvez vous connecter avec :
 - ✅ Gestion des demandes d'abonnement
 - ✅ Création des paniers hebdomadaires avec calcul automatique des poids
 - ✅ Gestion du stock des produits
-- TODO Suivi de la distribution (qui a récupéré son panier)
 - ✅ Organisation des permanences avec assignation de bénévoles
-- TODO Communication par newsletter 
 - ✅ Statistiques du tableau de bord
+- ✅ Système de thèmes saisonniers - 4 thèmes personnalisables (Printemps, Été, Automne, Hiver)
+- ✅ Gestion des points de retrait
+- ✅ Distinction des données d'exemple vs données réelles
+- TODO Suivi de la distribution (qui a récupéré son panier)
+- TODO Communication par newsletter
 
 ## 📊 Base de données
 
@@ -177,12 +202,30 @@ Le schéma Prisma comprend :
 
 ## 🎨 Personnalisation
 
+### Thèmes saisonniers
+Le site propose un système de thèmes dynamiques qui s'adaptent aux saisons. Les administrateurs peuvent :
+- Choisir parmi 4 thèmes prédefinis (Printemps, Été, Automne, Hiver)
+- Personnaliser les couleurs de chaque thème
+- Activer le thème de leur choix instantanément
+
+Les thèmes modifient automatiquement :
+- Les couleurs principales et secondaires
+- Les dégradés des bannières
+- Les boutons et éléments interactifs
+- La couleur d'arrière-plan
+
+### Variables CSS
 Les couleurs et styles sont centralisés dans `frontend/src/styles/variables.css` :
 ```css
---primary-color: #6b9d5a;    /* Vert principal */
---secondary-color: #d4a574;  /* Beige secondaire */
---accent-color: #c85a3f;     /* Orange accent */
+
+--primary-color: #6b9d5a;      - Couleur primaire 
+--secondary-color: #d4a574;    - Couleur secondaire
+--accent-color: #c85a3f;       - Couleur d'accent
+--background-color: #f9f7f4;   - Arriere plan
+--gradient-button: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
 ```
+
+Les thèmes sont stockés en base de données et appliqués dynamiquement via le `ThemeProvider` React.
 
 ## 📝 Scripts disponibles
 
