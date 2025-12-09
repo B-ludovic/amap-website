@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import api from "../../../lib/api";
 import { useModal } from "../../../contexts/ModalContext";
+import { useTheme } from "../../../contexts/ThemeContext";
 import "../../../styles/admin/parametres.css";
 import {
     Trash2,
@@ -19,7 +20,9 @@ import {
     Flower2,
     Sun,
     Leaf,
-    Snowflake
+    Snowflake,
+    BarChart3,
+    Beaker
 } from "lucide-react";
 
 
@@ -59,6 +62,7 @@ const SEASON_COLORS = {
 
 export default function AdminParametresPage() {
     const { showConfirm, showSuccess, showError } = useModal();
+    const { loadTheme } = useTheme();
 
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -188,6 +192,7 @@ export default function AdminParametresPage() {
         try {
             await api.admin.theme.update(themeData);
             showSuccess('Thème sauvegardé', 'Le thème a été mis à jour avec succès.');
+            await loadTheme(); // Recharger et appliquer le thème immédiatement
             fetchData();
         } catch (error) {
             showError('Erreur', error.message);
@@ -335,8 +340,8 @@ export default function AdminParametresPage() {
                             {/* Stats totales */}
                             {totalStats && (
                                 <>
-                                    <h3 style={{ marginTop: '2rem', marginBottom: '1rem', fontSize: '1.1rem', color: 'var(--text-dark)' }}>
-                                        📊 Données totales en base
+                                    <h3 style={{ marginTop: '2rem', marginBottom: '1rem', fontSize: '1.1rem', color: 'var(--text-dark)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        <BarChart3 size={20} /> Données totales en base
                                     </h3>
                                     <div className="examples-stats-grid">
                                         <div className="examples-stat-card">
@@ -375,8 +380,8 @@ export default function AdminParametresPage() {
                             {/* Stats exemples */}
                             {exampleStats && exampleStats.total > 0 ? (
                                 <>
-                                    <h3 style={{ marginTop: '2rem', marginBottom: '1rem', fontSize: '1.1rem', color: 'var(--text-dark)' }}>
-                                        🧪 Données d'exemple uniquement
+                                    <h3 style={{ marginTop: '2rem', marginBottom: '1rem', fontSize: '1.1rem', color: 'var(--text-dark)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        <Beaker size={20} /> Données d'exemple uniquement
                                     </h3>
                                     <div className="examples-stats-grid">
                                         <div className="examples-stat-card">
