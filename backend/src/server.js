@@ -17,6 +17,7 @@ import weeklyBasketsRoutes from './routes/weekly-baskets.routes.js';
 import subscriptionsRoutes from './routes/subscriptions.routes.js';
 import subscriptionRequestsRoutes from './routes/subscription-requests.routes.js';
 import distributionRoutes from './routes/distribution.routes.js';
+import themeRoutes from './routes/theme.routes.js';
 
 
 // Charge les variables d'environnement
@@ -65,6 +66,7 @@ app.get('/api/health', (req, res) => {
 
 
 // Routes de l'application
+app.use('/api/theme', themeRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/producers', producersRoutes);
 app.use('/api/admin', adminRoutes);

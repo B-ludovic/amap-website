@@ -153,12 +153,6 @@ export const admin = {
 
   // Thèmes
   theme: {
-    getActive: async () => {
-      return fetchAPI('/admin/theme/active', {
-        requiresAuth: false,
-      });
-    },
-
     update: async (themeData) => {
       return fetchAPI('/admin/theme', {
         method: 'PUT',
@@ -285,6 +279,13 @@ export const auth = {
 const api = {
   admin,
   auth,
+
+  // Thèmes (public)
+  getActiveTheme: async () => {
+    return fetchAPI('/theme/active', {
+      requiresAuth: false,
+    });
+  },
   
   newsletters: {
     getAll: async (params = {}) => {

@@ -22,7 +22,7 @@
 
 /* Solidarity Info */
 .solidarity-info {
-  background: #fef3c7;
+  background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%);
   padding: 2rem 0;
 }
 

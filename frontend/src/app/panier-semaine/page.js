@@ -247,7 +247,7 @@ export default function WeeklyBasketPublicPage() {
               <Link href="/nos-abonnements" className="btn btn-primary btn-lg">
                 Découvrir nos abonnements
               </Link>
-              <Link href="/nos-producteurs" className="btn btn-secondary btn-lg">
+              <Link href="/nos-producteurs" className="btn btn-primary btn-lg">
                 Nos producteurs
               </Link>
             </div>

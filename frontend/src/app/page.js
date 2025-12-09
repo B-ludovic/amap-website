@@ -24,7 +24,7 @@ export default function HomePage() {
               <ShoppingBasket size={20} />
               Découvrir nos abonnements
             </Link>
-            <Link href="/panier-semaine" className="btn btn-secondary btn-lg">
+            <Link href="/panier-semaine" className="btn btn-primary btn-lg">
               Voir le panier de la semaine
             </Link>
           </div>
@@ -151,7 +151,7 @@ export default function HomePage() {
           </p>
           
           <div className="cta-center">
-            <Link href="/nos-producteurs" className="btn btn-secondary">
+            <Link href="/nos-producteurs" className="btn btn-primary">
               Rencontrer nos producteurs
             </Link>
           </div>

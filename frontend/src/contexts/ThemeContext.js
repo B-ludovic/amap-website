@@ -15,7 +15,7 @@ export function ThemeProvider({ children }) {
 
   const loadTheme = async () => {
     try {
-      const response = await api.admin.theme.getActive();
+      const response = await api.getActiveTheme();
       if (response.data?.theme) {
         setTheme(response.data.theme);
         applyTheme(response.data.theme);
