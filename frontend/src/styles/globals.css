@@ -237,14 +237,18 @@ button {
 
 .input-icon {
   position: absolute;
-  left: var(--input-padding-x);
+  left: 14px;
   color: var(--text-secondary);
   pointer-events: none;
   z-index: 1;
 }
 
 .input-with-icon {
-  padding-left: calc(var(--input-padding-x) * 2 + 20px);
+  padding-left: 52px !important;
+}
+
+.input-with-icon::placeholder {
+  padding-left: 0;
 }
 
 .input-toggle {

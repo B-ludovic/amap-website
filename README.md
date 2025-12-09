@@ -1,729 +1,232 @@
 # 🌱 Aux P'tits Pois - Site AMAP
 
-Site web pour une AMAP avec réservation de paniers et paiement en ligne.
+Plateforme web moderne pour la gestion d'une AMAP (Association pour le Maintien d'une Agriculture Paysanne).
 
-## 📝 Description
+## 📸 Aperçu
 
-Aux P'tits Pois c'est une plateforme pour une AMAP (Association pour le Maintien d'une Agriculture Paysanne). 
-
-Les utilisateurs peuvent :
-- Consulter les producteurs et leurs produits
-- Réserver des paniers de produits locaux
-- Payer en ligne avec Stripe
-- Choisir un point de retrait
-
-Les admins peuvent :
-- Gérer les paniers et les stocks
-- Personnaliser le thème selon les saisons
-- Suivre les commandes et les paiements
-
-## 📸 Screenshots
-
-### Page d'accueil
+### Interface publique
 ![Page d'accueil](screenshots/home.png)
-*Hero section avec CTA, paniers en vedette, pourquoi nous choisir et comment ça marche*
+![Page producteurs](screenshots/producteurs.png)
+![Panier de la semaine](screenshots/panier-semaine.png)
 
-### Page Paniers
-![Liste des paniers](screenshots/panier.png)
-*Paniers vers le paiement*
+### Interface administration
+![Dashboard admin](screenshots/admin-dashboard.png)
+![Gestion paniers hebdomadaires](screenshots/admin-panier.png)
+![Gestion permanences](screenshots/admin-permanences.png)
 
-![Page d'accueil](screenshots/example-panier.png)
-*Liste des paniers disponibles avec filtres par prix et tri*
+## 📋 Description
 
-### Inscription
-![Page d'inscription](screenshots/inscription.png)
-*Formulaire d'inscription avec validation et icônes Lucide React*
+Ce projet est un site complet permettant de gérer une AMAP de A à Z :
+- 🛒 gestion des paniers hebdomadaires par les ADMIN
+- 👥 Gestion des adhérents et abonnements
+- 🚜 Présentation des producteurs et produits locaux
+- 📅 Organisation des permanences de distribution
+- 📧 Communication avec les membres
 
-### Connexion
-![Page de connexion](screenshots/connexion.png)
-*Formulaire de connexion avec toggle de visibilité du mot de passe*
-
----
-
-**Autres pages disponibles :**
-- `/producteurs` - Nos producteurs locaux
-- `/compte` - Mon compte utilisateur avec profil et actions rapides
-- `/commandes` - Historique des commandes avec badges de statut
-
-> 🚧 Le site est toujours en développement actif !
-
-## 🛠 Stack technique
-
-**Frontend :**
-- Next.js 15 (App Router)
-- React 19
-- CSS vanilla
-- Lucide React pour les icônes
-
-**Backend :**
-- Node.js + Express
-- PostgreSQL
-- Prisma ORM
-
-**Autres :**
-- Stripe pour les paiements
-- JWT pour l'auth
-- Nodemailer pour les emails
-
-## Installation
-
-### Prérequis
-
-- Node.js v18+
-- PostgreSQL 14+
-- Un compte Stripe (mode test)
-
-### Backend
-
-```bash
-cd backend
-npm install
-```
-
-Crée un `.env` :
-```env
-DATABASE_URL="postgresql://user:password@localhost:5432/amap_db"
-PORT=4000
-
-JWT_SECRET="ton-secret-jwt"
-JWT_EXPIRE="7d"
-
-STRIPE_SECRET_KEY="sk_test_..."
-STRIPE_WEBHOOK_SECRET="whsec_..."
-
-EMAIL_HOST="smtp.gmail.com"
-EMAIL_PORT=587
-EMAIL_USER="ton-email@gmail.com"
-EMAIL_PASSWORD="ton-mot-de-passe"
-
-FRONTEND_URL="http://localhost:3000"
-```
-
-Lance les migrations et le seed :
-```bash
-npx prisma migrate dev
-npm run seed
-npm run dev
-```
-
-Le backend tourne sur http://localhost:4000
+## 🚀 Technologies utilisées
 
 ### Frontend
+- **Next.js 14** - Framework React pour le rendu côté serveur
+- **React** - Interface utilisateur réactive
+- **Lucide React** - Icônes modernes
+- **CSS natif** - Styling avec variables CSS
 
-```bash
-cd frontend
-npm install
-```
+### Backend
+- **Node.js + Express** - Serveur API REST
+- **Prisma** - ORM pour la base de données
+- **PostgreSQL** - Base de données relationnelle
+- **JWT** - Authentification sécurisée
 
-Crée un `.env.local` :
-```env
-NEXT_PUBLIC_API_URL="http://localhost:4000/api"
-NEXT_PUBLIC_STRIPE_PUBLIC_KEY="pk_test_..."
-```
-
-Lance le dev server :
-```bash
-npm run dev
-```
-
-Le site est sur http://localhost:3000
-
-## Fonctionnalités
-
-### ✅ Déjà fait
-- Pages publiques (accueil, paniers, producteurs)
-- Auth (login, register)
-- Réservation de paniers avec expiration (15min)
-- Paiement Stripe
-- Dashboard admin
-- Gestion producteurs avec flag `isExample`
-- Gestion produits avec flag `isExample`
-- Système de thèmes saisonniers
-- Emails automatiques
-- API complète avec routes protégées
-
-### 🚧 En cours
-- Page détail panier
-- Gestion des paniers (composition, stocks)
-- Upload d'images
-- Gestion des points de retrait
-
-### 📅 À venir
-- Blog
-- Page contact
-- Export CSV des commandes
-- Notifications temps réel
-
-## Base de données
-
-Modèles principaux :
-- **User** : Utilisateurs (CLIENT, ADMIN)
-- **Producer** : Producteurs (avec flag `isExample`)
-- **Product** : Produits (avec flag `isExample`)
-- **BasketType** : Types de paniers (avec flag `isExample`)
-- **BasketAvailability** : Stocks disponibles
-- **Order** : Commandes
-- **Payment** : Paiements Stripe
-- **PickupLocation** : Points de retrait (avec flag `isExample`)
-
-Flag `isExample` : permet de marquer des données comme exemples pour les supprimer en masse depuis l'admin.
-
-## Routes API principales
-
-### Auth
-- `POST /api/auth/register`
-- `POST /api/auth/login`
-- `GET /api/auth/me`
-
-### Admin (protégé, admin only)
-- `GET /api/admin/producers` - Liste producteurs
-- `POST /api/admin/producers` - Créer producteur
-- `PUT /api/admin/producers/:id` - Modifier
-- `DELETE /api/admin/producers/:id` - Supprimer
-- `GET /api/admin/products` - Liste produits
-- `POST /api/admin/products` - Créer produit
-- `PUT /api/admin/products/:id` - Modifier
-- `DELETE /api/admin/products/:id` - Supprimer
-- `GET /api/admin/stats` - Stats dashboard
-- `GET /api/admin/examples/stats` - Stats données exemples
-- `DELETE /api/admin/examples` - Supprimer tous les exemples
-
-## Commandes utiles
-
-**Backend :**
-```bash
-npm run dev          # Mode développement
-npm run migrate      # Migrations Prisma
-npm run seed         # Données de test
-npx prisma studio    # Interface graphique DB
-```
-
-**Frontend :**
-```bash
-npm run dev          # Mode développement
-npm run build        # Build production
-```
-
-## Structure du projet
+## 📁 Structure du projet
 
 ```
 amap-website/
-├── frontend/
+├── frontend/          # Application Next.js
 │   ├── src/
-│   │   ├── app/              # Pages Next.js
-│   │   ├── components/       # Composants React
-│   │   ├── contexts/         # AuthContext, ModalContext
-│   │   ├── lib/              # api.js
-│   │   └── styles/           # CSS
-│   └── public/
+│   │   ├── app/      # Pages et routes
+│   │   ├── components/  # Composants réutilisables
+│   │   ├── contexts/    # Contextes React (Auth, Modal, etc.)
+│   │   ├── lib/         # Utilitaires et API client
+│   │   └── styles/      # Fichiers CSS
+│   └── public/       # Assets statiques
 │
-└── backend/
+└── backend/          # API Express
     ├── src/
-    │   ├── routes/           # Routes Express
-    │   ├── controllers/      # Logique métier
-    │   ├── middlewares/      # Auth, errors
-    │   ├── services/         # Email, Stripe, Stock
-    │   └── utils/            # Helpers
+    │   ├── controllers/  # Logique métier
+    │   ├── routes/       # Routes API
+    │   ├── middlewares/  # Middlewares (auth, erreurs)
+    │   ├── services/     # Services (email, stripe)
+    │   └── utils/        # Utilitaires
     └── prisma/
-        ├── schema.prisma     # Schéma DB
-        └── seed.js           # Données test
+        ├── schema.prisma  # Modèle de données
+        └── migrations/    # Migrations DB
 ```
 
-## Données exemples
-
-Le système de flag `isExample` permet de :
-- Tester l'application avec des vraies données
-- Identifier facilement les données de test (badge orange)
-- Les supprimer en un clic depuis l'admin
-
-Exemples créés par le seed :
-- 3 producteurs
-- 15 produits
-- 6 paniers
-- 3 points de retrait
-
-Pour supprimer tous les exemples : Admin → Paramètres → "Supprimer tous les exemples"
-
-## Problèmes courants
-
-**Backend ne démarre pas**
-- Vérifie PostgreSQL : `pg_isready`
-- Vérifie `.env`
-
-**Erreur Prisma**
-```bash
-npx prisma generate
-```
-
-**CORS error**
-- Vérifie `FRONTEND_URL` dans le backend
-- Vérifie `NEXT_PUBLIC_API_URL` dans le frontend
-
-## Auteur
-
-Ludovic B. - [B-ludovic](https://github.com/B-ludovic)
-
-## License
-
-MIT
-│   │   ├── controllers/   # Logique métier
-│   │   ├── middlewares/   # Auth, validation, etc.
-│   │   ├── services/      # Services (email, stripe, stock)
-│   │   └── utils/         # Utilitaires
-│   ├── prisma/
-│   │   ├── schema.prisma  # Schéma de la base
-│   │   └── seed.js        # Données de test
-│   └── package.json
-│
-└── README.md
-```
-
-## 🚀 Installation
+## 🛠️ Installation
 
 ### Prérequis
-
-- Node.js v18 ou supérieur
-- PostgreSQL 14+
+- Node.js 18+ 
+- PostgreSQL
 - npm ou yarn
-- Un compte Stripe (mode test pour le développement)
 
-### Installation du backend
+### Étapes
 
-1. Clone le repo
+1. **Cloner le projet**
 ```bash
-git clone https://github.com/ton-username/aux-ptits-pois.git
-cd aux-ptits-pois
+git clone https://github.com/B-ludovic/amap-website.git
+cd amap-website
 ```
 
-2. Installe les dépendances backend
+2. **Installation Backend**
 ```bash
 cd backend
 npm install
-```
 
-3. Configure les variables d'environnement
+# Créer le fichier .env
+cp .env.example .env
+# Éditer .env avec vos paramètres (DB, JWT_SECRET, etc.)
 
-Crée un fichier `.env` dans `backend/` :
-```env
-DATABASE_URL="postgresql://user:password@localhost:5432/aux_ptits_pois"
-PORT=4000
-NODE_ENV=development
-
-# JWT
-JWT_SECRET="votre-secret-jwt-super-securise"
-JWT_EXPIRE="7d"
-
-# Stripe
-STRIPE_SECRET_KEY="sk_test_votre_cle_stripe"
-STRIPE_WEBHOOK_SECRET="whsec_votre_webhook_secret"
-
-# Email (exemple avec Gmail)
-EMAIL_HOST="smtp.gmail.com"
-EMAIL_PORT=587
-EMAIL_USER="votre.email@gmail.com"
-EMAIL_PASSWORD="votre-mot-de-passe-app"
-EMAIL_FROM="noreply@auxptitspois.com"
-
-# Frontend URL
-FRONTEND_URL="http://localhost:3000"
-```
-
-4. Crée la base de données PostgreSQL
-```bash
-createdb amap_db
-```
-
-5. Applique les migrations Prisma
-```bash
+# Lancer les migrations
 npx prisma migrate dev
+
+# Optionnel : remplir avec des données d'exemple
+npx prisma db seed
 ```
 
-6. (Optionnel) Remplis la base avec des données de test
-```bash
-npm run seed
-```
-
-7. Lance le serveur backend
-```bash
-npm run dev
-```
-
-Le backend sera accessible sur **http://localhost:4000**
-
-### Installation du frontend
-
-1. Dans un nouveau terminal, installe les dépendances frontend
-```bash
-cd frontend
-npm install
-```
-
-2. Configure les variables d'environnement
-
-Crée un fichier `.env.local` dans `frontend/` :
-```env
-NEXT_PUBLIC_API_URL="http://localhost:4000/api"
-NEXT_PUBLIC_STRIPE_PUBLIC_KEY="pk_test_votre_cle_publique_stripe"
-```
-
-3. Lance le serveur de développement
-```bash
-npm run dev
-```
-
-Le site sera accessible sur **http://localhost:3000**
-
-## 📋 Commandes disponibles
-
-### Backend
-```bash
-npm run dev          # Lance le serveur en mode dev (nodemon)
-npm start            # Lance le serveur en production
-npm run migrate      # Applique les migrations Prisma
-npm run seed         # Remplit la base avec des données de test
-npx prisma studio    # Ouvre l'interface Prisma Studio
-```
-
-### Frontend
-```bash
-npm run dev          # Lance Next.js en mode développement
-npm run build        # Build pour la production
-npm start            # Lance le serveur de production
-npm run lint         # Vérifie le code avec ESLint
-```
-
-## ✨ Fonctionnalités
-
-### Implémenté ✅
-- Page d'accueil avec Hero, Featured Baskets, Why Us, How It Works
-- Page `/paniers` avec filtres et liste des paniers
-- Page `/producteurs` avec liste des producteurs
-- Pages authentification : `/auth/login` et `/auth/register`
-- Page `/compte` avec profil utilisateur et actions rapides
-- Page `/commandes` avec historique des commandes
-- Header responsive avec menu mobile
-- Footer avec liens et réseaux sociaux
-- Système de thèmes saisonniers (4 saisons)
-- Formulaires avec icônes Lucide React et validation
-- Toggle de visibilité du mot de passe (Eye/EyeOff)
-- Services backend : email, stripe, stock management
-- Gestion des réservations avec expiration (15min)
-- Base de données complète avec Prisma
-
-### En cours de développement 🚧
-- Intégration API frontend ↔ backend (données mockées pour l'instant)
-- Page détail d'un panier individuel
-- Panier utilisateur et processus de checkout
-- Dashboard admin complet
-- Upload d'images pour producteurs/produits
-
-### À venir 📅
-- Page détail producteur
-- Blog avec articles
-- Notifications en temps réel
-- Export des commandes (CSV/PDF)
-- Tests unitaires et d'intégration
-- Page Contact
-
-## 🗄️ Base de données
-
-### Modèles principaux
-
-- **User** : Utilisateurs (CLIENT, ADMIN, SUPER_ADMIN)
-- **Producer** : Producteurs locaux
-- **Product** : Produits individuels
-- **BasketType** : Types de paniers (Découverte, Famille, etc.)
-- **BasketAvailability** : Stocks disponibles par semaine
-- **Order** : Commandes (statuts: PENDING, PAID, READY, COMPLETED, CANCELLED)
-- **OrderItem** : Lignes de commande
-- **Payment** : Paiements Stripe
-- **CartReservation** : Réservations temporaires (15min)
-- **ThemeConfig** : Configuration des thèmes saisonniers
-
-Voir le schéma complet : `backend/prisma/schema.prisma`
-
-## 🎨 Thèmes et design
-
-Le site utilise un système de thèmes saisonniers définis dans `frontend/src/styles/variables.css` :
-
-- **Printemps** 🌸 (actif par défaut) : Vert pastel (#a7f3d0), Jaune (#fcd34d)
-- **Été** ☀️ : Jaune vif, Orange
-- **Automne** 🍂 : Orange, Rouge
-- **Hiver** ❄️ : Bleu clair, Bleu indigo
-
-Les couleurs s'appliquent automatiquement via `[data-theme="spring"]` sur le body.
-
-### Icônes
-- **Lucide React** : Pour les icônes UI (Mail, Lock, Eye, User, Phone, Shield, Package, MapPin, Calendar, etc.)
-- **PNG custom** : Pour les icônes métier (paniers, producteurs, etc.) dans `/public/icons/`
-
-### Formulaires
-- Inputs standardisés avec hauteur de 48px via CSS variables
-- Icônes intégrées dans les champs (position left)
-- Toggle Eye/EyeOff pour les mots de passe
-- Validation côté client avec messages d'erreur
-
-## 📧 Emails automatiques
-
-Le système envoie des emails HTML stylisés pour :
-- Bienvenue nouvel utilisateur
-- Confirmation d'email
-- Réinitialisation de mot de passe
-- Confirmation de commande
-- Confirmation de paiement
-- Commande prête pour retrait
-- Rappel de retrait J-1
-- Annulation de commande
-
-Templates dans `backend/src/services/email.service.js`
-
-## 🔒 Sécurité
-
-- Mots de passe hashés avec bcryptjs (10 rounds)
-- Authentification JWT avec expiration
-- Middleware auth pour routes protégées
-- Protection CORS configurée
-- Validation des données d'entrée
-- Sanitization des inputs
-- Gestion sécurisée des webhooks Stripe
-
-## 🌐 API Endpoints (backend)
-
-### Auth
-- `POST /api/auth/register` - Créer un compte
-- `POST /api/auth/login` - Se connecter
-- `GET /api/auth/me` - Profil utilisateur (protégé)
-
-### Baskets
-- `GET /api/baskets` - Liste des paniers disponibles
-- `GET /api/baskets/:id` - Détail d'un panier
-
-### Orders
-- `POST /api/orders` - Créer une commande
-- `GET /api/orders/my-orders` - Mes commandes (protégé)
-- `GET /api/orders/:id` - Détail d'une commande (protégé)
-
-### Payments
-- `POST /api/payments/create-intent` - Créer un PaymentIntent Stripe
-- `POST /api/payments/confirm` - Confirmer un paiement
-- `POST /api/payments/webhook` - Webhook Stripe
-
-### Admin (routes protégées)
-- `GET /api/admin/orders` - Toutes les commandes
-- `PUT /api/admin/orders/:id/status` - Changer le statut
-- Gestion producteurs, produits, thèmes...
-
-## 🐛 Problèmes courants
-
-**Le backend ne démarre pas**
-- Vérifie que PostgreSQL tourne : `pg_isready`
-- Vérifie les credentials dans `.env`
-- Vérifie que la base `amap_db` existe
-
-**Erreur Prisma "Client not generated"**
-```bash
-npx prisma generate
-```
-
-**Le frontend ne charge pas les icônes**
-- Vérifie que `/frontend/public/icons/` contient les fichiers PNG
-- Redémarre le serveur Next.js
-
-**Les icônes Lucide React ne s'affichent pas**
-- Vérifie que `lucide-react` est bien installé : `npm install lucide-react`
-- Vérifie les imports : `import { Mail, Lock, Eye } from 'lucide-react'`
-
-**CORS error entre frontend et backend**
-- Vérifie que `FRONTEND_URL` est correct dans le backend `.env`
-- Le backend doit tourner sur port 4000
-
-## 🤝 Contribution
-
-Les contributions sont les bienvenues !
-
-1. Fork le projet
-2. Crée une branche (`git checkout -b feature/nouvelle-fonctionnalite`)
-3. Commit tes changements (`git commit -m 'Ajout nouvelle fonctionnalité'`)
-4. Push vers la branche (`git push origin feature/nouvelle-fonctionnalite`)
-5. Ouvre une Pull Request
-
-## 📜 License
-
-MIT License - voir le fichier LICENSE pour plus de détails
-
-## 👨‍💻 Auteur
-
-**Ludovic B.** - [B-ludovic](https://github.com/B-ludovic)
-
----
-
-Fait avec ❤️ pour les AMAP et l'agriculture locale
-EMAIL_FROM="noreply@auxptitspois.com"
-
-FRONTEND_URL="http://localhost:3000"
-```
-
-4. Crée la base de données
-```bash
-npx prisma migrate dev --name init
-```
-
-5. Remplis la base avec des données de test (optionnel)
-```bash
-npm run seed
-```
-
-6. Lance le backend
-```bash
-npm run dev
-```
-
-Le backend tourne sur http://localhost:4000
-
-7. Dans un autre terminal, installe le frontend
+3. **Installation Frontend**
 ```bash
 cd ../frontend
 npm install
+
+# Créer le fichier .env.local
+cp .env.example .env.local
+# Éditer .env.local avec l'URL de l'API backend
 ```
 
-8. Configure le frontend
+## 🏃 Lancement
 
-Crée un fichier `.env.local` dans le dossier `frontend/` :
-```env
-NEXT_PUBLIC_API_URL="http://localhost:4000/api"
-NEXT_PUBLIC_STRIPE_PUBLIC_KEY="pk_test_..."
-```
+### Mode développement
 
-9. Lance le frontend
+**Terminal 1 - Backend :**
 ```bash
+cd backend
 npm run dev
+# API disponible sur http://localhost:4000
 ```
 
-Le site est accessible sur http://localhost:3000
-
-## Commandes utiles
-
-### Backend
-```bash
-npm run dev          # Lance le serveur en mode développement
-npm start            # Lance le serveur en production
-npm run migrate      # Applique les migrations Prisma
-npm run seed         # Remplit la base avec des données de test
-```
-
-### Frontend
-```bash
-npm run dev          # Lance Next.js en mode dev
-npm run build        # Build pour la production
-npm start            # Lance en production
-```
-
-## Fonctionnalités principales
-
-### Pour les clients
-- ✅ Voir les paniers disponibles
-- ✅ Consulter les producteurs
-- ✅ Créer un compte
-- ✅ Réserver des paniers
-- ✅ Payer en ligne (Stripe)
-- ✅ Choisir un point de retrait
-- ✅ Voir l'historique des commandes
-
-### Pour les admins
-- ✅ Dashboard d'administration
-- ✅ Gérer les producteurs
-- ✅ Gérer les paniers et les stocks
-- ✅ Voir toutes les commandes
-- ✅ Changer le thème saisonnier
-- ✅ Écrire des articles de blog
-
-## Base de données
-
-Le projet utilise PostgreSQL avec Prisma.
-
-Schéma principal :
-- **Users** : Utilisateurs (clients, admins)
-- **Producers** : Producteurs locaux
-- **Products** : Produits des producteurs
-- **BasketType** : Types de paniers
-- **BasketAvailability** : Stock de paniers disponibles
-- **Orders** : Commandes
-- **Payments** : Paiements Stripe
-- **ThemeConfig** : Thèmes saisonniers
-
-Pour voir le schéma complet : `backend/prisma/schema.prisma`
-
-## Thèmes saisonniers
-
-Le site change de couleurs selon la saison :
-- 🌸 **Printemps** : Vert clair, jaune
-- ☀️ **Été** : Jaune, orange
-- 🍂 **Automne** : Orange, rouge
-- ❄️ **Hiver** : Bleu, bleu foncé
-
-Seul un admin peut changer la saison active.
-
-## Emails automatiques
-
-Le site envoie des emails pour :
-- Création de compte
-- Validation d'email
-- Mot de passe oublié
-- Confirmation de commande
-- Confirmation de paiement
-- Commande prête pour retrait
-- Rappel de retrait
-
-## Sécurité
-
-- Mots de passe hashés avec bcrypt
-- Authentification JWT
-- Protection CORS
-- Rate limiting sur l'API
-- Validation des données
-
-## Déploiement
-
-### Frontend (Vercel recommandé)
+**Terminal 2 - Frontend :**
 ```bash
 cd frontend
-vercel
+npm run dev
+# Site disponible sur http://localhost:3000
 ```
 
-### Backend (Railway, Render ou autre)
-1. Configure les variables d'environnement
-2. Connecte la base PostgreSQL
-3. Lance `npm run migrate`
-4. Lance `npm start`
+### Mode production
 
-## Contribution
+```bash
+# Backend
+cd backend
+npm run build
+npm start
 
-Si tu veux contribuer :
-1. Fork le projet
-2. Crée une branche (`git checkout -b feature/ma-feature`)
-3. Commit tes changements (`git commit -m 'Ajout de ma feature'`)
-4. Push (`git push origin feature/ma-feature`)
-5. Ouvre une Pull Request
+# Frontend
+cd frontend
+npm run build
+npm start
+```
 
-## Problèmes courants
+## 👤 Comptes par défaut
 
-**Le backend ne démarre pas**
-- Vérifie que PostgreSQL est bien lancé
-- Vérifie ton fichier `.env`
-- Vérifie que la base de données existe
+Après avoir lancé le seed, vous pouvez vous connecter avec :
 
-**Erreur Prisma**
-- Lance `npx prisma generate`
-- Vérifie ta `DATABASE_URL`
+**Admin :**
+- Email : `admin@amap.com`
+- Mot de passe : `admin123`
 
-**Le frontend ne se connecte pas au backend**
-- Vérifie que le backend tourne
-- Vérifie `NEXT_PUBLIC_API_URL` dans `.env.local`
+**Membre :**
+- Email : `membre@amap.com`
+- Mot de passe : `membre123`
 
-## Auteur
+## ✨ Fonctionnalités principales
 
-Ludovic Pour Aux P'tits Pois
+### Pour les adhérents
+- ✅ Inscription et création de compte
+- ✅ Demande d'abonnement (annuel ou découverte)
+- ✅ Consultation du panier de la semaine
+- ✅ Visualisation des producteurs partenaires
+- ✅ Gestion du profil
 
-## License
+### Pour les administrateurs
+- ✅ Gestion des demandes d'abonnement
+- ✅ Création des paniers hebdomadaires avec calcul automatique des poids
+- ✅ Gestion du stock des produits
+- TODO Suivi de la distribution (qui a récupéré son panier)
+- ✅ Organisation des permanences avec assignation de bénévoles
+- TODO Communication par newsletter 
+- ✅ Statistiques du tableau de bord
 
-MIT
+## 📊 Base de données
+
+Le schéma Prisma comprend :
+- **Users** - Utilisateurs (membres, bénévoles, admins)
+- **Subscriptions** - Abonnements aux paniers
+- **WeeklyBaskets** - Paniers hebdomadaires
+- **Products** - Produits avec gestion du stock
+- **Producers** - Producteurs locaux
+- **Shifts** - Permanences de distribution
+- **Newsletters** - Communications
+- Et plus...
+
+## 🎨 Personnalisation
+
+Les couleurs et styles sont centralisés dans `frontend/src/styles/variables.css` :
+```css
+--primary-color: #6b9d5a;    /* Vert principal */
+--secondary-color: #d4a574;  /* Beige secondaire */
+--accent-color: #c85a3f;     /* Orange accent */
+```
+
+## 📝 Scripts disponibles
+
+### Backend
+- `npm run dev` - Lance le serveur en mode développement
+- `npm start` - Lance le serveur en production
+- `npx prisma studio` - Interface graphique pour la DB
+- `npx prisma migrate dev` - Crée une nouvelle migration
+
+### Frontend
+- `npm run dev` - Lance Next.js en développement
+- `npm run build` - Build de production
+- `npm start` - Serveur de production
+
+## 🐛 Débogage
+
+**Problème de connexion à la DB :**
+- Vérifiez que PostgreSQL est démarré
+- Vérifiez la variable `DATABASE_URL` dans `.env`
+
+**Erreurs CORS :**
+- Vérifiez que `FRONTEND_URL` dans `.env` backend correspond à l'URL du frontend
+
+**Erreurs d'authentification :**
+- Vérifiez que `JWT_SECRET` est défini dans `.env`
+
+## 📄 Licence
+
+Ce projet est développé pour une AMAP locale. Tous droits réservés.
+
+## Crédits
+
+- **Icônes** : [Flaticon](https://www.flaticon.com)
+
+## 🤝 Contribution
+
+Projet en développement actif. Pour toute question ou suggestion :
+- Ouvrir une issue sur GitHub
+- Contacter l'équipe de développement
+
+---
+
+Fait avec ❤️ pour promouvoir l'agriculture locale et les circuits courts
+
+Ludovic 
