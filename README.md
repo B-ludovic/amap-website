@@ -4,7 +4,7 @@ Plateforme web moderne pour la gestion d'une AMAP (Association pour le Maintien 
 
 ## 📸 Aperçu
 
-### Interface publique
+### Interface publique (Desktop)
 ![Page d'accueil](screenshots/accueil.png)
 *Page d'accueil avec hero section dynamique*
 
@@ -16,6 +16,25 @@ Plateforme web moderne pour la gestion d'une AMAP (Association pour le Maintien 
 
 ![Inscription](screenshots/inscription.png)
 *Formulaire d'inscription des nouveaux membres*
+
+### Interface mobile responsive
+![Menu burger](screenshots/menu-burger.png)
+*Navigation mobile avec drawer et animation staggered*
+
+![Accueil mobile](screenshots/mobile-accueil.png)
+*Page d'accueil optimisée mobile*
+
+![Producteurs mobile](screenshots/mobile-producteurs.png)
+*Liste des producteurs en version mobile*
+
+![Abonnements mobile](screenshots/mobile-abonnement.png)
+*Abonnements responsive avec cards*
+
+![Connexion mobile](screenshots/mobile-connexion.png)
+*Formulaire de connexion adapté mobile*
+
+![Inscription mobile](screenshots/mobile-inscription.png)
+*Inscription simplifiée sur mobile*
 
 ### Thèmes saisonniers
 Le site propose 4 thèmes qui s'adaptent aux saisons :
@@ -46,16 +65,17 @@ Ce projet est un site complet permettant de gérer une AMAP de A à Z :
 ## 🚀 Technologies utilisées
 
 ### Frontend
-- **Next.js 14** - Framework React pour le rendu côté serveur
-- **React** - Interface utilisateur réactive
+- **Next.js 15.5.7** - Framework React pour le rendu côté serveur
+- **React 19** - Interface utilisateur réactive
 - **Lucide React** - Icônes modernes
-- **CSS natif** - Styling avec variables CSS
+- **CSS natif** - Styling avec variables CSS et responsive design
 
 ### Backend
 - **Node.js + Express** - Serveur API REST
-- **Prisma** - ORM pour la base de données
+- **Prisma 5.22.0** - ORM pour la base de données
 - **PostgreSQL** - Base de données relationnelle
-- **JWT** - Authentification sécurisée
+- **JWT + Bcrypt** - Authentification sécurisée
+- **Resend 7.0.11** - Service d'envoi d'emails professionnel
 
 ## 📁 Structure du projet
 
@@ -104,7 +124,11 @@ npm install
 
 # Créer le fichier .env
 cp .env.example .env
-# Éditer .env avec vos paramètres (DB, JWT_SECRET, etc.)
+# Éditer .env avec vos paramètres :
+# - DATABASE_URL (PostgreSQL)
+# - JWT_SECRET
+# - RESEND_API_KEY (pour l'envoi d'emails)
+# - FRONTEND_URL
 
 # Lancer les migrations
 npx prisma migrate dev
@@ -160,10 +184,13 @@ npm start
 
 ### Pour les adhérents
 - ✅ Inscription et création de compte
+- ✅ Connexion avec authentification JWT
+- ✅ Réinitialisation de mot de passe (forgot password / reset password)
 - ✅ Demande d'abonnement (annuel ou découverte)
 - ✅ Consultation du panier de la semaine
 - ✅ Visualisation des producteurs partenaires
 - ✅ Gestion du profil
+- ✅ Envoi d'emails automatiques (bienvenue, confirmation, etc.)
 
 ### Pour les administrateurs
 - ✅ Gestion des demandes d'abonnement
@@ -174,8 +201,20 @@ npm start
 - ✅ Système de thèmes saisonniers - 4 thèmes personnalisables (Printemps, Été, Automne, Hiver)
 - ✅ Gestion des points de retrait
 - ✅ Distinction des données d'exemple vs données réelles
+- ✅ Service d'envoi d'emails avec Resend API
+- ✅ Communication par newsletter avec envoi groupé
+- ✅ Interface admin complète avec sidebar navigation
 - TODO Suivi de la distribution (qui a récupéré son panier)
-- TODO Communication par newsletter
+
+### Design & UX
+- ✅ Design responsive (desktop, tablet, mobile)
+- ✅ Menu burger mobile avec drawer animé (staggered animation)
+- ✅ Cards responsives pour les tableaux admin (≤992px)
+- ✅ Dégradé pastel sur navigation mobile
+- ✅ Thèmes saisonniers avec changement dynamique des couleurs
+- ✅ Animations fluides et transitions CSS
+- ✅ Icônes Lucide React modernes
+- ✅ États de chargement et messages de confirmation
 
 ## 📊 Base de données
 
