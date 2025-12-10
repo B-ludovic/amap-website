@@ -19,7 +19,11 @@ model User {
   phone         String?
   role          UserRole  @default(MEMBER)
   
-  emailVerified Boolean   @default(false)
+  emailVerified    Boolean   @default(false)
+  emailVerifyToken String?   @unique
+  
+  resetToken       String?   @unique
+  resetTokenExpiry DateTime?
   
   subscriptions    Subscription[]
   shiftVolunteers  ShiftVolunteer[]
@@ -32,6 +36,8 @@ model User {
   
   @@index([email])
   @@index([role])
+  @@index([resetToken])
+  @@index([emailVerifyToken])
 }
 
 enum UserRole {

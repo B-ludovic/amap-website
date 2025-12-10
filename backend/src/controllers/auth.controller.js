@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { prisma } from '../config/database.js';
 import { asyncHandler } from '../middlewares/error.middleware.js';
+import emailService from '../services/email.service.js';
 import {
   HttpBadRequestError,
   HttpUnauthorizedError,
@@ -51,9 +52,12 @@ const register = asyncHandler(async (req, res) => {
     // Generer un token JWT
     const token = generateToken(user.id);
 
+    // Envoyer email de bienvenue
+    await emailService.sendWelcomeEmail(user);
+
     res.status(httpStatusCodes.CREATED).json({
         success: true, 
-        message: 'Inscription réussie! Veuillez vérifier votre email pour confirmer votre compte.',
+        message: 'Inscription réussie! Consultez votre email pour commencer.',
         data: {
             user: {
                 id: user.id,
@@ -116,8 +120,6 @@ const login = asyncHandler(async (req, res) => {
 
 // Récupérer les informations de l'utilisateur connecté
 const getMe = asyncHandler(async (req, res) => {
-    const userId = req.user.id;
-
     const user = await prisma.user.findUnique({
         where: { id: req.user.id },
         select: {
@@ -149,7 +151,7 @@ const getMe = asyncHandler(async (req, res) => {
 const confirmEmail = asyncHandler(async (req, res) => {
     const { token } = req.params;
 
-    // Trouver l'utilisateur par le token de confirmation
+    // TODO: Implémenter la vérification du token
 
     res.json({
         success: true,
@@ -174,7 +176,7 @@ const resendConfirmationEmail = asyncHandler(async (req, res) => {
         throw new HttpBadRequestError('Email déjà confirmé.');
     }
 
-    // Envoyer l'email de confirmation
+    // TODO: Envoyer l'email de confirmation
 
     res.json({
         success: true,
@@ -191,16 +193,33 @@ const forgotPassword = asyncHandler(async (req, res) => {
     }
 
     const user = await prisma.user.findUnique({ where: { email } });
+    
+    // Ne pas révéler si l'utilisateur existe ou non (sécurité)
     if (!user) {
-        throw new HttpNotFoundError('Utilisateur non trouvé.');
+        return res.json({
+            success: true,
+            message: 'Si un compte avec cet email existe, un email de réinitialisation a été envoyé.',
+        });
     }
 
     // Generer un token de reset
     const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetTokenHash = crypto.createHash('sha256').update(resetToken).digest('hex');
+    const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 heure
 
-    // TODO: Sauvegarder le token et sa date d'expiration dans la base de données
+    // Sauvegarder le token hashé dans la base
+    await prisma.user.update({
+        where: { id: user.id },
+        data: {
+            resetToken: resetTokenHash,
+            resetTokenExpiry: resetTokenExpiry,
+        }
+    });
 
-    return res.json({
+    // Envoyer email de reset avec le token en clair
+    await emailService.sendPasswordResetEmail(user, resetToken);
+
+    res.json({
         success: true,
         message: 'Si un compte avec cet email existe, un email de réinitialisation a été envoyé.',
     });
@@ -215,7 +234,39 @@ const resetPassword = asyncHandler(async (req, res) => {
         throw new HttpBadRequestError('Nouveau mot de passe est requis.');
     }
 
-    // TODO : Vérifier le token et mettre à jour le mot de passe de l'utilisateur
+    if (newPassword.length < 6) {
+        throw new HttpBadRequestError('Le mot de passe doit contenir au moins 6 caractères.');
+    }
+
+    // Hasher le token reçu pour le comparer
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+
+    // Trouver l'utilisateur avec ce token
+    const user = await prisma.user.findFirst({
+        where: {
+            resetToken: tokenHash,
+            resetTokenExpiry: {
+                gt: new Date(), // Token non expiré
+            },
+        },
+    });
+
+    if (!user) {
+        throw new HttpBadRequestError('Token invalide ou expiré.');
+    }
+
+    // Hasher le nouveau mot de passe
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Mettre à jour le mot de passe et supprimer le token
+    await prisma.user.update({
+        where: { id: user.id },
+        data: {
+            password: hashedPassword,
+            resetToken: null,
+            resetTokenExpiry: null,
+        },
+    });
 
     res.json({
         success: true,
@@ -232,4 +283,3 @@ export {
     forgotPassword,
     resetPassword
 };
-
