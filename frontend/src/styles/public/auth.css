@@ -88,16 +88,47 @@
 }
 
 /* Responsive */
-@media (max-width: 768px) {
-  .auth-container {
-    padding: var(--spacing-xl);
+
+/* Tablette (max-width: 1024px) */
+@media (max-width: 1024px) {
+  .auth-page {
+    /* On réduit le rembourrage vertical sur les tablettes */
+    padding: var(--spacing-2xl) 0;
   }
 
+  .auth-container {
+    /* Le conteneur d'auth prend une bonne partie de la largeur */
+    max-width: 80%;
+  }
+  
+  .auth-title {
+    /* Titre légèrement plus petit sur tablette */
+    font-size: var(--font-size-3xl);
+  }
+}
+
+/* Mobile (max-width: 768px) */
+@media (max-width: 768px) {
+  .auth-container {
+    /* La modale prend presque toute la largeur sur mobile */
+    max-width: 90%;
+    padding: var(--spacing-xl); /* Réduit le padding interne */
+  }
+
+  /* La grille de 2 colonnes (form-row) passe à une seule colonne */
   .form-row {
     grid-template-columns: 1fr;
   }
 
   .auth-title {
+    /* Nouvelle taille de titre pour le mobile */
     font-size: var(--font-size-2xl);
+  }
+  
+  /* Réduction de l'espace autour des entêtes et pieds de page */
+  .auth-header,
+  .auth-footer {
+      margin-top: var(--spacing-lg);
+      padding-top: var(--spacing-lg);
   }
 }

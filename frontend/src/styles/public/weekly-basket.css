@@ -476,140 +476,115 @@
 
 /* RESPONSIVE */
 
+/* Tablette et Ecrans intermédiaires (max-width: 1024px) */
 @media (max-width: 1024px) {
-  .basket-hero h1 {
-    font-size: var(--font-size-3xl);
+  /* LAYOUT PRINCIPAL */
+  /* La disposition principale à 2 colonnes (2fr 1fr) passe à 1 colonne */
+  .basket-layout {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-xl);
   }
 
-  .section-title {
-    font-size: var(--font-size-2xl);
+  /* Le résumé du panier est affiché au-dessus du contenu */
+  .basket-summary {
+    position: static; /* Retire le positionnement sticky */
+    order: -1; /* Place le résumé en haut */
+    width: 100%;
   }
 
-  .cta-card h2 {
-    font-size: var(--font-size-2xl);
+  /* Cartes */
+  .basket-card {
+    padding: var(--spacing-lg);
+  }
+
+  /* Table des produits - Ajustement pour tablettes */
+  .products-table th,
+  .products-table td {
+    padding: var(--spacing-md) var(--spacing-sm);
   }
 }
 
+/* Mobile (max-width: 768px) */
 @media (max-width: 768px) {
-  .container {
-    padding: 0 var(--spacing-md);
-  }
-
+  /* HÉROS */
   .basket-hero {
-    padding: var(--spacing-2xl) 0;
+    padding: var(--spacing-lg) 0;
   }
-
+  
   .basket-hero h1 {
     font-size: var(--font-size-2xl);
   }
 
+  /* LAYOUT & SECTIONS */
+  .weekly-basket-public-page {
+    padding: var(--spacing-xl) 0;
+  }
+
+  /* La grille du Hero (date/badge) s'empile */
   .basket-date {
-    font-size: var(--font-size-base);
-  }
-
-  .message-card {
     flex-direction: column;
-    gap: var(--spacing-md);
+    align-items: flex-start;
+    gap: var(--spacing-xs);
+    margin-top: var(--spacing-sm);
   }
-
-  .summary-cards {
-    grid-template-columns: 1fr;
+  
+  /* TABLE DES PRODUITS - Optimisation pour mobile */
+  /* Masque les en-têtes de colonnes (pour utiliser la structure card-like) */
+  .products-table thead {
+    display: none;
   }
-
-  .summary-card {
-    padding: var(--spacing-lg);
-  }
-
-  .producer-header {
-    padding: var(--spacing-lg);
-  }
-
-  .products-table th,
+  
+  .products-table,
+  .products-table tbody,
+  .products-table tr,
   .products-table td {
-    padding: var(--spacing-sm) var(--spacing-md);
+    display: block; /* Force l'affichage en bloc des lignes et cellules */
+    width: 100%;
   }
 
-  .products-table th:nth-child(2),
-  .products-table th:nth-child(3) {
-    width: 100px;
+  .products-table tr {
+    border: 1px solid var(--border-color);
+    margin-bottom: var(--spacing-md);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-md);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
   }
 
-  .product-name {
-    font-size: var(--font-size-sm);
+  .products-table td {
+    padding: 0;
+    text-align: left;
+    /* Les cellules occupent la moitié de la ligne pour Nom et Quantité */
+    flex: 1 1 48%; 
+  }
+  
+  .products-table td:first-child { /* Nom du produit */
+      font-weight: var(--font-weight-semibold);
+      color: var(--text-primary);
+      flex: 1 1 100%; /* Nom du produit prend toute la ligne */
+      margin-bottom: var(--spacing-xs);
   }
 
-  .product-quantity {
-    font-size: var(--font-size-sm);
-  }
-
+  /* BOUTONS D'ACTION (CTA) */
   .cta-actions {
     flex-direction: column;
+    gap: var(--spacing-sm);
   }
 
   .cta-actions .btn {
-    width: 100%;
+    width: 100%; /* Les boutons prennent toute la largeur sur mobile */
   }
 }
 
+/* Très petits mobiles (max-width: 480px) */
 @media (max-width: 480px) {
   .basket-hero h1 {
     font-size: var(--font-size-xl);
   }
 
-  .basket-badge {
-    font-size: var(--font-size-xs);
-    padding: var(--spacing-xs) var(--spacing-sm);
-  }
-
-  .basket-date {
-    flex-direction: column;
-    gap: var(--spacing-xs);
-    text-align: center;
-  }
-
-  .summary-icon.small,
-  .summary-icon.large {
-    width: 48px;
-    height: 48px;
-  }
-
-  .summary-icon.large svg {
-    width: 24px;
-    height: 24px;
-  }
-
-  .stat-value {
-    font-size: var(--font-size-xl);
-  }
-
-  .producer-header {
-    gap: var(--spacing-sm);
-  }
-
-  .producer-icon {
-    width: 40px;
-    height: 40px;
-  }
-
-  .producer-icon svg {
-    width: 20px;
-    height: 20px;
-  }
-
-  .producer-info h3 {
-    font-size: var(--font-size-lg);
-  }
-
-  .products-table th,
-  .products-table td {
-    padding: var(--spacing-xs) var(--spacing-sm);
-  }
-
-  .cta-card h2 {
-    font-size: var(--font-size-xl);
-  }
-
-  .cta-card p {
-    font-size: var(--font-size-base);
+  .products-table tr {
+      padding: var(--spacing-sm);
   }
 }

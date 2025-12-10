@@ -358,38 +358,56 @@
   color: var(--text-primary) !important;
 }
 
-/* RESPONSIVE */
+/* Responsive */
 
+/* Tablette et Ecrans intermédiaires (max-width: 1024px) */
 @media (max-width: 1024px) {
+  /* SECTION HERO */
   .hero-section {
+    /* Maintient 2 colonnes, mais réduit l'espacement et la taille du padding */
     gap: var(--spacing-2xl);
+    padding: var(--spacing-3xl) var(--spacing-md);
     min-height: 500px;
   }
-
+  
   .hero-title {
     font-size: var(--font-size-3xl);
   }
 
-  .section-title {
-    font-size: var(--font-size-2xl);
+  .hero-subtitle {
+    font-size: var(--font-size-lg);
   }
 
-  .values-grid,
-  .steps-grid {
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  /* TITRES DE SECTION (Générique) */
+  .solidarity-section h2,
+  .join-card h2,
+  .values-section h2,
+  .how-it-works-section h2,
+  .producers-section h2 {
+    font-size: var(--font-size-3xl);
+  }
+
+  /* Grilles */
+  /* Les grilles de 3 colonnes (Ex: .producers-grid) passent à 2 colonnes */
+  .producers-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
+/* Mobile (max-width: 768px) */
 @media (max-width: 768px) {
+  /* SECTION HERO */
   .hero-section {
+    /* Passage à l'empilement vertical (1 colonne) */
     grid-template-columns: 1fr;
-    gap: var(--spacing-xl);
-    padding: var(--spacing-2xl) var(--spacing-md);
-    min-height: auto;
+    padding: var(--spacing-2xl) var(--spacing-sm);
+    min-height: 400px; /* Réduit la hauteur min. sur mobile */
   }
 
   .hero-content {
+    /* Assure que le texte du Hero s'aligne joliment */
     text-align: center;
+    max-width: 100%;
   }
 
   .hero-title {
@@ -397,32 +415,25 @@
   }
 
   .hero-subtitle {
-    font-size: var(--font-size-lg);
-  }
-
-  .hero-description {
     font-size: var(--font-size-base);
   }
-
-  .hero-actions {
-    justify-content: center;
-  }
-
+  
+  /* Masque l'image sur mobile pour gagner de l'espace (si .hero-image-placeholder est l'image) */
   .hero-image-placeholder {
-    max-width: 300px;
-    font-size: 80px;
+    display: none;
+  }
+  
+  .hero-actions {
+    justify-content: center; /* Centre les boutons si le Hero est centré */
   }
 
+  /* SECTIONS (Rembourrage et titres) */
   .solidarity-section,
   .values-section,
   .how-it-works-section,
   .producers-section,
   .join-section {
-    padding: var(--spacing-2xl) 0;
-  }
-
-  .container {
-    padding: 0 var(--spacing-md);
+    padding: var(--spacing-xl) 0; /* Réduit le padding vertical des sections */
   }
 
   .solidarity-section h2,
@@ -430,72 +441,28 @@
     font-size: var(--font-size-2xl);
   }
 
-  .section-description,
-  .join-card p {
-    font-size: var(--font-size-base);
-  }
-
+  /* GRILLES (Valeurs et Étapes de fonctionnement) */
   .values-grid,
-  .steps-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .value-card,
-  .step-card {
-    padding: var(--spacing-lg);
+  .steps-grid,
+  .producers-grid {
+    grid-template-columns: 1fr; /* Empilement vertical de toutes les cartes */
   }
 }
 
+/* Très petits mobiles (max-width: 480px) */
 @media (max-width: 480px) {
   .hero-title {
     font-size: var(--font-size-xl);
   }
 
-  .hero-subtitle {
-    font-size: var(--font-size-base);
-  }
-
   .hero-actions {
+    /* Les boutons d'action s'empilent pour ne pas être trop petits */
     flex-direction: column;
     width: 100%;
+    margin-top: var(--spacing-md);
   }
 
   .hero-actions .btn {
     width: 100%;
-  }
-
-  .hero-image-placeholder {
-    max-width: 250px;
-    font-size: 60px;
-  }
-
-  .section-title {
-    font-size: var(--font-size-xl);
-  }
-
-  .solidarity-badge {
-    font-size: var(--font-size-sm);
-    padding: var(--spacing-xs) var(--spacing-md);
-  }
-
-  .value-icon {
-    width: 56px;
-    height: 56px;
-  }
-
-  .value-icon svg {
-    width: 24px;
-    height: 24px;
-  }
-
-  .step-number {
-    width: 48px;
-    height: 48px;
-    font-size: var(--font-size-xl);
-  }
-
-  .btn-lg {
-    padding: var(--spacing-sm) var(--spacing-lg);
-    font-size: var(--font-size-base);
   }
 }

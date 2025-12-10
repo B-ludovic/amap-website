@@ -540,166 +540,136 @@
   width: 100%;
 }
 
-/* RESPONSIVE */
+/* Responsive */
 
+/* Tablette et Ecrans intermédiaires (max-width: 1024px) */
 @media (max-width: 1024px) {
+  /* HERO SECTION */
   .hero-content h1 {
     font-size: var(--font-size-3xl);
   }
 
+  /* TITRES DE SECTION */
   .section-title {
     font-size: var(--font-size-2xl);
   }
 
-  .benefits-grid {
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  /* GRILLES */
+  /* Les grilles de 4 colonnes (Ex: .benefits-grid) passent à 3 colonnes */
+  .benefits-grid,
+  .criteria-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  /* Les grilles de 3 colonnes (Ex: .testimonials-grid) passent à 2 colonnes */
+  .testimonials-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* FORMULAIRE (Si le formulaire est multi-colonne sur desktop) */
+  .form-row {
+      /* Le formulaire reste en 2 colonnes, mais l'espace est réduit */
+      gap: var(--spacing-md);
+  }
+  
+  /* CARTES D'AVANTAGES */
+  .benefit-card {
+    padding: var(--spacing-md);
+    text-align: center;
   }
 }
 
-@media (max-width: 768px) {
-  .container {
-    padding: 0 var(--spacing-md);
-  }
 
+/* Mobile (max-width: 768px) */
+@media (max-width: 768px) {
+  /* HERO SECTION */
   .producer-hero {
     padding: var(--spacing-2xl) 0;
   }
 
+  /* HERO & TITRES */
   .hero-content h1 {
     font-size: var(--font-size-2xl);
   }
 
-  .hero-subtitle {
-    font-size: var(--font-size-base);
+  .section-title {
+    font-size: var(--font-size-xl);
   }
 
-  .why-join,
-  .criteria-section,
-  .testimonial-section,
-  .form-section {
-    padding: var(--spacing-2xl) 0;
+  /* GRILLES */
+  /* Toutes les grilles passent à 2 colonnes */
+  .benefits-grid,
+  .criteria-grid,
+  .testimonials-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-lg); /* Réduction de l'espace */
   }
 
-  .benefits-grid {
-    grid-template-columns: 1fr;
+  /* CARTES & ICÔNES */
+  .benefit-icon,
+  .criteria-icon {
+    width: 50px;
+    height: 50px;
+    margin-bottom: var(--spacing-sm);
   }
 
-  .benefit-card,
-  .criteria-item,
-  .form-section-card {
-    padding: var(--spacing-lg);
+  .benefit-icon svg,
+  .criteria-icon svg {
+    width: 25px;
+    height: 25px;
+  }
+  
+  /* TÉMOIGNAGES */
+  .testimonial-card {
+    padding: var(--spacing-md);
   }
 
-  .benefit-icon {
+  .testimonial-icon {
     width: 56px;
     height: 56px;
   }
 
-  .criteria-item {
+  .testimonial-card blockquote {
+    font-size: var(--font-size-sm);
+  }
+
+  /* FORMULAIRE */
+  /* La grille du formulaire passe à une seule colonne */
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Très petits mobiles (max-width: 480px) */
+@media (max-width: 480px) {
+  /* GRILLES */
+  /* Toutes les grilles passent à une seule colonne (empilement vertical) */
+  .benefits-grid,
+  .criteria-grid,
+  .testimonials-grid {
+    grid-template-columns: 1fr;
     gap: var(--spacing-md);
   }
 
+  /* HERO & TITRES */
+  .hero-content h1 {
+    font-size: var(--font-size-xl);
+  }
+
+  .section-title {
+    font-size: var(--font-size-lg);
+  }
+  
+  /* ICÔNES */
+  .benefit-icon,
   .criteria-icon {
     width: 40px;
     height: 40px;
   }
 
+  .benefit-icon svg,
   .criteria-icon svg {
     width: 20px;
     height: 20px;
-  }
-
-  .testimonial-card {
-    padding: var(--spacing-xl);
-  }
-
-  .testimonial-icon {
-    width: 64px;
-    height: 64px;
-  }
-
-  .testimonial-card blockquote {
-    font-size: var(--font-size-base);
-  }
-
-  .form-row {
-    grid-template-columns: 1fr;
-  }
-
-  .success-card {
-    padding: var(--spacing-xl);
-  }
-
-  .success-icon {
-    width: 80px;
-    height: 80px;
-  }
-
-  .success-icon svg {
-    width: 48px;
-    height: 48px;
-  }
-}
-
-@media (max-width: 480px) {
-  .hero-content h1 {
-    font-size: var(--font-size-xl);
-  }
-
-  .section-title {
-    font-size: var(--font-size-xl);
-  }
-
-  .benefit-icon {
-    width: 48px;
-    height: 48px;
-  }
-
-  .benefit-icon svg {
-    width: 24px;
-    height: 24px;
-  }
-
-  .benefit-card h3 {
-    font-size: var(--font-size-lg);
-  }
-
-  .testimonial-card blockquote::before,
-  .testimonial-card blockquote::after {
-    font-size: var(--font-size-2xl);
-  }
-
-  .form-header h2 {
-    font-size: var(--font-size-2xl);
-  }
-
-  .form-section-card h3 {
-    font-size: var(--font-size-lg);
-  }
-
-  .success-card h1 {
-    font-size: var(--font-size-2xl);
-  }
-
-  .success-message {
-    font-size: var(--font-size-base);
-  }
-
-  .next-steps {
-    padding: var(--spacing-md);
-  }
-
-  .next-steps h2 {
-    font-size: var(--font-size-lg);
-  }
-
-  .next-steps li {
-    font-size: var(--font-size-sm);
-  }
-
-  .next-steps li::before {
-    width: 28px;
-    height: 28px;
-    font-size: var(--font-size-xs);
   }
 }

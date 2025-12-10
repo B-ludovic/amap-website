@@ -111,26 +111,50 @@
 }
 
 /* Responsive */
+
+/* Point de rupture pour les Tablettes (max-width: 1024px) */
 @media (max-width: 1024px) {
+  /* On fait passer la grille de 4 colonnes à 2 colonnes (2 colonnes par ligne) */
   .footer-content {
+    /* Le logo/description sur la première ligne (1fr) et les liens sur la deuxième (1fr) */
     grid-template-columns: 1fr 1fr;
+    /* On réduit l'espacement pour les tablettes */
     gap: var(--spacing-xl);
+    margin-bottom: var(--spacing-xl);
+  }
+  
+  /* On ajuste le rembourrage global du footer */
+  .footer {
+    padding: var(--spacing-2xl) 0 var(--spacing-md);
+    margin-top: var(--spacing-2xl);
   }
 }
 
+/* Point de rupture pour les Mobiles (max-width: 768px) */
 @media (max-width: 768px) {
+  /* Le footer passe à une disposition empilée */
   .footer {
-    padding: var(--spacing-2xl) 0 var(--spacing-lg);
+    padding: var(--spacing-xl) 0 var(--spacing-md);
+    margin-top: var(--spacing-xl);
   }
 
+  /* La grille passe à une seule colonne (empilement vertical) */
   .footer-content {
     grid-template-columns: 1fr;
     gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
   }
 
+  /* La section du bas du footer (Copyright + Socials) s'empile verticalement */
   .footer-bottom {
     flex-direction: column;
-    gap: var(--spacing-md);
+    gap: var(--spacing-lg); /* Augmentation de l'espace pour séparer clairement les éléments */
     text-align: center;
+    padding-top: var(--spacing-lg);
+  }
+  
+  /* On centre les liens sociaux pour un meilleur rendu */
+  .footer-socials {
+      justify-content: center;
   }
 }

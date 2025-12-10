@@ -183,19 +183,50 @@
 
 /* Responsive */
 @media (max-width: 768px) {
+  /* L'overlay reste le même, mais le rembourrage est réduit */
   .modal-overlay {
     padding: var(--spacing-sm);
+    /* On ajoute un align-items: flex-end pour les très petits écrans,
+       faisant remonter la modale du bas (optionnel, mais courant) */
+    /* align-items: flex-end; */ 
   }
 
   .modal-container {
-    padding: var(--spacing-xl);
+    /* Sur mobile, la modale peut prendre toute la largeur disponible
+       pour ne pas être pincée */
+    max-width: 100%;
+    
+    /* Et plus de hauteur pour le contenu */
+    max-height: 95vh; 
   }
 
+  /* Le rembourrage de toutes les sections internes est réduit */
+  .modal-header,
+  .modal-body,
+  .modal-footer {
+    padding: var(--spacing-lg); /* Utilisation de 'lg' au lieu de 'xl' ou 'md' */
+  }
+
+  /* En-tête */
+  .modal-header h2 {
+    font-size: var(--font-size-lg);
+  }
+
+  /* Pied de page (boutons) */
   .modal-actions {
+    /* Les boutons s'empilent verticalement, avec le bouton principal en bas */
     flex-direction: column-reverse;
+    gap: var(--spacing-sm); /* Réduction de l'espace entre les boutons empilés */
+    padding: 0 var(--spacing-md); /* Ajout de padding horizontal pour éviter que les boutons touchent les bords */
   }
 
   .modal-actions .btn {
-    width: 100%;
+    width: 100%; /* Les boutons prennent toute la largeur sur mobile */
+    min-width: unset;
+  }
+  
+  /* S'assurer que le modal-footer a aussi du padding si les actions sont dedans */
+  .modal-footer {
+    padding: var(--spacing-lg) var(--spacing-lg);
   }
 }

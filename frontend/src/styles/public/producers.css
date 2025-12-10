@@ -480,133 +480,113 @@
   color: var(--text-primary) !important;
 }
 
-/* RESPONSIVE */
+/* Responsive */
 
+/* Tablette et Ecrans intermédiaires (max-width: 1024px) */
 @media (max-width: 1024px) {
+  /* SECTION HERO */
+  .producers-hero {
+    padding: var(--spacing-2xl) 0 var(--spacing-xl);
+  }
+
   .hero-content h1 {
     font-size: var(--font-size-3xl);
   }
 
+  /* GRILLES PRINCIPALES */
+  /* La grille des producteurs passe de 3 ou 4 colonnes à 2 */
   .producers-grid {
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-lg);
+  }
+
+  /* La grille des statistiques passe de 3 ou 4 colonnes à 2 */
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-md);
+  }
+
+  /* CARTES PRODUCTEUR */
+  .producer-card {
+    /* Ajustement du padding/taille si nécessaire */
+  }
+
+  /* CTA BANNER */
+  .cta-banner h2 {
+    font-size: var(--font-size-3xl);
   }
 }
 
+/* Mobile (max-width: 768px) */
 @media (max-width: 768px) {
-  .container {
-    padding: 0 var(--spacing-md);
-  }
-
+  /* SECTION HERO */
   .producers-hero {
-    padding: var(--spacing-2xl) 0;
+    padding: var(--spacing-xl) 0 var(--spacing-lg);
   }
 
   .hero-content h1 {
     font-size: var(--font-size-2xl);
   }
 
-  .hero-subtitle {
-    font-size: var(--font-size-base);
-  }
-
-  .hero-stats {
+  /* GRILLES PRINCIPALES (Empilement vertical) */
+  .producers-grid {
     grid-template-columns: 1fr;
     gap: var(--spacing-md);
   }
 
-  .stat-item {
-    padding: var(--spacing-md);
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-sm);
   }
-
+  
   .stat-number {
-    font-size: var(--font-size-2xl);
+      font-size: var(--font-size-xl);
+  }
+  
+  .stat-title {
+      font-size: var(--font-size-sm);
   }
 
+  /* LISTE ET SECTIONS */
   .producers-intro,
   .producers-list,
   .join-cta,
   .subscription-cta {
-    padding: var(--spacing-2xl) 0;
+    padding: var(--spacing-xl) 0;
   }
 
+  /* CTA BANNER et cartes CTA (Intro/Join) */
+  /* Passage des cartes à flex-direction: column (empilement vertical) */
   .intro-card,
   .cta-card {
     flex-direction: column;
     text-align: center;
-    padding: var(--spacing-xl);
+    padding: var(--spacing-lg);
   }
-
+  
+  /* Ajustement de la taille des icônes */
   .intro-icon,
   .cta-icon {
-    width: 64px;
-    height: 64px;
+    width: 56px;
+    height: 56px;
+    margin-bottom: var(--spacing-md);
   }
 
   .intro-icon svg,
   .cta-icon svg {
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
   }
 
-  .producers-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .producer-card {
-    max-width: 500px;
-    margin: 0 auto;
-  }
-
+  /* CTA BANNER TITRE */
   .cta-banner h2 {
-    font-size: var(--font-size-2xl);
-  }
-
-  .cta-banner p {
-    font-size: var(--font-size-base);
+    font-size: var(--font-size-xl);
   }
 }
 
+/* Très petits mobiles (max-width: 480px) */
 @media (max-width: 480px) {
   .hero-content h1 {
     font-size: var(--font-size-xl);
-  }
-
-  .stat-number {
-    font-size: var(--font-size-xl);
-  }
-
-  .stat-label {
-    font-size: var(--font-size-xs);
-  }
-
-  .intro-content h2,
-  .cta-content h2 {
-    font-size: var(--font-size-xl);
-  }
-
-  .intro-content p,
-  .cta-content p {
-    font-size: var(--font-size-base);
-  }
-
-  .producer-image {
-    height: 160px;
-  }
-
-  .producer-content {
-    padding: var(--spacing-md);
-  }
-
-  .producer-header h3 {
-    font-size: var(--font-size-lg);
-  }
-
-  .cta-banner h2 {
-    font-size: var(--font-size-xl);
-  }
-
-  .btn-lg {
-    padding: var(--spacing-sm) var(--spacing-lg);
-    font-size: var(--font-size-base);
   }
 }

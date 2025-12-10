@@ -468,37 +468,60 @@ button {
 }
 
 /* Responsive */
+
+/* Point de rupture pour les Tablettes et petits ordinateurs (max-width: 1024px) */
+@media (max-width: 1024px) {
+  /* Réduction de la taille de police de base pour une meilleure densité sur tablette */
+  html {
+    font-size: 15px; 
+  }
+
+  /* Ajustement du rembourrage du conteneur */
+  .container {
+    padding: 0 var(--spacing-md);
+  }
+  
+  /* Les grilles de 4 colonnes passent à 3 colonnes pour économiser de l'espace */
+  .grid-4 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  /* Les grilles de 3 colonnes passent à 2 colonnes */
+  .grid-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Point de rupture pour les Mobiles et très petits écrans (max-width: 768px) */
 @media (max-width: 768px) {
+  /* Nouvelle réduction de la taille de police de base pour les mobiles */
   html {
     font-size: 14px;
   }
   
-  .grid-2,
-  .grid-3,
-  .grid-4 {
+  /* Les grilles de 4 et 3 colonnes passent à 2 colonnes */
+  .grid-4,
+  .grid-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  /* Les grilles de 2 colonnes passent à 1 colonne (empilement vertical) */
+  .grid-2 {
     grid-template-columns: 1fr;
   }
   
+  /* Conteneur avec un rembourrage minimal */
   .container {
     padding: 0 var(--spacing-sm);
   }
 }
 
-/* Accessibilité */
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border-width: 0;
-}
-
-/* Focus visible pour l'accessibilité */
-*:focus-visible {
-  outline: 2px solid var(--accent-color);
-  outline-offset: 2px;
+/* Point de rupture pour les très petits mobiles (max-width: 480px) */
+@media (max-width: 480px) {
+  /* Toutes les grilles s'empilent sur une seule colonne pour maximiser la lisibilité */
+  .grid-2,
+  .grid-3,
+  .grid-4 {
+    grid-template-columns: 1fr;
+  }
 }

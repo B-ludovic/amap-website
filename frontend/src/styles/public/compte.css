@@ -138,14 +138,60 @@
 }
 
 /* Responsive */
-@media (max-width: 768px) {
-  .compte-header {
-    flex-direction: column;
-    gap: var(--spacing-md);
-    align-items: stretch;
+
+/* Tablette et Ecrans intermédiaires (max-width: 1024px) */
+@media (max-width: 1024px) {
+  .compte-page {
+    /* Réduction du rembourrage vertical pour les tablettes */
+    padding: var(--spacing-xl) 0;
   }
 
+  /* La grille principale reste en 2 colonnes, mais l'espace est réduit */
+  .compte-grid {
+    gap: var(--spacing-lg);
+  }
+
+  .compte-header {
+    /* Réduction de l'espace sous le header */
+    margin-bottom: var(--spacing-xl);
+  }
+
+  /* Cartes d'actions rapides (si elles utilisent une grille/flexbox qui supporte) */
+  .compte-action-link {
+    padding: var(--spacing-sm);
+  }
+}
+
+/* Mobile (max-width: 768px) */
+@media (max-width: 768px) {
+  /* La grille principale passe à une seule colonne (empilement vertical) */
   .compte-grid {
     grid-template-columns: 1fr;
+    gap: var(--spacing-lg); /* Réduction de l'espace entre les cartes empilées */
+  }
+
+  /* Le header s'aligne verticalement si nécessaire (boutons) */
+  .compte-header {
+    flex-direction: column;
+    align-items: flex-start; /* Aligne le contenu à gauche */
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+  }
+
+  /* Ajustement du rembourrage des cartes pour le mobile */
+  .compte-card-header,
+  .compte-card-body,
+  .compte-card-footer {
+    padding: var(--spacing-md);
+  }
+  
+  /* Titre de la carte plus petit */
+  .compte-card-title {
+      font-size: var(--font-size-lg);
+  }
+
+  /* Les liens d'action rapide s'étirent et les icônes/textes sont ajustés */
+  .compte-action-link {
+    padding: var(--spacing-md);
   }
 }

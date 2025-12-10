@@ -1,6 +1,9 @@
+// Charge les variables d'environnement EN PREMIER
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import helmet from 'helmet';
 import { connectDB, disconnectDB } from './config/database.js';
 import { errorHandler } from './middlewares/error.middleware.js';
@@ -18,10 +21,6 @@ import subscriptionsRoutes from './routes/subscriptions.routes.js';
 import subscriptionRequestsRoutes from './routes/subscription-requests.routes.js';
 import distributionRoutes from './routes/distribution.routes.js';
 import themeRoutes from './routes/theme.routes.js';
-
-
-// Charge les variables d'environnement
-dotenv.config({ path: '.env.local' });
 
 const app = express();
 const PORT = process.env.PORT || 4000;

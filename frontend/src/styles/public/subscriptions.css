@@ -364,26 +364,100 @@
   background: rgba(255, 255, 255, 0.9);
 }
 
-/* Responsive */
+/* RESPONSIVE */
+
+/* Tablette et Ecrans intermédiaires (max-width: 1024px) */
 @media (max-width: 1024px) {
-  .subscriptions-grid,
-  .info-grid {
-    grid-template-columns: 1fr;
+  /* HÉROS */
+  .subscriptions-hero h1 {
+    font-size: 2.5rem; /* Réduction du titre */
   }
 
-  .size-buttons {
-    grid-template-columns: 1fr;
+  /* BANNIÈRE SOLIDARITÉ */
+  .solidarity-banner {
+    /* La bannière reste horizontale mais l'espace est réduit */
+    padding: 1rem;
+    gap: 0.75rem;
+  }
+  
+  .solidarity-content h3 {
+      font-size: 1.1rem;
+  }
+
+  /* GRILLES D'INFORMATION */
+  /* La grille 3 colonnes passe à 2 colonnes */
+  .info-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+
+  /* CTA */
+  .subscriptions-cta {
+    padding: 3rem 0;
+  }
+
+  .cta-card h2 {
+    font-size: 1.8rem;
   }
 }
 
+/* Mobile (max-width: 768px) */
 @media (max-width: 768px) {
+  /* HÉROS */
+  .subscriptions-hero {
+    padding: 2.5rem 0;
+  }
+
   .subscriptions-hero h1 {
     font-size: 2rem;
   }
 
-  .size-selector h2,
-  .practical-info h2,
+  .subscriptions-hero .hero-subtitle {
+    font-size: 1rem;
+  }
+
+  /* BANNIÈRE SOLIDARITÉ (Empilement vertical) */
+  .solidarity-info {
+    padding: 1.5rem 0;
+  }
+
+  .solidarity-banner {
+    flex-direction: column; /* Empilement vertical */
+    text-align: center;
+    align-items: center;
+    padding: 1.5rem 1rem;
+  }
+  
+  .solidarity-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 2rem;
+  }
+
+  /* GRILLES D'INFORMATION (Empilement vertical) */
+  .info-grid {
+    grid-template-columns: 1fr; /* Passage à 1 colonne */
+    gap: 1rem;
+  }
+  
+  .info-card {
+      padding: 1.5rem;
+  }
+  
+  .info-card svg {
+      font-size: 2.5rem; /* Ajustement de la taille de l'icône */
+  }
+  
+  /* CTA (Appel à l'action) */
+  .subscriptions-cta {
+    padding: 2rem 0;
+  }
+
   .cta-card h2 {
     font-size: 1.5rem;
+  }
+  
+  .cta-card .btn {
+      width: 100%; /* Le bouton prend toute la largeur */
   }
 }

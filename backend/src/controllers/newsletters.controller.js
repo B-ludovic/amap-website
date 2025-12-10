@@ -1,12 +1,12 @@
 import { prisma } from '../config/database.js';
 import { asyncHandler } from '../middlewares/error.middleware.js';
+import emailService from '../services/email.service.js';
 import {
     HttpNotFoundError,
     HttpBadRequestError,
     HttpConflictError,
     httpStatusCodes
 } from '../utils/httpErrors.js';
-// import { sendNewsletterEmail } from '../services/email.service.js';
 
 // RÉCUPÉRER TOUTES LES NEWSLETTERS
 const getAllNewsletters = asyncHandler(async (req, res) => {
@@ -248,25 +248,28 @@ const sendNewsletter = asyncHandler(async (req, res) => {
             break;
     }
 
-    // TODO: Envoyer les emails
-    // for (const recipient of recipients) {
-    //   await sendNewsletterEmail(recipient, newsletter);
-    // }
+    // Envoyer les emails via le service
+    const result = await emailService.sendNewsletter(newsletter, recipients);
+
+    if (!result.success) {
+        throw new HttpBadRequestError('Erreur lors de l\'envoi de la newsletter');
+    }
 
     // Mettre à jour la newsletter
     await prisma.newsletter.update({
         where: { id },
         data: {
             sentAt: new Date(),
-            sentCount: recipients.length
+            sentCount: result.results.sent
         }
     });
 
     res.json({
         success: true,
-        message: `Newsletter envoyée à ${recipients.length} destinataire(s)`,
+        message: `Newsletter envoyée à ${result.results.sent} destinataire(s)`,
         data: {
-            sentCount: recipients.length
+            sentCount: result.results.sent,
+            failedCount: result.results.failed
         }
     });
 });

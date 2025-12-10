@@ -459,53 +459,77 @@
 
 /* RESPONSIVE */
 
+/* Tablette et Ecrans intermédiaires (max-width: 1024px) */
 @media (max-width: 1024px) {
+  /* La disposition principale à 2 colonnes (2fr 1fr) passe à 1 colonne */
   .request-layout {
     grid-template-columns: 1fr;
     gap: var(--spacing-xl);
   }
 
+  /* Le résumé de commande est affiché au-dessus du formulaire */
   .request-summary {
-    position: static;
-    order: -1;
+    position: static; /* Retire le positionnement sticky */
+    order: -1; /* Place le résumé en haut (avant le formulaire) */
+    width: 100%;
   }
 
   .summary-card {
+    /* Sur tablette, la carte du résumé est simplifiée */
     border: none;
     box-shadow: var(--shadow-sm);
   }
+  
+  /* Ajustement du titre de la page */
+  .page-header h1 {
+    font-size: var(--font-size-3xl);
+  }
+  
+  .subscription-request-page {
+      padding: var(--spacing-2xl) 0;
+  }
 }
 
+/* Mobile (max-width: 768px) */
 @media (max-width: 768px) {
+  /* Réduction du rembourrage global */
   .subscription-request-page {
     padding: var(--spacing-xl) 0;
   }
 
+  /* Titre de la page réduit */
   .page-header h1 {
     font-size: var(--font-size-2xl);
+    margin-bottom: var(--spacing-sm);
   }
 
   .page-subtitle {
     font-size: var(--font-size-base);
   }
 
+  /* Conteneur du formulaire plus compact */
   .request-form-container {
     padding: var(--spacing-lg);
   }
 
+  /* Titres de section du formulaire */
   .form-section h2 {
     font-size: var(--font-size-lg);
+    margin-bottom: var(--spacing-md);
   }
 
+  /* Les lignes de formulaire à plusieurs colonnes passent à 1 colonne */
   .form-row {
     grid-template-columns: 1fr;
   }
 
+  /* Ajustement du rembourrage des cartes pour le mobile */
   .summary-card,
   .info-card {
     padding: var(--spacing-md);
   }
 
+  /* Carte de succès post-soumission (si elle est affichée) */
   .success-card {
     padding: var(--spacing-xl);
   }
@@ -515,38 +539,18 @@
     height: 64px;
   }
 
-  .success-card h1 {
-    font-size: var(--font-size-2xl);
-  }
-
-  .success-message {
-    font-size: var(--font-size-base);
+  .success-icon svg {
+    width: 32px;
+    height: 32px;
   }
 
   .success-actions {
+    /* Les boutons d'action de succès s'empilent */
     flex-direction: column;
+    gap: var(--spacing-sm);
   }
-
+  
   .success-actions .btn {
-    width: 100%;
-  }
-}
-
-@media (max-width: 480px) {
-  .subscription-request-page .container {
-    padding: 0 var(--spacing-md);
-  }
-
-  .request-form-container {
-    padding: var(--spacing-md);
-  }
-
-  .form-section {
-    padding-bottom: var(--spacing-md);
-  }
-
-  .form-group input,
-  .form-group select {
-    height: 44px;
+      width: 100%;
   }
 }

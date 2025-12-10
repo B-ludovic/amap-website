@@ -25,6 +25,28 @@ function Header() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Bloquer le scroll et gérer la touche Échap quand le menu mobile est ouvert
+  useEffect(() => {
+    if (isMenuOpen) {
+      // Bloquer le scroll du body
+      document.body.style.overflow = 'hidden';
+
+      // Fermer avec la touche Échap
+      const handleEscape = (e) => {
+        if (e.key === 'Escape') {
+          closeMenu();
+        }
+      };
+
+      document.addEventListener('keydown', handleEscape);
+
+      return () => {
+        document.body.style.overflow = '';
+        document.removeEventListener('keydown', handleEscape);
+      };
+    }
+  }, [isMenuOpen]);
+
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
@@ -115,8 +137,21 @@ function Header() {
           </button>
         </div>
 
+        {/* Backdrop mobile */}
+        <div 
+          className={`mobile-backdrop ${isMenuOpen ? 'backdrop-open' : ''}`}
+          onClick={closeMenu}
+          aria-hidden="true"
+        />
+
         {/* Menu mobile */}
         <div className={`header-mobile-menu ${isMenuOpen ? 'mobile-menu-open' : ''}`}>
+          <div className="mobile-menu-header">
+            <Link href="/" className="mobile-logo" onClick={closeMenu}>
+              <span className="logo-icon">🌱</span>
+              <span className="logo-text">Aux P'tits Pois</span>
+            </Link>
+          </div>
           <nav className="mobile-nav">
             <Link href="/" className="mobile-nav-link" onClick={closeMenu}>
               Accueil
@@ -133,7 +168,9 @@ function Header() {
             <Link href="/devenir-producteur" className="mobile-nav-link" onClick={closeMenu}>
               Devenir Producteur
             </Link>
+          </nav>
 
+          <div className="mobile-nav-footer">
             <div className="mobile-nav-divider"></div>
 
             {user ? (
@@ -161,7 +198,7 @@ function Header() {
                 </Link>
               </>
             )}
-          </nav>
+          </div>
         </div>
       </div>
     </header>
