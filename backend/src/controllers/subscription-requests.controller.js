@@ -1,5 +1,6 @@
 import { prisma } from '../config/database.js';
 import { asyncHandler } from '../middlewares/error.middleware.js';
+import emailService from '../services/email.service.js';
 import {
   HttpNotFoundError,
   HttpBadRequestError,
@@ -54,8 +55,8 @@ export const submitRequest = asyncHandler(async (req, res) => {
     }
   });
 
-  // TODO: Envoyer email de confirmation
-  // TODO: Notifier les admins
+  // ✅ Envoyer email de confirmation
+  await emailService.sendSubscriptionRequestConfirmation(request);
 
   res.status(httpStatusCodes.CREATED).json({
     success: true,
@@ -150,7 +151,12 @@ export const updateRequestStatus = asyncHandler(async (req, res) => {
     }
   });
 
-  // TODO: Envoyer email selon le statut
+  // ✅ TODO: Envoyer email selon le statut (APPROVED ou REJECTED)
+  // if (status === 'APPROVED') {
+  //   await emailService.sendSubscriptionApproved(request);
+  // } else if (status === 'REJECTED') {
+  //   await emailService.sendSubscriptionRejected(request);
+  // }
 
   res.json({
     success: true,
