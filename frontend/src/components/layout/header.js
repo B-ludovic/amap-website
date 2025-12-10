@@ -3,7 +3,21 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { LogOut } from 'lucide-react';
+import { 
+  LogOut, 
+  LayoutDashboard,
+  Tractor,
+  Package,
+  ShoppingBasket,
+  Calendar,
+  Users,
+  Settings,
+  Mail,
+  UserPlus,
+  CreditCard,
+  Sprout,
+  UserCog
+} from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useModal } from '../../contexts/ModalContext';
 
@@ -176,9 +190,58 @@ function Header() {
             {user ? (
               <>
                 {user.role === 'ADMIN' && (
-                  <Link href="/admin" className="mobile-nav-link" onClick={closeMenu}>
-                    Administration
-                  </Link>
+                  <div className="mobile-admin-section">
+                    <div className="mobile-admin-title">Administration</div>
+                    <Link href="/admin" className="mobile-nav-link" onClick={closeMenu}>
+                      <LayoutDashboard size={18} />
+                      Dashboard
+                    </Link>
+                    <Link href="/admin/utilisateurs" className="mobile-nav-link" onClick={closeMenu}>
+                      <Users size={18} />
+                      Utilisateurs
+                    </Link>
+                    <Link href="/admin/demandes-abonnements" className="mobile-nav-link" onClick={closeMenu}>
+                      <UserPlus size={18} />
+                      Demandes abonnements
+                    </Link>
+                    <Link href="/admin/abonnements" className="mobile-nav-link" onClick={closeMenu}>
+                      <CreditCard size={18} />
+                      Abonnements
+                    </Link>
+                    <Link href="/admin/demandes-producteurs" className="mobile-nav-link" onClick={closeMenu}>
+                      <Sprout size={18} />
+                      Demandes producteurs
+                    </Link>
+                    <Link href="/admin/producteurs" className="mobile-nav-link" onClick={closeMenu}>
+                      <Tractor size={18} />
+                      Producteurs
+                    </Link>
+                    <Link href="/admin/produits" className="mobile-nav-link" onClick={closeMenu}>
+                      <Package size={18} />
+                      Produits
+                    </Link>
+                    <Link href="/admin/panier-hebdomadaire" className="mobile-nav-link" onClick={closeMenu}>
+                      <ShoppingBasket size={18} />
+                      Panier hebdomadaire
+                    </Link>
+                    <Link href="/admin/distribution" className="mobile-nav-link" onClick={closeMenu}>
+                      <Calendar size={18} />
+                      Distribution
+                    </Link>
+                    <Link href="/admin/permanences" className="mobile-nav-link" onClick={closeMenu}>
+                      <UserCog size={18} />
+                      Permanences
+                    </Link>
+                    <Link href="/admin/communication" className="mobile-nav-link" onClick={closeMenu}>
+                      <Mail size={18} />
+                      Communication
+                    </Link>
+                    <Link href="/admin/parametres" className="mobile-nav-link" onClick={closeMenu}>
+                      <Settings size={18} />
+                      Paramètres
+                    </Link>
+                    <div className="mobile-nav-divider"></div>
+                  </div>
                 )}
                 <Link href="/compte" className="mobile-nav-link" onClick={closeMenu}>
                   Mon Compte

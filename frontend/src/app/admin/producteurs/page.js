@@ -119,70 +119,135 @@ export default function AdminProducersPage() {
           </div>
         </div>
 
-        {/* Tableau */}
+        {/* Tableau Desktop */}
         {filteredProducers.length > 0 ? (
-          <div className="admin-table-container">
-            <table className="admin-table">
-              <thead>
-                <tr>
-                  <th>Nom</th>
-                  <th>Email</th>
-                  <th>Téléphone</th>
-                  <th>Spécialité</th>
-                  <th>Statut</th>
-                  <th>Type</th>
-                  <th className="admin-table-actions-header">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredProducers.map((producer) => (
-                  <tr key={producer.id}>
-                    <td>
-                      <div className="admin-table-name">
-                        {producer.name}
-                        {producer.isExample && (
-                          <span className="badge badge-warning badge-sm">Exemple</span>
+          <>
+            <div className="admin-table-container admin-table-desktop">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>Nom</th>
+                    <th>Email</th>
+                    <th>Téléphone</th>
+                    <th>Spécialité</th>
+                    <th>Statut</th>
+                    <th>Type</th>
+                    <th className="admin-table-actions-header">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredProducers.map((producer) => (
+                    <tr key={producer.id}>
+                      <td>
+                        <div className="admin-table-name">
+                          {producer.name}
+                          {producer.isExample && (
+                            <span className="badge badge-warning badge-sm">Exemple</span>
+                          )}
+                        </div>
+                      </td>
+                      <td>{producer.email}</td>
+                      <td>{producer.phone || '-'}</td>
+                      <td>{producer.specialty || '-'}</td>
+                      <td>
+                        <span className={`admin-status-badge ${producer.isActive ? 'admin-status-active' : 'admin-status-inactive'}`}>
+                          {producer.isActive ? 'Actif' : 'Inactif'}
+                        </span>
+                      </td>
+                      <td>
+                        {producer.isExample ? (
+                          <span className="badge badge-warning">Exemple</span>
+                        ) : (
+                          <span className="badge badge-success">Réel</span>
                         )}
-                      </div>
-                    </td>
-                    <td>{producer.email}</td>
-                    <td>{producer.phone || '-'}</td>
-                    <td>{producer.specialty || '-'}</td>
-                    <td>
+                      </td>
+                      <td>
+                        <div className="admin-table-actions">
+                          <button
+                            onClick={() => handleEdit(producer)}
+                            className="admin-action-btn admin-action-edit"
+                            title="Modifier"
+                          >
+                            <Edit size={18} />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(producer)}
+                            className="admin-action-btn admin-action-delete"
+                            title="Supprimer"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Cards Mobile */}
+            <div className="admin-cards-mobile">
+              {filteredProducers.map((producer) => (
+                <div key={producer.id} className="admin-card">
+                  <div className="admin-card-header">
+                    <div className="admin-card-title">
+                      {producer.name}
+                      {producer.isExample && (
+                        <span className="badge badge-warning badge-sm">Exemple</span>
+                      )}
+                    </div>
+                    <div className="admin-card-badges">
                       <span className={`admin-status-badge ${producer.isActive ? 'admin-status-active' : 'admin-status-inactive'}`}>
                         {producer.isActive ? 'Actif' : 'Inactif'}
                       </span>
-                    </td>
-                    <td>
-                      {producer.isExample ? (
-                        <span className="badge badge-warning">Exemple</span>
-                      ) : (
-                        <span className="badge badge-success">Réel</span>
-                      )}
-                    </td>
-                    <td>
-                      <div className="admin-table-actions">
-                        <button
-                          onClick={() => handleEdit(producer)}
-                          className="admin-action-btn admin-action-edit"
-                          title="Modifier"
-                        >
-                          <Edit size={18} />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(producer)}
-                          className="admin-action-btn admin-action-delete"
-                          title="Supprimer"
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                    </div>
+                  </div>
+
+                  <div className="admin-card-body">
+                    <div className="admin-card-row">
+                      <span className="admin-card-label">Email</span>
+                      <span className="admin-card-value">{producer.email}</span>
+                    </div>
+                    <div className="admin-card-row">
+                      <span className="admin-card-label">Téléphone</span>
+                      <span className="admin-card-value">{producer.phone || '-'}</span>
+                    </div>
+                    <div className="admin-card-row">
+                      <span className="admin-card-label">Spécialité</span>
+                      <span className="admin-card-value">{producer.specialty || '-'}</span>
+                    </div>
+                    <div className="admin-card-row">
+                      <span className="admin-card-label">Type</span>
+                      <span className="admin-card-value">
+                        {producer.isExample ? (
+                          <span className="badge badge-warning">Exemple</span>
+                        ) : (
+                          <span className="badge badge-success">Réel</span>
+                        )}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="admin-card-actions">
+                    <button
+                      onClick={() => handleEdit(producer)}
+                      className="btn btn-outline btn-sm"
+                    >
+                      <Edit size={18} />
+                      Modifier
+                    </button>
+                    <button
+                      onClick={() => handleDelete(producer)}
+                      className="btn btn-danger btn-sm"
+                    >
+                      <Trash2 size={18} />
+                      Supprimer
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         ) : (
           <div className="admin-empty-state">
             <p>Aucun producteur trouvé</p>

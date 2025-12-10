@@ -869,18 +869,121 @@
   }
 }
 
-@media (max-width: 768px) {
+/* Cards mobile génériques */
+.admin-cards-mobile {
+  display: none;
+}
+
+.admin-card,
+.admin-user-card {
+  background-color: var(--white);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  transition: box-shadow var(--transition-fast);
+}
+
+.admin-card:hover,
+.admin-user-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.admin-card-header,
+.admin-user-card-header {
+  padding: var(--spacing-lg);
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--spacing-md);
+}
+
+.admin-card-title,
+.admin-user-card-name {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
+.admin-card-badges {
+  display: flex;
+  gap: var(--spacing-xs);
+  flex-wrap: wrap;
+}
+
+.admin-card-body,
+.admin-user-card-body {
+  padding: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.admin-card-row,
+.admin-user-card-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.admin-card-row:last-child,
+.admin-user-card-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.admin-card-label,
+.admin-user-card-label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.admin-card-value,
+.admin-user-card-value {
+  font-size: var(--font-size-base);
+  color: var(--text-primary);
+  text-align: right;
+}
+
+.admin-card-actions,
+.admin-user-card-actions {
+  padding: var(--spacing-lg);
+  background-color: var(--background-color);
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.admin-card-actions .btn,
+.admin-user-card-actions .btn {
+  flex: 1;
+  justify-content: center;
+}
+
+@media (max-width: 992px) {
   .admin-page-header {
     flex-direction: column;
   }
 
-  .admin-table {
-    font-size: var(--font-size-sm);
+  /* Masquer le tableau sur mobile */
+  .admin-table-desktop {
+    display: none;
   }
 
-  .admin-table th,
-  .admin-table td {
-    padding: var(--spacing-sm);
+  /* Afficher les cards sur mobile */
+  .admin-cards-mobile {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
   }
 
   .modal-lg {

@@ -194,71 +194,131 @@ export default function AdminUsersPage() {
           </div>
         </div>
 
-        {/* Tableau */}
+        {/* Tableau Desktop */}
         {filteredUsers.length > 0 ? (
-          <div className="admin-table-container">
-            <table className="admin-table">
-              <thead>
-                <tr>
-                  <th>Nom</th>
-                  <th>Email</th>
-                  <th>Téléphone</th>
-                  <th>Rôle</th>
-                  <th>Commandes</th>
-                  <th>Inscription</th>
-                  <th className="admin-table-actions-header">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredUsers.map((user) => (
-                  <tr key={user.id}>
-                    <td>
-                      <div className="admin-table-name">
-                        {user.firstName} {user.lastName}
-                        {user.emailVerified && (
-                          <span className="badge badge-success badge-sm">Vérifié</span>
-                        )}
-                      </div>
-                    </td>
-                    <td>{user.email}</td>
-                    <td>{user.phone || '-'}</td>
-                    <td>
-                      <div className="user-role-badge">
-                        {getRoleIcon(user.role)}
-                        <span>{getRoleLabel(user.role)}</span>
-                      </div>
-                    </td>
-                    <td>
-                      <span className="admin-order-count">
-                        {user._count?.orders || 0}
-                      </span>
-                    </td>
-                    <td>
-                      {new Date(user.createdAt).toLocaleDateString('fr-FR')}
-                    </td>
-                    <td>
-                      <div className="admin-table-actions">
-                        <button
-                          onClick={() => handleChangeRole(user)}
-                          className="admin-action-btn admin-action-edit"
-                          title="Changer le rôle"
-                        >
-                          <UserCog size={18} />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteUser(user)}
-                          className="admin-action-btn admin-action-delete"
-                          title="Supprimer"
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      </div>
-                    </td>
+          <>
+            <div className="admin-table-container admin-table-desktop">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>Nom</th>
+                    <th>Email</th>
+                    <th>Téléphone</th>
+                    <th>Rôle</th>
+                    <th>Commandes</th>
+                    <th>Inscription</th>
+                    <th className="admin-table-actions-header">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {filteredUsers.map((user) => (
+                    <tr key={user.id}>
+                      <td>
+                        <div className="admin-table-name">
+                          {user.firstName} {user.lastName}
+                          {user.emailVerified && (
+                            <span className="badge badge-success badge-sm">Vérifié</span>
+                          )}
+                        </div>
+                      </td>
+                      <td>{user.email}</td>
+                      <td>{user.phone || '-'}</td>
+                      <td>
+                        <div className="user-role-badge">
+                          {getRoleIcon(user.role)}
+                          <span>{getRoleLabel(user.role)}</span>
+                        </div>
+                      </td>
+                      <td>
+                        <span className="admin-order-count">
+                          {user._count?.orders || 0}
+                        </span>
+                      </td>
+                      <td>
+                        {new Date(user.createdAt).toLocaleDateString('fr-FR')}
+                      </td>
+                      <td>
+                        <div className="admin-table-actions">
+                          <button
+                            onClick={() => handleChangeRole(user)}
+                            className="admin-action-btn admin-action-edit"
+                            title="Changer le rôle"
+                          >
+                            <UserCog size={18} />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteUser(user)}
+                            className="admin-action-btn admin-action-delete"
+                            title="Supprimer"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Cards Mobile */}
+            <div className="admin-cards-mobile">
+              {filteredUsers.map((user) => (
+                <div key={user.id} className="admin-user-card">
+                  <div className="admin-user-card-header">
+                    <div className="admin-user-card-name">
+                      {user.firstName} {user.lastName}
+                      {user.emailVerified && (
+                        <span className="badge badge-success badge-sm">Vérifié</span>
+                      )}
+                    </div>
+                    <div className="user-role-badge">
+                      {getRoleIcon(user.role)}
+                      <span>{getRoleLabel(user.role)}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="admin-user-card-body">
+                    <div className="admin-user-card-row">
+                      <span className="admin-user-card-label">Email</span>
+                      <span className="admin-user-card-value">{user.email}</span>
+                    </div>
+                    <div className="admin-user-card-row">
+                      <span className="admin-user-card-label">Téléphone</span>
+                      <span className="admin-user-card-value">{user.phone || '-'}</span>
+                    </div>
+                    <div className="admin-user-card-row">
+                      <span className="admin-user-card-label">Commandes</span>
+                      <span className="admin-order-count">{user._count?.orders || 0}</span>
+                    </div>
+                    <div className="admin-user-card-row">
+                      <span className="admin-user-card-label">Inscription</span>
+                      <span className="admin-user-card-value">
+                        {new Date(user.createdAt).toLocaleDateString('fr-FR')}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="admin-user-card-actions">
+                    <button
+                      onClick={() => handleChangeRole(user)}
+                      className="btn btn-outline btn-sm"
+                    >
+                      <UserCog size={18} />
+                      Changer le rôle
+                    </button>
+                    <button
+                      onClick={() => handleDeleteUser(user)}
+                      className="btn btn-danger btn-sm"
+                    >
+                      <Trash2 size={18} />
+                      Supprimer
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         ) : (
           <div className="admin-empty-state">
             <p>Aucun utilisateur trouvé</p>

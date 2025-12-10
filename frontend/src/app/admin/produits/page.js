@@ -144,68 +144,125 @@ export default function AdminProductsPage() {
           </div>
         </div>
 
-        {/* Tableau */}
+        {/* Tableau Desktop */}
         {filteredProducts.length > 0 ? (
-          <div className="admin-table-container">
-            <table className="admin-table">
-              <thead>
-                <tr>
-                  <th>Nom</th>
-                  <th>Producteur</th>
-                  <th>Unité</th>
-                  <th>Origine</th>
-                  <th>Type</th>
-                  <th className="admin-table-actions-header">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredProducts.map((product) => (
-                  <tr key={product.id}>
-                    <td>
-                      <div className="admin-table-name">
-                        {product.name}
-                        {product.isExample && (
-                          <span className="badge badge-warning badge-sm">Exemple</span>
-                        )}
-                      </div>
-                    </td>
-                    <td>{product.producer?.name || '-'}</td>
-                    <td>
-                      <span className="admin-unit-badge">
-                        {product.unit}
-                      </span>
-                    </td>
-                    <td>{product.origin || '-'}</td>
-                    <td>
-                      {product.isExample ? (
-                        <span className="badge badge-warning">Exemple</span>
-                      ) : (
-                        <span className="badge badge-success">Réel</span>
-                      )}
-                    </td>
-                    <td>
-                      <div className="admin-table-actions">
-                        <button
-                          onClick={() => handleEdit(product)}
-                          className="admin-action-btn admin-action-edit"
-                          title="Modifier"
-                        >
-                          <Edit size={18} />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(product)}
-                          className="admin-action-btn admin-action-delete"
-                          title="Supprimer"
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      </div>
-                    </td>
+          <>
+            <div className="admin-table-container admin-table-desktop">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>Nom</th>
+                    <th>Producteur</th>
+                    <th>Unité</th>
+                    <th>Origine</th>
+                    <th>Type</th>
+                    <th className="admin-table-actions-header">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {filteredProducts.map((product) => (
+                    <tr key={product.id}>
+                      <td>
+                        <div className="admin-table-name">
+                          {product.name}
+                          {product.isExample && (
+                            <span className="badge badge-warning badge-sm">Exemple</span>
+                          )}
+                        </div>
+                      </td>
+                      <td>{product.producer?.name || '-'}</td>
+                      <td>
+                        <span className="admin-unit-badge">
+                          {product.unit}
+                        </span>
+                      </td>
+                      <td>{product.origin || '-'}</td>
+                      <td>
+                        {product.isExample ? (
+                          <span className="badge badge-warning">Exemple</span>
+                        ) : (
+                          <span className="badge badge-success">Réel</span>
+                        )}
+                      </td>
+                      <td>
+                        <div className="admin-table-actions">
+                          <button
+                            onClick={() => handleEdit(product)}
+                            className="admin-action-btn admin-action-edit"
+                            title="Modifier"
+                          >
+                            <Edit size={18} />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(product)}
+                            className="admin-action-btn admin-action-delete"
+                            title="Supprimer"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Cards Mobile */}
+            <div className="admin-cards-mobile">
+              {filteredProducts.map((product) => (
+                <div key={product.id} className="admin-card">
+                  <div className="admin-card-header">
+                    <div className="admin-card-title">
+                      {product.name}
+                      {product.isExample && (
+                        <span className="badge badge-warning badge-sm">Exemple</span>
+                      )}
+                    </div>
+                    <span className="admin-unit-badge">{product.unit}</span>
+                  </div>
+
+                  <div className="admin-card-body">
+                    <div className="admin-card-row">
+                      <span className="admin-card-label">Producteur</span>
+                      <span className="admin-card-value">{product.producer?.name || '-'}</span>
+                    </div>
+                    <div className="admin-card-row">
+                      <span className="admin-card-label">Origine</span>
+                      <span className="admin-card-value">{product.origin || '-'}</span>
+                    </div>
+                    <div className="admin-card-row">
+                      <span className="admin-card-label">Type</span>
+                      <span className="admin-card-value">
+                        {product.isExample ? (
+                          <span className="badge badge-warning">Exemple</span>
+                        ) : (
+                          <span className="badge badge-success">Réel</span>
+                        )}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="admin-card-actions">
+                    <button
+                      onClick={() => handleEdit(product)}
+                      className="btn btn-outline btn-sm"
+                    >
+                      <Edit size={18} />
+                      Modifier
+                    </button>
+                    <button
+                      onClick={() => handleDelete(product)}
+                      className="btn btn-danger btn-sm"
+                    >
+                      <Trash2 size={18} />
+                      Supprimer
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         ) : (
           <div className="admin-empty-state">
             <p>Aucun produit trouvé</p>
