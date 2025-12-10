@@ -55,7 +55,7 @@ export const submitRequest = asyncHandler(async (req, res) => {
     }
   });
 
-  // ✅ Envoyer email de confirmation
+  // Envoyer email de confirmation
   await emailService.sendSubscriptionRequestConfirmation(request);
 
   res.status(httpStatusCodes.CREATED).json({
@@ -151,7 +151,7 @@ export const updateRequestStatus = asyncHandler(async (req, res) => {
     }
   });
 
-  // ✅ TODO: Envoyer email selon le statut (APPROVED ou REJECTED)
+  // TODO: Envoyer email selon le statut (APPROVED ou REJECTED)
   // if (status === 'APPROVED') {
   //   await emailService.sendSubscriptionApproved(request);
   // } else if (status === 'REJECTED') {

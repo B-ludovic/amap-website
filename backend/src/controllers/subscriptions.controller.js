@@ -1,5 +1,6 @@
 import { prisma } from '../config/database.js';
 import { asyncHandler } from '../middlewares/error.middleware.js';
+import emailService from '../services/email.service.js';
 import {
   HttpNotFoundError,
   HttpBadRequestError,
@@ -304,7 +305,8 @@ const createSubscription = asyncHandler(async (req, res) => {
     }
   });
 
-  // TODO: Envoyer email de confirmation à l'adhérent
+  // Envoyer email de confirmation à l'adhérent
+  await emailService.sendSubscriptionConfirmation(subscription, user);
 
   res.status(httpStatusCodes.CREATED).json({
     success: true,
