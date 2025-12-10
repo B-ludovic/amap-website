@@ -1,11 +1,11 @@
 import { prisma } from '../config/database.js';
 import { asyncHandler } from '../middlewares/error.middleware.js';
+import emailService from '../services/email.service.js';
 import {
   HttpNotFoundError,
   HttpBadRequestError,
   httpStatusCodes
 } from '../utils/httpErrors.js';
-// import { sendProducerInquiryEmail } from '../services/email.service.js';
 
 // SOUMETTRE UNE DEMANDE (PUBLIC)
 const submitInquiry = asyncHandler(async (req, res) => {
@@ -54,8 +54,8 @@ const submitInquiry = asyncHandler(async (req, res) => {
     }
   });
 
-  // TODO: Envoyer email de confirmation au producteur
-  // TODO: Envoyer notification aux admins
+  // Envoyer email de confirmation au producteur
+  await emailService.sendProducerInquiryConfirmation(inquiry);
 
   res.status(httpStatusCodes.CREATED).json({
     success: true,
