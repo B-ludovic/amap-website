@@ -155,17 +155,6 @@ npm run build
 npm start
 ```
 
-## 👤 Comptes par défaut
-
-Après avoir lancé le seed, vous pouvez vous connecter avec :
-
-**Admin :**
-- Email : `admin@amap.com`
-- Mot de passe : `admin123`
-
-**Membre :**
-- Email : `membre@amap.com`
-- Mot de passe : `membre123`
 
 ## ✨ Fonctionnalités principales
 
