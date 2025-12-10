@@ -65,17 +65,17 @@ Ce projet est un site complet permettant de gérer une AMAP de A à Z :
 ## 🚀 Technologies utilisées
 
 ### Frontend
-- **Next.js 15.5.7** - Framework React pour le rendu côté serveur
+- **Next.js 15** - Framework React pour le rendu côté serveur
 - **React 19** - Interface utilisateur réactive
 - **Lucide React** - Icônes modernes
 - **CSS natif** - Styling avec variables CSS et responsive design
 
 ### Backend
 - **Node.js + Express** - Serveur API REST
-- **Prisma 5.22.0** - ORM pour la base de données
+- **Prisma** - ORM pour la base de données
 - **PostgreSQL** - Base de données relationnelle
 - **JWT + Bcrypt** - Authentification sécurisée
-- **Resend 7.0.11** - Service d'envoi d'emails professionnel
+- **Resend** - Service d'envoi d'emails professionnel
 
 ## 📁 Structure du projet
 
