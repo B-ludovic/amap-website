@@ -87,6 +87,54 @@
   text-decoration: underline;
 }
 
+/* Success State */
+.auth-success-state {
+  text-align: center;
+  padding: var(--spacing-2xl) 0;
+}
+
+.auth-success-icon {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--spacing-xl);
+  color: var(--success-color);
+}
+
+.auth-success-actions {
+  margin-top: var(--spacing-2xl);
+  display: flex;
+  justify-content: center;
+}
+
+/* Password Input Group */
+.form-input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.form-input-group .form-input {
+  padding-right: 3rem;
+}
+
+.form-input-icon-btn {
+  position: absolute;
+  right: var(--spacing-sm);
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: var(--spacing-xs);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color var(--transition-fast);
+}
+
+.form-input-icon-btn:hover {
+  color: var(--text-primary);
+}
+
 /* Responsive */
 
 /* Tablette (max-width: 1024px) */

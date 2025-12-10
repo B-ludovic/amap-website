@@ -274,6 +274,20 @@ export const auth = {
       requiresAuth: true,
     });
   },
+
+  forgotPassword: async (email) => {
+    return fetchAPI('/auth/forgot-password', {
+      method: 'POST',
+      body: { email },
+    });
+  },
+
+  resetPassword: async (token, password) => {
+    return fetchAPI('/auth/reset-password', {
+      method: 'POST',
+      body: { token, password },
+    });
+  },
 };
 
 const api = {
