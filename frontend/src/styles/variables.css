@@ -84,6 +84,7 @@
   
   /* GRADIENTS */
   --gradient-button: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+  --gradient-soft-banner: linear-gradient(135deg, rgba(107, 157, 90, 0.08) 0%, rgba(255, 183, 77, 0.08) 100%);
   
   /* TRANSITIONS */
   --transition-fast: 150ms ease-in-out;
