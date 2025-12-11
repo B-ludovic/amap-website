@@ -76,6 +76,8 @@ Ce projet est un site complet permettant de gérer une AMAP de A à Z :
 - **PostgreSQL** - Base de données relationnelle
 - **JWT + Bcrypt** - Authentification sécurisée
 - **Resend** - Service d'envoi d'emails professionnel
+- **TheMealDB API** - Base de données de recettes
+- **Google Translate API** - Traduction automatique des recettes en français
 
 ## 📁 Structure du projet
 
@@ -188,6 +190,8 @@ npm start
 - ✅ Réinitialisation de mot de passe (forgot password / reset password)
 - ✅ Demande d'abonnement (annuel ou découverte)
 - ✅ Consultation du panier de la semaine
+- ✅ Suggestions de recettes basées sur les légumes du panier
+- ✅ Recherche de recettes (par nom ou par ingrédients)
 - ✅ Visualisation des producteurs partenaires
 - ✅ Gestion du profil
 - ✅ Envoi d'emails automatiques (bienvenue, confirmation, etc.)
@@ -205,6 +209,15 @@ npm start
 - ✅ Communication par newsletter avec envoi groupé
 - ✅ Interface admin complète avec sidebar navigation
 - TODO Suivi de la distribution (qui a récupéré son panier)
+
+### Recettes & Cuisine
+- ✅ Intégration API TheMealDB (base de données gratuite de recettes)
+- ✅ Traduction automatique en français des recettes et ingrédients
+- ✅ Suggestions de recettes basées sur le panier hebdomadaire
+- ✅ Recherche de recettes par nom (ex: "soupe", "gratin")
+- ✅ Recherche de recettes par ingrédients (ex: "tomates, courgettes")
+- ✅ Pages dédiées avec liste et détails des recettes
+- ✅ Affichage des temps de préparation et nombre de portions
 
 ### Design & UX
 - ✅ Design responsive (desktop, tablet, mobile)

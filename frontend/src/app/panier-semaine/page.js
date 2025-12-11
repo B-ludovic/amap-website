@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { ShoppingBasket, Calendar, Package, Leaf } from 'lucide-react';
+import { ShoppingBasket, Calendar, Package, Leaf, Clock, Users, Search, Lightbulb } from 'lucide-react';
 import { useModal } from '../../contexts/ModalContext';
 import api from '../../lib/api';
 import Link from 'next/link';
@@ -11,11 +11,21 @@ import '../../styles/public/weekly-basket.css';
 export default function WeeklyBasketPublicPage() {
   const [basket, setBasket] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [recipes, setRecipes] = useState([]);
+  const [loadingRecipes, setLoadingRecipes] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchMode, setSearchMode] = useState('name'); // 'name' ou 'ingredients'
   const { showError } = useModal();
 
   useEffect(() => {
     fetchCurrentBasket();
   }, []);
+
+  useEffect(() => {
+    if (basket) {
+      fetchRecipeSuggestions();
+    }
+  }, [basket]);
 
   const fetchCurrentBasket = async () => {
     try {
@@ -26,6 +36,44 @@ export default function WeeklyBasketPublicPage() {
       showError('Erreur', 'Erreur lors du chargement du panier');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchRecipeSuggestions = async () => {
+    try {
+      setLoadingRecipes(true);
+      const response = await api.recipes.getSuggestions(basket.id);
+      setRecipes(response.data || []);
+    } catch (error) {
+      console.error('Erreur suggestions:', error);
+      setRecipes([]);
+    } finally {
+      setLoadingRecipes(false);
+    }
+  };
+
+  const handleManualSearch = async (e) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) return;
+
+    try {
+      setLoadingRecipes(true);
+      let response;
+      
+      if (searchMode === 'ingredients') {
+        // Recherche par ingrédients (séparés par virgule)
+        response = await api.recipes.findByIngredients(searchQuery);
+      } else {
+        // Recherche par nom de recette
+        response = await api.recipes.search(searchQuery);
+      }
+      
+      setRecipes(response.data || []);
+    } catch (error) {
+      console.error('Erreur recherche:', error);
+      showError('Erreur', 'Erreur lors de la recherche de recettes');
+    } finally {
+      setLoadingRecipes(false);
     }
   };
 
@@ -231,6 +279,105 @@ export default function WeeklyBasketPublicPage() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Suggestions de recettes */}
+      <section className="recipe-suggestions">
+        <div className="container">
+          <h2 className="section-title">Idées recettes avec ce panier</h2>
+          
+          {loadingRecipes ? (
+            <div className="loading-state">Chargement des suggestions...</div>
+          ) : recipes.length > 0 ? (
+            <div className="recipes-grid">
+              {recipes.slice(0, 3).map((recipe) => (
+                <Link key={recipe.id} href={`/recettes/${recipe.id}`} className="recipe-card">
+                  <div className="recipe-image">
+                    <img src={recipe.image} alt={recipe.title} />
+                  </div>
+                  <div className="recipe-content">
+                    <h3>{recipe.title}</h3>
+                    <div className="recipe-meta">
+                      <span className="meta-item">
+                        <Clock size={16} />
+                        {recipe.readyInMinutes} min
+                      </span>
+                      <span className="meta-item">
+                        <Users size={16} />
+                        {recipe.servings} pers.
+                      </span>
+                    </div>
+                    <div className="used-ingredients">
+                      <span className="used-count">
+                        {recipe.usedIngredientCount} ingrédient{recipe.usedIngredientCount > 1 ? 's' : ''} du panier
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="no-suggestions-wrapper">
+              <p className="no-suggestions">Aucune suggestion disponible pour ce panier</p>
+              <div className="manual-search">
+                <p className="search-prompt">Recherchez des recettes manuellement :</p>
+                
+                {/* Toggle recherche par nom ou ingrédients */}
+                <div className="search-mode-toggle">
+                  <button
+                    type="button"
+                    className={`toggle-btn ${searchMode === 'name' ? 'active' : ''}`}
+                    onClick={() => setSearchMode('name')}
+                  >
+                    Par nom
+                  </button>
+                  <button
+                    type="button"
+                    className={`toggle-btn ${searchMode === 'ingredients' ? 'active' : ''}`}
+                    onClick={() => setSearchMode('ingredients')}
+                  >
+                    Par ingrédients
+                  </button>
+                </div>
+
+                <form onSubmit={handleManualSearch} className="search-form">
+                  <div className="search-input-wrapper">
+                    <Search size={20} />
+                    <input
+                      type="text"
+                      placeholder={
+                        searchMode === 'ingredients'
+                          ? "Ex: tomates, courgettes, oignons..."
+                          : "Ex: soupe, gratin, salade..."
+                      }
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="search-input"
+                    />
+                  </div>
+                  <button type="submit" className="btn btn-primary">
+                    Rechercher
+                  </button>
+                </form>
+                
+                {searchMode === 'ingredients' && (
+                  <p className="search-hint">
+                    <Lightbulb size={16} />
+                    <span>Séparez les ingrédients par des virgules</span>
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {recipes.length > 0 && (
+            <div className="cta-center">
+              <Link href="/recettes" className="btn btn-secondary">
+                Voir toutes les recettes
+              </Link>
+            </div>
+          )}
         </div>
       </section>
 

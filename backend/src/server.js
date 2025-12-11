@@ -21,6 +21,7 @@ import subscriptionsRoutes from './routes/subscriptions.routes.js';
 import subscriptionRequestsRoutes from './routes/subscription-requests.routes.js';
 import distributionRoutes from './routes/distribution.routes.js';
 import themeRoutes from './routes/theme.routes.js';
+import recipesRoutes from './routes/recipes.routes.js';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -79,6 +80,7 @@ app.use('/api/weekly-baskets', weeklyBasketsRoutes);
 app.use('/api/subscriptions', subscriptionsRoutes);
 app.use('/api/subscription-requests', subscriptionRequestsRoutes);
 app.use('/api/distribution', distributionRoutes);
+app.use('/api/recipes', recipesRoutes);
 
 
 // Route 404 - si aucune route ne correspond

@@ -695,6 +695,33 @@ const api = {
       });
     },
   },
+
+  // Recettes
+  recipes: {
+    search: async (query) => {
+      return fetchAPI(`/recipes/search?query=${encodeURIComponent(query)}`, {
+        requiresAuth: false,
+      });
+    },
+
+    findByIngredients: async (ingredients) => {
+      return fetchAPI(`/recipes/ingredients?ingredients=${encodeURIComponent(ingredients)}`, {
+        requiresAuth: false,
+      });
+    },
+
+    getById: async (id) => {
+      return fetchAPI(`/recipes/${id}`, {
+        requiresAuth: false,
+      });
+    },
+
+    getSuggestions: async (weeklyBasketId) => {
+      return fetchAPI(`/recipes/suggestions/weekly-basket/${weeklyBasketId}`, {
+        requiresAuth: false,
+      });
+    },
+  },
 };
 
 export default api;
