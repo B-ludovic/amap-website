@@ -22,7 +22,7 @@
 
 /* Solidarity Info */
 .solidarity-info {
-  background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%);
+  background: none;
   padding: 2rem 0;
 }
 
@@ -60,6 +60,7 @@
 /* Content */
 .subscriptions-content {
   padding: 4rem 0;
+  background: var(--gradient-soft-banner);
 }
 
 /* Size Selector */
@@ -87,7 +88,7 @@
   align-items: center;
   gap: 1rem;
   padding: 1.5rem;
-  background: white;
+  background: var(--white);
   border: 2px solid var(--border-color);
   border-radius: 12px;
   cursor: pointer;
@@ -102,7 +103,7 @@
 
 .size-button.active {
   border-color: var(--primary-color);
-  background: rgba(107, 157, 90, 0.1);
+  background: var(--success-light);
 }
 
 .size-button svg {
@@ -128,7 +129,7 @@
 
 .size-hint {
   font-size: 0.75rem !important;
-  color: var(--text-light) !important;
+  color: var(--text-secondary);
   font-style: italic;
 }
 

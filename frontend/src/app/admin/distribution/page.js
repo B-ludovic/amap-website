@@ -181,7 +181,7 @@ export default function AdminDistributionPage() {
       {stats && (
         <div className="stats-grid">
           <div className="stat-card">
-            <div className="stat-icon" style={{ background: 'var(--primary-light)' }}>
+            <div className="stat-icon primary">
               <Users size={24} color="var(--primary-color)" />
             </div>
             <div className="stat-content">
@@ -191,7 +191,7 @@ export default function AdminDistributionPage() {
           </div>
 
           <div className="stat-card">
-            <div className="stat-icon" style={{ background: '#dcfce7' }}>
+            <div className="stat-icon success">
               <CheckCircle size={24} color="#16a34a" />
             </div>
             <div className="stat-content">
@@ -201,7 +201,7 @@ export default function AdminDistributionPage() {
           </div>
 
           <div className="stat-card">
-            <div className="stat-icon" style={{ background: '#fef3c7' }}>
+            <div className="stat-icon warning">
               <Circle size={24} color="#ca8a04" />
             </div>
             <div className="stat-content">
@@ -211,7 +211,7 @@ export default function AdminDistributionPage() {
           </div>
 
           <div className="stat-card">
-            <div className="stat-icon" style={{ background: '#e0e7ff' }}>
+            <div className="stat-icon info">
               <CheckCircle size={24} color="#4f46e5" />
             </div>
             <div className="stat-content">

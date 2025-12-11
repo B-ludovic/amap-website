@@ -340,7 +340,7 @@ export default function AdminParametresPage() {
                             {/* Stats totales */}
                             {totalStats && (
                                 <>
-                                    <h3 style={{ marginTop: '2rem', marginBottom: '1rem', fontSize: '1.1rem', color: 'var(--text-dark)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <h3 className="examples-section-title">
                                         <BarChart3 size={20} /> Données totales en base
                                     </h3>
                                     <div className="examples-stats-grid">
@@ -380,7 +380,7 @@ export default function AdminParametresPage() {
                             {/* Stats exemples */}
                             {exampleStats && exampleStats.total > 0 ? (
                                 <>
-                                    <h3 style={{ marginTop: '2rem', marginBottom: '1rem', fontSize: '1.1rem', color: 'var(--text-dark)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <h3 className="examples-section-title">
                                         <Beaker size={20} /> Données d'exemple uniquement
                                     </h3>
                                     <div className="examples-stats-grid">

@@ -102,16 +102,26 @@ export default function ProducersPage() {
             </div>
           ) : (
             <div className="producers-grid">
-              {producers.map((producer) => (
+              {producers.map((producer, index) => {
+                const placeholderImages = [
+                  '/placeholder/legumes-terre.png',
+                  '/placeholder/legumes-panier.png',
+                  '/placeholder/legumes-cuisine.png'
+                ];
+                const placeholderImage = placeholderImages[index % placeholderImages.length];
+                
+                return (
                 <div key={producer.id} className="producer-card">
                   {/* Image placeholder */}
                   <div className="producer-image">
                     {producer.imageUrl ? (
                       <img src={producer.imageUrl} alt={producer.name} />
                     ) : (
-                      <div className="image-placeholder">
-                        <Sprout size={48} />
-                      </div>
+                      <img 
+                        src={placeholderImage} 
+                        alt={producer.name}
+                        className="placeholder-image"
+                      />
                     )}
                     {producer.isBio && (
                       <div className="bio-badge">
@@ -207,7 +217,8 @@ export default function ProducersPage() {
                     </div>
                   </div>
                 </div>
-              ))}
+              );
+              })}
             </div>
           )}
         </div>

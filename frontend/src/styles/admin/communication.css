@@ -156,6 +156,22 @@
   color: var(--primary-color);
 }
 
+.stat-icon.primary {
+  background: var(--primary-light);
+}
+
+.stat-icon.success {
+  background: #dcfce7;
+}
+
+.stat-icon.warning {
+  background: #fef3c7;
+}
+
+.stat-icon.info {
+  background: #e0e7ff;
+}
+
 .stat-content {
   flex: 1;
 }

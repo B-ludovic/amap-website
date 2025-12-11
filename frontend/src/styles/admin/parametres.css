@@ -93,6 +93,16 @@
   margin: 0;
 }
 
+.examples-section-title {
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+  color: var(--text-dark);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .examples-actions {
   display: flex;
   justify-content: flex-start;

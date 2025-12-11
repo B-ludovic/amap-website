@@ -113,6 +113,7 @@
   border-radius: var(--border-radius-lg);
   backdrop-filter: blur(10px);
   color: var(--text-primary);
+  font-weight: 600;
 }
 
 .basket-schedule {
@@ -122,6 +123,7 @@
   color: var(--text-secondary);
   font-style: bolder;
   font-weight: 800;
+  margin-top: var(--spacing-sm);
 }
 
 /* MESSAGE DE LA SEMAINE */
@@ -405,6 +407,7 @@
   max-width: 800px;
   margin: 0 auto;
   box-shadow: 0 20px 25px -5px var(--shadow-color);
+  background: var(--gradient-soft-banner);
 }
 
 .cta-card h2 {
@@ -455,6 +458,7 @@
   background-color: var(--primary-hover);
   transform: translateY(-1px);
   box-shadow: var(--shadow-md);
+  color: var(--white)
 }
 
 .btn-secondary {
@@ -478,6 +482,7 @@
 
 /* Tablette et Ecrans intermédiaires (max-width: 1024px) */
 @media (max-width: 1024px) {
+
   /* LAYOUT PRINCIPAL */
   /* La disposition principale à 2 colonnes (2fr 1fr) passe à 1 colonne */
   .basket-layout {
@@ -487,8 +492,10 @@
 
   /* Le résumé du panier est affiché au-dessus du contenu */
   .basket-summary {
-    position: static; /* Retire le positionnement sticky */
-    order: -1; /* Place le résumé en haut */
+    position: static;
+    /* Retire le positionnement sticky */
+    order: -1;
+    /* Place le résumé en haut */
     width: 100%;
   }
 
@@ -506,11 +513,12 @@
 
 /* Mobile (max-width: 768px) */
 @media (max-width: 768px) {
+
   /* HÉROS */
   .basket-hero {
     padding: var(--spacing-lg) 0;
   }
-  
+
   .basket-hero h1 {
     font-size: var(--font-size-2xl);
   }
@@ -527,18 +535,19 @@
     gap: var(--spacing-xs);
     margin-top: var(--spacing-sm);
   }
-  
+
   /* TABLE DES PRODUITS - Optimisation pour mobile */
   /* Masque les en-têtes de colonnes (pour utiliser la structure card-like) */
   .products-table thead {
     display: none;
   }
-  
+
   .products-table,
   .products-table tbody,
   .products-table tr,
   .products-table td {
-    display: block; /* Force l'affichage en bloc des lignes et cellules */
+    display: block;
+    /* Force l'affichage en bloc des lignes et cellules */
     width: 100%;
   }
 
@@ -557,14 +566,16 @@
     padding: 0;
     text-align: left;
     /* Les cellules occupent la moitié de la ligne pour Nom et Quantité */
-    flex: 1 1 48%; 
+    flex: 1 1 48%;
   }
-  
-  .products-table td:first-child { /* Nom du produit */
-      font-weight: var(--font-weight-semibold);
-      color: var(--text-primary);
-      flex: 1 1 100%; /* Nom du produit prend toute la ligne */
-      margin-bottom: var(--spacing-xs);
+
+  .products-table td:first-child {
+    /* Nom du produit */
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+    flex: 1 1 100%;
+    /* Nom du produit prend toute la ligne */
+    margin-bottom: var(--spacing-xs);
   }
 
   /* BOUTONS D'ACTION (CTA) */
@@ -574,7 +585,8 @@
   }
 
   .cta-actions .btn {
-    width: 100%; /* Les boutons prennent toute la largeur sur mobile */
+    width: 100%;
+    /* Les boutons prennent toute la largeur sur mobile */
   }
 }
 
@@ -802,6 +814,12 @@
   margin-top: var(--spacing-xl);
 }
 
+.cta-center :hover {
+  transform: translateY(-1px);
+  color: var(--primary-hover);
+  background-color: var(--primary-color);
+}
+
 /* Très petits mobiles (max-width: 480px) */
 @media (max-width: 480px) {
   .basket-hero h1 {
@@ -809,7 +827,7 @@
   }
 
   .products-table tr {
-      padding: var(--spacing-sm);
+    padding: var(--spacing-sm);
   }
 
   .recipes-grid {
