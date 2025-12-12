@@ -4,7 +4,7 @@
   position: sticky;
   top: 0;
   width: 100%;
-  background-color: var(--white);
+  background: var(--gradient-footer);
   box-shadow: var(--shadow-sm);
   transition: all var(--transition-base);
   z-index: var(--z-sticky);

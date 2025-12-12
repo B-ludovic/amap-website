@@ -1,0 +1,257 @@
+/* Personnalisation du bandeau Orejime */
+.orejime {
+  font-family: inherit !important;
+}
+
+.orejime .orejime-Notice {
+  background: white !important;
+  border-top: 3px solid var(--primary-color) !important;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1) !important;
+}
+
+.orejime .orejime-Notice-description {
+  color: var(--text-secondary) !important;
+  line-height: 1.6 !important;
+}
+
+.orejime .orejime-Button {
+  border-radius: 8px !important;
+  padding: 0.75rem 1.5rem !important;
+  font-weight: 600 !important;
+  transition: all 0.2s ease !important;
+}
+
+.orejime .orejime-Button--info {
+  background: var(--primary-color) !important;
+  color: white !important;
+}
+
+.orejime .orejime-Button--info:hover {
+  background: var(--secondary-color) !important;
+}
+
+.orejime .orejime-Button--decline {
+  background: transparent !important;
+  border: 2px solid var(--border-color) !important;
+  color: var(--text-secondary) !important;
+}
+
+.orejime .orejime-Button--decline:hover {
+  border-color: var(--primary-color) !important;
+  color: var(--primary-color) !important;
+}
+
+/* Modal de gestion */
+.orejime .orejime-Modal {
+  border-radius: 12px !important;
+  max-width: 800px !important;
+}
+
+.orejime .orejime-Modal-title {
+  color: var(--text-primary) !important;
+  font-size: 1.5rem !important;
+  font-weight: 700 !important;
+}
+
+.orejime .orejime-AppItem {
+  border: 1px solid var(--border-color) !important;
+  border-radius: 8px !important;
+  margin-bottom: 1rem !important;
+}
+
+.orejime .orejime-AppItem-title {
+  color: var(--text-primary) !important;
+  font-weight: 600 !important;
+}
+
+/* États focus pour accessibilité */
+.orejime .orejime-Button:focus {
+  outline: 2px solid var(--primary-color) !important;
+  outline-offset: 2px !important;
+}
+
+/* Switch/Toggle */
+.orejime .orejime-Switch {
+  background: var(--border-color) !important;
+  transition: background 0.2s ease !important;
+}
+
+.orejime .orejime-Switch.is-enabled {
+  background: var(--primary-color) !important;
+}
+
+.orejime .orejime-Switch:focus {
+  outline: 2px solid var(--primary-color) !important;
+  outline-offset: 2px !important;
+}
+
+/* Lien "En savoir plus" */
+.orejime .orejime-Notice-learnMoreLink {
+  color: var(--primary-color) !important;
+  font-weight: 600 !important;
+  text-decoration: underline !important;
+}
+
+.orejime .orejime-Notice-learnMoreLink:hover {
+  color: var(--primary-hover) !important;
+}
+
+/* Modal d'acceptation des cookies (noticeAsModal: true) */
+.orejime-ConsentModal {
+  max-width: 480px !important;
+  border-radius: 16px !important;
+  padding: 2.5rem !important;
+  box-shadow: 0 20px 40px -5px rgba(0, 0, 0, 0.4) !important;
+  position: fixed !important;
+  left: 2rem !important;
+  top: 50% !important;
+  right: auto !important;
+  bottom: auto !important;
+  transform: translateY(-50%) !important;
+  background: white !important;
+  border: 1px solid rgba(107, 157, 90, 0.2) !important;
+  margin: 0 !important;
+}
+
+.orejime .orejime-ConsentModal-title {
+  color: var(--text-primary) !important;
+  font-size: 1.5rem !important;
+  font-weight: 700 !important;
+  margin-bottom: 1.25rem !important;
+  line-height: 1.3 !important;
+  color: #2d3748 !important;
+}
+
+.orejime .orejime-ConsentModal-description {
+  color: var(--text-secondary) !important;
+  line-height: 1.7 !important;
+  margin-bottom: 2rem !important;
+  font-size: 0.95rem !important;
+  color: #4a5568 !important;
+}
+
+.orejime .orejime-ConsentModal-buttons {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.75rem !important;
+}
+
+.orejime .orejime-ConsentModal-buttons .orejime-Button {
+  width: 100% !important;
+  justify-content: center !important;
+  padding: 0.875rem 1.5rem !important;
+  font-size: 0.95rem !important;
+  border-radius: 10px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+.orejime .orejime-ConsentModal-buttons .orejime-Button--save {
+  background: #6b9d5a !important;
+  color: white !important;
+  border: none !important;
+  order: 1 !important;
+}
+
+.orejime .orejime-ConsentModal-buttons .orejime-Button--save:hover {
+  background: #5a8a4a !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(107, 157, 90, 0.3) !important;
+}
+
+.orejime .orejime-ConsentModal-buttons .orejime-Button--decline {
+  background: transparent !important;
+  color: #718096 !important;
+  border: 2px solid #e2e8f0 !important;
+  order: 3 !important;
+}
+
+.orejime .orejime-ConsentModal-buttons .orejime-Button--decline:hover {
+  border-color: #cbd5e0 !important;
+  background: #f7fafc !important;
+}
+
+.orejime .orejime-ConsentModal-buttons .orejime-Button--info {
+  background: white !important;
+  color: #6b9d5a !important;
+  border: 2px solid #6b9d5a !important;
+  order: 2 !important;
+}
+
+.orejime .orejime-ConsentModal-buttons .orejime-Button--info:hover {
+  background: #f0f7ed !important;
+  border-color: #5a8a4a !important;
+}
+
+/* Overlay/backdrop */
+.orejime-AppOverlay {
+  background: rgba(0, 0, 0, 0.5) !important;
+  backdrop-filter: blur(6px) !important;
+}
+
+/* Lien de politique de confidentialité */
+.orejime .orejime-ConsentModal a {
+  color: #6b9d5a !important;
+  text-decoration: underline !important;
+  font-weight: 600 !important;
+}
+
+.orejime .orejime-ConsentModal a:hover {
+  color: #5a8a4a !important;
+}
+
+/* Animation d'entrée */
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateY(-50%) translateX(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+  }
+}
+
+.orejime .orejime-ConsentModal {
+  animation: slideInLeft 0.4s ease-out !important;
+}
+
+/* Responsive mobile */
+@media (max-width: 768px) {
+  .orejime .orejime-Notice {
+    padding: 1rem !important;
+  }
+  
+  .orejime .orejime-Button {
+    width: 100% !important;
+    margin-bottom: 0.5rem !important;
+  }
+  
+  .orejime .orejime-Modal {
+    max-width: 95% !important;
+    margin: 1rem !important;
+    padding: 1.5rem !important;
+  }
+  
+  .orejime .orejime-ConsentModal {
+    left: 1rem !important;
+    right: 1rem !important;
+    max-width: calc(100% - 2rem) !important;
+    padding: 1.75rem !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+  }
+  
+  .orejime .orejime-ConsentModal-title {
+    font-size: 1.25rem !important;
+  }
+  
+  .orejime .orejime-ConsentModal-description {
+    font-size: 0.9rem !important;
+  }
+  
+  .orejime .orejime-ConsentModal-title {
+    font-size: 1.5rem !important;
+  }
+}

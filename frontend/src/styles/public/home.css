@@ -122,7 +122,7 @@
 
 .values-section {
   padding: var(--spacing-3xl) 0;
-  background-color: #f5f5f5;
+  background: var(--gradient-soft-banner);
 }
 
 .section-title {

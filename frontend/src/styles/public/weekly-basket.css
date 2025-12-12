@@ -258,6 +258,7 @@
 
 .basket-composition {
   padding: var(--spacing-3xl) 0;
+  background: var(--gradient-footer);
 }
 
 .section-title {
@@ -273,6 +274,7 @@
   flex-direction: column;
   gap: var(--spacing-2xl);
   padding-left: var(--spacing-lg);
+  padding-right: var(--spacing-lg);
   background-color: transparent;
 }
 

@@ -1,7 +1,7 @@
 /* Footer Aux P'tits Pois */
 
 .footer {
-  background-color: var(--white);
+  background: var(--gradient-footer);
   border-top: var(--border-width) solid var(--border-color);
   padding: var(--spacing-3xl) 0 var(--spacing-xl);
   margin-top: var(--spacing-3xl);
