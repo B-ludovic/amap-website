@@ -1,11 +1,13 @@
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import Providers from '../components/Providers';
+import CookieConsent from '../components/CookieConsent';
 import '../styles/variables.css';
 import '../styles/globals.css';
 import '../styles/components/modal.css';
 import '../styles/components/header.css';
 import '../styles/components/footer.css';
+import '../styles/components/tarteaucitron.css';
 import '../styles/public/auth.css';
 import '../styles/public/compte.css';
 import '../styles/public/home.css';
@@ -35,6 +37,7 @@ function RootLayout({ children }) {
             {children}
           </main>
           <Footer />
+          <CookieConsent />
         </Providers>
       </body>
     </html>
