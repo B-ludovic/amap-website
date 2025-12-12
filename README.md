@@ -17,6 +17,9 @@ Plateforme web moderne pour la gestion d'une AMAP (Association pour le Maintien 
 ![Inscription](screenshots/inscription.png)
 *Formulaire d'inscription des nouveaux membres*
 
+! [Détail d'une recette](screenshots/detail-recette.png)
+*Page de présentation d'une recette*
+
 ### Interface mobile responsive
 ![Menu burger](screenshots/menu-burger.png)
 *Navigation mobile avec drawer et animation staggered*
@@ -36,20 +39,6 @@ Plateforme web moderne pour la gestion d'une AMAP (Association pour le Maintien 
 ![Inscription mobile](screenshots/mobile-inscription.png)
 *Inscription simplifiée sur mobile*
 
-### Thèmes saisonniers
-Le site propose 4 thèmes qui s'adaptent aux saisons :
-
-![Thème Printemps](screenshots/theme-printemps.png)
-*Thème Printemps - Tons verts et naturels*
-
-![Thème Été](screenshots/theme-ete.png)
-*Thème Été - Couleurs chaudes et lumineuses*
-
-![Thème Automne](screenshots/theme-automne.png)
-*Thème Automne - Palette douce et chaleureuse*
-
-![Thème Hiver](screenshots/theme-hiver.png)
-*Thème Hiver - Nuances douces et apaisantes*
 
 
 
@@ -69,6 +58,7 @@ Ce projet est un site complet permettant de gérer une AMAP de A à Z :
 - **React 19** - Interface utilisateur réactive
 - **Lucide React** - Icônes modernes
 - **CSS natif** - Styling avec variables CSS et responsive design
+- **Tarteaucitron.js** - Gestion des cookies conforme RGPD
 
 ### Backend
 - **Node.js + Express** - Serveur API REST
@@ -228,6 +218,13 @@ npm start
 - ✅ Animations fluides et transitions CSS
 - ✅ Icônes Lucide React modernes
 - ✅ États de chargement et messages de confirmation
+- ✅ Bandeau de cookies RGPD (accept/refuser/personnaliser)
+
+### Conformité & Sécurité
+- ✅ Gestion des cookies conforme RGPD avec Tarteaucitron.js
+- ✅ Consentement utilisateur pour les services tiers (Google Analytics, etc.)
+- ✅ Cookies obligatoires pour le paiement (Stripe)
+- ✅ Icône d'accès aux préférences cookies toujours visible
 
 ## 📊 Base de données
 
@@ -280,6 +277,7 @@ Les thèmes sont stockés en base de données et appliqués dynamiquement via le
 - `npm run dev` - Lance Next.js en développement
 - `npm run build` - Build de production
 - `npm start` - Serveur de production
+- `npm run postinstall` - Copie les fichiers Tarteaucitron (automatique après npm install)
 
 ## 🐛 Débogage
 
