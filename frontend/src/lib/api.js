@@ -633,12 +633,12 @@ const api = {
   },
 
   subscriptionRequests: {
-    // Public - Submit a subscription request (no auth required)
+    // Protégé - Submit a subscription request (auth required)
     submitRequest: async (data) => {
       return fetchAPI('/subscription-requests', {
         method: 'POST',
         body: data,
-        requiresAuth: false,
+        requiresAuth: true,
       });
     },
 
@@ -662,6 +662,60 @@ const api = {
         requiresAuth: true,
       });
     },
+
+    approve: async (id, adminNotes = '') => {
+      return fetchAPI(`/subscription-requests/${id}/approve`, {
+        method: 'POST',
+        body: { adminNotes },
+        requiresAuth: true,
+      });
+    },
+
+    downloadContract: async (id) => {
+      const token = localStorage.getItem('token');
+      
+      const response = await fetch(`${API_URL}/subscription-requests/${id}/contract`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: 'Erreur lors de la génération du contrat' }));
+        throw new Error(error.message || 'Erreur lors de la génération du contrat');
+      }
+
+      // Récupérer le blob PDF avec le type MIME correct
+      const blob = await response.blob();
+      const pdfBlob = new Blob([blob], { type: 'application/pdf' });
+      
+      // Récupérer le nom du fichier depuis les headers
+      const contentDisposition = response.headers.get('Content-Disposition');
+      let filename = 'contrat.pdf';
+      
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+        if (filenameMatch && filenameMatch[1]) {
+          filename = filenameMatch[1].replace(/['"]/g, '');
+        }
+      }
+
+      // Créer un lien de téléchargement
+      const url = window.URL.createObjectURL(pdfBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      a.click();
+      
+      // Nettoyage après un délai
+      setTimeout(() => {
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      }, 100);
+    }
   },
 
   producerInquiries: {

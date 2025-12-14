@@ -25,10 +25,11 @@ model User {
   resetToken       String?   @unique
   resetTokenExpiry DateTime?
   
-  subscriptions    Subscription[]
-  shiftVolunteers  ShiftVolunteer[]
-  newsletters      Newsletter[]
-  recipes          Recipe[]
+  subscriptions       Subscription[]
+  subscriptionRequests SubscriptionRequest[]
+  shiftVolunteers     ShiftVolunteer[]
+  newsletters         Newsletter[]
+  recipes             Recipe[]
   
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -51,6 +52,7 @@ enum UserRole {
 model SubscriptionRequest {
   id            String   @id @default(uuid())
   
+  userId        String?
   firstName     String
   lastName      String
   email         String
@@ -67,9 +69,12 @@ model SubscriptionRequest {
   processedAt   DateTime?
   processedBy   String?
   
+  user          User?    @relation(fields: [userId], references: [id])
+  
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   
+  @@index([userId])
   @@index([status])
   @@index([email])
   @@index([createdAt])

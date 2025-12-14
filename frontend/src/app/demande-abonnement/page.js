@@ -108,22 +108,35 @@ export default function SubscriptionRequestPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!validate()) {
-      showError('Erreur', 'Veuillez corriger les erreurs du formulaire');
+    // Validation
+    const newErrors = {};
+
+    if (!formData.type) newErrors.type = 'Veuillez sélectionner un type d\'abonnement';
+    if (!formData.basketSize) newErrors.basketSize = 'Veuillez sélectionner une taille de panier';
+    if (!formData.pricingType) newErrors.pricingType = 'Veuillez sélectionner un type de tarification';
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
 
     try {
       setLoading(true);
 
-      await api.subscriptionRequests.submitRequest(formData);
+      // Appeler l'API (l'utilisateur est connecté, le backend récupère ses infos)
+      await api.subscriptionRequests.submitRequest({
+        type: formData.type,
+        basketSize: formData.basketSize,
+        pricingType: formData.pricingType,
+        message: formData.message
+      });
 
       setSubmitted(true);
       showSuccess('Succès', 'Demande envoyée avec succès !');
     } catch (error) {
       showError(
         'Erreur',
-        error.response?.data?.message || 'Une erreur est survenue'
+        error.message || 'Une erreur est survenue lors de l\'envoi de votre demande'
       );
     } finally {
       setLoading(false);

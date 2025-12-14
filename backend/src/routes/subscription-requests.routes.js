@@ -3,7 +3,9 @@ import {
   submitRequest,
   getAllRequests,
   getRequestById,
-  updateRequestStatus
+  updateRequestStatus,
+  approveAndCreateSubscription,
+  generateContract
 } from '../controllers/subscription-requests.controller.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { adminOnly } from '../middlewares/role.middleware.js';
@@ -17,5 +19,7 @@ router.post('/', authMiddleware, submitRequest);
 router.get('/', authMiddleware, adminOnly, getAllRequests);
 router.get('/:id', authMiddleware, adminOnly, getRequestById);
 router.put('/:id/status', authMiddleware, adminOnly, updateRequestStatus);
+router.post('/:id/approve', authMiddleware, adminOnly, approveAndCreateSubscription);
+router.get('/:id/contract', authMiddleware, adminOnly, generateContract);
 
 export default router;

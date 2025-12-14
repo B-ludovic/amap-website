@@ -1,18 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { X, User, Mail, Phone, ShoppingBasket, MessageSquare, Check, X as XIcon, FileText } from 'lucide-react';
+import { useState } from 'react';
+import { X, User, Mail, Phone, ShoppingBasket, MessageSquare, Check, X as XIcon, FileText, Download } from 'lucide-react';
 import { useModal } from '../../contexts/ModalContext';
 import api from '../../lib/api';
 import '../../styles/admin/components.css';
 
 export default function SubscriptionRequestModal({ request, onClose }) {
-  const [status, setStatus] = useState(request.status);
   const [adminNotes, setAdminNotes] = useState(request.adminNotes || '');
   const [loading, setLoading] = useState(false);
-  const [showCreateSubscription, setShowCreateSubscription] = useState(false);
+  const [downloadingContract, setDownloadingContract] = useState(false);
   
-  const { showSuccess, showError, showWarning } = useModal();
+  const { showSuccess, showError, showConfirm } = useModal();
 
   const handleUpdateStatus = async (newStatus) => {
     try {
@@ -35,82 +34,34 @@ export default function SubscriptionRequestModal({ request, onClose }) {
     }
   };
 
-  const handleApproveAndCreate = async () => {
-    if (!confirm('Créer l\'abonnement pour cet adhérent ? Assurez-vous que le paiement a bien été reçu.')) {
-      return;
-    }
-
-    try {
-      setLoading(true);
-
-      // 1. Récupérer l'userId depuis la demande (l'user existe déjà car connecté)
-      const userId = request.userId;
-      
-      if (!userId) {
-        showError('Erreur', 'Utilisateur introuvable dans la demande');
-        return;
-      }
-
-      // 2. Récupérer le premier point de retrait actif
-      const locationsResponse = await api.admin.pickupLocations.getAll();
-      const activeLocation = locationsResponse.data.find(loc => loc.isActive);
-      
-      if (!activeLocation) {
-        showError('Erreur', 'Aucun point de retrait actif trouvé');
-        return;
-      }
-
-      // 3. Calculer les dates
-      const startDate = new Date();
-      const endDate = new Date();
-      
-      if (request.type === 'ANNUAL') {
-        endDate.setFullYear(endDate.getFullYear() + 1);
-      } else {
-        endDate.setMonth(endDate.getMonth() + 3);
-      }
-
-      // 4. Définir le prix
-      const prices = {
-        ANNUAL: {
-          SMALL: request.pricingType === 'SOLIDARITY' ? 177.60 : 888,
-          LARGE: request.pricingType === 'SOLIDARITY' ? 278.40 : 1392
-        },
-        DISCOVERY: {
-          SMALL: request.pricingType === 'SOLIDARITY' ? 44.40 : 222,
-          LARGE: request.pricingType === 'SOLIDARITY' ? 69.60 : 348
+  const handleApprove = () => {
+    showConfirm(
+      'Créer l\'abonnement',
+      'Créer l\'abonnement pour cet adhérent ? Assurez-vous que le paiement a bien été reçu.',
+      async () => {
+        try {
+          setLoading(true);
+          await api.subscriptionRequests.approve(request.id, adminNotes);
+          showSuccess('Succès', 'Abonnement créé avec succès !');
+          onClose(true);
+        } catch (error) {
+          showError('Erreur', error.message);
+        } finally {
+          setLoading(false);
         }
-      };
+      }
+    );
+  };
 
-      const price = prices[request.type][request.basketSize];
-
-      // 5. Créer l'abonnement
-      await api.subscriptions.create({
-        userId,
-        type: request.type,
-        basketSize: request.basketSize,
-        pricingType: request.pricingType,
-        startDate: startDate.toISOString(),
-        endDate: endDate.toISOString(),
-        price,
-        pickupLocationId: activeLocation.id
-      });
-
-      // 6. Mettre à jour le statut de la demande
-      await api.subscriptionRequests.updateStatus(request.id, {
-        status: 'APPROVED',
-        adminNotes: adminNotes + '\n\nAbonnement créé automatiquement.'
-      });
-
-      showSuccess('Succès', 'Abonnement créé avec succès !');
-      onClose(true);
+  const handleDownloadContract = async () => {
+    try {
+      setDownloadingContract(true);
+      await api.subscriptionRequests.downloadContract(request.id);
+      showSuccess('Succès', 'Contrat téléchargé avec succès');
     } catch (error) {
-      showError(
-        'Erreur',
-        error.response?.data?.message || 'Erreur lors de la création de l\'abonnement'
-      );
+      showError('Erreur', error.message);
     } finally {
-      setLoading(false);
+      setDownloadingContract(false);
     }
   };
 
@@ -244,11 +195,25 @@ export default function SubscriptionRequestModal({ request, onClose }) {
             type="button"
             className="btn btn-secondary"
             onClick={() => onClose(false)}
-            disabled={loading}
+            disabled={loading || downloadingContract}
           >
             Fermer
           </button>
 
+          {/* Bouton télécharger contrat (si approuvé) */}
+          {request.status === 'APPROVED' && (
+            <button
+              type="button"
+              className="btn btn-info"
+              onClick={handleDownloadContract}
+              disabled={downloadingContract || loading}
+            >
+              <Download size={18} />
+              {downloadingContract ? 'Génération...' : 'Télécharger le contrat'}
+            </button>
+          )}
+
+          {/* Boutons d'action selon le statut */}
           {request.status === 'PENDING' && (
             <>
               <button
@@ -271,7 +236,7 @@ export default function SubscriptionRequestModal({ request, onClose }) {
               <button
                 type="button"
                 className="btn btn-success"
-                onClick={handleApproveAndCreate}
+                onClick={handleApprove}
                 disabled={loading}
               >
                 <Check size={18} />
@@ -294,7 +259,7 @@ export default function SubscriptionRequestModal({ request, onClose }) {
               <button
                 type="button"
                 className="btn btn-success"
-                onClick={handleApproveAndCreate}
+                onClick={handleApprove}
                 disabled={loading}
               >
                 <Check size={18} />
@@ -303,7 +268,7 @@ export default function SubscriptionRequestModal({ request, onClose }) {
             </>
           )}
 
-          {(request.status !== 'PENDING' && request.status !== 'IN_PROGRESS') && (
+          {(request.status === 'APPROVED' || request.status === 'REJECTED') && (
             <button
               type="button"
               className="btn btn-primary"
