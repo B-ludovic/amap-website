@@ -91,6 +91,30 @@
   flex-shrink: 0;
 }
 
+/* Section informations user */
+.user-info-section {
+  background: #e8f5e9;
+  border: 1px solid var(--primary-color);
+}
+
+.user-info-display {
+  padding: var(--spacing-md);
+  background: var(--white);
+  border-radius: var(--border-radius-sm);
+  margin-bottom: var(--spacing-md);
+}
+
+.user-info-display p {
+  margin: var(--spacing-xs) 0;
+  color: var(--text-primary);
+  font-size: var(--font-size-base);
+}
+
+.user-info-display a {
+  color: var(--primary-color);
+  text-decoration: underline;
+}
+
 /* CHAMPS DE FORMULAIRE */
 
 .form-group {

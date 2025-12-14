@@ -135,6 +135,12 @@ export const admin = {
       });
     },
 
+    getByEmail: async (email) => {
+      return fetchAPI(`/admin/users/by-email/${encodeURIComponent(email)}`, {
+        requiresAuth: true,
+      });
+    },
+
     changeRole: async (userId, role) => {
       return fetchAPI(`/admin/users/${userId}/role`, {
         method: 'PUT',

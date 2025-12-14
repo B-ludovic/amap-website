@@ -12,6 +12,7 @@ import {
   updateOrderStatus,
   getStats,
   getAllUsers,
+  getUserByEmail,
   changeUserRole,
   deleteUser,
   updateTheme,
@@ -48,6 +49,7 @@ router.put('/orders/:id/status', updateOrderStatus);
 
 // GESTION DES UTILISATEURS
 router.get('/users', getAllUsers);
+router.get('/users/by-email/:email', getUserByEmail);
 router.put('/users/:userId/role', changeUserRole);
 router.delete('/users/:userId', deleteUser);
 

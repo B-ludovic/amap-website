@@ -43,27 +43,12 @@ export default function SubscriptionRequestModal({ request, onClose }) {
     try {
       setLoading(true);
 
-      // 1. D'abord créer l'utilisateur s'il n'existe pas
-      let userId;
-      try {
-        // Essayer de créer l'utilisateur
-        const tempPassword = Math.random().toString(36).slice(-8);
-        const userResponse = await api.auth.register({
-          email: request.email,
-          password: tempPassword,
-          firstName: request.firstName,
-          lastName: request.lastName,
-          phone: request.phone
-        });
-        userId = userResponse.data.user.id;
-      } catch (error) {
-        // Si l'utilisateur existe déjà, le récupérer
-        if (error.response?.status === 409) {
-          // TODO: Récupérer l'utilisateur existant par email
-          showWarning('Attention', 'Un utilisateur avec cet email existe déjà. Veuillez créer l\'abonnement manuellement.');
-          return;
-        }
-        throw error;
+      // 1. Récupérer l'userId depuis la demande (l'user existe déjà car connecté)
+      const userId = request.userId;
+      
+      if (!userId) {
+        showError('Erreur', 'Utilisateur introuvable dans la demande');
+        return;
       }
 
       // 2. Récupérer le premier point de retrait actif
@@ -85,15 +70,15 @@ export default function SubscriptionRequestModal({ request, onClose }) {
         endDate.setMonth(endDate.getMonth() + 3);
       }
 
-      // 4. Définir le prix (à ajuster selon vos tarifs)
+      // 4. Définir le prix
       const prices = {
         ANNUAL: {
-          SMALL: request.pricingType === 'SOLIDARITY' ? 50 : 250,
-          LARGE: request.pricingType === 'SOLIDARITY' ? 80 : 400
+          SMALL: request.pricingType === 'SOLIDARITY' ? 177.60 : 888,
+          LARGE: request.pricingType === 'SOLIDARITY' ? 278.40 : 1392
         },
         DISCOVERY: {
-          SMALL: request.pricingType === 'SOLIDARITY' ? 15 : 75,
-          LARGE: request.pricingType === 'SOLIDARITY' ? 25 : 125
+          SMALL: request.pricingType === 'SOLIDARITY' ? 44.40 : 222,
+          LARGE: request.pricingType === 'SOLIDARITY' ? 69.60 : 348
         }
       };
 

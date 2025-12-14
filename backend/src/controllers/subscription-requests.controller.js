@@ -7,26 +7,31 @@ import {
   httpStatusCodes
 } from '../utils/httpErrors.js';
 
-// SOUMETTRE UNE DEMANDE D'ABONNEMENT (PUBLIC)
+// SOUMETTRE UNE DEMANDE D'ABONNEMENT (USER CONNECTÉ)
 export const submitRequest = asyncHandler(async (req, res) => {
-  const {
-    firstName,
-    lastName,
-    email,
-    phone,
-    type,
-    basketSize,
-    pricingType,
-    message
-  } = req.body;
+  const { type, basketSize, pricingType, message } = req.body;
+  
+  // Récupérer l'utilisateur connecté
+  const userId = req.user.id;
+  
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      email: true,
+      firstName: true,
+      lastName: true,
+      phone: true
+    }
+  });
 
-  // Validation
-  if (!firstName || !lastName || !email || !phone || !type || !basketSize || !pricingType) {
-    throw new HttpBadRequestError('Tous les champs obligatoires doivent être remplis');
+  if (!user) {
+    throw new HttpNotFoundError('Utilisateur introuvable');
   }
 
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    throw new HttpBadRequestError('Email invalide');
+  // Validation
+  if (!type || !basketSize || !pricingType) {
+    throw new HttpBadRequestError('Type, taille de panier et tarification sont requis');
   }
 
   if (!['ANNUAL', 'DISCOVERY'].includes(type)) {
@@ -41,16 +46,29 @@ export const submitRequest = asyncHandler(async (req, res) => {
     throw new HttpBadRequestError('Type de tarification invalide');
   }
 
+  // Vérifier si l'utilisateur n'a pas déjà une demande en attente
+  const existingRequest = await prisma.subscriptionRequest.findFirst({
+    where: {
+      email: user.email,
+      status: { in: ['PENDING', 'IN_PROGRESS'] }
+    }
+  });
+
+  if (existingRequest) {
+    throw new HttpBadRequestError('Vous avez déjà une demande d\'abonnement en cours de traitement');
+  }
+
   const request = await prisma.subscriptionRequest.create({
     data: {
-      firstName,
-      lastName,
-      email,
-      phone,
+      userId: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      phone: user.phone || '',
       type,
       basketSize,
       pricingType,
-      message,
+      message: message || '',
       status: 'PENDING'
     }
   });

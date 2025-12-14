@@ -102,6 +102,11 @@ function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/mentions-legales#cookies" className="footer-link">
+                  Gestion des cookies
+                </Link>
+              </li>
+              <li>
                 <Link href="/cgv" className="footer-link">
                   CGV
                 </Link>
@@ -145,7 +150,7 @@ function Footer() {
               />
             </a>
             <a
-              href="mailto:contact@auxptitspois.fr"
+              href="mailto:auxptitspois@gmail.com"
               className="footer-social-link"
               aria-label="Email"
             >

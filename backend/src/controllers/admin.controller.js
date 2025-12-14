@@ -553,6 +553,34 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
 
 // GESTION DES UTILISATEURS //
 
+// RÉCUPÉRER UN UTILISATEUR PAR EMAIL
+const getUserByEmail = asyncHandler(async (req, res) => {
+  const { email } = req.params;
+
+  const user = await prisma.user.findUnique({
+    where: { email },
+    select: {
+      id: true,
+      email: true,
+      firstName: true,
+      lastName: true,
+      phone: true,
+      role: true,
+      emailVerified: true,
+      createdAt: true
+    }
+  });
+
+  if (!user) {
+    throw new HttpNotFoundError('Utilisateur introuvable');
+  }
+
+  res.json({
+    success: true,
+    data: user
+  });
+});
+
 // RÉCUPÉRER TOUS LES UTILISATEURS 
 const getAllUsers = asyncHandler(async (req, res) => {
   const { role, page = 1, limit = 20 } = req.query;
@@ -1044,6 +1072,7 @@ export {
   getAllOrders,
   updateOrderStatus,
   getAllUsers,
+  getUserByEmail,
   changeUserRole,
   deleteUser,
   updateTheme,

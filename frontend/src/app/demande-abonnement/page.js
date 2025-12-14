@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { ShoppingBasket, User, Mail, Phone, MessageSquare, CheckCircle, Heart } from 'lucide-react';
+import { ShoppingBasket, MessageSquare, CheckCircle, Heart, LogIn } from 'lucide-react';
 import { useModal } from '../../contexts/ModalContext';
+import { useAuth } from '../../contexts/AuthContext';
 import api from '../../lib/api';
 import '../../styles/public/subscription-request.css';
 
@@ -12,12 +13,9 @@ export default function SubscriptionRequestPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { showSuccess, showError } = useModal();
+  const { user, isAuthenticated } = useAuth();
 
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
     type: searchParams.get('type') || 'ANNUAL',
     basketSize: searchParams.get('size') || 'SMALL',
     pricingType: 'NORMAL',
@@ -27,6 +25,45 @@ export default function SubscriptionRequestPage() {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+
+  // Vérifier si user connecté au chargement
+  useEffect(() => {
+    if (!isAuthenticated) {
+      // Sauvegarder les données du formulaire
+      const pendingRequest = {
+        type: formData.type,
+        basketSize: formData.basketSize,
+        pricingType: formData.pricingType,
+        message: formData.message
+      };
+      localStorage.setItem('pendingSubscriptionRequest', JSON.stringify(pendingRequest));
+      
+      showError(
+        'Connexion requise',
+        'Vous devez être connecté pour faire une demande d\'abonnement. Vos choix seront sauvegardés.'
+      );
+      
+      // Rediriger vers login avec redirect
+      router.push('/auth/login?redirect=/demande-abonnement');
+    }
+  }, [isAuthenticated]);
+
+  // Récupérer les données sauvegardées si elles existent
+  useEffect(() => {
+    if (isAuthenticated) {
+      const pendingRequest = localStorage.getItem('pendingSubscriptionRequest');
+      if (pendingRequest) {
+        try {
+          const data = JSON.parse(pendingRequest);
+          setFormData(prev => ({ ...prev, ...data }));
+          localStorage.removeItem('pendingSubscriptionRequest');
+          showSuccess('Données récupérées', 'Vous pouvez maintenant finaliser votre demande');
+        } catch (error) {
+          console.error('Erreur récupération données:', error);
+        }
+      }
+    }
+  }, [isAuthenticated]);
 
   const subscriptionInfo = {
     ANNUAL: {
@@ -44,24 +81,16 @@ export default function SubscriptionRequestPage() {
   const validate = () => {
     const newErrors = {};
 
-    if (!formData.firstName.trim()) {
-      newErrors.firstName = 'Prénom requis';
+    if (!formData.type) {
+      newErrors.type = 'Type d\'abonnement requis';
     }
 
-    if (!formData.lastName.trim()) {
-      newErrors.lastName = 'Nom requis';
+    if (!formData.basketSize) {
+      newErrors.basketSize = 'Taille de panier requise';
     }
 
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email requis';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Email invalide';
-    }
-
-    if (!formData.phone.trim()) {
-      newErrors.phone = 'Téléphone requis';
-    } else if (!/^[0-9\s\-\+\(\)]{10,}$/.test(formData.phone)) {
-      newErrors.phone = 'Numéro de téléphone invalide';
+    if (!formData.pricingType) {
+      newErrors.pricingType = 'Type de tarification requis';
     }
 
     setErrors(newErrors);
@@ -216,86 +245,24 @@ export default function SubscriptionRequestPage() {
                 </div>
               </div>
 
-              {/* Informations personnelles */}
-              <div className="form-section">
-                <h2>
-                  <User size={24} />
-                  Vos informations
-                </h2>
-
-                <div className="form-row">
-                  <div className="form-group">
-                    <label htmlFor="firstName">Prénom *</label>
-                    <input
-                      type="text"
-                      id="firstName"
-                      name="firstName"
-                      value={formData.firstName}
-                      onChange={handleChange}
-                      className={errors.firstName ? 'input-error' : ''}
-                      required
-                    />
-                    {errors.firstName && (
-                      <span className="error-message">{errors.firstName}</span>
-                    )}
+              {/* Informations utilisateur (lecture seule) */}
+              {user && (
+                <div className="form-section user-info-section">
+                  <h2>
+                    <CheckCircle size={24} />
+                    Vos informations
+                  </h2>
+                  <div className="user-info-display">
+                    <p><strong>Nom :</strong> {user.firstName} {user.lastName}</p>
+                    <p><strong>Email :</strong> {user.email}</p>
+                    {user.phone && <p><strong>Téléphone :</strong> {user.phone}</p>}
                   </div>
-
-                  <div className="form-group">
-                    <label htmlFor="lastName">Nom *</label>
-                    <input
-                      type="text"
-                      id="lastName"
-                      name="lastName"
-                      value={formData.lastName}
-                      onChange={handleChange}
-                      className={errors.lastName ? 'input-error' : ''}
-                      required
-                    />
-                    {errors.lastName && (
-                      <span className="error-message">{errors.lastName}</span>
-                    )}
-                  </div>
+                  <small className="form-hint">
+                    Ces informations proviennent de votre compte. Pour les modifier, 
+                    rendez-vous dans <a href="/compte">Mon Compte</a>.
+                  </small>
                 </div>
-
-                <div className="form-group">
-                  <label htmlFor="email">
-                    <Mail size={18} />
-                    Email *
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    className={errors.email ? 'input-error' : ''}
-                    required
-                  />
-                  {errors.email && (
-                    <span className="error-message">{errors.email}</span>
-                  )}
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="phone">
-                    <Phone size={18} />
-                    Téléphone *
-                  </label>
-                  <input
-                    type="tel"
-                    id="phone"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    placeholder="06 12 34 56 78"
-                    className={errors.phone ? 'input-error' : ''}
-                    required
-                  />
-                  {errors.phone && (
-                    <span className="error-message">{errors.phone}</span>
-                  )}
-                </div>
-              </div>
+              )}
 
               {/* Message */}
               <div className="form-section">

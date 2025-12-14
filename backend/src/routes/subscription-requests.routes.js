@@ -10,8 +10,8 @@ import { adminOnly } from '../middlewares/role.middleware.js';
 
 const router = express.Router();
 
-// Route publique - formulaire de demande d'abonnement
-router.post('/', submitRequest);
+// Route protégée - formulaire de demande d'abonnement (nécessite d'être connecté)
+router.post('/', authMiddleware, submitRequest);
 
 // Routes admin
 router.get('/', authMiddleware, adminOnly, getAllRequests);
