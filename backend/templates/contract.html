@@ -48,6 +48,7 @@
     .logo {
       width: 2.5cm;
       height: 2.5cm;
+      object-fit: contain;
     }
 
     .season-title {
@@ -276,11 +277,13 @@
       <div class="product-type">Légumes</div>
     </div>
     <div class="header-right">
-      <!-- Logo sera inséré ici si disponible -->
-      <div
-        style="border: 1px solid #6b9d5a; width: 2.5cm; height: 2.5cm; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #6b9d5a; font-weight: bold; font-size: 8pt;">
-        Logo<br>AMAP
-      </div>
+      {{#if logoBase64}}
+        <img src="{{logoBase64}}" alt="Logo Aux P'tits Pois" class="logo" />
+      {{else}}
+        <div style="border: 1px solid #6b9d5a; width: 2.5cm; height: 2.5cm; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #6b9d5a; font-weight: bold; font-size: 8pt;">
+          Logo<br>AMAP
+        </div>
+      {{/if}}
     </div>
   </div>
 
@@ -463,7 +466,7 @@
           <strong>Par<br>chèque :<br>cochez les<br>modalités<br>de<br>règlement</strong>
         </td>
         <td style="width: 25%;">
-          <span class="checkbox"></span> 1 chèque débité début janvier 2026
+          <span class="checkbox {{#if isPayment1}}checked{{/if}}"></span> 1 chèque débité début janvier 2026
         </td>
         <td style="text-align: center; width: 31.25%;">{{totalSmallPrice}}€</td>
         <td style="text-align: center; width: 31.25%;">{{totalLargePrice}}€</td>
@@ -471,7 +474,7 @@
 
       <tr>
         <td>
-          <span class="checkbox"></span> 2 chèques débités à 2 mois d'intervalle max, à partir de début février 2026
+          <span class="checkbox {{#if isPayment2}}checked{{/if}}"></span> 2 chèques débités à 2 mois d'intervalle max, à partir de début février 2026
         </td>
         <td style="text-align: center;">2 chèques de {{halfSmallPrice}}€</td>
         <td style="text-align: center;">2 chèques de {{halfLargePrice}}€</td>
@@ -479,10 +482,10 @@
 
       <tr>
         <td>
-          <span class="checkbox"></span> 4 chèques débités à 2 mois d'intervalle max, à partir de début février 2026
+          <span class="checkbox {{#if isPayment4}}checked{{/if}}"></span> 4 chèques débités à 2 mois d'intervalle max, à partir de début février 2026
         </td>
-        <td style="text-align: center;">{{quarterPaymentSmallText}}</td>
-        <td style="text-align: center;">{{quarterPaymentLargeText}}</td>
+        <td style="text-align: center;">{{{quarterPaymentSmallText}}}</td>
+        <td style="text-align: center;">{{{quarterPaymentLargeText}}}</td>
       </tr>
     </table>
 

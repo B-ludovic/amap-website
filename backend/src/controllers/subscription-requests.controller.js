@@ -17,6 +17,7 @@ export const submitRequest = asyncHandler(async (req, res) => {
     type,
     basketSize,
     pricingType,
+    paymentType = '1',
     message
   } = req.body;
 
@@ -70,6 +71,7 @@ export const submitRequest = asyncHandler(async (req, res) => {
       type,
       basketSize,
       pricingType,
+      paymentType,
       message,
       status: 'PENDING'
     }
@@ -371,7 +373,7 @@ export const generateContract = asyncHandler(async (req, res) => {
   }
 
   // 3. Générer le PDF
-  const pdfBuffer = await contractService.generateContract(subscription, subscription.user);
+  const pdfBuffer = await contractService.generateContract(subscription, subscription.user, request.paymentType);
 
   // 4. Définir les headers pour le téléchargement
   res.setHeader('Content-Type', 'application/pdf');

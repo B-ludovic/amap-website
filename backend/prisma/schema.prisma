@@ -72,7 +72,8 @@ model SubscriptionRequest {
   type          SubscriptionType
   basketSize    BasketSize
   pricingType   PricingType  @default(NORMAL)
-  
+  paymentType   String       @default("1")
+
   message       String?  @db.Text
   
   status        RequestStatus @default(PENDING)

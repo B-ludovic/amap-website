@@ -10,7 +10,7 @@ const __dirname = path.dirname(__filename);
 class ContractService {
   // Générer le contrat PDF pour un abonnement //
   
-  async generateContract(subscription, user) {
+  async generateContract(subscription, user, paymentType = '1') {
     try {
       console.log('=== GÉNÉRATION CONTRAT ===');
       console.log('Subscription:', JSON.stringify(subscription, null, 2));
@@ -30,9 +30,17 @@ class ContractService {
       // Compiler avec Handlebars
       const template = handlebars.compile(templateHtml);
 
+      // Charger le logo en base64
+      const logoPath = path.join(__dirname, '../../../frontend/public/icons/logo.png');
+      let logoBase64 = null;
+      if (fs.existsSync(logoPath)) {
+        const logoBuffer = fs.readFileSync(logoPath);
+        logoBase64 = `data:image/png;base64,${logoBuffer.toString('base64')}`;
+      }
+
       // Préparer les données
-      const data = this.prepareContractData(subscription, user);
-      console.log('Données préparées:', JSON.stringify(data, null, 2));
+      const data = this.prepareContractData(subscription, user, paymentType);
+      if (logoBase64) data.logoBase64 = logoBase64;
 
       // Générer le HTML
       const html = template(data);
@@ -80,7 +88,7 @@ class ContractService {
 
   // Préparer les données pour le template //
 
-  prepareContractData(subscription, user) {
+  prepareContractData(subscription, user, paymentType = '1') {
     const subscriptionTypeLabel = subscription.type === 'ANNUAL' 
       ? 'Abonnement Annuel' 
       : 'Abonnement Découverte (3 mois)';
@@ -113,14 +121,14 @@ class ContractService {
     const halfSmallPrice = (totalSmallPrice / 2).toFixed(2);
     const halfLargePrice = (totalLargePrice / 2).toFixed(2);
 
-    // Pour le paiement en 4 fois (3 chèques égaux + 1 ajusté)
-    const quarterSmall = Math.floor(totalSmallPrice / 4);
-    const quarterLarge = Math.floor(totalLargePrice / 4);
+    // Pour le paiement en 4 fois (Math.round → arrondi naturel, dernier chèque ajusté)
+    const quarterSmall = Math.round(totalSmallPrice / 4);
+    const quarterLarge = Math.round(totalLargePrice / 4);
     const lastQuarterSmall = (totalSmallPrice - (quarterSmall * 3)).toFixed(2);
     const lastQuarterLarge = (totalLargePrice - (quarterLarge * 3)).toFixed(2);
     
-    const quarterPaymentSmallText = `3 chèques de ${quarterSmall}€\net 1 chèque de ${lastQuarterSmall}€`;
-    const quarterPaymentLargeText = `3 chèques de ${quarterLarge}€\net 1 chèque de ${lastQuarterLarge}€`;
+    const quarterPaymentSmallText = `3 chèques de ${quarterSmall}€<br>et 1 chèque de ${lastQuarterSmall}€`;
+    const quarterPaymentLargeText = `3 chèques de ${quarterLarge}€<br>et 1 chèque de ${lastQuarterLarge}€`;
 
     // Nombre de permanences (exemple: 2 permanences par défaut, à adapter selon vos règles)
     const permanences = subscription.type === 'ANNUAL' ? '2 à 3' : '1';
@@ -172,6 +180,9 @@ class ContractService {
       isAnnual: subscription.type === 'ANNUAL',
       isSmallBasket: subscription.basketSize === 'SMALL',
       isSolidarity: subscription.pricingType === 'SOLIDARITY',
+      isPayment1: paymentType === '1',
+      isPayment2: paymentType === '2',
+      isPayment4: paymentType === '4',
 
       // Date du jour
       contractDate: new Date().toLocaleDateString('fr-FR')
