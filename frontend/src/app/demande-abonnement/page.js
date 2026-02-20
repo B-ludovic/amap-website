@@ -19,8 +19,22 @@ export default function SubscriptionRequestPage() {
     type: searchParams.get('type') || 'ANNUAL',
     basketSize: searchParams.get('size') || 'SMALL',
     pricingType: 'NORMAL',
+    paymentType: '1',
     message: ''
   });
+
+  const getPaymentBreakdown = (price, paymentType) => {
+    if (paymentType === '2') {
+      const half = (price / 2).toFixed(2);
+      return `2 × ${half}€`;
+    }
+    if (paymentType === '4') {
+      const q = Math.round(price / 4);
+      const qLast = (price - q * 3).toFixed(2);
+      return `3 × ${q}€ + 1 × ${qLast}€`;
+    }
+    return `${price}€`;
+  };
 
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
@@ -67,12 +81,12 @@ export default function SubscriptionRequestPage() {
 
   const subscriptionInfo = {
     ANNUAL: {
-      SMALL: { name: 'Annuel - Petit Panier', price: 888, priceSolidarity: 177.60, weight: '2-4 kg', weeks: 48 },
-      LARGE: { name: 'Annuel - Grand Panier', price: 1392, priceSolidarity: 278.40, weight: '6-8 kg', weeks: 48 }
+      SMALL: { name: 'Annuel - Petit Panier', price: 931, priceSolidarity: 186.20, weight: '2-4 kg', weeks: 49 },
+      LARGE: { name: 'Annuel - Grand Panier', price: 1460.20, priceSolidarity: 292.04, weight: '6-8 kg', weeks: 49 }
     },
     DISCOVERY: {
-      SMALL: { name: 'Découverte - Petit Panier', price: 222, priceSolidarity: 44.40, weight: '2-4 kg', weeks: 12 },
-      LARGE: { name: 'Découverte - Grand Panier', price: 348, priceSolidarity: 69.60, weight: '6-8 kg', weeks: 12 }
+      SMALL: { name: 'Découverte - Petit Panier', price: 228, priceSolidarity: 45.60, weight: '2-4 kg', weeks: 12 },
+      LARGE: { name: 'Découverte - Grand Panier', price: 357.60, priceSolidarity: 71.52, weight: '6-8 kg', weeks: 12 }
     }
   };
 
@@ -128,6 +142,7 @@ export default function SubscriptionRequestPage() {
         type: formData.type,
         basketSize: formData.basketSize,
         pricingType: formData.pricingType,
+        paymentType: formData.paymentType,
         message: formData.message
       });
 
@@ -221,7 +236,7 @@ export default function SubscriptionRequestPage() {
                     required
                   >
                     <option value="ANNUAL">Abonnement Annuel</option>
-                    <option value="DISCOVERY">Abonnement Découverte (3 mois)</option>
+                    <option value="DISCOVERY" disabled>Abonnement Découverte (3 mois) — Bientôt disponible</option>
                   </select>
                 </div>
 
@@ -355,9 +370,30 @@ export default function SubscriptionRequestPage() {
                 </div>
               )}
 
+              <div className="summary-payment">
+                <label className="summary-payment-label">Modalité de paiement</label>
+                <select
+                  className="summary-payment-select"
+                  name="paymentType"
+                  value={formData.paymentType}
+                  onChange={handleChange}
+                >
+                  <option value="1">1 chèque — paiement intégral</option>
+                  <option value="2">2 chèques — 2 mois d'intervalle</option>
+                  <option value="4">4 chèques — 2 mois d'intervalle</option>
+                </select>
+                <div className="summary-payment-detail">
+                  {getPaymentBreakdown(
+                    formData.pricingType === 'SOLIDARITY'
+                      ? currentSubscription.priceSolidarity
+                      : currentSubscription.price,
+                    formData.paymentType
+                  )}
+                </div>
+              </div>
+
               <div className="summary-note">
-                Le paiement se fera après validation de votre demande, 
-                par chèque, virement ou espèces.
+                Le paiement se fera après validation de votre demande, par chèque à l'ordre de « Aux P'tits Pois ».
               </div>
             </div>
 

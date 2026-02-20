@@ -51,6 +51,7 @@ export default function AdminMessagesPage() {
       if (selectedMessage?.id === id) {
         setSelectedMessage({ ...selectedMessage, status });
       }
+      window.dispatchEvent(new CustomEvent('contact-unread-changed'));
     } catch (error) {
       console.error('Erreur mise à jour statut:', error);
     }
@@ -63,6 +64,7 @@ export default function AdminMessagesPage() {
       await api.contactMessages.delete(id);
       loadData();
       setSelectedMessage(null);
+      window.dispatchEvent(new CustomEvent('contact-unread-changed'));
     } catch (error) {
       console.error('Erreur suppression:', error);
     }

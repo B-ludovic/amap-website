@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { 
@@ -86,7 +87,7 @@ function Header() {
         <div className="header-content">
           {/* Logo */}
           <Link href="/" className="header-logo" onClick={closeMenu}>
-            <span className="logo-icon">🌱</span>
+            <Image src="/icons/logo.png" alt="Logo Aux P'tits Pois" width={42} height={42} className="logo-icon" />
             <span className="logo-text">Aux P'tits Pois</span>
           </Link>
 
@@ -162,7 +163,7 @@ function Header() {
         <div className={`header-mobile-menu ${isMenuOpen ? 'mobile-menu-open' : ''}`}>
           <div className="mobile-menu-header">
             <Link href="/" className="mobile-logo" onClick={closeMenu}>
-              <span className="logo-icon">🌱</span>
+              <Image src="/icons/logo.png" alt="Logo Aux P'tits Pois" width={32} height={32} className="logo-icon" />
               <span className="logo-text">Aux P'tits Pois</span>
             </Link>
           </div>

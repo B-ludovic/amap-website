@@ -40,7 +40,12 @@
 }
 
 .logo-icon {
-  font-size: var(--font-size-2xl);
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+  display: block;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.12));
+  flex-shrink: 0;
 }
 
 .logo-text {
@@ -266,7 +271,8 @@
 }
 
 .mobile-logo .logo-icon {
-  font-size: 1.5rem;
+  width: 36px;
+  height: 36px;
 }
 
 .mobile-logo .logo-text {

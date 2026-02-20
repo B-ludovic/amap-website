@@ -33,9 +33,15 @@ export default function AdminSidebar({ currentPath }) {
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
-    api.contactMessages.getAll({ status: 'UNREAD' })
-      .then(data => setUnreadCount(data.data.messages.length))
-      .catch(() => {});
+    const fetchUnreadCount = () => {
+      api.contactMessages.getAll({ status: 'UNREAD' })
+        .then(data => setUnreadCount(data.data.messages.length))
+        .catch(() => {});
+    };
+
+    fetchUnreadCount();
+    window.addEventListener('contact-unread-changed', fetchUnreadCount);
+    return () => window.removeEventListener('contact-unread-changed', fetchUnreadCount);
   }, []);
 
   const handleLogout = () => {

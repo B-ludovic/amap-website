@@ -36,8 +36,8 @@ export default function SubscriptionsPage() {
       name: 'Abonnement Annuel',
       basketName: 'Grand Panier',
       weight: '6 à 8 kg',
-      priceNormal: 1460,
-      priceSolidarity: 292,
+      priceNormal: 1460.20,
+      priceSolidarity: 292.04,
       weeks: 49,
       features: [
         'Engagement sur 1 an (49 semaines)',

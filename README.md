@@ -207,6 +207,7 @@ npm start
 - ✅ Service d'envoi d'emails avec Resend API
 - ✅ Communication par newsletter avec envoi groupé
 - ✅ Interface admin complète avec sidebar navigation
+- ✅ Gestion des messages de contact (lecture, statut lu/non-lu/archivé, suppression, badge de notification dans la sidebar)
 - TODO Suivi de la distribution (qui a récupéré son panier)
 
 ### Recettes & Cuisine
@@ -247,6 +248,7 @@ Le schéma Prisma comprend :
 - **Producers** - Producteurs locaux
 - **Shifts** - Permanences de distribution
 - **Newsletters** - Communications
+- **ContactMessage** - Messages de contact des visiteurs
 - Et plus...
 
 ## 🎨 Personnalisation
