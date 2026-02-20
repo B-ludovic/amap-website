@@ -17,7 +17,7 @@ Plateforme web moderne pour la gestion d'une AMAP (Association pour le Maintien 
 ![Inscription](screenshots/inscription.png)
 *Formulaire d'inscription des nouveaux membres*
 
-! [Détail d'une recette](screenshots/detail-recette.png)
+![Détail d'une recette](screenshots/detail-recette.png)
 *Page de présentation d'une recette*
 
 ### Interface mobile responsive
@@ -45,7 +45,7 @@ Plateforme web moderne pour la gestion d'une AMAP (Association pour le Maintien 
 ## 📋 Description
 
 Ce projet est un site complet permettant de gérer une AMAP de A à Z :
-- 🛒 gestion des paniers hebdomadaires par les ADMIN
+- 🛒 Gestion des paniers hebdomadaires par les ADMIN
 - 👥 Gestion des adhérents et abonnements
 - 🚜 Présentation des producteurs et produits locaux
 - 📅 Organisation des permanences de distribution
@@ -55,7 +55,7 @@ Ce projet est un site complet permettant de gérer une AMAP de A à Z :
 
 ### Frontend
 - **Next.js 15** - Framework React pour le rendu côté serveur
-- **React 19** - Interface utilisateur réactive
+- **React 18** - Interface utilisateur réactive
 - **Lucide React** - Icônes modernes
 - **CSS natif** - Styling avec variables CSS et responsive design
 - **Tarteaucitron.js** - Gestion des cookies conforme RGPD
@@ -65,6 +65,7 @@ Ce projet est un site complet permettant de gérer une AMAP de A à Z :
 - **Prisma** - ORM pour la base de données
 - **PostgreSQL** - Base de données relationnelle
 - **JWT + Bcrypt** - Authentification sécurisée
+- **Puppeteer + Handlebars** - Génération de contrats PDF
 - **Resend** - Service d'envoi d'emails professionnel
 - **TheMealDB API** - Base de données de recettes
 - **Google Translate API** - Traduction automatique des recettes en français
@@ -87,7 +88,7 @@ amap-website/
     │   ├── controllers/  # Logique métier
     │   ├── routes/       # Routes API
     │   ├── middlewares/  # Middlewares (auth, erreurs)
-    │   ├── services/     # Services (email, stripe)
+    │   ├── services/     # Services (email, PDF)
     │   └── utils/        # Utilitaires
     └── prisma/
         ├── schema.prisma  # Modèle de données
@@ -97,7 +98,7 @@ amap-website/
 ## 🛠️ Installation
 
 ### Prérequis
-- Node.js 18+ 
+- Node.js 18+
 - PostgreSQL
 - npm ou yarn
 
@@ -143,14 +144,22 @@ cp .env.example .env.local
 
 ### Mode développement
 
-**Terminal 1 - Backend :**
+**Depuis la racine (recommandé) :**
+```bash
+npm run dev
+# Lance le backend et le frontend en parallèle
+```
+
+**Ou manuellement :**
+
+Terminal 1 - Backend :
 ```bash
 cd backend
 npm run dev
 # API disponible sur http://localhost:4000
 ```
 
-**Terminal 2 - Frontend :**
+Terminal 2 - Frontend :
 ```bash
 cd frontend
 npm run dev
@@ -162,7 +171,6 @@ npm run dev
 ```bash
 # Backend
 cd backend
-npm run build
 npm start
 
 # Frontend
@@ -188,6 +196,7 @@ npm start
 
 ### Pour les administrateurs
 - ✅ Gestion des demandes d'abonnement
+- ✅ Génération de contrats d'adhésion en PDF
 - ✅ Création des paniers hebdomadaires avec calcul automatique des poids
 - ✅ Gestion du stock des produits
 - ✅ Organisation des permanences avec assignation de bénévoles
@@ -222,9 +231,11 @@ npm start
 
 ### Conformité & Sécurité
 - ✅ Gestion des cookies conforme RGPD avec Tarteaucitron.js
-- ✅ Consentement utilisateur pour les services tiers (Google Analytics, etc.)
-- ✅ Cookies obligatoires pour le paiement (Stripe)
-- ✅ Icône d'accès aux préférences cookies toujours visible
+- ✅ Authentification JWT + hachage des mots de passe (bcrypt)
+- ✅ Protection des routes avec middlewares de rôles (MEMBER, VOLUNTEER, ADMIN)
+- ✅ Rate limiting sur les endpoints sensibles (login, reset password, PDF)
+- ✅ Headers HTTP sécurisés (Helmet.js)
+- ✅ Taille des requêtes limitée (body limit 100kb)
 
 ## 📊 Base de données
 
@@ -242,7 +253,7 @@ Le schéma Prisma comprend :
 
 ### Thèmes saisonniers
 Le site propose un système de thèmes dynamiques qui s'adaptent aux saisons. Les administrateurs peuvent :
-- Choisir parmi 4 thèmes prédefinis (Printemps, Été, Automne, Hiver)
+- Choisir parmi 4 thèmes prédéfinis (Printemps, Été, Automne, Hiver)
 - Personnaliser les couleurs de chaque thème
 - Activer le thème de leur choix instantanément
 
@@ -255,17 +266,19 @@ Les thèmes modifient automatiquement :
 ### Variables CSS
 Les couleurs et styles sont centralisés dans `frontend/src/styles/variables.css` :
 ```css
-
---primary-color: #6b9d5a;      - Couleur primaire 
---secondary-color: #d4a574;    - Couleur secondaire
---accent-color: #c85a3f;       - Couleur d'accent
---background-color: #f9f7f4;   - Arriere plan
+--primary-color: #6b9d5a;      /* Couleur primaire */
+--secondary-color: #d4a574;    /* Couleur secondaire */
+--accent-color: #c85a3f;       /* Couleur d'accent */
+--background-color: #f9f7f4;   /* Arrière-plan */
 --gradient-button: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
 ```
 
 Les thèmes sont stockés en base de données et appliqués dynamiquement via le `ThemeProvider` React.
 
 ## 📝 Scripts disponibles
+
+### Racine
+- `npm run dev` - Lance le backend et le frontend en parallèle
 
 ### Backend
 - `npm run dev` - Lance le serveur en mode développement
@@ -309,4 +322,4 @@ Projet en développement actif. Pour toute question ou suggestion :
 
 Fait avec ❤️ pour promouvoir l'agriculture locale et les circuits courts
 
-Ludovic 
+Ludovic

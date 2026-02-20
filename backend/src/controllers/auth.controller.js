@@ -28,6 +28,10 @@ const register = asyncHandler(async (req, res) => {
         throw new HttpBadRequestError('Tous les champs sont requis.');
     }
 
+    if (password.length < 12) {
+        throw new HttpBadRequestError('Le mot de passe doit contenir au moins 12 caractères.');
+    }
+
     // Verifier si l'utilisateur existe deja
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
@@ -234,8 +238,8 @@ const resetPassword = asyncHandler(async (req, res) => {
         throw new HttpBadRequestError('Nouveau mot de passe est requis.');
     }
 
-    if (newPassword.length < 6) {
-        throw new HttpBadRequestError('Le mot de passe doit contenir au moins 6 caractères.');
+    if (newPassword.length < 12) {
+        throw new HttpBadRequestError('Le mot de passe doit contenir au moins 12 caractères.');
     }
 
     // Hasher le token reçu pour le comparer

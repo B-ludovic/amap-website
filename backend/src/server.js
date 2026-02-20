@@ -5,11 +5,12 @@ dotenv.config();
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import { connectDB, disconnectDB } from './config/database.js';
 import { errorHandler } from './middlewares/error.middleware.js';
 import { httpStatusCodes } from './utils/httpErrors.js';
 
-// Import des routes 
+// Import des routes
 import authRoutes from './routes/auth.routes.js';
 import producersRoutes from './routes/producers.routes.js';
 import adminRoutes from './routes/admin.routes.js';
@@ -34,43 +35,56 @@ app.use(helmet());
 // CORS - autorise le frontend à appeler l'API
 const corsOptions = {
   origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-  credentials: true, // Permet d'envoyer les cookies
+  credentials: true,
 };
 app.use(cors(corsOptions));
 
-// Parse le JSON dans le body des requêtes
-app.use(express.json());
+// Parse le JSON dans le body des requêtes (limité à 100kb)
+app.use(express.json({ limit: '100kb' }));
 
 // Parse les données de formulaire URL-encoded
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true, limit: '100kb' }));
 
-// ROUTES
+// Rate limiting — authentification (anti brute-force)
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, error: { message: 'Trop de tentatives, réessayez dans 15 minutes.' } },
+});
 
+// Rate limiting — génération PDF Puppeteer (coûteux)
+const pdfLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, error: { message: 'Trop de requêtes, réessayez dans une minute.' } },
+});
+
+// === ROUTES ===
 
 // Route de base
-app.get('/api', (req, res) => {
-  res.json({ 
+app.get('/api', (_req, res) => {
+  res.json({
     message: 'Bienvenue sur l\'API Aux P\'tits Pois 🌱',
     version: '1.0.0'
   });
 });
 
-// Route de santé (pour vérifier que le serveur tourne)
-app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime() // Temps depuis le démarrage en secondes
-  });
+// Route de santé
+app.get('/api/health', (_req, res) => {
+  res.json({ status: 'OK' });
 });
-
 
 // Routes de l'application
 app.use('/api/theme', themeRoutes);
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/forgot-password', authLimiter);
 app.use('/api/auth', authRoutes);
 app.use('/api/producers', producersRoutes);
 app.use('/api/admin', adminRoutes);
-
 
 // Routes supplémentaires
 app.use('/api/shifts', shiftsRoutes);
@@ -78,19 +92,16 @@ app.use('/api/newsletters', newslettersRoutes);
 app.use('/api/producer-inquiries', producerInquiriesRoutes);
 app.use('/api/weekly-baskets', weeklyBasketsRoutes);
 app.use('/api/subscriptions', subscriptionsRoutes);
+app.use('/api/subscription-requests/:id/contract', pdfLimiter);
 app.use('/api/subscription-requests', subscriptionRequestsRoutes);
 app.use('/api/distribution', distributionRoutes);
 app.use('/api/recipes', recipesRoutes);
 
-
 // Route 404 - si aucune route ne correspond
-app.use((req, res) => {
+app.use((_req, res) => {
   res.status(httpStatusCodes.NOT_FOUND).json({
     success: false,
-    error: {
-      message: 'Route non trouvée',
-      path: req.path
-    }
+    error: { message: 'Route non trouvée' }
   });
 });
 
@@ -101,10 +112,8 @@ app.use(errorHandler);
 
 const startServer = async () => {
   try {
-    // On se connecte à la base de données
     await connectDB();
-    
-    // On démarre le serveur
+
     app.listen(PORT, () => {
       console.log(`✅ Serveur backend démarré sur http://localhost:${PORT}`);
       console.log(`📚 Documentation API: http://localhost:${PORT}/api`);
@@ -118,7 +127,6 @@ const startServer = async () => {
 
 // GESTION DE L'ARRÊT PROPRE DU SERVEUR
 
-// Quand on fait Ctrl+C dans le terminal
 process.on('SIGINT', async () => {
   console.log('\n⏳ Arrêt du serveur en cours...');
   await disconnectDB();
@@ -126,7 +134,6 @@ process.on('SIGINT', async () => {
   process.exit(0);
 });
 
-// Quand le process est tué (par exemple avec kill)
 process.on('SIGTERM', async () => {
   console.log('\n⏳ Arrêt du serveur en cours...');
   await disconnectDB();
@@ -134,5 +141,4 @@ process.on('SIGTERM', async () => {
   process.exit(0);
 });
 
-// Démarrage !
 startServer();

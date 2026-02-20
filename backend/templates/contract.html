@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Contrat d'Adhésion - Aux P'tits Pois</title>
+  <title>Contrat d'Adhésion AMAP - Aux P'tits Pois</title>
   <style>
     @page {
-      margin: 2cm;
+      margin: 1.5cm;
       size: A4;
     }
 
@@ -17,583 +18,532 @@
     }
 
     body {
-      font-family: 'Helvetica', 'Arial', sans-serif;
-      font-size: 11pt;
-      line-height: 1.6;
-      color: #1f2937;
+      font-family: 'Arial', 'Helvetica', sans-serif;
+      font-size: 10pt;
+      line-height: 1.5;
+      color: #2d3748;
+      padding: 1.5cm;
+      max-width: 21cm;
+      margin: 0 auto;
+      background-color: #ffffff;
     }
 
     .header {
-      text-align: center;
-      margin-bottom: 2cm;
-      padding-bottom: 1cm;
-      border-bottom: 3px solid #6b9d5a;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 1cm;
+      padding-bottom: 0.5cm;
+    }
+
+    .header-left {
+      flex: 1;
+    }
+
+    .header-right {
+      width: 3cm;
+      text-align: right;
     }
 
     .logo {
-      font-size: 24pt;
+      width: 2.5cm;
+      height: 2.5cm;
+    }
+
+    .season-title {
+      font-size: 14pt;
       font-weight: bold;
+      text-align: center;
+      margin-bottom: 0.2cm;
       color: #6b9d5a;
+    }
+
+    .season-dates {
+      font-size: 11pt;
+      text-align: center;
+      margin-bottom: 0.2cm;
+    }
+
+    .product-type {
+      font-size: 12pt;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 0.8cm;
+      color: #6b9d5a;
+    }
+
+    .contract-intro {
+      font-size: 10pt;
+      font-weight: bold;
       margin-bottom: 0.5cm;
     }
 
-    .header-subtitle {
-      font-size: 10pt;
-      color: #6b7280;
+    .amap-info {
+      margin-bottom: 0.8cm;
     }
 
-    h1 {
-      font-size: 18pt;
+    .amap-name {
       font-weight: bold;
-      color: #6b9d5a;
-      margin: 1.5cm 0 1cm 0;
-      text-align: center;
+      font-size: 10pt;
+    }
+
+    .member-section {
+      margin-bottom: 0.8cm;
+    }
+
+    .section-title {
+      font-weight: bold;
+      margin-bottom: 0.3cm;
+      font-size: 10pt;
+    }
+
+    .form-field {
+      display: flex;
+      margin-bottom: 0.3cm;
+      align-items: center;
+    }
+
+    .form-label {
+      font-weight: bold;
+      min-width: 3.5cm;
+      font-size: 10pt;
+    }
+
+    .form-line {
+      flex: 1;
+      border-bottom: 1px solid #000;
+      min-height: 0.5cm;
+      padding-left: 0.2cm;
+    }
+
+    .engagements-intro {
+      margin: 0.8cm 0 0.5cm 0;
+      font-size: 10pt;
+      line-height: 1.6;
     }
 
     h2 {
-      font-size: 14pt;
+      font-size: 10pt;
       font-weight: bold;
-      color: #1f2937;
-      margin: 1cm 0 0.5cm 0;
-      padding-left: 0.5cm;
-      border-left: 4px solid #6b9d5a;
-    }
-
-    h3 {
-      font-size: 12pt;
-      font-weight: bold;
-      color: #374151;
-      margin: 0.75cm 0 0.25cm 0;
-    }
-
-    p {
-      margin-bottom: 0.5cm;
-      text-align: justify;
-    }
-
-    .info-box {
-      background: #f9fafb;
-      border: 1px solid #e5e7eb;
-      border-left: 4px solid #6b9d5a;
-      padding: 0.75cm;
-      margin: 1cm 0;
-    }
-
-    .info-box strong {
+      margin: 0.6cm 0 0.3cm 0;
+      text-decoration: underline;
       color: #6b9d5a;
-      display: block;
-      margin-bottom: 0.25cm;
-    }
-
-    .info-row {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 0.25cm;
-    }
-
-    .info-label {
-      font-weight: 600;
-      color: #374151;
-    }
-
-    .info-value {
-      color: #1f2937;
-    }
-
-    .highlight-box {
-      background: #e8f3e3;
-      border: 2px solid #6b9d5a;
-      padding: 0.75cm;
-      margin: 1cm 0;
-      border-radius: 8px;
-    }
-
-    .highlight-box p {
-      margin: 0;
-      font-weight: 600;
-      color: #5a8a4a;
     }
 
     ul {
-      margin: 0.5cm 0 0.5cm 1.5cm;
+      margin: 0.3cm 0 0.3cm 0.5cm;
+      padding-left: 0.8cm;
     }
 
     li {
       margin-bottom: 0.25cm;
+      font-size: 10pt;
+      line-height: 1.5;
     }
 
-    .article {
-      margin-bottom: 1cm;
+    .rappel-box {
+      margin: 0.6cm 0;
+      padding: 0.4cm;
+      border-left: 3px solid #6b9d5a;
+      background: #f0f7ed;
     }
 
-    .article-number {
+    .rappel-title {
       font-weight: bold;
+      margin-bottom: 0.2cm;
+    }
+
+    .arrow {
+      font-size: 12pt;
+      font-weight: bold;
+      margin-right: 0.2cm;
+    }
+
+    .page-break {
+      page-break-after: always;
+    }
+
+    /* PAGE 2 */
+
+    .modalites-title {
+      font-size: 10pt;
+      font-weight: bold;
+      margin: 0.6cm 0 0.3cm 0;
+      text-decoration: underline;
       color: #6b9d5a;
     }
 
-    .signature-section {
-      margin-top: 2cm;
-      page-break-inside: avoid;
+    .modalites-text {
+      font-size: 10pt;
+      line-height: 1.5;
+      margin-bottom: 0.4cm;
+      text-align: justify;
     }
 
-    .signature-boxes {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 1cm;
-    }
-
-    .signature-box {
-      width: 45%;
-      border: 1px solid #d1d5db;
-      padding: 0.75cm;
-      min-height: 3cm;
-    }
-
-    .signature-box h4 {
-      font-size: 11pt;
+    .highlight {
       font-weight: bold;
-      margin-bottom: 0.5cm;
-      color: #374151;
     }
 
-    .signature-line {
-      margin-top: 2cm;
-      border-top: 1px solid #9ca3af;
-      padding-top: 0.25cm;
-      font-size: 9pt;
-      color: #6b7280;
-      text-align: center;
-    }
-
-    .footer {
-      position: fixed;
-      bottom: 1cm;
-      left: 2cm;
-      right: 2cm;
-      text-align: center;
-      font-size: 9pt;
-      color: #9ca3af;
-      border-top: 1px solid #e5e7eb;
-      padding-top: 0.5cm;
-    }
-
-    .page-number:after {
-      content: counter(page);
+    .table-section {
+      margin: 0.8cm 0;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      margin: 0.75cm 0;
+      font-size: 9pt;
+      margin: 0.5cm 0;
     }
 
-    th, td {
-      border: 1px solid #d1d5db;
+    th,
+    td {
+      border: 1px solid #6b9d5a;
       padding: 0.3cm;
       text-align: left;
+      vertical-align: top;
     }
 
     th {
-      background: #f3f4f6;
-      font-weight: 600;
-      color: #374151;
-    }
-
-    .price-table {
-      background: #f9fafb;
-    }
-
-    .total-row {
       font-weight: bold;
-      background: #e8f3e3;
-    }
-
-    .icon {
-      display: inline-block;
-      width: 16pt;
-      height: 16pt;
-      vertical-align: middle;
-      margin-right: 0.3cm;
-    }
-
-    .icon-green {
+      background: #f0f7ed;
       color: #6b9d5a;
     }
 
-    .section-title {
-      display: flex;
-      align-items: center;
+    .checkbox {
+      display: inline-block;
+      width: 0.4cm;
+      height: 0.4cm;
+      border: 1px solid #6b9d5a;
+      margin-right: 0.2cm;
+      vertical-align: middle;
     }
 
-    .section-title svg {
-      margin-right: 0.3cm;
-      flex-shrink: 0;
+    .checkbox.checked::before {
+      content: '✓';
+      font-size: 10pt;
+      font-weight: bold;
+      color: #6b9d5a;
+    }
+
+    .signature-section {
+      margin-top: 1cm;
+      page-break-inside: avoid;
+    }
+
+    .signature-line {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.3cm;
+    }
+
+    .signature-field {
+      flex: 1;
+      border-bottom: 1px solid #000;
+      margin: 0 0.2cm;
+    }
+
+    .signature-boxes {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 0.5cm;
+    }
+
+    .signature-box {
+      width: 48%;
+      text-align: left;
+    }
+
+    .farmer-signature {
+      text-align: right;
+      margin-top: 1cm;
+      font-size: 9pt;
+      line-height: 1.3;
+    }
+
+    .small-text {
+      font-size: 9pt;
     }
   </style>
 </head>
+
 <body>
 
-  <!-- En-tête -->
+  <!-- PAGE 1 -->
   <div class="header">
-    <div class="logo">🌱 Aux P'tits Pois</div>
-    <div class="header-subtitle">
-      AMAP Solidaire - Association Loi 1901<br>
-      [Adresse à compléter] - Email: auxptitspois@gmail.com
+    <div class="header-left">
+      <div class="season-title">Saison 2026</div>
+      <div class="season-dates">{{startDate}} - {{endDate}}</div>
+      <div class="product-type">Légumes</div>
+    </div>
+    <div class="header-right">
+      <!-- Logo sera inséré ici si disponible -->
+      <div
+        style="border: 1px solid #6b9d5a; width: 2.5cm; height: 2.5cm; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #6b9d5a; font-weight: bold; font-size: 8pt;">
+        Logo<br>AMAP
+      </div>
     </div>
   </div>
 
-  <h1>CONTRAT D'ADHÉSION AMAP</h1>
+  <div class="contract-intro">
+    Un contrat d'adhésion, négocié par l'AMAP, est passé entre un∙e paysan∙ne partenaire
+  </div>
 
-  <!-- Informations de l'adhérent -->
-  <div class="info-box">
-    <strong class="section-title">
-      <svg class="icon icon-green" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
-        <circle cx="12" cy="7" r="4"/>
-      </svg>
-      INFORMATIONS DE L'ADHÉRENT
-    </strong>
-    <div class="info-row">
-      <span class="info-label">Nom complet :</span>
-      <span class="info-value">{{firstName}} {{lastName}}</span>
+  <div class="amap-info">
+    <div class="amap-name">LES TROIS PARCELLES</div>
+    <div>14, rue du Chateau 45300 Yère-la-ville</div>
+    <div>Representée par Simon RONCERAY</div>
+    <div>tel: 06 30 41 28 67</div>
+    <div>Email: lestroisparcelles@gmail.com</div>
+  </div>
+
+  <div class="member-section">
+    <div class="section-title">Et un∙e amapien∙ne, adhérent∙e de l'AMAP</div>
+
+    <div class="form-field">
+      <span class="form-label">Nom et Prénom</span>
+      <span class="form-line">{{firstName}} {{lastName}}</span>
     </div>
-    <div class="info-row">
-      <span class="info-label">Email :</span>
-      <span class="info-value">{{email}}</span>
+
+    <div class="form-field">
+      <span class="form-label">Adresse</span>
+      <span class="form-line">{{address}}</span>
     </div>
-    <div class="info-row">
-      <span class="info-label">Téléphone :</span>
-      <span class="info-value">{{phone}}</span>
+
+    <div class="form-field">
+      <span class="form-label">Mail</span>
+      <span class="form-line" style="flex: 0.6;">{{email}}</span>
+      <span class="form-label" style="margin-left: 0.5cm;">Téléphone</span>
+      <span class="form-line" style="flex: 0.4;">{{phone}}</span>
     </div>
-    <div class="info-row">
-      <span class="info-label">N° d'abonnement :</span>
-      <span class="info-value">{{subscriptionNumber}}</span>
+
+    <div class="form-field">
+      <span class="form-label">N° d'abonnement</span>
+      <span class="form-line">{{subscriptionNumber}}</span>
     </div>
   </div>
 
-  <!-- Détails de l'abonnement -->
-  <div class="info-box">
-    <strong class="section-title">
-      <svg class="icon icon-green" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M16.5 9.4 7.55 4.24"/>
-        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-        <polyline points="3.29 7 12 12 20.71 7"/>
-        <line x1="12" x2="12" y1="22" y2="12"/>
-      </svg>
-      DÉTAILS DE L'ABONNEMENT
-    </strong>
-    <div class="info-row">
-      <span class="info-label">Type d'abonnement :</span>
-      <span class="info-value">{{subscriptionTypeLabel}}</span>
+  <div class="member-section">
+    <div class="section-title">Et, un∙e éventuel∙le second∙e amapien∙ne, adhérent∙e de l'AMAP</div>
+
+    <div class="form-field">
+      <span class="form-label">Nom et Prénom</span>
+      <span class="form-line"></span>
     </div>
-    <div class="info-row">
-      <span class="info-label">Taille du panier :</span>
-      <span class="info-value">{{basketSizeLabel}}</span>
+
+    <div class="form-field">
+      <span class="form-label">Adresse</span>
+      <span class="form-line"></span>
     </div>
-    <div class="info-row">
-      <span class="info-label">Tarification :</span>
-      <span class="info-value">{{pricingTypeLabel}}</span>
-    </div>
-    <div class="info-row">
-      <span class="info-label">Période :</span>
-      <span class="info-value">Du {{startDate}} au {{endDate}}</span>
-    </div>
-    <div class="info-row">
-      <span class="info-label">Point de retrait :</span>
-      <span class="info-value">{{pickupLocationName}} - {{pickupLocationAddress}}</span>
-    </div>
-    <div class="info-row">
-      <span class="info-label">Horaires :</span>
-      <span class="info-value">{{pickupSchedule}}</span>
+
+    <div class="form-field">
+      <span class="form-label">Mail</span>
+      <span class="form-line" style="flex: 0.6;"></span>
+      <span class="form-label" style="margin-left: 0.5cm;">Téléphone</span>
+      <span class="form-line" style="flex: 0.4;"></span>
     </div>
   </div>
 
-  <!-- Montant -->
-  <div class="highlight-box">
-    <p>
-      <svg class="icon" style="color: #5a8a4a;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M4 10h12"/>
-        <path d="M4 14h9"/>
-        <path d="M19 6a7.7 7.7 0 0 0-5.2-2A7.9 7.9 0 0 0 6 12c0 4.4 3.5 8 7.8 8 2 0 3.8-.8 5.2-2"/>
-      </svg>
-      Montant total de l'abonnement : {{price}} €
-    </p>
+  <div class="engagements-intro">
+    Les signataires du présent contrat s'engagent à respecter les principes et engagements définis dans la charte des
+    AMAP, à savoir :
   </div>
 
-  <!-- Préambule -->
-  <h2>
-    <svg class="icon" style="color: #6b9d5a; margin-left: -0.8cm;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
-      <polyline points="14 2 14 8 20 8"/>
-      <path d="m9 15 2 2 4-4"/>
-    </svg>
-    Préambule
-  </h2>
-  <p>
-    Le présent contrat est conclu entre l'association "Aux P'tits Pois" (ci-après "l'AMAP") 
-    et {{firstName}} {{lastName}} (ci-après "l'adhérent"), dans le cadre d'un partenariat solidaire 
-    entre producteurs locaux et consommateurs pour une agriculture biologique et de proximité.
+  <h2>Engagements du∙de la paysan∙ne partenaire</h2>
+  <ul>
+    <li>Livrer chaque semaine des produits de qualité, frais, de saison en bio, de ses champs ou de ceux d'un∙e voisin∙e
+      s'il y a un problème de culture, après discussion avec l'AMAP</li>
+    <li>Cultiver dans le respect de la terre et de la biodiversité</li>
+    <li>Être transparent∙e sur le mode de fixation du prix et ses méthodes de travail</li>
+    <li>Être présent∙e sur les lieux de partage (une fois par mois en moyenne sur l'année)</li>
+    <li>Organiser 5 fois par an des chantiers sur sa ferme</li>
+    <li>Communiquer une fois par mois sur la ferme via un message comportant photos et texte</li>
+  </ul>
+
+  <h2>Engagements de l'amapien∙ne envers le∙la paysan∙ne partenaire</h2>
+  <ul>
+    <li>Garantir la juste rémunération du travail du∙de la paysan∙ne partenaire, incluse dans le prix du « panier »</li>
+    <li>Partager les risques liés aux intempéries ou autres fléaux agricoles</li>
+    <li>Participer à au moins un chantier par an</li>
+    <li>Dans la mesure de ses possibilités financières, privilégier le règlement de la totalité du montant de la saison
+      à la signature du contrat afin de garantir le préfinancement de la ferme</li>
+    <li>Ne pas choisir les légumes en fonction de leur aspect, les légumes de la récolte ne seront pas calibrés (pour un
+      partage juste et équilibré entre tout∙es les adhérent∙es)</li>
+  </ul>
+
+  <h2>Engagements de l'amapien∙ne envers l'AMAP</h2>
+  <ul>
+    <li>Effectuer <strong>{{permanences}}</strong> permanences les jours de la livraison pendant la saison</li>
+    <li>Participer à l'Assemblée Générale ou donner son pouvoir</li>
+    <li>Venir chercher chaque semaine sa part de récolte sur le lieu de partage choisi, selon le créneau horaire en
+      vigueur</li>
+    <li>Gérer le partage éventuel de son panier (absences, vacances, retard)</li>
+  </ul>
+
+  <div class="rappel-box">
+    <div class="rappel-title">Rappels</div>
+    <div>Dans le cas d'un contrat en co-panier, les amapien∙nes sont solidaires et autonomes dans la gestion de leur
+      panier (relais en cas d'absence, organisation des vacances).</div>
+    <div style="margin-top: 0.3cm;">
+      <span class="arrow">⇒</span>
+      <span class="highlight">Les paniers non pris le jour du partage ne sont ni remboursés, ni reportés, ils sont donc
+        perdus pour l'amapien∙ne. L'association en dispose librement.</span>
+    </div>
+  </div>
+
+  <!-- PAGE 2 -->
+  <div class="page-break"></div>
+
+  <h2 class="modalites-title">Modalités du partage de la récolte</h2>
+
+  <p class="modalites-text">
+    Au cours de la saison, les récoltes variant, les parts peuvent être plus ou moins fournies à certaines périodes. À
+    titre indicatif, le poids de la part de récolte de légumes hebdomadaire est en moyenne de
+    <strong>{{basketWeight}}</strong> pour le « {{basketSizeLabel}} ».
   </p>
 
-  <p>
-    L'AMAP est une Association pour le Maintien d'une Agriculture Paysanne, dont l'objectif est de 
-    créer un lien direct entre des producteurs locaux engagés dans une agriculture biologique et des 
-    consommateurs souhaitant soutenir ce mode de production.
+  <p class="modalites-text">
+    <strong>La saison AMAP du {{startDate}} au {{endDate}} comporte {{numberOfWeeks}} paniers livrés.</strong>
   </p>
 
-  <!-- Articles -->
-  <h2>Article 1 - Objet du contrat</h2>
-  <div class="article">
-    <p>
-      L'adhérent s'engage à acheter à l'AMAP une part de la production agricole des producteurs partenaires, 
-      sous forme de paniers hebdomadaires de légumes biologiques et de saison.
-    </p>
-    <p>
-      L'AMAP s'engage à fournir chaque semaine un panier de légumes frais, cultivés selon les principes 
-      de l'agriculture biologique, dans le respect des saisons et de l'environnement.
-    </p>
-  </div>
+  {{#if hasNonDeliveryDates}}
+  <p class="modalites-text">
+    <span class="highlight">L'AMAP ne livre pas :</span><br>
+    {{nonDeliveryInfo}}
+  </p>
+  {{/if}}
 
-  <h2>Article 2 - Engagement et durée</h2>
-  <div class="article">
-    <p>
-      Le présent contrat prend effet le <strong>{{startDate}}</strong> et se termine le <strong>{{endDate}}</strong>.
-    </p>
-    <p>
-      {{#if isAnnual}}
-      Il s'agit d'un abonnement annuel couvrant l'année civile complète, permettant de soutenir les producteurs 
-      sur l'ensemble du cycle de production.
-      {{else}}
-      Il s'agit d'un abonnement découverte de 3 mois, permettant de tester le fonctionnement de l'AMAP.
-      {{/if}}
-    </p>
-  </div>
+  <h2 class="modalites-title">Distribution des paniers</h2>
 
-  <h2>Article 3 - Composition du panier</h2>
-  <div class="article">
-    <p>
-      L'adhérent recevra chaque semaine un panier de type <strong>{{basketSizeLabel}}</strong> contenant :
-    </p>
-    <ul>
-      {{#if isSmallBasket}}
-      <li>Entre 2 et 4 kg de légumes de saison</li>
-      <li>4 à 6 variétés de légumes différents</li>
-      <li>Composition pour 1 à 2 personnes</li>
-      {{else}}
-      <li>Entre 6 et 8 kg de légumes de saison</li>
-      <li>6 à 8 variétés de légumes différents</li>
-      <li>Composition pour 3 à 4 personnes</li>
-      {{/if}}
-    </ul>
-    <p>
-      La composition exacte du panier varie selon les saisons et la production des maraîchers partenaires. 
-      Elle est communiquée chaque semaine via le site internet et/ou par email.
-    </p>
-  </div>
+  <p class="modalites-text">
+    {{pickupSchedule}}, {{pickupLocationName}}, {{pickupLocationAddress}}.
+  </p>
 
-  <h2>Article 4 - Prix et modalités de paiement</h2>
-  <div class="article">
-    <table class="price-table">
+  <h2 class="modalites-title">Modalités de règlement</h2>
+
+  <p class="modalites-text">
+    Pour rester dans l'esprit AMAP, il est recommandé de faire un règlement de la totalité du contrat en une seule fois
+    si possible, le paiement unique permettant à l'AMAP d'alléger le travail administratif et de faire face aux coûts
+    des encours de cultures (semis, main d'œuvre...). Toutefois, l'AMAP accepte des échéances afin de faciliter
+    l'accessibilité alimentaire à tous∙tes.
+  </p>
+
+  <p class="modalites-text">
+    <strong>Les chèques sont à libeller à l'ordre de « Aux P'tits Pois ». Merci de noter le mois concerné par le
+      paiement au dos du chèque.</strong>
+  </p>
+
+  <p class="modalites-text small-text">
+    Votre contrat sera conservé par l'AMAP et le∙la représentant∙e de l'AMAP.
+  </p>
+
+
+  <div class="table-section">
+    <table>
+      <!-- Ligne 1 : Cochez la taille -->
       <tr>
-        <th>Description</th>
-        <th>Montant</th>
+        <th colspan="2" style="width: 37.5%;">Cochez la taille du panier</th>
+        <th style="width: 31.25%; text-align: center;">
+          <span class="checkbox {{#if isSmallBasket}}checked{{/if}}"></span> petit panier / 19 €
+        </th>
+        <th style="width: 31.25%; text-align: center;">
+          <span class="checkbox {{#unless isSmallBasket}}checked{{/unless}}"></span> grand panier / 29,80 €
+        </th>
       </tr>
+
+      <!-- Ligne 2 : Nombre de paniers -->
       <tr>
-        <td>Abonnement {{subscriptionTypeLabel}} - {{basketSizeLabel}}</td>
-        <td>{{price}} €</td>
+        <td colspan="2"><strong>Nombre de paniers</strong></td>
+        <td style="text-align: center; background: #f0f0f0;">{{numberOfWeeks}}</td>
+        <td style="text-align: center; background: #f0f0f0;">{{numberOfWeeks}}</td>
       </tr>
-      {{#if isSolidarity}}
+
+      <!-- Lignes 3-5 : Modalités de paiement -->
       <tr>
-        <td colspan="2">
-          <em>Tarif solidaire : 20% payés par l'adhérent, 80% pris en charge par le Secours Catholique</em>
+        <td rowspan="3" style="vertical-align: middle; width: 12.5%; text-align: center;">
+          <strong>Par<br>chèque :<br>cochez les<br>modalités<br>de<br>règlement</strong>
         </td>
+        <td style="width: 25%;">
+          <span class="checkbox"></span> 1 chèque débité début janvier 2026
+        </td>
+        <td style="text-align: center; width: 31.25%;">{{totalSmallPrice}}€</td>
+        <td style="text-align: center; width: 31.25%;">{{totalLargePrice}}€</td>
       </tr>
-      {{/if}}
-      <tr class="total-row">
-        <td>Total à régler</td>
-        <td>{{price}} €</td>
+
+      <tr>
+        <td>
+          <span class="checkbox"></span> 2 chèques débités à 2 mois d'intervalle max, à partir de début février 2026
+        </td>
+        <td style="text-align: center;">2 chèques de {{halfSmallPrice}}€</td>
+        <td style="text-align: center;">2 chèques de {{halfLargePrice}}€</td>
+      </tr>
+
+      <tr>
+        <td>
+          <span class="checkbox"></span> 4 chèques débités à 2 mois d'intervalle max, à partir de début février 2026
+        </td>
+        <td style="text-align: center;">{{quarterPaymentSmallText}}</td>
+        <td style="text-align: center;">{{quarterPaymentLargeText}}</td>
       </tr>
     </table>
 
-    <p><strong>Modalités de paiement acceptées :</strong></p>
-    <ul>
-      <li>Chèque à l'ordre de "Aux P'tits Pois"</li>
-      <li>Virement bancaire (IBAN communiqué séparément)</li>
-      <li>Espèces</li>
-    </ul>
-
-    <p>
-      Le paiement peut être effectué :
-    </p>
-    <ul>
-      <li>En une seule fois à la signature du contrat</li>
-      <li>En plusieurs fois (jusqu'à 3 chèques) à convenir avec l'AMAP</li>
-    </ul>
-  </div>
-
-  <h2>Article 5 - Distribution et retrait</h2>
-  <div class="article">
-    <p>
-      Les paniers sont à retirer chaque semaine au point de distribution suivant :
-    </p>
-    <div class="info-box">
-      <strong class="section-title">
-        <svg class="icon icon-green" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
-          <circle cx="12" cy="10" r="3"/>
-        </svg>
-        {{pickupLocationName}}
-      </strong><br>
-      {{pickupLocationAddress}}<br>
-      {{pickupSchedule}}
-    </div>
-    <p>
-      <strong>L'adhérent s'engage à :</strong>
-    </p>
-    <ul>
-      <li>Retirer son panier aux jours et heures indiqués</li>
-      <li>Prévenir l'AMAP en cas d'absence prolongée</li>
-      <li>Respecter les consignes de distribution</li>
-      <li>Participer aux permanences de distribution selon le planning établi</li>
-    </ul>
-    <p>
-      En cas d'impossibilité de retrait, l'adhérent peut :
-    </p>
-    <ul>
-      <li>Faire récupérer son panier par un tiers (en prévenant l'AMAP)</li>
-      <li>Faire don de son panier (redistribution solidaire)</li>
-    </ul>
-    <p>
-      <strong>Attention :</strong> Les paniers non retirés dans les délais ne pourront être ni remboursés, 
-      ni reportés sur la semaine suivante.
-    </p>
-  </div>
-
-  <h2>Article 6 - Partage des risques et aléas</h2>
-  <div class="article">
-    <p>
-      L'adhérent comprend et accepte le principe de partage des risques inhérent au fonctionnement d'une AMAP. 
-      En cas d'aléas climatiques, de maladies des cultures ou de tout autre événement impactant la production :
-    </p>
-    <ul>
-      <li>La composition et le poids des paniers peuvent varier</li>
-      <li>Certains légumes peuvent être remplacés par d'autres</li>
-      <li>En cas de perte importante, les paniers peuvent être allégés temporairement</li>
-    </ul>
-    <p>
-      Ces variations ne donnent pas lieu à remboursement, l'engagement financier de l'adhérent ayant pour 
-      objectif de soutenir les producteurs dans toutes les situations.
-    </p>
-  </div>
-
-  <h2>Article 7 - Suspension et absences</h2>
-  <div class="article">
-    {{#if isAnnual}}
-    <p>
-      L'adhérent bénéficie de <strong>4 semaines de suspension</strong> au cours de l'année, à utiliser 
-      librement (vacances, absences...).
-    </p>
-    <p>
-      Ces suspensions doivent être signalées au moins <strong>7 jours à l'avance</strong> via le site 
-      internet ou par email.
-    </p>
-    {{else}}
-    <p>
-      L'abonnement découverte ne prévoit pas de semaines de suspension. En cas d'absence, l'adhérent peut 
-      faire récupérer son panier par un tiers ou en faire don.
+    {{#if isSolidarity}}
+    <p class="modalites-text"
+      style="background: #fff7ed; padding: 0.4cm; margin-top: 0.5cm; border-left: 3px solid #d97706;">
+      <strong>Tarif solidaire :</strong> 20% payés par l'adhérent∙e, 80% pris en charge par le Secours Catholique.
     </p>
     {{/if}}
+
+    <!-- Tableau contrat partagé -->
+    <table style="margin-top: 0.8cm;">
+      <tr>
+        <td rowspan="2" style="width: 12.5%; vertical-align: middle; text-align: center;">
+          <strong>Si contrat<br>partagé</strong>
+        </td>
+        <td style="width: 25%;"><strong>nb de paniers</strong></td>
+        <td colspan="2" style="text-align: center; width: 62.5%;">
+          Début le 7/01 25 paniers - Début le 14/01 24 paniers
+        </td>
+      </tr>
+      <tr>
+        <td><strong>Par chèque</strong></td>
+        <td style="text-align: center; width: 31.25%;">
+          475€ pour 25 paniers<br>
+          456€ pour 24 paniers
+        </td>
+        <td style="text-align: center; width: 31.25%;">
+          745€ pour 25 paniers<br>
+          715.20€ pour 24 paniers
+        </td>
+      </tr>
+    </table>
   </div>
 
-  <h2>Article 8 - Résiliation</h2>
-  <div class="article">
-    <p>
-      Le présent contrat peut être résilié dans les cas suivants :
-    </p>
-    <ul>
-      <li><strong>Par l'adhérent :</strong> en cas de force majeure (déménagement, problème de santé grave...) 
-          avec justificatif. Un remboursement prorata temporis pourra être envisagé au cas par cas.</li>
-      <li><strong>Par l'AMAP :</strong> en cas de manquement grave de l'adhérent à ses obligations 
-          (non-paiement, comportement inapproprié...)</li>
-      <li><strong>Par accord mutuel :</strong> dans des circonstances exceptionnelles</li>
-    </ul>
-    <p>
-      Toute demande de résiliation doit être adressée par écrit (email ou courrier) avec un préavis d'un mois.
-    </p>
-  </div>
-
-  <h2>Article 9 - Permanences et vie de l'AMAP</h2>
-  <div class="article">
-    <p>
-      L'AMAP fonctionne grâce à l'implication de ses adhérents. Chaque adhérent s'engage à :
-    </p>
-    <ul>
-      <li>Assurer 2 à 3 permanences de distribution par an (environ 1h30 par permanence)</li>
-      <li>Participer si possible aux événements de l'AMAP (assemblée générale, fêtes, visites de fermes...)</li>
-      <li>Respecter l'esprit de solidarité et d'entraide de l'association</li>
-    </ul>
-  </div>
-
-  <h2>Article 10 - Charte des AMAP</h2>
-  <div class="article">
-    <p>
-      L'adhérent déclare avoir pris connaissance de la Charte des AMAP et s'engage à en respecter les principes :
-    </p>
-    <ul>
-      <li>Respect de l'environnement et de la biodiversité</li>
-      <li>Solidarité avec les producteurs locaux</li>
-      <li>Transparence et convivialité</li>
-      <li>Agriculture paysanne et biologique</li>
-    </ul>
-  </div>
-
-  <h2>Article 11 - Protection des données</h2>
-  <div class="article">
-    <p>
-      Conformément au RGPD, les données personnelles de l'adhérent sont utilisées uniquement pour la gestion 
-      de l'abonnement et ne sont jamais transmises à des tiers.
-    </p>
-    <p>
-      L'adhérent dispose d'un droit d'accès, de rectification et de suppression de ses données en contactant : 
-      auxptitspois@gmail.com
-    </p>
-  </div>
-
-  <!-- Signatures -->
   <div class="signature-section">
-    <p style="text-align: center; margin-bottom: 1cm;">
-      <svg class="icon" style="color: #6b9d5a;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 20h9"/>
-        <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>
-      </svg>
-      <strong>Fait en deux exemplaires originaux</strong><br>
-      À __________, le {{contractDate}}
-    </p>
+    <div class="signature-line">
+      <span>Fait à</span>
+      <span class="signature-field"></span>
+      <span>, le</span>
+      <span class="signature-field"></span>
+    </div>
 
     <div class="signature-boxes">
       <div class="signature-box">
-        <h4>L'adhérent</h4>
-        <p>{{firstName}} {{lastName}}</p>
-        <div class="signature-line">
-          Signature précédée de "Lu et approuvé"
-        </div>
+        <div style="font-weight: bold; margin-bottom: 0.3cm;">Noms et signatures de l'amapien∙ne / des amapien∙nes</div>
+        <div style="height: 2cm; border-bottom: 1px solid #000; margin-top: 1cm;"></div>
       </div>
 
-      <div class="signature-box">
-        <h4>L'AMAP "Aux P'tits Pois"</h4>
-        <p>Représentée par :</p>
-        <div class="signature-line">
-          Signature et cachet de l'association
+      <div class="signature-box" style="text-align: right;">
+        <div style="font-weight: bold; margin-bottom: 0.3cm;">du∙de la paysan∙ne partenaire</div>
+        <div style="height: 2cm; margin-top: 1cm;"></div>
+        <div class="farmer-signature">
+          <strong>Aux P'tits Pois</strong><br>
+          [Adresse à compléter]<br>
+          auxptitspois@gmail.com
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Pied de page -->
-  <div class="footer">
-    Aux P'tits Pois - AMAP Solidaire | Association Loi 1901 | 
-    Email: auxptitspois@gmail.com | Page <span class="page-number"></span>
-  </div>
-
 </body>
+
 </html>

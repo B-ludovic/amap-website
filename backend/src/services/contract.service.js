@@ -46,8 +46,9 @@ class ContractService {
       });
 
       const page = await browser.newPage();
+      page.setDefaultTimeout(30000);
       console.log('Page créée, chargement du contenu...');
-      
+
       await page.setContent(html, { waitUntil: 'load' });
       console.log('Contenu chargé, attente du rendu...');
       
@@ -70,11 +71,6 @@ class ContractService {
       console.log('PDF généré, taille:', pdfBuffer.length, 'bytes');
       await browser.close();
 
-      // Test : sauvegarder le PDF pour vérification
-      const testPath = path.join(__dirname, '../../test-contract.pdf');
-      fs.writeFileSync(testPath, pdfBuffer);
-      console.log('PDF de test sauvegardé:', testPath);
-
       return pdfBuffer;
     } catch (error) {
       console.error('Erreur génération contrat:', error);
@@ -93,9 +89,44 @@ class ContractService {
       ? 'Petit panier (2-4 kg)'
       : 'Grand panier (6-8 kg)';
 
+    const basketWeight = subscription.basketSize === 'SMALL'
+      ? '2-4 kg'
+      : '6-8 kg';
+
     const pricingTypeLabel = subscription.pricingType === 'SOLIDARITY'
       ? 'Tarif solidaire (20%)'
       : 'Tarif normal (100%)';
+
+    // Calculer le nombre de semaines entre startDate et endDate
+    const start = new Date(subscription.startDate);
+    const end = new Date(subscription.endDate);
+    const diffTime = Math.abs(end - start);
+    const numberOfWeeks = Math.ceil(diffTime / (1000 * 60 * 60 * 24 * 7));
+
+    // Prix fixes pour les paniers (selon le contrat de référence)
+    const smallBasketPrice = 19;
+    const largeBasketPrice = 29.80;
+
+    // Calculs des prix totaux et paiements échelonnés
+    const totalSmallPrice = (smallBasketPrice * numberOfWeeks).toFixed(2);
+    const totalLargePrice = (largeBasketPrice * numberOfWeeks).toFixed(2);
+    const halfSmallPrice = (totalSmallPrice / 2).toFixed(2);
+    const halfLargePrice = (totalLargePrice / 2).toFixed(2);
+
+    // Pour le paiement en 4 fois (3 chèques égaux + 1 ajusté)
+    const quarterSmall = Math.floor(totalSmallPrice / 4);
+    const quarterLarge = Math.floor(totalLargePrice / 4);
+    const lastQuarterSmall = (totalSmallPrice - (quarterSmall * 3)).toFixed(2);
+    const lastQuarterLarge = (totalLargePrice - (quarterLarge * 3)).toFixed(2);
+    
+    const quarterPaymentSmallText = `3 chèques de ${quarterSmall}€\net 1 chèque de ${lastQuarterSmall}€`;
+    const quarterPaymentLargeText = `3 chèques de ${quarterLarge}€\net 1 chèque de ${lastQuarterLarge}€`;
+
+    // Nombre de permanences (exemple: 2 permanences par défaut, à adapter selon vos règles)
+    const permanences = subscription.type === 'ANNUAL' ? '2 à 3' : '1';
+
+    // Adresse de l'utilisateur
+    const address = user.address || 'Non renseignée';
 
     return {
       // Informations utilisateur
@@ -103,21 +134,39 @@ class ContractService {
       lastName: user.lastName,
       email: user.email,
       phone: user.phone || 'Non renseigné',
+      address: address,
 
       // Informations abonnement
       subscriptionNumber: subscription.subscriptionNumber,
       subscriptionTypeLabel,
       basketSizeLabel,
+      basketWeight,
       pricingTypeLabel,
       price: subscription.price.toFixed(2),
       startDate: new Date(subscription.startDate).toLocaleDateString('fr-FR'),
       endDate: new Date(subscription.endDate).toLocaleDateString('fr-FR'),
+      numberOfWeeks: numberOfWeeks,
+
+      // Permanences
+      permanences: permanences,
+
+      // Prix et paiements
+      totalSmallPrice: totalSmallPrice,
+      totalLargePrice: totalLargePrice,
+      halfSmallPrice: halfSmallPrice,
+      halfLargePrice: halfLargePrice,
+      quarterPaymentSmallText: quarterPaymentSmallText,
+      quarterPaymentLargeText: quarterPaymentLargeText,
 
       // Point de retrait
       pickupLocationName: subscription.pickupLocation.name,
       pickupLocationAddress: subscription.pickupLocation.address + ', ' + 
         subscription.pickupLocation.postalCode + ' ' + subscription.pickupLocation.city,
       pickupSchedule: subscription.pickupLocation.schedule,
+
+      // Dates de non-livraison (optionnel)
+      hasNonDeliveryDates: false,
+      nonDeliveryInfo: '',
 
       // Conditions booléennes pour Handlebars
       isAnnual: subscription.type === 'ANNUAL',
