@@ -1,11 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useState } from 'react';
 import { CheckCircle, XCircle, Mail, MapPin, Clock, Leaf } from 'lucide-react';
-import { useModal } from '../../contexts/ModalContext';
-import { useAuth } from '../../contexts/AuthContext';
-import api from '../../lib/api';
 import '../../styles/public/contact.css';
 
 export default function ContactPage() {
@@ -192,7 +188,7 @@ export default function ContactPage() {
 
             <div className="faq-link">
               <p>
-                Consultez notre <a href="/faq">FAQ</a> pour des réponses rapides aux questions fréquentes.
+                Consultez notre <a href="/faq">FAQ</a> pour des réponses rapides aux questions fréquentes. (Bientôt disponible)
               </p>
             </div>
           </div>

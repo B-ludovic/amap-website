@@ -106,11 +106,6 @@ function Footer() {
                   Gestion des cookies
                 </Link>
               </li>
-              <li>
-                <Link href="/cgv" className="footer-link">
-                  CGV
-                </Link>
-              </li>
             </ul>
           </div>
         </div>

@@ -20,8 +20,8 @@ export default function MentionsLegalesPage() {
           <p>
             <strong>Aux P'tits Pois</strong><br />
             Association loi 1901<br />
-            Adresse : [.......]<br />
-            Email : auxptitspois@gmail.com
+            Adresse : 14, rue du Chateau 45300 Yère-la-ville<br />
+            Email : lestroisparcelles@gmail.com
           </p>
         </section>
 
