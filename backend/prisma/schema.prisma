@@ -47,6 +47,17 @@ enum UserRole {
   ADMIN       // Administrateur
 }
 
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  subject   String
+  message   String   @db.Text
+  status    String   @default("UNREAD") // UNREAD, READ, ARCHIVED
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 // DEMANDES D'ABONNEMENTS
 
 model SubscriptionRequest {

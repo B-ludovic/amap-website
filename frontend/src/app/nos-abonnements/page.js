@@ -68,7 +68,8 @@ export default function SubscriptionsPage() {
         'Paiement en plusieurs fois par chèque',
         'Sans engagement long terme'
       ],
-      recommended: false
+      recommended: false,
+      comingSoon: true
     },
     {
       id: 'discovery-large',
@@ -89,7 +90,8 @@ export default function SubscriptionsPage() {
         'Paiement en plusieurs fois par chèque',
         'Sans engagement long terme'
       ],
-      recommended: false
+      recommended: false,
+      comingSoon: true
     }
   ];
 
@@ -159,11 +161,14 @@ export default function SubscriptionsPage() {
           {/* Cartes d'abonnements */}
           <div className="subscriptions-grid">
             {filteredSubscriptions.map((sub) => (
-              <div 
-                key={sub.id} 
-                className={`subscription-card ${sub.recommended ? 'recommended' : ''}`}
+              <div
+                key={sub.id}
+                className={`subscription-card ${sub.recommended ? 'recommended' : ''} ${sub.comingSoon ? 'coming-soon' : ''}`}
               >
-                {sub.recommended && (
+                {sub.comingSoon && (
+                  <div className="coming-soon-badge">Bientôt disponible</div>
+                )}
+                {sub.recommended && !sub.comingSoon && (
                   <div className="recommended-badge">Recommandé</div>
                 )}
 
@@ -204,12 +209,18 @@ export default function SubscriptionsPage() {
                   ))}
                 </ul>
 
-                <Link 
-                  href={`/demande-abonnement?type=${sub.type}&size=${sub.size}`}
-                  className="btn btn-primary btn-block"
-                >
-                  Faire une demande
-                </Link>
+                {sub.comingSoon ? (
+                  <button className="btn btn-coming-soon btn-block" disabled>
+                    Disponible ultérieurement
+                  </button>
+                ) : (
+                  <Link
+                    href={`/demande-abonnement?type=${sub.type}&size=${sub.size}`}
+                    className="btn btn-primary btn-block"
+                  >
+                    Faire une demande
+                  </Link>
+                )}
               </div>
             ))}
           </div>

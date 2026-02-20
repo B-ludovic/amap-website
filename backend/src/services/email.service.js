@@ -300,6 +300,69 @@ class EmailService {
     }
   }
 
+  /* Envoie un message de contact à l'adresse de l'AMAP */
+
+  async sendContactMessage({ name, email, subject, message }) {
+    try {
+      const { data, error } = await resend.emails.send({
+        from: EMAIL_FROM,
+        to: 'auxptitspois@gmail.com',
+        replyTo: email,
+        subject: `[Contact] ${subject}`,
+        html: `
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <meta charset="utf-8">
+              <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                .header { background: linear-gradient(135deg, #6b9d5a 0%, #5a8a4a 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+                .content { background: #f9f7f4; padding: 30px; border-radius: 0 0 8px 8px; }
+                .info-box { background: white; border: 1px solid #e2e8f0; padding: 20px; border-radius: 6px; margin: 20px 0; }
+                .message-box { background: white; border-left: 4px solid #6b9d5a; padding: 20px; border-radius: 0 6px 6px 0; margin: 20px 0; white-space: pre-wrap; }
+                .footer { text-align: center; margin-top: 30px; color: #6b7280; font-size: 14px; }
+              </style>
+            </head>
+            <body>
+              <div class="container">
+                <div class="header">
+                  <h1>Nouveau message de contact</h1>
+                </div>
+                <div class="content">
+                  <div class="info-box">
+                    <p><strong>Nom :</strong> ${name}</p>
+                    <p><strong>Email :</strong> <a href="mailto:${email}">${email}</a></p>
+                    <p><strong>Sujet :</strong> ${subject}</p>
+                  </div>
+                  <p><strong>Message :</strong></p>
+                  <div class="message-box">${message}</div>
+                  <p style="color: #6b7280; font-size: 14px;">
+                    Répondez directement à cet email pour contacter ${name}.
+                  </p>
+                </div>
+                <div class="footer">
+                  <p>Aux P'tits Pois - Formulaire de contact</p>
+                </div>
+              </div>
+            </body>
+          </html>
+        `,
+      });
+
+      if (error) {
+        console.error('Erreur envoi email contact:', error);
+        return { success: false, error };
+      }
+
+      console.log('✅ Email contact envoyé depuis', email);
+      return { success: true, data };
+    } catch (error) {
+      console.error('Erreur envoi email contact:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
   /* Envoie une newsletter */
 
   async sendNewsletter(newsletter, recipients) {
