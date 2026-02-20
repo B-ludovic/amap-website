@@ -23,6 +23,11 @@ import {
   getExampleStats,
   deleteAllExamples
 } from '../controllers/admin.controller.js';
+import {
+  getAllContactMessages,
+  updateContactMessageStatus,
+  deleteContactMessage
+} from '../controllers/contact.controller.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { adminOnly } from '../middlewares/role.middleware.js';
 
@@ -69,5 +74,9 @@ router.get('/stats', getStats);
 router.get('/examples/stats', getExampleStats);
 router.delete('/examples', deleteAllExamples);
 
+// MESSAGES DE CONTACT
+router.get('/contact', getAllContactMessages);
+router.put('/contact/:id/status', updateContactMessageStatus);
+router.delete('/contact/:id', deleteContactMessage);
 
 export default router;
