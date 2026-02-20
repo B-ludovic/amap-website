@@ -20,15 +20,23 @@ import {
   CreditCard,
   Sprout
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useModal } from '../../contexts/ModalContext';
+import api from '../../lib/api';
 
 export default function AdminSidebar({ currentPath }) {
   const router = useRouter();
   const { logout } = useAuth();
   const { showConfirm } = useModal();
   const [openMenus, setOpenMenus] = useState({});
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    api.contactMessages.getAll({ status: 'UNREAD' })
+      .then(data => setUnreadCount(data.data.messages.length))
+      .catch(() => {});
+  }, []);
 
   const handleLogout = () => {
     showConfirm(
@@ -99,6 +107,12 @@ export default function AdminSidebar({ currentPath }) {
       title: 'Permanences',
       icon: UserCog,
       path: '/admin/permanences'
+    },
+    {
+      title: 'Messages',
+      icon: Mail,
+      path: '/admin/messages',
+      badge: unreadCount
     },
     {
       title: 'Communication',
@@ -187,6 +201,7 @@ export default function AdminSidebar({ currentPath }) {
             >
               <Icon size={20} />
               <span>{item.title}</span>
+              {item.badge > 0 && <span className="badge">{item.badge}</span>}
             </Link>
           );
         })}

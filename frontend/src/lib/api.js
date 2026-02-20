@@ -756,6 +756,31 @@ const api = {
     },
   },
 
+  // Messages de contact
+  contactMessages: {
+    getAll: async (filters = {}) => {
+      const queryString = new URLSearchParams(filters).toString();
+      return fetchAPI(`/admin/contact${queryString ? `?${queryString}` : ''}`, {
+        requiresAuth: true,
+      });
+    },
+
+    updateStatus: async (id, status) => {
+      return fetchAPI(`/admin/contact/${id}/status`, {
+        method: 'PUT',
+        body: { status },
+        requiresAuth: true,
+      });
+    },
+
+    delete: async (id) => {
+      return fetchAPI(`/admin/contact/${id}`, {
+        method: 'DELETE',
+        requiresAuth: true,
+      });
+    },
+  },
+
   // Recettes
   recipes: {
     search: async (query) => {
