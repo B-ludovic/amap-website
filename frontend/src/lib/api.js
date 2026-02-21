@@ -616,6 +616,22 @@ const api = {
         requiresAuth: true,
       });
     },
+
+    getContractBlobUrl: async (id) => {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_URL}/subscriptions/${id}/contract`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Erreur lors de la génération du contrat');
+      }
+      const blob = await response.blob();
+      return URL.createObjectURL(blob);
+    },
   },
 
   producers: {
