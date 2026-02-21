@@ -132,6 +132,12 @@ export default function SubscriptionRequestPage() {
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
+      if (newErrors.paymentType) {
+        showError(
+          'Modalité de paiement requise',
+          'Veuillez choisir une modalité de paiement dans le récapitulatif avant d\'envoyer votre demande.'
+        );
+      }
       return;
     }
 
