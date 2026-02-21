@@ -10,12 +10,12 @@ import { adminOnly } from '../middlewares/role.middleware.js';
 
 const router = express.Router();
 
-// Toutes les routes nécessitent admin ou bénévole
+// Toutes les routes nécessitent une authentification admin
 router.use(authMiddleware);
 
-router.get('/list/:weeklyBasketId', getDistributionList);
-router.put('/pickup/:pickupId', markAsPickedUp);
-router.get('/stats/:weeklyBasketId', getDistributionStats);
-router.get('/export/:weeklyBasketId', exportDistributionList);
+router.get('/list/:weeklyBasketId', adminOnly, getDistributionList);
+router.put('/pickup/:pickupId', adminOnly, markAsPickedUp);
+router.get('/stats/:weeklyBasketId', adminOnly, getDistributionStats);
+router.get('/export/:weeklyBasketId', adminOnly, exportDistributionList);
 
 export default router;
