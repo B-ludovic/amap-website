@@ -20,9 +20,10 @@ model User {
   address       String?
   role          UserRole  @default(MEMBER)
   
-  emailVerified    Boolean   @default(false)
-  emailVerifyToken String?   @unique
-  
+  emailVerified          Boolean   @default(false)
+  emailVerifyToken       String?   @unique
+  emailVerifyTokenExpiry DateTime?
+
   resetToken       String?   @unique
   resetTokenExpiry DateTime?
   

@@ -78,6 +78,74 @@ class EmailService {
     }
   }
 
+  /* Envoie un email de vérification d'adresse email */
+
+  async sendEmailVerification(user, verifyToken) {
+    try {
+      const verifyUrl = `${process.env.FRONTEND_URL}/auth/confirm-email/${verifyToken}`;
+
+      const { data, error } = await resend.emails.send({
+        from: EMAIL_FROM,
+        to: user.email,
+        subject: 'Confirmez votre adresse email - Aux P\'tits Pois',
+        html: `
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <meta charset="utf-8">
+              <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                .header { background: linear-gradient(135deg, #6b9d5a 0%, #5a8a4a 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+                .content { background: #f9f7f4; padding: 30px; border-radius: 0 0 8px 8px; }
+                .button { display: inline-block; background: #6b9d5a; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; margin: 20px 0; }
+                .warning { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0; border-radius: 4px; }
+                .footer { text-align: center; margin-top: 30px; color: #6b7280; font-size: 14px; }
+              </style>
+            </head>
+            <body>
+              <div class="container">
+                <div class="header">
+                  <h1>🌱 Confirmez votre email</h1>
+                </div>
+                <div class="content">
+                  <p>Bonjour ${user.firstName},</p>
+                  <p>Merci de vous être inscrit sur Aux P'tits Pois. Cliquez sur le bouton ci-dessous pour confirmer votre adresse email :</p>
+                  <div style="text-align: center;">
+                    <a href="${verifyUrl}" class="button">Confirmer mon email</a>
+                  </div>
+                  <div class="warning">
+                    <strong>Attention :</strong> Ce lien est valable pendant 24 heures.
+                  </div>
+                  <p>Si vous n'avez pas créé de compte, ignorez simplement cet email.</p>
+                  <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
+                    Si le bouton ne fonctionne pas, copiez ce lien dans votre navigateur :<br>
+                    <a href="${verifyUrl}" style="color: #3b82f6; word-break: break-all;">${verifyUrl}</a>
+                  </p>
+                  <p>L'équipe Aux P'tits Pois</p>
+                </div>
+                <div class="footer">
+                  <p>Aux P'tits Pois - AMAP Solidaire</p>
+                </div>
+              </div>
+            </body>
+          </html>
+        `,
+      });
+
+      if (error) {
+        console.error('Erreur envoi email vérification:', error);
+        return { success: false, error };
+      }
+
+      console.log('✅ Email vérification envoyé à', user.email);
+      return { success: true, data };
+    } catch (error) {
+      console.error('Erreur envoi email vérification:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
   /* Envoie un email de récupération de mot de passe */
 
 

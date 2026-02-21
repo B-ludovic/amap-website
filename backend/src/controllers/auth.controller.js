@@ -41,6 +41,11 @@ const register = asyncHandler(async (req, res) => {
     // Hasher le mot de passe
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Générer un token de vérification email
+    const emailVerifyToken = crypto.randomBytes(32).toString('hex');
+    const emailVerifyTokenHash = crypto.createHash('sha256').update(emailVerifyToken).digest('hex');
+    const emailVerifyTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 heures
+
     // Créer l'utilisateur
     const user = await prisma.user.create({
         data: {
@@ -51,18 +56,17 @@ const register = asyncHandler(async (req, res) => {
             phone,
             address,
             emailVerified: false,
+            emailVerifyToken: emailVerifyTokenHash,
+            emailVerifyTokenExpiry,
         }
     });
 
-    // Generer un token JWT
-    const token = generateToken(user.id);
-
-    // Envoyer email de bienvenue
-    await emailService.sendWelcomeEmail(user);
+    // Envoyer email de vérification
+    await emailService.sendEmailVerification(user, emailVerifyToken);
 
     res.status(httpStatusCodes.CREATED).json({
-        success: true, 
-        message: 'Inscription réussie! Consultez votre email pour commencer.',
+        success: true,
+        message: 'Inscription réussie ! Consultez votre email pour confirmer votre adresse.',
         data: {
             user: {
                 id: user.id,
@@ -72,7 +76,6 @@ const register = asyncHandler(async (req, res) => {
                 role: user.role,
                 emailVerified: user.emailVerified,
             },
-            token,
         }
     });
 });
@@ -157,11 +160,32 @@ const getMe = asyncHandler(async (req, res) => {
 const confirmEmail = asyncHandler(async (req, res) => {
     const { token } = req.params;
 
-    // TODO: Implémenter la vérification du token
+    // Hasher le token reçu pour le comparer avec celui en base
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+
+    const user = await prisma.user.findFirst({
+        where: {
+            emailVerifyToken: tokenHash,
+            emailVerifyTokenExpiry: { gt: new Date() },
+        },
+    });
+
+    if (!user) {
+        throw new HttpBadRequestError('Lien de confirmation invalide ou expiré.');
+    }
+
+    await prisma.user.update({
+        where: { id: user.id },
+        data: {
+            emailVerified: true,
+            emailVerifyToken: null,
+            emailVerifyTokenExpiry: null,
+        },
+    });
 
     res.json({
         success: true,
-        message: 'Email confirmé avec succès!',
+        message: 'Email confirmé avec succès !',
     });
 });
 
@@ -174,19 +198,33 @@ const resendConfirmationEmail = asyncHandler(async (req, res) => {
     }
 
     const user = await prisma.user.findUnique({ where: { email } });
-    if (!user) {
-        throw new HttpNotFoundError('Utilisateur non trouvé.');
+
+    // Ne pas révéler si l'utilisateur existe ou non
+    if (!user || user.emailVerified) {
+        return res.json({
+            success: true,
+            message: 'Si un compte non confirmé existe avec cet email, un nouveau lien a été envoyé.',
+        });
     }
 
-    if (user.emailVerified) {
-        throw new HttpBadRequestError('Email déjà confirmé.');
-    }
+    // Générer un nouveau token
+    const emailVerifyToken = crypto.randomBytes(32).toString('hex');
+    const emailVerifyTokenHash = crypto.createHash('sha256').update(emailVerifyToken).digest('hex');
+    const emailVerifyTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
-    // TODO: Envoyer l'email de confirmation
+    await prisma.user.update({
+        where: { id: user.id },
+        data: {
+            emailVerifyToken: emailVerifyTokenHash,
+            emailVerifyTokenExpiry,
+        },
+    });
+
+    await emailService.sendEmailVerification(user, emailVerifyToken);
 
     res.json({
         success: true,
-        message: 'Email de confirmation renvoyé avec succès!',
+        message: 'Si un compte non confirmé existe avec cet email, un nouveau lien a été envoyé.',
     });
 });
 
