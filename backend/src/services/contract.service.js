@@ -136,6 +136,15 @@ class ContractService {
     // Adresse de l'utilisateur
     const address = user.address || 'Non renseignée';
 
+    // Extraire la ville depuis l'adresse (format attendu : "... XXXXX Ville")
+    let contractCity = 'Non renseignée';
+    if (user.address) {
+      const cityMatch = user.address.match(/\d{5}\s+(.+)$/);
+      if (cityMatch) {
+        contractCity = cityMatch[1].trim();
+      }
+    }
+
     return {
       // Informations utilisateur
       firstName: user.firstName,
@@ -184,8 +193,9 @@ class ContractService {
       isPayment2: paymentType === '2',
       isPayment4: paymentType === '4',
 
-      // Date du jour
-      contractDate: new Date().toLocaleDateString('fr-FR')
+      // Date du jour et ville de signature
+      contractDate: new Date().toLocaleDateString('fr-FR'),
+      contractCity: contractCity
     };
   }
 }

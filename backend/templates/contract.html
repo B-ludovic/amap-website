@@ -264,6 +264,11 @@
     .small-text {
       font-size: 9pt;
     }
+
+    .form-line-empty {
+      color: #999;
+      font-style: italic;
+    }
   </style>
 </head>
 
@@ -330,19 +335,19 @@
 
     <div class="form-field">
       <span class="form-label">Nom et Prénom</span>
-      <span class="form-line"></span>
+      <span class="form-line form-line-empty">Non renseigné</span>
     </div>
 
     <div class="form-field">
       <span class="form-label">Adresse</span>
-      <span class="form-line"></span>
+      <span class="form-line form-line-empty">Non renseignée</span>
     </div>
 
     <div class="form-field">
       <span class="form-label">Mail</span>
-      <span class="form-line" style="flex: 0.6;"></span>
+      <span class="form-line form-line-empty" style="flex: 0.6;">Non renseigné</span>
       <span class="form-label" style="margin-left: 0.5cm;">Téléphone</span>
-      <span class="form-line" style="flex: 0.4;"></span>
+      <span class="form-line form-line-empty" style="flex: 0.4;">Non renseigné</span>
     </div>
   </div>
 
@@ -524,9 +529,9 @@
   <div class="signature-section">
     <div class="signature-line">
       <span>Fait à</span>
-      <span class="signature-field"></span>
+      <span class="signature-field">{{contractCity}}</span>
       <span>, le</span>
-      <span class="signature-field"></span>
+      <span class="signature-field">{{contractDate}}</span>
     </div>
 
     <div class="signature-boxes">
