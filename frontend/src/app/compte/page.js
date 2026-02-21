@@ -85,6 +85,15 @@ function ComptePage() {
                   <span className="compte-info-value">{user.phone}</span>
                 </div>
               )}
+              {user.address && (
+                <div className="compte-info-group">
+                  <span className="compte-info-label">
+                    <MapPin size={20} className="compte-info-icon" />
+                    Adresse
+                  </span>
+                  <span className="compte-info-value">{user.address}</span>
+                </div>
+              )}
               <div className="compte-info-group">
                 <span className="compte-info-label">
                   <Shield size={20} className="compte-info-icon" />

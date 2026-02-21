@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Mail, Lock, User, Phone, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, User, Phone, MapPin, Eye, EyeOff } from 'lucide-react';
 
 function RegisterForm({ onSubmit, loading }) {
   const [formData, setFormData] = useState({
@@ -11,6 +11,7 @@ function RegisterForm({ onSubmit, loading }) {
     firstName: '',
     lastName: '',
     phone: '',
+    address: '',
   });
 
   const [errors, setErrors] = useState({});
@@ -172,6 +173,25 @@ function RegisterForm({ onSubmit, loading }) {
         {errors.phone && (
           <span className="form-error">{errors.phone}</span>
         )}
+      </div>
+
+      <div className="form-group">
+        <label htmlFor="address" className="form-label">
+          Adresse (optionnel)
+        </label>
+        <div className="input-wrapper">
+          <MapPin size={20} className="input-icon" />
+          <input
+            type="text"
+            id="address"
+            name="address"
+            className="input input-with-icon"
+            value={formData.address}
+            onChange={handleChange}
+            placeholder="12 rue des Fleurs, 75001 Paris"
+            disabled={loading}
+          />
+        </div>
       </div>
 
       <div className="form-group">
