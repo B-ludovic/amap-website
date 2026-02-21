@@ -509,12 +509,12 @@ async function main() {
 
   const pickupLocation = await prisma.pickupLocation.create({
     data: {
-      name: 'Salle des Fêtes',
-      address: '12 Place du Marché',
-      city: 'Paris',
-      postalCode: '75001',
-      schedule: 'Mercredi 18h15 - 19h15',
-      instructions: 'Accès par la porte principale, côté parking',
+      name: 'Paroisse Saint François de Sales',
+      address: '340 Avenue du Général De Gaulle',
+      city: 'Clamart',
+      postalCode: '92140',
+      schedule: 'Chaque mercredi entre 18h15 et 19h15',
+      instructions: '',
       isActive: true
     }
   });
