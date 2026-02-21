@@ -19,7 +19,7 @@ export default function SubscriptionRequestPage() {
     type: searchParams.get('type') || 'ANNUAL',
     basketSize: searchParams.get('size') || 'SMALL',
     pricingType: 'NORMAL',
-    paymentType: '1',
+    paymentType: '',
     message: ''
   });
 
@@ -128,6 +128,7 @@ export default function SubscriptionRequestPage() {
     if (!formData.type) newErrors.type = 'Veuillez sélectionner un type d\'abonnement';
     if (!formData.basketSize) newErrors.basketSize = 'Veuillez sélectionner une taille de panier';
     if (!formData.pricingType) newErrors.pricingType = 'Veuillez sélectionner un type de tarification';
+    if (!formData.paymentType) newErrors.paymentType = 'Veuillez choisir une modalité de paiement';
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -373,15 +374,19 @@ export default function SubscriptionRequestPage() {
               <div className="summary-payment">
                 <label className="summary-payment-label">Modalité de paiement</label>
                 <select
-                  className="summary-payment-select"
+                  className={`summary-payment-select ${errors.paymentType ? 'input-error' : ''}`}
                   name="paymentType"
                   value={formData.paymentType}
                   onChange={handleChange}
                 >
+                  <option value="" disabled>-- Choisissez une modalité *</option>
                   <option value="1">1 chèque — paiement intégral</option>
                   <option value="2">2 chèques — 2 mois d'intervalle</option>
                   <option value="4">4 chèques — 2 mois d'intervalle</option>
                 </select>
+                {errors.paymentType && (
+                  <span className="form-error">{errors.paymentType}</span>
+                )}
                 <div className="summary-payment-detail">
                   {getPaymentBreakdown(
                     formData.pricingType === 'SOLIDARITY'

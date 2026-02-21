@@ -17,7 +17,7 @@ export const submitRequest = asyncHandler(async (req, res) => {
     type,
     basketSize,
     pricingType,
-    paymentType = '1',
+    paymentType,
     message
   } = req.body;
 
@@ -45,6 +45,10 @@ export const submitRequest = asyncHandler(async (req, res) => {
 
   if (!['NORMAL', 'SOLIDARITY'].includes(pricingType)) {
     throw new HttpBadRequestError('Type de tarification invalide');
+  }
+
+  if (!paymentType || !['1', '2', '4'].includes(paymentType)) {
+    throw new HttpBadRequestError('Modalité de paiement invalide ou non renseignée');
   }
 
   // Vérifier qu'il n'a pas déjà une demande en attente
