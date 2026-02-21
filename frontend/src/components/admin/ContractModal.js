@@ -45,14 +45,14 @@ export default function ContractModal({ subscription, onClose }) {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal modal-xl" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div className="contract-modal-header-title">
             <FileText size={20} />
             <div>
               <h2>Contrat d'abonnement</h2>
               <p className="modal-subtitle">{subscription.subscriptionNumber}</p>
             </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div className="contract-modal-header-actions">
             {blobUrl && (
               <button className="btn btn-secondary" onClick={handleDownload}>
                 <Download size={16} />
@@ -65,32 +65,16 @@ export default function ContractModal({ subscription, onClose }) {
           </div>
         </div>
 
-        <div className="modal-body" style={{ padding: 0, maxHeight: '80vh' }}>
+        <div className="modal-body contract-modal-body">
           {loading && (
-            <div style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '12px',
-              padding: '48px',
-              color: 'var(--text-secondary)'
-            }}>
-              <Loader size={32} style={{ animation: 'spin 1s linear infinite' }} />
+            <div className="contract-modal-state">
+              <Loader size={32} className="contract-modal-spinner" />
               <p>Génération du contrat en cours...</p>
             </div>
           )}
 
           {error && (
-            <div style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '12px',
-              padding: '48px',
-              color: 'var(--error-color)'
-            }}>
+            <div className="contract-modal-state contract-modal-state--error">
               <AlertCircle size={32} />
               <p>{error}</p>
             </div>
@@ -100,7 +84,7 @@ export default function ContractModal({ subscription, onClose }) {
             <iframe
               src={blobUrl}
               title={`Contrat ${subscription.subscriptionNumber}`}
-              style={{ width: '100%', height: '75vh', border: 'none', display: 'block' }}
+              className="contract-modal-iframe"
             />
           )}
         </div>

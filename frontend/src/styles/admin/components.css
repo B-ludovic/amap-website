@@ -493,6 +493,54 @@
   border-top: 1px solid var(--border-color);
 }
 
+/* Contract Modal */
+.contract-modal-header-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.contract-modal-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.contract-modal-body {
+  padding: 0;
+  max-height: 80vh;
+}
+
+.contract-modal-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 48px;
+  color: var(--text-secondary);
+}
+
+.contract-modal-state--error {
+  color: var(--error-color);
+}
+
+.contract-modal-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.contract-modal-iframe {
+  width: 100%;
+  height: 75vh;
+  border: none;
+  display: block;
+}
+
 /* Detail sections in modals */
 .detail-section {
   margin-bottom: var(--spacing-xl);
