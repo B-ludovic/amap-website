@@ -21,7 +21,7 @@ const generateToken = (userId) => {
 
 // Inscription d'un nouvel utilisateur
 const register = asyncHandler(async (req, res) => {
-    const { email, password, firstName, lastName, phone } = req.body;
+    const { email, password, firstName, lastName, phone, address } = req.body;
 
     // Verifier que tous les champs sont fournis
     if (!email || !password || !firstName || !lastName) {
@@ -49,6 +49,7 @@ const register = asyncHandler(async (req, res) => {
             firstName,
             lastName,
             phone,
+            address,
             emailVerified: false,
         }
     });
@@ -132,6 +133,7 @@ const getMe = asyncHandler(async (req, res) => {
             firstName: true,
             lastName: true,
             phone: true,
+            address: true,
             role: true,
             emailVerified: true,
             createdAt: true,

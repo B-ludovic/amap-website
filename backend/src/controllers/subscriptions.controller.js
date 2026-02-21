@@ -576,7 +576,8 @@ const generateContractFromSubscription = asyncHandler(async (req, res) => {
           email: true,
           firstName: true,
           lastName: true,
-          phone: true
+          phone: true,
+          address: true
         }
       },
       pickupLocation: true
