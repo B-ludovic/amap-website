@@ -68,6 +68,15 @@ const pdfLimiter = rateLimit({
   message: { success: false, error: { message: 'Trop de requêtes, réessayez dans une minute.' } },
 });
 
+// Rate limiting — endpoints publics sensibles (inscription, contact, formulaires)
+const publicLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, error: { message: 'Trop de tentatives, réessayez dans 15 minutes.' } },
+});
+
 // === ROUTES ===
 
 // Route de base
@@ -87,6 +96,9 @@ app.get('/api/health', (_req, res) => {
 app.use('/api/theme', themeRoutes);
 app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/forgot-password', authLimiter);
+app.use('/api/auth/register', publicLimiter);
+app.use('/api/auth/resend-confirmation', publicLimiter);
+app.use('/api/auth/reset-password', publicLimiter);
 app.use('/api/auth', authRoutes);
 app.use('/api/producers', producersRoutes);
 app.use('/api/admin', adminRoutes);
@@ -94,6 +106,7 @@ app.use('/api/admin', adminRoutes);
 // Routes supplémentaires
 app.use('/api/shifts', shiftsRoutes);
 app.use('/api/newsletters', newslettersRoutes);
+app.use('/api/producer-inquiries', publicLimiter);
 app.use('/api/producer-inquiries', producerInquiriesRoutes);
 app.use('/api/weekly-baskets', weeklyBasketsRoutes);
 app.use('/api/subscriptions', subscriptionsRoutes);
@@ -101,6 +114,7 @@ app.use('/api/subscription-requests/:id/contract', pdfLimiter);
 app.use('/api/subscription-requests', subscriptionRequestsRoutes);
 app.use('/api/distribution', distributionRoutes);
 app.use('/api/recipes', recipesRoutes);
+app.use('/api/contact', publicLimiter);
 app.use('/api/contact', contactRoutes);
 
 // Route 404 - si aucune route ne correspond
