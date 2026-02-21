@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect } from 'react';
+import { auth as authApi } from '../lib/api';
 
 const AuthContext = createContext();
 
@@ -9,42 +10,35 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Charger l'utilisateur au montage
     loadUser();
   }, []);
 
-  const loadUser = () => {
+  const loadUser = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const userData = localStorage.getItem('user');
-      
-      if (token && userData) {
-        setUser(JSON.parse(userData));
-      } else {
-        setUser(null);
-      }
-    } catch (error) {
-      console.error('Erreur lors du chargement de l\'utilisateur:', error);
+      const data = await authApi.me();
+      setUser(data.data.user);
+    } catch {
       setUser(null);
     } finally {
       setLoading(false);
     }
   };
 
-  const login = (token, userData) => {
-    localStorage.setItem('token', token);
-    localStorage.setItem('user', JSON.stringify(userData));
+  const login = (userData) => {
     setUser(userData);
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setUser(null);
+  const logout = async () => {
+    try {
+      await authApi.logout();
+    } catch {
+      // Ignorer les erreurs réseau
+    } finally {
+      setUser(null);
+    }
   };
 
   const updateUser = (userData) => {
-    localStorage.setItem('user', JSON.stringify(userData));
     setUser(userData);
   };
 

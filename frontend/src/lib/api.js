@@ -1,22 +1,16 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
 async function fetchAPI(endpoint, options = {}) {
-  const { method = 'GET', body, requiresAuth = false } = options;
+  const { method = 'GET', body } = options;
 
   const headers = {
     'Content-Type': 'application/json',
   };
 
-  if (requiresAuth) {
-    const token = localStorage.getItem('token');
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-  }
-
   const config = {
     method,
     headers,
+    credentials: 'include',
   };
 
   if (body) {
@@ -26,8 +20,8 @@ async function fetchAPI(endpoint, options = {}) {
   const response = await fetch(`${API_URL}${endpoint}`, config);
 
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || 'Une erreur est survenue');
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.error?.message || error.message || 'Une erreur est survenue');
   }
 
   return response.json();
@@ -271,13 +265,21 @@ export const auth = {
   logout: async () => {
     return fetchAPI('/auth/logout', {
       method: 'POST',
-      requiresAuth: true,
     });
   },
 
   me: async () => {
-    return fetchAPI('/auth/me', {
-      requiresAuth: true,
+    return fetchAPI('/auth/me');
+  },
+
+  confirmEmail: async (token) => {
+    return fetchAPI(`/auth/confirm/${token}`);
+  },
+
+  resendConfirmation: async (email) => {
+    return fetchAPI('/auth/resend-confirmation', {
+      method: 'POST',
+      body: { email },
     });
   },
 
@@ -618,12 +620,9 @@ const api = {
     },
 
     getContractBlobUrl: async (id) => {
-      const token = localStorage.getItem('token');
       const response = await fetch(`${API_URL}/subscriptions/${id}/contract`, {
         method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
+        credentials: 'include',
       });
       if (!response.ok) {
         const error = await response.json();
@@ -688,13 +687,9 @@ const api = {
     },
 
     downloadContract: async (id) => {
-      const token = localStorage.getItem('token');
-      
       const response = await fetch(`${API_URL}/subscription-requests/${id}/contract`, {
         method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+        credentials: 'include',
       });
 
       if (!response.ok) {

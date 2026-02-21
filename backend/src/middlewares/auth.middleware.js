@@ -1,17 +1,11 @@
 import jwt from 'jsonwebtoken';
 import { prisma } from '../config/database.js';
 import { asyncHandler } from './error.middleware.js';
-import { HttpUnauthorizedError, HttpForbiddenError } from '../utils/httpErrors.js';
+import { HttpUnauthorizedError } from '../utils/httpErrors.js';
 
 // Middleware d'authentification
-const authMiddleware = asyncHandler(async (req, res, next) => {
-    const authHeader = req.headers.authorization;
-
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        throw new HttpUnauthorizedError('Token d\'authentification manquant ou invalide.');
-    }
-
-    const token = authHeader.split(' ')[1];
+const authMiddleware = asyncHandler(async (req, _res, next) => {
+    const token = req.cookies?.authToken;
 
     if (!token) {
         throw new HttpUnauthorizedError('Token d\'authentification manquant ou invalide.');

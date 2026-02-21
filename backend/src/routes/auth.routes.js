@@ -2,6 +2,7 @@ import express from 'express';
 import {
   register,
   login,
+  logout,
   getMe,
   confirmEmail,
   resendConfirmationEmail,
@@ -29,6 +30,9 @@ router.post('/forgot-password', forgotPassword);
 
 // Réinitialisation du mot de passe
 router.post('/reset-password/:token', resetPassword);
+
+// Déconnexion
+router.post('/logout', logout);
 
 // Récupérer les informations de l'utilisateur connecté
 router.get('/me', authMiddleware, getMe);

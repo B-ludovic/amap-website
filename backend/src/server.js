@@ -6,6 +6,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import cookieParser from 'cookie-parser';
 import { connectDB, disconnectDB } from './config/database.js';
 import { errorHandler } from './middlewares/error.middleware.js';
 import { httpStatusCodes } from './utils/httpErrors.js';
@@ -45,6 +46,9 @@ app.use(express.json({ limit: '100kb' }));
 
 // Parse les données de formulaire URL-encoded
 app.use(express.urlencoded({ extended: true, limit: '100kb' }));
+
+// Parse les cookies
+app.use(cookieParser());
 
 // Rate limiting — authentification (anti brute-force)
 const authLimiter = rateLimit({

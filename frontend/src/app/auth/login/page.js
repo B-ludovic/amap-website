@@ -20,8 +20,8 @@ function LoginPage() {
     try {
       const data = await authApi.login(credentials);
 
-      // Sauvegarder le token et mettre à jour le contexte
-      login(data.data.token, data.data.user);
+      // Mettre à jour le contexte (le cookie est posé automatiquement par le backend)
+      login(data.data.user);
 
       // Redirection vers la page d'accueil
       router.push('/');

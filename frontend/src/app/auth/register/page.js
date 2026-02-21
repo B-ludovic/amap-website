@@ -3,28 +3,27 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useAuth } from '../../../contexts/AuthContext';
 import { auth as authApi } from '../../../lib/api';
 import { useModal } from '../../../contexts/ModalContext';
 import RegisterForm from '../../../components/auth/RegisterForm';
 
 function RegisterPage() {
   const router = useRouter();
-  const { login } = useAuth();
-  const { showError } = useModal();
+  const { showError, showSuccess } = useModal();
   const [loading, setLoading] = useState(false);
 
   const handleRegister = async (userData) => {
     setLoading(true);
 
     try {
-      const data = await authApi.register(userData);
+      await authApi.register(userData);
 
-      // Sauvegarder le token et mettre à jour le contexte
-      login(data.data.token, data.data.user);
+      showSuccess(
+        'Inscription réussie !',
+        'Un email de confirmation a été envoyé. Cliquez sur le lien pour activer votre compte.'
+      );
 
-      // Redirection vers la page d'accueil
-      router.push('/');
+      router.push('/auth/login');
     } catch (err) {
       showError('Erreur d\'inscription', err.message);
     } finally {

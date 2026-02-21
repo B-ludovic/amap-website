@@ -19,6 +19,16 @@ const generateToken = (userId) => {
     });
 };
 
+// Options du cookie d'auth
+// secure: false en dev (localhost HTTP), true en prod (HTTPS requis)
+const cookieOptions = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'Strict',
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+    path: '/',
+};
+
 // Inscription d'un nouvel utilisateur
 const register = asyncHandler(async (req, res) => {
     const { email, password, firstName, lastName, phone, address } = req.body;
@@ -106,11 +116,12 @@ const login = asyncHandler(async (req, res) => {
         throw new HttpUnauthorizedError('Ce compte a été supprimé.');
     }
 
-    // Generer un token JWT
+    // Generer un token JWT et le poser en cookie HttpOnly
     const token = generateToken(user.id);
+    res.cookie('authToken', token, cookieOptions);
 
     res.json({
-        success: true, 
+        success: true,
         message: 'Connexion réussie!',
         data: {
             user: {
@@ -121,7 +132,6 @@ const login = asyncHandler(async (req, res) => {
                 role: user.role,
                 emailVerified: user.emailVerified,
             },
-            token,
         }
     });
 });
@@ -318,9 +328,16 @@ const resetPassword = asyncHandler(async (req, res) => {
     });
 });
 
+// Déconnexion
+const logout = asyncHandler(async (_req, res) => {
+    res.clearCookie('authToken', { path: '/' });
+    res.json({ success: true, message: 'Déconnexion réussie.' });
+});
+
 export {
     register,
     login,
+    logout,
     getMe,
     confirmEmail,
     resendConfirmationEmail,

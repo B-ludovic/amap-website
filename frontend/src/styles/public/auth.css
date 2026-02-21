@@ -100,6 +100,26 @@
   color: var(--success-color);
 }
 
+.auth-error-icon {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--spacing-xl);
+  color: var(--error-color);
+}
+
+.auth-loading-icon {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--spacing-xl);
+  color: var(--text-secondary);
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 .auth-success-actions {
   margin-top: var(--spacing-2xl);
   display: flex;
