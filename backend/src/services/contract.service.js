@@ -105,27 +105,29 @@ class ContractService {
       ? 'Tarif solidaire (20%)'
       : 'Tarif normal (100%)';
 
-    // Calculer le nombre de semaines entre startDate et endDate
-    const start = new Date(subscription.startDate);
-    const end = new Date(subscription.endDate);
-    const diffTime = Math.abs(end - start);
-    const numberOfWeeks = Math.ceil(diffTime / (1000 * 60 * 60 * 24 * 7));
+    // Nombre de semaines fixe selon le type d'abonnement
+    const numberOfWeeks = subscription.type === 'ANNUAL' ? 49 : 12;
 
-    // Prix fixes pour les paniers (selon le contrat de référence)
+    // Prix fixes par panier
     const smallBasketPrice = 19;
     const largeBasketPrice = 29.80;
 
-    // Calculs des prix totaux et paiements échelonnés
-    const totalSmallPrice = (smallBasketPrice * numberOfWeeks).toFixed(2);
-    const totalLargePrice = (largeBasketPrice * numberOfWeeks).toFixed(2);
-    const halfSmallPrice = (totalSmallPrice / 2).toFixed(2);
-    const halfLargePrice = (totalLargePrice / 2).toFixed(2);
+    // Calculs des prix totaux
+    const totalSmall = smallBasketPrice * numberOfWeeks;   // 931 ou 228
+    const totalLarge = largeBasketPrice * numberOfWeeks;   // 1460.20 ou 357.60
 
-    // Pour le paiement en 4 fois (Math.round → arrondi naturel, dernier chèque ajusté)
-    const quarterSmall = Math.round(totalSmallPrice / 4);
-    const quarterLarge = Math.round(totalLargePrice / 4);
-    const lastQuarterSmall = (totalSmallPrice - (quarterSmall * 3)).toFixed(2);
-    const lastQuarterLarge = (totalLargePrice - (quarterLarge * 3)).toFixed(2);
+    const totalSmallPrice = totalSmall.toFixed(2);
+    const totalLargePrice = totalLarge.toFixed(2);
+
+    // Paiement en 2 fois
+    const halfSmallPrice = (totalSmall / 2).toFixed(2);
+    const halfLargePrice = (totalLarge / 2).toFixed(2);
+
+    // Paiement en 4 fois (3 chèques identiques + 1 chèque ajusté)
+    const quarterSmall = Math.round(totalSmall / 4);
+    const quarterLarge = Math.round(totalLarge / 4);
+    const lastQuarterSmall = (totalSmall - quarterSmall * 3).toFixed(2);
+    const lastQuarterLarge = (totalLarge - quarterLarge * 3).toFixed(2);
     
     const quarterPaymentSmallText = `3 chèques de ${quarterSmall}€<br>et 1 chèque de ${lastQuarterSmall}€`;
     const quarterPaymentLargeText = `3 chèques de ${quarterLarge}€<br>et 1 chèque de ${lastQuarterLarge}€`;
