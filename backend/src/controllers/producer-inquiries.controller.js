@@ -67,8 +67,10 @@ const submitInquiry = asyncHandler(async (req, res) => {
 // RÉCUPÉRER TOUTES LES DEMANDES (ADMIN)
 const getAllInquiries = asyncHandler(async (req, res) => {
   const { status, page = 1, limit = 20 } = req.query;
+  const parsedPage = Math.max(parseInt(page) || 1, 1);
+  const parsedLimit = Math.min(parseInt(limit) || 20, 100);
 
-  const skip = (parseInt(page) - 1) * parseInt(limit);
+  const skip = (parsedPage - 1) * parsedLimit;
 
   let where = {};
 
@@ -80,7 +82,7 @@ const getAllInquiries = asyncHandler(async (req, res) => {
     prisma.producerInquiry.findMany({
       where,
       skip,
-      take: parseInt(limit),
+      take: parsedLimit,
       orderBy: {
         createdAt: 'desc'
       }
@@ -94,9 +96,9 @@ const getAllInquiries = asyncHandler(async (req, res) => {
       inquiries,
       pagination: {
         total,
-        page: parseInt(page),
-        limit: parseInt(limit),
-        totalPages: Math.ceil(total / parseInt(limit))
+        page: parsedPage,
+        limit: parsedLimit,
+        totalPages: Math.ceil(total / parsedLimit)
       }
     }
   });

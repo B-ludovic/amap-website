@@ -83,8 +83,10 @@ const submitSubscriptionRequest = asyncHandler(async (req, res) => {
 // RÉCUPÉRER TOUTES LES DEMANDES D'ABONNEMENT (ADMIN)
 const getSubscriptionRequests = asyncHandler(async (req, res) => {
   const { status, page = 1, limit = 20 } = req.query;
+  const parsedPage = Math.max(parseInt(page) || 1, 1);
+  const parsedLimit = Math.min(parseInt(limit) || 20, 100);
 
-  const skip = (parseInt(page) - 1) * parseInt(limit);
+  const skip = (parsedPage - 1) * parsedLimit;
 
   let where = {};
 
@@ -96,7 +98,7 @@ const getSubscriptionRequests = asyncHandler(async (req, res) => {
     prisma.subscriptionRequest.findMany({
       where,
       skip,
-      take: parseInt(limit),
+      take: parsedLimit,
       orderBy: {
         createdAt: 'desc'
       }
@@ -110,9 +112,9 @@ const getSubscriptionRequests = asyncHandler(async (req, res) => {
       requests,
       pagination: {
         total,
-        page: parseInt(page),
-        limit: parseInt(limit),
-        totalPages: Math.ceil(total / parseInt(limit))
+        page: parsedPage,
+        limit: parsedLimit,
+        totalPages: Math.ceil(total / parsedLimit)
       }
     }
   });
@@ -121,8 +123,10 @@ const getSubscriptionRequests = asyncHandler(async (req, res) => {
 // RÉCUPÉRER TOUS LES ABONNEMENTS (ADMIN)
 const getAllSubscriptions = asyncHandler(async (req, res) => {
   const { status, type, pricingType, page = 1, limit = 20 } = req.query;
+  const parsedPage = Math.max(parseInt(page) || 1, 1);
+  const parsedLimit = Math.min(parseInt(limit) || 20, 100);
 
-  const skip = (parseInt(page) - 1) * parseInt(limit);
+  const skip = (parsedPage - 1) * parsedLimit;
 
   let where = {};
 
@@ -142,7 +146,7 @@ const getAllSubscriptions = asyncHandler(async (req, res) => {
     prisma.subscription.findMany({
       where,
       skip,
-      take: parseInt(limit),
+      take: parsedLimit,
       include: {
         user: {
           select: {
@@ -180,9 +184,9 @@ const getAllSubscriptions = asyncHandler(async (req, res) => {
       subscriptions,
       pagination: {
         total,
-        page: parseInt(page),
-        limit: parseInt(limit),
-        totalPages: Math.ceil(total / parseInt(limit))
+        page: parsedPage,
+        limit: parsedLimit,
+        totalPages: Math.ceil(total / parsedLimit)
       }
     }
   });

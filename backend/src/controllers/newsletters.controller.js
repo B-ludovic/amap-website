@@ -11,8 +11,10 @@ import {
 // RÉCUPÉRER TOUTES LES NEWSLETTERS
 const getAllNewsletters = asyncHandler(async (req, res) => {
     const { type, sent, page = 1, limit = 20 } = req.query;
+    const parsedPage = Math.max(parseInt(page) || 1, 1);
+    const parsedLimit = Math.min(parseInt(limit) || 20, 100);
 
-    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const skip = (parsedPage - 1) * parsedLimit;
 
     let where = {};
 
@@ -30,7 +32,7 @@ const getAllNewsletters = asyncHandler(async (req, res) => {
         prisma.newsletter.findMany({
             where,
             skip,
-            take: parseInt(limit),
+            take: parsedLimit,
             include: {
                 author: {
                     select: {
@@ -54,9 +56,9 @@ const getAllNewsletters = asyncHandler(async (req, res) => {
             newsletters,
             pagination: {
                 total,
-                page: parseInt(page),
-                limit: parseInt(limit),
-                totalPages: Math.ceil(total / parseInt(limit))
+                page: parsedPage,
+                limit: parsedLimit,
+                totalPages: Math.ceil(total / parsedLimit)
             }
         }
     });

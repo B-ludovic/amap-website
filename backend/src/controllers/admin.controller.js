@@ -443,11 +443,13 @@ const deleteBasketType = asyncHandler(async (req, res) => {
 
 
 
-// RÉCUPÉRER TOUTES LES COMMANDES 
+// RÉCUPÉRER TOUTES LES COMMANDES
 const getAllOrders = asyncHandler(async (req, res) => {
   const { status, page = 1, limit = 20 } = req.query;
+  const parsedPage = Math.max(parseInt(page) || 1, 1);
+  const parsedLimit = Math.min(parseInt(limit) || 20, 100);
 
-  const skip = (parseInt(page) - 1) * parseInt(limit);
+  const skip = (parsedPage - 1) * parsedLimit;
 
   const where = status ? { status } : {};
 
@@ -455,7 +457,7 @@ const getAllOrders = asyncHandler(async (req, res) => {
     prisma.order.findMany({
       where,
       skip,
-      take: parseInt(limit),
+      take: parsedLimit,
       include: {
         user: {
           select: {
@@ -491,9 +493,9 @@ const getAllOrders = asyncHandler(async (req, res) => {
       orders,
       pagination: {
         total,
-        page: parseInt(page),
-        limit: parseInt(limit),
-        totalPages: Math.ceil(total / parseInt(limit))
+        page: parsedPage,
+        limit: parsedLimit,
+        totalPages: Math.ceil(total / parsedLimit)
       }
     }
   });
@@ -581,11 +583,13 @@ const getUserByEmail = asyncHandler(async (req, res) => {
   });
 });
 
-// RÉCUPÉRER TOUS LES UTILISATEURS 
+// RÉCUPÉRER TOUS LES UTILISATEURS
 const getAllUsers = asyncHandler(async (req, res) => {
   const { role, page = 1, limit = 20 } = req.query;
+  const parsedPage = Math.max(parseInt(page) || 1, 1);
+  const parsedLimit = Math.min(parseInt(limit) || 20, 100);
 
-  const skip = (parseInt(page) - 1) * parseInt(limit);
+  const skip = (parsedPage - 1) * parsedLimit;
 
   const where = {
     deletedAt: null, // Exclure les soft deleted
@@ -596,7 +600,7 @@ const getAllUsers = asyncHandler(async (req, res) => {
     prisma.user.findMany({
       where,
       skip,
-      take: parseInt(limit),
+      take: parsedLimit,
       select: {
         id: true,
         email: true,
@@ -627,9 +631,9 @@ const getAllUsers = asyncHandler(async (req, res) => {
       users,
       pagination: {
         total,
-        page: parseInt(page),
-        limit: parseInt(limit),
-        totalPages: Math.ceil(total / parseInt(limit))
+        page: parsedPage,
+        limit: parsedLimit,
+        totalPages: Math.ceil(total / parsedLimit)
       }
     }
   });
