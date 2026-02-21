@@ -13,11 +13,11 @@ function Footer() {
           {/* Colonne 1 : À propos */}
           <div className="footer-column">
             <h3 className="footer-title">
-              <Image 
-                src="/icons/pea.png" 
-                alt="" 
-                width={24} 
-                height={24}
+              <Image
+                src="/icons/logo.png"
+                alt="Logo Aux P'tits Pois"
+                width={32}
+                height={32}
                 className="footer-icon"
               />
               Aux P&apos;tits Pois
