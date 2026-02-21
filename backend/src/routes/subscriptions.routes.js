@@ -10,7 +10,8 @@ import {
   getMySubscription,
   submitSubscriptionRequest,
   getSubscriptionRequests,
-  getSubscriptionStats
+  getSubscriptionStats,
+  generateContractFromSubscription
 } from '../controllers/subscriptions.controller.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { adminOnly } from '../middlewares/role.middleware.js';
@@ -27,6 +28,7 @@ router.get('/me', authMiddleware, getMySubscription);
 router.get('/', authMiddleware, adminOnly, getAllSubscriptions);
 router.get('/stats', authMiddleware, adminOnly, getSubscriptionStats);
 router.get('/requests', authMiddleware, adminOnly, getSubscriptionRequests);
+router.get('/:id/contract', authMiddleware, adminOnly, generateContractFromSubscription);
 router.get('/:id', authMiddleware, adminOnly, getSubscriptionById);
 router.post('/', authMiddleware, adminOnly, createSubscription);
 router.put('/:id', authMiddleware, adminOnly, updateSubscription);

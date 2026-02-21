@@ -1,6 +1,7 @@
 import { prisma } from '../config/database.js';
 import { asyncHandler } from '../middlewares/error.middleware.js';
 import emailService from '../services/email.service.js';
+import contractService from '../services/contract.service.js';
 import {
   HttpNotFoundError,
   HttpBadRequestError,
@@ -561,6 +562,57 @@ const getSubscriptionStats = asyncHandler(async (req, res) => {
   });
 });
 
+// GÉNÉRER LE CONTRAT PDF D'UN ABONNEMENT (ADMIN)
+const generateContractFromSubscription = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  // 1. Récupérer l'abonnement avec les relations nécessaires
+  const subscription = await prisma.subscription.findUnique({
+    where: { id },
+    include: {
+      user: {
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          phone: true,
+          address: true
+        }
+      },
+      pickupLocation: true
+    }
+  });
+
+  if (!subscription) {
+    throw new HttpNotFoundError('Abonnement introuvable');
+  }
+
+  // 2. Retrouver la demande associée pour récupérer le paymentType
+  const request = await prisma.subscriptionRequest.findFirst({
+    where: {
+      email: subscription.user.email,
+      type: subscription.type,
+      basketSize: subscription.basketSize,
+      status: 'APPROVED'
+    },
+    orderBy: { createdAt: 'desc' }
+  });
+
+  const paymentType = request?.paymentType ?? '1';
+
+  // 3. Générer le PDF
+  const pdfBuffer = await contractService.generateContract(subscription, subscription.user, paymentType);
+
+  // 4. Renvoyer le PDF en inline pour affichage dans le navigateur
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', `inline; filename="Contrat_${subscription.subscriptionNumber}_${subscription.user.lastName}.pdf"`);
+  res.setHeader('Content-Length', pdfBuffer.length);
+  res.setHeader('Cache-Control', 'no-cache');
+
+  res.end(pdfBuffer, 'binary');
+});
+
 export {
   getAllSubscriptions,
   getSubscriptionById,
@@ -572,5 +624,6 @@ export {
   getMySubscription,
   submitSubscriptionRequest,
   getSubscriptionRequests,
-  getSubscriptionStats
+  getSubscriptionStats,
+  generateContractFromSubscription
 };
