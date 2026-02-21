@@ -74,6 +74,12 @@ const register = asyncHandler(async (req, res) => {
     // Envoyer email de vérification
     await emailService.sendEmailVerification(user, emailVerifyToken);
 
+    // En développement, afficher l'URL de confirmation dans la console
+    if (process.env.NODE_ENV !== 'production') {
+        const verifyUrl = `${process.env.FRONTEND_URL}/auth/confirm-email/${emailVerifyToken}`;
+        console.log(`\n🔗 [DEV] URL de confirmation email pour ${email}:\n   ${verifyUrl}\n`);
+    }
+
     res.status(httpStatusCodes.CREATED).json({
         success: true,
         message: 'Inscription réussie ! Consultez votre email pour confirmer votre adresse.',
@@ -231,6 +237,11 @@ const resendConfirmationEmail = asyncHandler(async (req, res) => {
     });
 
     await emailService.sendEmailVerification(user, emailVerifyToken);
+
+    if (process.env.NODE_ENV !== 'production') {
+        const verifyUrl = `${process.env.FRONTEND_URL}/auth/confirm-email/${emailVerifyToken}`;
+        console.log(`\n🔗 [DEV] URL de confirmation email pour ${user.email}:\n   ${verifyUrl}\n`);
+    }
 
     res.json({
         success: true,
