@@ -62,8 +62,14 @@ function RegisterForm({ onSubmit, loading }) {
       newErrors.confirmPassword = 'Les mots de passe ne correspondent pas';
     }
 
-    if (formData.phone && !/^[0-9\s\-\+\(\)]+$/.test(formData.phone)) {
+    if (!formData.phone) {
+      newErrors.phone = 'Téléphone requis';
+    } else if (!/^[0-9\s\-\+\(\)]+$/.test(formData.phone)) {
       newErrors.phone = 'Numéro de téléphone invalide';
+    }
+
+    if (!formData.address) {
+      newErrors.address = 'Adresse requise';
     }
 
     return newErrors;
@@ -155,7 +161,7 @@ function RegisterForm({ onSubmit, loading }) {
 
       <div className="form-group">
         <label htmlFor="phone" className="form-label">
-          Téléphone (optionnel)
+          Téléphone
         </label>
         <div className="input-wrapper">
           <Phone size={20} className="input-icon" />
@@ -177,7 +183,7 @@ function RegisterForm({ onSubmit, loading }) {
 
       <div className="form-group">
         <label htmlFor="address" className="form-label">
-          Adresse (optionnel)
+          Adresse
         </label>
         <div className="input-wrapper">
           <MapPin size={20} className="input-icon" />
@@ -192,6 +198,9 @@ function RegisterForm({ onSubmit, loading }) {
             disabled={loading}
           />
         </div>
+        {errors.address && (
+          <span className="form-error">{errors.address}</span>
+        )}
       </div>
 
       <div className="form-group">

@@ -24,7 +24,7 @@ const register = asyncHandler(async (req, res) => {
     const { email, password, firstName, lastName, phone, address } = req.body;
 
     // Verifier que tous les champs sont fournis
-    if (!email || !password || !firstName || !lastName) {
+    if (!email || !password || !firstName || !lastName || !phone || !address) {
         throw new HttpBadRequestError('Tous les champs sont requis.');
     }
 
