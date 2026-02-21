@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import api from "../../../lib/api";
 import { useModal } from "../../../contexts/ModalContext";
 import SubscriptionDetailModal from "../../../components/admin/SubscriptionDetailModal";
+import ContractModal from "../../../components/admin/ContractModal";
 import "../../../styles/admin/components.css";
 import "../../../styles/admin/dashboard.css";
 import "../../../styles/admin/layout.css";
@@ -31,6 +32,8 @@ export default function AdminSubscriptionsPage() {
   });
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedSubscription, setSelectedSubscription] = useState(null);
+  const [isContractModalOpen, setIsContractModalOpen] = useState(false);
+  const [selectedSubscriptionForContract, setSelectedSubscriptionForContract] = useState(null);
   
   const { showSuccess, showError } = useModal();
 
@@ -123,6 +126,11 @@ export default function AdminSubscriptionsPage() {
     } catch (error) {
       showError('Erreur', error.response?.data?.message || 'Erreur lors de l\'annulation');
     }
+  };
+
+  const handleViewContract = (sub) => {
+    setSelectedSubscriptionForContract(sub);
+    setIsContractModalOpen(true);
   };
 
   const handleFilterChange = (key, value) => {
@@ -308,9 +316,13 @@ export default function AdminSubscriptionsPage() {
               {filteredSubscriptions.map((sub) => (
                 <tr key={sub.id}>
                   <td>
-                    <div className="subscription-number">
+                    <button
+                      className="subscription-number subscription-number-link"
+                      onClick={() => handleViewContract(sub)}
+                      title="Voir le contrat"
+                    >
                       {sub.subscriptionNumber}
-                    </div>
+                    </button>
                   </td>
 
                   <td>
@@ -406,6 +418,16 @@ export default function AdminSubscriptionsPage() {
             </tbody>
           </table>
         </div>
+      )}
+
+      {isContractModalOpen && selectedSubscriptionForContract && (
+        <ContractModal
+          subscription={selectedSubscriptionForContract}
+          onClose={() => {
+            setIsContractModalOpen(false);
+            setSelectedSubscriptionForContract(null);
+          }}
+        />
       )}
 
       {isDetailModalOpen && selectedSubscription && (

@@ -195,6 +195,21 @@
   color: var(--text-dark);
 }
 
+.subscription-number-link {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  color: var(--primary-color);
+  transition: opacity 0.15s ease;
+}
+
+.subscription-number-link:hover {
+  opacity: 0.75;
+}
+
 /* Subscriber Info */
 .subscriber-info {
   display: flex;
