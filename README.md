@@ -183,20 +183,22 @@ npm start
 ## ✨ Fonctionnalités principales
 
 ### Pour les adhérents
-- ✅ Inscription et création de compte
+- ✅ Inscription et création de compte (prénom, nom, email, téléphone, adresse — tous obligatoires)
 - ✅ Connexion avec authentification JWT
 - ✅ Réinitialisation de mot de passe (forgot password / reset password)
-- ✅ Demande d'abonnement (annuel ou découverte)
+- ✅ Demande d'abonnement en ligne avec choix de la modalité de paiement (obligatoire)
 - ✅ Consultation du panier de la semaine
 - ✅ Suggestions de recettes basées sur les légumes du panier
 - ✅ Recherche de recettes (par nom ou par ingrédients)
 - ✅ Visualisation des producteurs partenaires
-- ✅ Gestion du profil
+- ✅ Gestion du profil (affichage adresse, téléphone)
 - ✅ Envoi d'emails automatiques (bienvenue, confirmation, etc.)
 
 ### Pour les administrateurs
 - ✅ Gestion des demandes d'abonnement
-- ✅ Génération de contrats d'adhésion en PDF
+- ✅ Génération de contrats d'adhésion en PDF (Puppeteer + Handlebars)
+- ✅ Visualisation du contrat directement dans un modal (iframe) avec bouton de téléchargement
+- ✅ Contrats pré-remplis automatiquement (coordonnées client, ville, date de signature, modalité de paiement)
 - ✅ Création des paniers hebdomadaires avec calcul automatique des poids
 - ✅ Gestion du stock des produits
 - ✅ Organisation des permanences avec assignation de bénévoles
@@ -241,8 +243,9 @@ npm start
 ## 📊 Base de données
 
 Le schéma Prisma comprend :
-- **Users** - Utilisateurs (membres, bénévoles, admins)
+- **Users** - Utilisateurs (membres, bénévoles, admins) — avec téléphone et adresse obligatoires
 - **Subscriptions** - Abonnements aux paniers
+- **SubscriptionRequests** - Demandes d'abonnement avec modalité de paiement
 - **WeeklyBaskets** - Paniers hebdomadaires
 - **Products** - Produits avec gestion du stock
 - **Producers** - Producteurs locaux
