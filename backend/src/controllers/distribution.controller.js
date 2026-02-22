@@ -18,12 +18,13 @@ const getDistributionList = asyncHandler(async (req, res) => {
     throw new HttpNotFoundError('Panier hebdomadaire introuvable');
   }
 
-  // Récupérer tous les abonnements actifs
+  // Récupérer tous les abonnements actifs (utilisateurs non supprimés)
   const activeSubscriptions = await prisma.subscription.findMany({
     where: {
       status: 'ACTIVE',
       startDate: { lte: weeklyBasket.distributionDate },
-      endDate: { gte: weeklyBasket.distributionDate }
+      endDate: { gte: weeklyBasket.distributionDate },
+      user: { deletedAt: null }
     },
     include: {
       user: {

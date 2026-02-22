@@ -25,6 +25,7 @@ const getAllShifts = asyncHandler(async (req, res) => {
     take: parseInt(limit),
     include: {
       volunteers: {
+        where: { user: { deletedAt: null } },
         include: {
           user: {
             select: {
@@ -63,6 +64,7 @@ const getShiftById = asyncHandler(async (req, res) => {
     where: { id },
     include: {
       volunteers: {
+        where: { user: { deletedAt: null } },
         include: {
           user: {
             select: {
