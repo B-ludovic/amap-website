@@ -616,6 +616,11 @@ const getAllUsers = asyncHandler(async (req, res) => {
             subscriptions: true,
             shiftVolunteers: true
           }
+        },
+        subscriptions: {
+          select: {
+            _count: { select: { pickups: true } }
+          }
         }
       },
       orderBy: {
@@ -625,10 +630,18 @@ const getAllUsers = asyncHandler(async (req, res) => {
     prisma.user.count({ where })
   ]);
 
+  const mappedUsers = users.map(({ subscriptions, ...rest }) => ({
+    ...rest,
+    _count: {
+      ...rest._count,
+      pickups: subscriptions.reduce((sum, s) => sum + s._count.pickups, 0)
+    }
+  }));
+
   res.json({
     success: true,
     data: {
-      users,
+      users: mappedUsers,
       pagination: {
         total,
         page: parsedPage,

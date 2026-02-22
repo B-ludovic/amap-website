@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import api from "../../../lib/api";
 import { useModal } from "../../../contexts/ModalContext";
 import { Search, UserCog, Trash2, Shield, User, Crown } from "lucide-react";
@@ -14,7 +13,6 @@ const ROLES = [
 ];
 
 export default function AdminUsersPage() {
-  const router = useRouter();
   const { showConfirm, showSuccess, showError, showModal } = useModal();
   
   const [users, setUsers] = useState([]);
@@ -231,7 +229,7 @@ export default function AdminUsersPage() {
                       </td>
                       <td>
                         <span className="admin-order-count">
-                          {user._count?.orders || 0}
+                          {user._count?.pickups || 0}
                         </span>
                       </td>
                       <td>
@@ -289,7 +287,7 @@ export default function AdminUsersPage() {
                     </div>
                     <div className="admin-user-card-row">
                       <span className="admin-user-card-label">Commandes</span>
-                      <span className="admin-order-count">{user._count?.orders || 0}</span>
+                      <span className="admin-order-count">{user._count?.pickups || 0}</span>
                     </div>
                     <div className="admin-user-card-row">
                       <span className="admin-user-card-label">Inscription</span>
