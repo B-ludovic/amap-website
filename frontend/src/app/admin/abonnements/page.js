@@ -13,11 +13,9 @@ import "../../../styles/admin/subscription.css";
 import {
     CreditCard,
     Eye,
-    Edit2,
     XCircle,
     PauseCircle,
     PlayCircle,
-    Filter,
     Search
 } from "lucide-react";
 
@@ -305,7 +303,7 @@ export default function AdminSubscriptionsPage() {
                 <th>Panier</th>
                 <th>Période</th>
                 <th>Statut</th>
-                <th>Retraits</th>
+                <th>Retraits restants</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -367,7 +365,7 @@ export default function AdminSubscriptionsPage() {
 
                   <td>
                     <div className="pickups-count">
-                      {sub._count?.pickups || 0}
+                      {sub.pickupsRemaining ?? 0}
                     </div>
                   </td>
 
