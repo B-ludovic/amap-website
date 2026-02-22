@@ -9,7 +9,7 @@ import "../../../styles/admin/components.css";
 import "../../../styles/admin/dashboard.css";
 import "../../../styles/admin/layout.css";
 import "../../../styles/admin/subscription.css";
-import { CreditCard, Eye, Search } from "lucide-react";
+import { CreditCard, Eye, PauseCircle, XCircle, Search } from "lucide-react";
 
 export default function AdminSubscriptionsPage() {
   const [subscriptions, setSubscriptions] = useState([]);
