@@ -1,13 +1,15 @@
 import { HttpError, httpStatusCodes } from '../utils/httpErrors.js';
 
 const errorHandler = (err, req, res, next) => {
-  // Log l'erreur pour le débogage
-  console.error('Erreur capturée:', {
-    name: err.name,
-    message: err.message,
-    path: req.path,
-    method: req.method,
-  });
+  // Log l'erreur pour le débogage (désactivé en production pour éviter la fuite d'infos)
+  if (process.env.NODE_ENV !== 'production') {
+    console.error('Erreur capturée:', {
+      name: err.name,
+      message: err.message,
+      path: req.path,
+      method: req.method,
+    });
+  }
 
   // Si c'est une de nos erreurs HTTP custom
   if (err instanceof HttpError) {
@@ -29,7 +31,7 @@ const errorHandler = (err, req, res, next) => {
       error: {
         message: 'Erreur de validation des données',
         type: 'ValidationError',
-        details: err.errors, // Détails des champs invalides
+        ...(process.env.NODE_ENV !== 'production' && { details: err.errors }),
       },
     });
   }
