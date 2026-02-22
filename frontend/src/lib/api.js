@@ -818,6 +818,20 @@ const api = {
       });
     },
   },
+  closures: {
+    getAll: async () => fetchAPI('/closures', { requiresAuth: true }),
+
+    create: async (data) => fetchAPI('/closures', {
+      method: 'POST',
+      body: data,
+      requiresAuth: true,
+    }),
+
+    delete: async (id) => fetchAPI(`/closures/${id}`, {
+      method: 'DELETE',
+      requiresAuth: true,
+    }),
+  },
 };
 
 export default api;

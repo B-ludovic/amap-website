@@ -1,0 +1,204 @@
+/* Fermetures AMAP Page Styles */
+
+/* ── Compteur quota ── */
+
+.closure-quota {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+  margin-bottom: var(--spacing-xl);
+}
+
+.closure-quota-bar-wrap {
+  flex: 1;
+  background: var(--bg-gray);
+  border-radius: 999px;
+  height: 8px;
+  overflow: hidden;
+}
+
+.closure-quota-bar {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--color-primary);
+  transition: width 0.3s;
+}
+
+.closure-quota-bar.full {
+  background: #dc2626;
+}
+
+.closure-quota-label {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.closure-quota-label strong {
+  color: var(--text-primary);
+}
+
+/* ── Liste des fermetures ───────────────────────────────────────────── */
+
+.closures-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.closure-card {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+}
+
+.closure-card.past {
+  opacity: 0.6;
+}
+
+.closure-card-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--border-radius-sm);
+  background: #fee2e2;
+  color: #dc2626;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.closure-card.past .closure-card-icon {
+  background: var(--bg-gray);
+  color: var(--text-muted);
+}
+
+.closure-card-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.closure-card-dates {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+}
+
+.closure-card-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-top: 2px;
+}
+
+.closure-card-duration {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.closure-card-reason {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  font-style: italic;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.closure-card-tag {
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-weight: 500;
+}
+
+.closure-card-tag.future {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.closure-card-tag.ongoing {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.closure-card-tag.past {
+  background: var(--bg-gray);
+  color: var(--text-muted);
+}
+
+/* ── ClosureModal ───────────────────────────────────────────────────── */
+
+.closure-modal-info {
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: flex-start;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: var(--border-radius-sm);
+  padding: var(--spacing-md);
+  font-size: 0.875rem;
+  color: #1e40af;
+  margin-bottom: var(--spacing-md);
+}
+
+.closure-modal-info svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.closure-modal-warning {
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: flex-start;
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+  border-radius: var(--border-radius-sm);
+  padding: var(--spacing-md);
+  font-size: 0.875rem;
+  color: #92400e;
+  margin-top: var(--spacing-md);
+}
+
+.closure-modal-warning svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: #d97706;
+}
+
+.closure-modal-error {
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: flex-start;
+  background: #fee2e2;
+  border: 1px solid #fca5a5;
+  border-radius: var(--border-radius-sm);
+  padding: var(--spacing-md);
+  font-size: 0.875rem;
+  color: #b91c1c;
+  margin-top: var(--spacing-md);
+}
+
+.closure-modal-error svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.closure-quota-exhausted {
+  text-align: center;
+  padding: var(--spacing-xl) 0;
+  color: var(--text-muted);
+}
+
+.closure-quota-exhausted svg {
+  color: #dc2626;
+  margin-bottom: var(--spacing-sm);
+}

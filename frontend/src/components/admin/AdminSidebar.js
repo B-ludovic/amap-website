@@ -18,7 +18,8 @@ import {
   Mail,
   UserPlus,
   CreditCard,
-  Sprout
+  Sprout,
+  DoorClosed
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
@@ -124,6 +125,11 @@ export default function AdminSidebar({ currentPath }) {
       title: 'Communication',
       icon: Mail,
       path: '/admin/communication'
+    },
+    {
+      title: 'Fermetures AMAP',
+      icon: DoorClosed,
+      path: '/admin/fermetures'
     },
     {
       title: 'Paramètres',
