@@ -1,13 +1,12 @@
 import { Router } from 'express';
-import { authenticate, requireAdmin } from '../middlewares/auth.middleware.js';
+import { authMiddleware } from '../middlewares/auth.middleware.js';
+import { adminOnly } from '../middlewares/role.middleware.js';
 import { getAllClosures, createClosure, deleteClosure } from '../controllers/closures.controller.js';
 
 const router = Router();
 
-router.use(authenticate, requireAdmin);
-
-router.get('/', getAllClosures);
-router.post('/', createClosure);
-router.delete('/:id', deleteClosure);
+router.get('/', authMiddleware, adminOnly, getAllClosures);
+router.post('/', authMiddleware, adminOnly, createClosure);
+router.delete('/:id', authMiddleware, adminOnly, deleteClosure);
 
 export default router;
