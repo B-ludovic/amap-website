@@ -49,7 +49,7 @@ export default function PauseModal({ subscription, onClose }) {
         setError('');
         setLoading(true);
         try {
-          const { default: api } = await import('../../../lib/api');
+          const { default: api } = await import('../../lib/api');
           await api.subscriptions.pause(subscription.id, { startDate, endDate, reason: reason || undefined });
           onClose(true);
         } catch (err) {
