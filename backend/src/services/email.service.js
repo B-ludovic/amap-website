@@ -70,7 +70,7 @@ class EmailService {
         return { success: false, error };
       }
 
-      console.log('✅ Email bienvenue envoyé à', user.email);
+      if (process.env.NODE_ENV !== 'production') console.log('[DEV] Email bienvenue envoyé');
       return { success: true, data };
     } catch (error) {
       console.error('Erreur envoi email bienvenue:', error);
@@ -138,7 +138,7 @@ class EmailService {
         return { success: false, error };
       }
 
-      console.log('✅ Email vérification envoyé à', user.email);
+      if (process.env.NODE_ENV !== 'production') console.log('[DEV] Email vérification envoyé');
       return { success: true, data };
     } catch (error) {
       console.error('Erreur envoi email vérification:', error);
@@ -217,7 +217,7 @@ class EmailService {
         return { success: false, error };
       }
 
-      console.log('✅ Email reset password envoyé à', user.email);
+      if (process.env.NODE_ENV !== 'production') console.log('[DEV] Email reset password envoyé');
       return { success: true, data };
     } catch (error) {
       console.error('Erreur envoi email reset password:', error);
@@ -292,7 +292,7 @@ class EmailService {
         return { success: false, error };
       }
 
-      console.log('✅ Email confirmation demande envoyé à', request.email);
+      if (process.env.NODE_ENV !== 'production') console.log('[DEV] Email confirmation demande envoyé');
       return { success: true, data };
     } catch (error) {
       console.error('Erreur envoi email confirmation demande:', error);
@@ -360,7 +360,7 @@ class EmailService {
         return { success: false, error };
       }
 
-      console.log('✅ Email confirmation producteur envoyé à', inquiry.email);
+      if (process.env.NODE_ENV !== 'production') console.log('[DEV] Email confirmation producteur envoyé');
       return { success: true, data };
     } catch (error) {
       console.error('Erreur envoi email confirmation producteur:', error);
@@ -423,7 +423,7 @@ class EmailService {
         return { success: false, error };
       }
 
-      console.log('✅ Email contact envoyé depuis', email);
+      if (process.env.NODE_ENV !== 'production') console.log('[DEV] Email contact envoyé');
       return { success: true, data };
     } catch (error) {
       console.error('Erreur envoi email contact:', error);
@@ -504,7 +504,7 @@ class EmailService {
         }
       }
 
-      console.log(`✅ Newsletter envoyée : ${results.sent} succès, ${results.failed} échecs`);
+      if (process.env.NODE_ENV !== 'production') console.log(`[DEV] Newsletter envoyée : ${results.sent} succès, ${results.failed} échecs`);
       return { success: true, results };
     } catch (error) {
       console.error('Erreur envoi newsletter:', error);
@@ -588,7 +588,7 @@ class EmailService {
         return { success: false, error };
       }
 
-      console.log('✅ Email confirmation abonnement envoyé à', user.email);
+      if (process.env.NODE_ENV !== 'production') console.log('[DEV] Email confirmation abonnement envoyé');
       return { success: true, data };
     } catch (error) {
       console.error('Erreur envoi email confirmation abonnement:', error);
