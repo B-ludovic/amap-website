@@ -169,6 +169,10 @@ const getAllSubscriptions = asyncHandler(async (req, res) => {
           select: {
             pickups: true
           }
+        },
+        pauses: {
+          select: { startDate: true, endDate: true },
+          orderBy: { endDate: 'desc' }
         }
       },
       orderBy: {
@@ -177,6 +181,19 @@ const getAllSubscriptions = asyncHandler(async (req, res) => {
     }),
     prisma.subscription.count({ where })
   ]);
+
+  // Auto-reprise : passer ACTIVE les abonnements dont la pause est expirée
+  const now = new Date();
+  const toResume = subscriptions.filter(s =>
+    s.status === 'PAUSED' && s.pauses.length > 0 && new Date(s.pauses[0].endDate) < now
+  );
+  if (toResume.length > 0) {
+    await prisma.subscription.updateMany({
+      where: { id: { in: toResume.map(s => s.id) } },
+      data: { status: 'ACTIVE' }
+    });
+    toResume.forEach(s => { s.status = 'ACTIVE'; });
+  }
 
   res.json({
     success: true,
@@ -417,6 +434,18 @@ const pauseSubscription = asyncHandler(async (req, res) => {
 
   if (subscription.status !== 'ACTIVE') {
     throw new HttpBadRequestError('Seuls les abonnements actifs peuvent être mis en pause');
+  }
+
+  // Vérifier la limite de 2 semaines (14 jours) au total
+  const existingPauses = await prisma.subscriptionPause.findMany({ where: { subscriptionId: id } });
+  const daysUsed = existingPauses.reduce((sum, p) =>
+    sum + Math.round((new Date(p.endDate) - new Date(p.startDate)) / 86400000), 0
+  );
+  const daysRequested = Math.round((new Date(endDate) - new Date(startDate)) / 86400000);
+  if (daysUsed + daysRequested > 14) {
+    throw new HttpBadRequestError(
+      `Limite de 2 semaines de pause atteinte. Jours déjà utilisés : ${daysUsed}/14`
+    );
   }
 
   // Créer la pause
