@@ -196,6 +196,10 @@ npm start
 
 ### Pour les administrateurs
 - ✅ Gestion des demandes d'abonnement
+- ✅ Activation, résiliation et mise en pause des abonnements depuis le modal détail (avec confirmations sécurisées)
+- ✅ Pause individuelle des abonnements (limite 2 semaines/an par abonné)
+- ✅ Fermetures collectives de l'AMAP (3 semaines/an divisibles) avec newsletter automatique aux abonnés actifs
+- ✅ Suivi des retraits restants par abonnement (base 49 paniers/an, décompte hebdomadaire)
 - ✅ Génération de contrats d'adhésion en PDF (Puppeteer + Handlebars)
 - ✅ Visualisation du contrat directement dans un modal (iframe) avec bouton de téléchargement
 - ✅ Contrats pré-remplis automatiquement (coordonnées client, ville, date de signature, modalité de paiement)
@@ -210,7 +214,6 @@ npm start
 - ✅ Communication par newsletter avec envoi groupé
 - ✅ Interface admin complète avec sidebar navigation
 - ✅ Gestion des messages de contact (lecture, statut lu/non-lu/archivé, suppression, badge de notification dans la sidebar)
-- TODO Suivi de la distribution (qui a récupéré son panier)
 
 ### Recettes & Cuisine
 - ✅ Intégration API TheMealDB (base de données gratuite de recettes)
@@ -245,8 +248,11 @@ npm start
 Le schéma Prisma comprend :
 - **Users** - Utilisateurs (membres, bénévoles, admins) — avec téléphone et adresse obligatoires
 - **Subscriptions** - Abonnements aux paniers
+- **SubscriptionPause** - Pauses individuelles des abonnements (limite 2 semaines/an)
+- **AmapClosure** - Fermetures collectives de l'AMAP (limite 3 semaines/an)
 - **SubscriptionRequests** - Demandes d'abonnement avec modalité de paiement
 - **WeeklyBaskets** - Paniers hebdomadaires
+- **WeeklyPickup** - Retraits hebdomadaires (suivi de distribution)
 - **Products** - Produits avec gestion du stock
 - **Producers** - Producteurs locaux
 - **Shifts** - Permanences de distribution
