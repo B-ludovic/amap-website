@@ -169,7 +169,7 @@
   border: 2px dashed var(--border-color);
 }
 
-.empty-state svg {
+.empty-state > svg {
   color: var(--text-tertiary);
   margin-bottom: var(--spacing-md);
 }
@@ -183,6 +183,33 @@
 .empty-state p {
   color: var(--text-secondary);
   margin-bottom: var(--spacing-lg);
+}
+
+/* Boutons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+}
+
+.btn svg {
+  margin: 0;
+  flex-shrink: 0;
+}
+
+/* Barre de filtres */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+  padding: var(--spacing-md) 0;
+}
+
+.toolbar-filters {
+  display: flex;
+  gap: var(--spacing-sm);
 }
 
 /* Responsive */

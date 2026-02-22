@@ -270,7 +270,7 @@
   color: var(--text-muted);
 }
 
-.empty-state svg {
+.empty-state > svg {
   margin: 0 auto var(--spacing-md);
   opacity: 0.5;
 }
