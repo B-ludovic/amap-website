@@ -5,6 +5,7 @@ import api from "../../../lib/api";
 import { useModal } from "../../../contexts/ModalContext";
 import SubscriptionDetailModal from "../../../components/admin/SubscriptionDetailModal";
 import ContractModal from "../../../components/admin/ContractModal";
+import PauseModal from "../../../components/admin/PauseModal";
 import "../../../styles/admin/components.css";
 import "../../../styles/admin/dashboard.css";
 import "../../../styles/admin/layout.css";
@@ -34,6 +35,8 @@ export default function AdminSubscriptionsPage() {
   const [selectedSubscription, setSelectedSubscription] = useState(null);
   const [isContractModalOpen, setIsContractModalOpen] = useState(false);
   const [selectedSubscriptionForContract, setSelectedSubscriptionForContract] = useState(null);
+  const [isPauseModalOpen, setIsPauseModalOpen] = useState(false);
+  const [subscriptionToPause, setSubscriptionToPause] = useState(null);
   
   const { showSuccess, showError } = useModal();
 
@@ -78,24 +81,18 @@ export default function AdminSubscriptionsPage() {
     }
   };
 
-  const handlePause = async (subscriptionId) => {
-    const startDate = prompt('Date de début de pause (YYYY-MM-DD) :');
-    const endDate = prompt('Date de fin de pause (YYYY-MM-DD) :');
-    const reason = prompt('Raison (optionnel) :');
+  const handlePause = (sub) => {
+    setSubscriptionToPause(sub);
+    setIsPauseModalOpen(true);
+  };
 
-    if (!startDate || !endDate) return;
-
-    try {
-      await api.subscriptions.pause(subscriptionId, {
-        startDate,
-        endDate,
-        reason
-      });
+  const handlePauseClose = (shouldRefresh) => {
+    setIsPauseModalOpen(false);
+    setSubscriptionToPause(null);
+    if (shouldRefresh) {
       showSuccess('Succès', 'Abonnement mis en pause');
       fetchSubscriptions();
       fetchStats();
-    } catch (error) {
-      showError('Erreur', error.response?.data?.message || 'Erreur lors de la mise en pause');
     }
   };
 
@@ -387,7 +384,7 @@ export default function AdminSubscriptionsPage() {
                       {sub.status === 'ACTIVE' && (
                         <button
                           className="btn btn-icon"
-                          onClick={() => handlePause(sub.id)}
+                          onClick={() => handlePause(sub)}
                           title="Mettre en pause"
                         >
                           <PauseCircle size={18} />
@@ -440,6 +437,13 @@ export default function AdminSubscriptionsPage() {
             setSelectedSubscription(null);
           }}
           onUpdate={fetchSubscriptions}
+        />
+      )}
+
+      {isPauseModalOpen && subscriptionToPause && (
+        <PauseModal
+          subscription={subscriptionToPause}
+          onClose={handlePauseClose}
         />
       )}
     </div>
