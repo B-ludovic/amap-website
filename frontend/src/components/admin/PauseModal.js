@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { X, PauseCircle, AlertTriangle } from 'lucide-react';
+import { useModal } from '../../contexts/ModalContext';
 
 function formatDateFR(dateStr) {
   return new Date(dateStr).toLocaleDateString('fr-FR', {
@@ -22,6 +23,7 @@ function todayISO() {
 }
 
 export default function PauseModal({ subscription, onClose }) {
+  const { showConfirm } = useModal();
   const [startDate, setStartDate] = useState(todayISO());
   const [durationWeeks, setDurationWeeks] = useState(1);
   const [reason, setReason] = useState('');
@@ -39,18 +41,24 @@ export default function PauseModal({ subscription, onClose }) {
   const weeksRemaining = 2 - weeksUsed;
   const endDate = addDays(startDate, durationWeeks * 7);
 
-  async function handleConfirm() {
-    setError('');
-    setLoading(true);
-    try {
-      const { default: api } = await import('../../../lib/api');
-      await api.subscriptions.pause(subscription.id, { startDate, endDate, reason: reason || undefined });
-      onClose(true);
-    } catch (err) {
-      setError(err.response?.data?.message || 'Erreur lors de la mise en pause');
-    } finally {
-      setLoading(false);
-    }
+  function handleConfirm() {
+    showConfirm(
+      'Confirmer la mise en pause',
+      `Mettre en pause l'abonnement du ${formatDateFR(startDate)} au ${formatDateFR(endDate)} ? Aucune distribution ne sera générée pendant cette période.`,
+      async () => {
+        setError('');
+        setLoading(true);
+        try {
+          const { default: api } = await import('../../../lib/api');
+          await api.subscriptions.pause(subscription.id, { startDate, endDate, reason: reason || undefined });
+          onClose(true);
+        } catch (err) {
+          setError(err.response?.data?.message || 'Erreur lors de la mise en pause');
+        } finally {
+          setLoading(false);
+        }
+      }
+    );
   }
 
   return (

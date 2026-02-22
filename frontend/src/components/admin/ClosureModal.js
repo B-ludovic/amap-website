@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { X, DoorClosed, AlertTriangle, Mail } from 'lucide-react';
 import api from '../../lib/api';
+import { useModal } from '../../contexts/ModalContext';
 
 function todayISO() {
   return new Date().toISOString().split('T')[0];
@@ -21,6 +22,7 @@ function formatDateFR(dateStr) {
 }
 
 export default function ClosureModal({ daysUsed, daysRemaining, onClose }) {
+  const { showConfirm } = useModal();
   const [startDate, setStartDate] = useState(todayISO());
   const [endDate, setEndDate] = useState(addDays(todayISO(), 7));
   const [reason, setReason] = useState('');
@@ -31,21 +33,27 @@ export default function ClosureModal({ daysUsed, daysRemaining, onClose }) {
   const isExhausted = daysRemaining === 0;
   const wouldExceed = daysRequested > daysRemaining;
 
-  async function handleConfirm() {
-    setError('');
+  function handleConfirm() {
     if (new Date(endDate) <= new Date(startDate)) {
       setError('La date de fin doit être après la date de début.');
       return;
     }
-    setLoading(true);
-    try {
-      const result = await api.closures.create({ startDate, endDate, reason: reason || undefined });
-      onClose(true, result.data?.sentCount ?? 0);
-    } catch (err) {
-      setError(err.response?.data?.message || err.message || 'Erreur lors de la création');
-    } finally {
-      setLoading(false);
-    }
+    showConfirm(
+      'Confirmer la fermeture AMAP',
+      `Créer une fermeture du ${formatDateFR(startDate)} au ${formatDateFR(endDate)} ? Une newsletter sera automatiquement envoyée à tous les abonnés actifs.`,
+      async () => {
+        setError('');
+        setLoading(true);
+        try {
+          const result = await api.closures.create({ startDate, endDate, reason: reason || undefined });
+          onClose(true, result.data?.sentCount ?? 0);
+        } catch (err) {
+          setError(err.response?.data?.message || err.message || 'Erreur lors de la création');
+        } finally {
+          setLoading(false);
+        }
+      }
+    );
   }
 
   return (
