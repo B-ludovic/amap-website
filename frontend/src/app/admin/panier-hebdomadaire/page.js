@@ -344,6 +344,7 @@ export default function AdminWeeklyBasketPage() {
       {isModalOpen && (
         <WeeklyBasketModal
           basket={selectedBasket}
+          lastBasket={currentBasket || (baskets.length > 0 ? baskets[0] : null)}
           onClose={handleModalClose}
         />
       )}

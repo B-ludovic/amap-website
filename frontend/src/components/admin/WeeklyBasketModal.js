@@ -1,11 +1,30 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Plus, Trash2, ShoppingBasket } from 'lucide-react';
+import { X, Plus, Trash2, ShoppingBasket, RefreshCw } from 'lucide-react';
 import { useModal } from '../../contexts/ModalContext';
 import api from '../../lib/api';
 
-export default function WeeklyBasketModal({ basket, onClose }) {
+// Calcul du numéro de semaine ISO (lundi = début de semaine)
+const getISOWeekAndYear = (dateStr) => {
+  const [year, month, day] = dateStr.split('-').map(Number);
+  const date = new Date(year, month - 1, day);
+
+  // Décaler vers le jeudi de la même semaine ISO
+  const dayOfWeek = (date.getDay() + 6) % 7; // 0=Lun … 6=Dim
+  const thursday = new Date(year, month - 1, day - dayOfWeek + 3);
+
+  // Premier jeudi de l'année ISO (= fin de la semaine 1)
+  const isoYear = thursday.getFullYear();
+  const jan1 = new Date(isoYear, 0, 1);
+  const jan1Dow = (jan1.getDay() + 6) % 7;
+  const firstThursday = new Date(isoYear, 0, 1 + (3 - jan1Dow + 7) % 7);
+
+  const weekNum = 1 + Math.round((thursday - firstThursday) / (7 * 24 * 60 * 60 * 1000));
+  return { week: weekNum, year: isoYear };
+};
+
+export default function WeeklyBasketModal({ basket, lastBasket, onClose }) {
   const { showSuccess, showError } = useModal();
   const [loading, setLoading] = useState(false);
   const [products, setProducts] = useState([]);
@@ -18,20 +37,21 @@ export default function WeeklyBasketModal({ basket, onClose }) {
   const [composition, setComposition] = useState([]);
   const [errors, setErrors] = useState({});
   const [weightWarnings, setWeightWarnings] = useState({ small: false, large: false });
+  const [reconduireApplied, setReconduireApplied] = useState(false);
 
   useEffect(() => {
     fetchProducts();
     if (basket) {
       const date = new Date(basket.distributionDate);
       const formattedDate = date.toISOString().split('T')[0];
-      
+
       setFormData({
         weekNumber: basket.weekNumber.toString(),
         year: basket.year,
         distributionDate: formattedDate,
         notes: basket.notes || '',
       });
-      
+
       if (basket.items && basket.items.length > 0) {
         setComposition(
           basket.items.map(item => ({
@@ -56,13 +76,37 @@ export default function WeeklyBasketModal({ basket, onClose }) {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
+
+    if (name === 'distributionDate' && value) {
+      const { week, year } = getISOWeekAndYear(value);
+      setFormData(prev => ({
+        ...prev,
+        distributionDate: value,
+        weekNumber: week.toString(),
+        year,
+      }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
     }
+
+    if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
+  };
+
+  const handleReconduire = () => {
+    if (!lastBasket) return;
+    setComposition(
+      lastBasket.items.map(item => ({
+        productId: item.product?.id || item.productId,
+        quantitySmall: item.quantitySmall,
+        quantityLarge: item.quantityLarge,
+        product: item.product,
+      }))
+    );
+    if (lastBasket.notes) {
+      setFormData(prev => ({ ...prev, notes: lastBasket.notes }));
+    }
+    setReconduireApplied(true);
+    setTimeout(() => checkWeightLimits(), 0);
   };
 
   const handleAddProduct = () => {
@@ -87,12 +131,12 @@ export default function WeeklyBasketModal({ basket, onClose }) {
   const checkWeightLimits = () => {
     const smallWeight = calculateTotalWeight('small');
     const largeWeight = calculateTotalWeight('large');
-    
+
     setWeightWarnings({
       small: smallWeight < 2 || smallWeight > 4,
       large: largeWeight < 6 || largeWeight > 8
     });
-    
+
     return {
       small: smallWeight,
       large: largeWeight,
@@ -104,7 +148,7 @@ export default function WeeklyBasketModal({ basket, onClose }) {
   const handleProductChange = (index, field, value) => {
     setComposition(prev => {
       const newComposition = [...prev];
-      
+
       if (field === 'productId') {
         const selectedProduct = products.find(p => p.id === value);
         newComposition[index] = {
@@ -118,11 +162,10 @@ export default function WeeklyBasketModal({ basket, onClose }) {
           [field]: parseFloat(value) || 0
         };
       }
-      
+
       return newComposition;
     });
-    
-    // Recalculer les poids après modification
+
     setTimeout(() => checkWeightLimits(), 0);
   };
 
@@ -153,7 +196,6 @@ export default function WeeklyBasketModal({ basket, onClose }) {
       newErrors.composition = 'Tous les produits doivent avoir des quantités valides';
     }
 
-    // Vérification des poids
     const weights = checkWeightLimits();
     if (!weights.smallValid) {
       newErrors.weightSmall = `Poids Petit panier: ${weights.small.toFixed(2)} kg (recommandé: 2-4 kg)`;
@@ -169,9 +211,7 @@ export default function WeeklyBasketModal({ basket, onClose }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!validate()) {
-      return;
-    }
+    if (!validate()) return;
 
     setLoading(true);
 
@@ -204,6 +244,10 @@ export default function WeeklyBasketModal({ basket, onClose }) {
     }
   };
 
+  const formatShortDate = (dateStr) => new Date(dateStr).toLocaleDateString('fr-FR', {
+    day: 'numeric', month: 'long', year: 'numeric'
+  });
+
   return (
     <div className="modal-overlay" onClick={() => onClose(false)}>
       <div className="modal-container modal-large" onClick={(e) => e.stopPropagation()}>
@@ -220,7 +264,55 @@ export default function WeeklyBasketModal({ basket, onClose }) {
 
         <form onSubmit={handleSubmit}>
           <div className="modal-body">
-            {/* Informations de base */}
+
+            {/* Bouton Reconduire — uniquement en création */}
+            {!basket && lastBasket && (
+              <div className={`reconduire-banner${reconduireApplied ? ' reconduire-applied' : ''}`}>
+                <div className="reconduire-info">
+                  <RefreshCw size={18} />
+                  <div>
+                    <span className="reconduire-title">
+                      Semaine {lastBasket.weekNumber} · {lastBasket.year}
+                    </span>
+                    <span className="reconduire-subtitle">
+                      {lastBasket.items.length} produit{lastBasket.items.length > 1 ? 's' : ''} · {formatShortDate(lastBasket.distributionDate)}
+                    </span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  className={`btn btn-sm${reconduireApplied ? ' btn-success' : ' btn-secondary'}`}
+                  onClick={handleReconduire}
+                >
+                  {reconduireApplied ? '✓ Composition reprise' : 'Reconduire ce panier'}
+                </button>
+              </div>
+            )}
+
+            {/* Date de distribution — primaire, remplit automatiquement semaine/année */}
+            <div className="form-group">
+              <label htmlFor="distributionDate">
+                Date de distribution <span className="required">*</span>
+              </label>
+              <input
+                type="date"
+                id="distributionDate"
+                name="distributionDate"
+                value={formData.distributionDate}
+                onChange={handleChange}
+                className={errors.distributionDate ? 'input-error' : ''}
+              />
+              {formData.distributionDate && formData.weekNumber && (
+                <span className="week-preview">
+                  Semaine {formData.weekNumber} · {formData.year}
+                </span>
+              )}
+              {errors.distributionDate && (
+                <span className="error-message">{errors.distributionDate}</span>
+              )}
+            </div>
+
+            {/* Semaine / Année — auto-remplis, restent éditables */}
             <div className="form-row">
               <div className="form-group">
                 <label htmlFor="weekNumber">
@@ -260,23 +352,6 @@ export default function WeeklyBasketModal({ basket, onClose }) {
             </div>
 
             <div className="form-group">
-              <label htmlFor="distributionDate">
-                Date de distribution <span className="required">*</span>
-              </label>
-              <input
-                type="date"
-                id="distributionDate"
-                name="distributionDate"
-                value={formData.distributionDate}
-                onChange={handleChange}
-                className={errors.distributionDate ? 'input-error' : ''}
-              />
-              {errors.distributionDate && (
-                <span className="error-message">{errors.distributionDate}</span>
-              )}
-            </div>
-
-            <div className="form-group">
               <label htmlFor="notes">Notes (optionnel)</label>
               <textarea
                 id="notes"
@@ -308,7 +383,6 @@ export default function WeeklyBasketModal({ basket, onClose }) {
                 <span className="error-message">{errors.composition}</span>
               )}
 
-              {/* Affichage des poids totaux */}
               {composition.length > 0 && composition.some(item => item.product?.unit === 'KG') && (
                 <div className="weight-summary">
                   <div className={`weight-info ${weightWarnings.small ? 'weight-warning' : 'weight-ok'}`}>
