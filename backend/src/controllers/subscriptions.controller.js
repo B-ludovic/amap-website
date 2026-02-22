@@ -195,25 +195,20 @@ const getAllSubscriptions = asyncHandler(async (req, res) => {
     toResume.forEach(s => { s.status = 'ACTIVE'; });
   }
 
-  // Calcul des retraits restants par abonnement (semaines totales - fermetures AMAP - retraits déjà faits)
-  const closures = await prisma.amapClosure.findMany();
+  // Calcul des retraits restants : base fixe de 49 paniers/an (52 semaines - 3 semaines de fermeture)
+  // proratisée selon la durée réelle de l'abonnement, moins les retraits déjà effectués
+  const PICKUPS_PER_YEAR = 49;
+  const MS_PER_YEAR = 365.25 * 86400000;
+
   const subscriptionsWithRemaining = subscriptions.map(sub => {
     const subStart = new Date(sub.startDate);
     const subEnd = new Date(sub.endDate);
-    const weeksTotal = Math.round((subEnd - subStart) / (7 * 86400000));
-
-    const closureWeeksInPeriod = closures.reduce((sum, c) => {
-      const cStart = new Date(c.startDate);
-      const cEnd = new Date(c.endDate);
-      if (cEnd <= subStart || cStart >= subEnd) return sum;
-      const overlapStart = cStart < subStart ? subStart : cStart;
-      const overlapEnd = cEnd > subEnd ? subEnd : cEnd;
-      return sum + Math.round((overlapEnd - overlapStart) / (7 * 86400000));
-    }, 0);
+    const durationMs = subEnd - subStart;
+    const pickupsTotal = Math.round((durationMs / MS_PER_YEAR) * PICKUPS_PER_YEAR);
 
     return {
       ...sub,
-      pickupsRemaining: Math.max(0, weeksTotal - closureWeeksInPeriod - sub._count.pickups)
+      pickupsRemaining: Math.max(0, pickupsTotal - sub._count.pickups)
     };
   });
 
