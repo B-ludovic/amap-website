@@ -30,6 +30,10 @@ export default function AdminCommunicationPage() {
     const { showSuccess, showError } = useModal();
 
     useEffect(() => {
+        fetchStats();
+    }, []);
+
+    useEffect(() => {
         fetchNewsletters();
     }, [filter]);
 
@@ -164,7 +168,7 @@ export default function AdminCommunicationPage() {
 
       {/* Statistiques */}
       {stats && (
-        <div className="stats-grid">
+        <div className="communication-stats">
           <div className="stat-card">
             <div className="stat-icon primary">
               <Mail size={24} color="var(--primary-color)" />

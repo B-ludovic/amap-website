@@ -1,10 +1,10 @@
 /* Communication / Newsletters - Aux P'tits Pois */
 
-/* Grille de newsletters */
-.newsletters-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: var(--spacing-xl);
+/* Liste de newsletters */
+.newsletters-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
   margin-top: var(--spacing-xl);
 }
 
@@ -34,6 +34,22 @@
   border-bottom: 1px solid var(--border-color);
 }
 
+/* Infos principales dans le header de carte */
+.newsletter-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.newsletter-info h3 {
+  margin: 0 0 var(--spacing-xs) 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .newsletter-title {
   font-weight: var(--font-weight-semibold);
   font-size: var(--font-size-lg);
@@ -61,6 +77,22 @@
   margin-bottom: var(--spacing-md);
 }
 
+.newsletter-preview {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.newsletter-author {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
 .newsletter-excerpt {
   color: var(--text-secondary);
   font-size: var(--font-size-sm);
@@ -74,8 +106,43 @@
 .newsletter-meta {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-xs);
+}
+
+.newsletter-date {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.newsletter-date.scheduled {
+  color: #ca8a04;
+}
+
+.newsletter-date.draft {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* Stats envoi dans le header de carte */
+.newsletter-stats {
+  display: flex;
   gap: var(--spacing-md);
-  margin-top: var(--spacing-sm);
+  align-items: center;
+  flex-shrink: 0;
+  margin-left: var(--spacing-md);
+}
+
+.newsletter-stats .stat-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
 }
 
 .newsletter-meta-item {
@@ -90,6 +157,33 @@
   width: 16px;
   height: 16px;
   color: var(--primary-color);
+}
+
+/* Boutons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+}
+
+.btn svg {
+  margin: 0;
+  flex-shrink: 0;
+}
+
+/* Barre de filtres */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+  padding: var(--spacing-md) 0;
+}
+
+.toolbar-filters {
+  display: flex;
+  gap: var(--spacing-sm);
 }
 
 /* Statut */
@@ -257,9 +351,8 @@
 
 /* Responsive */
 @media (max-width: 768px) {
-  .newsletters-grid {
-    grid-template-columns: 1fr;
-    gap: var(--spacing-lg);
+  .newsletters-list {
+    gap: var(--spacing-sm);
   }
 
   .communication-stats {
