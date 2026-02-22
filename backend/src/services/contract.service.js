@@ -11,21 +11,20 @@ class ContractService {
   // Générer le contrat PDF pour un abonnement //
   
   async generateContract(subscription, user, paymentType = '1') {
+    const isDev = process.env.NODE_ENV !== 'production';
     try {
-      console.log('=== GÉNÉRATION CONTRAT ===');
-      console.log('Subscription:', JSON.stringify(subscription, null, 2));
-      console.log('User:', JSON.stringify(user, null, 2));
+      if (isDev) {
+        console.log('[DEV] Génération contrat pour subscription ID:', subscription?.id);
+      }
 
       // Lire le template
       const templatePath = path.join(__dirname, '../../templates/contract.html');
-      console.log('Template path:', templatePath);
-      
+
       if (!fs.existsSync(templatePath)) {
         throw new Error(`Template non trouvé: ${templatePath}`);
       }
-      
+
       const templateHtml = fs.readFileSync(templatePath, 'utf8');
-      console.log('Template lu, taille:', templateHtml.length);
 
       // Compiler avec Handlebars
       const template = handlebars.compile(templateHtml);
@@ -44,10 +43,8 @@ class ContractService {
 
       // Générer le HTML
       const html = template(data);
-      console.log('HTML généré, taille:', html.length);
 
       // Générer le PDF avec Puppeteer
-      console.log('Lancement de Puppeteer...');
       const browser = await puppeteer.launch({
         headless: 'new',
         args: ['--no-sandbox', '--disable-setuid-sandbox']
@@ -55,15 +52,12 @@ class ContractService {
 
       const page = await browser.newPage();
       page.setDefaultTimeout(30000);
-      console.log('Page créée, chargement du contenu...');
 
       await page.setContent(html, { waitUntil: 'load' });
-      console.log('Contenu chargé, attente du rendu...');
-      
+
       // Attendre que le contenu soit bien rendu
       await new Promise(resolve => setTimeout(resolve, 500));
 
-      console.log('Génération du PDF...');
       const pdfBuffer = await page.pdf({
         format: 'A4',
         printBackground: true,
@@ -76,12 +70,15 @@ class ContractService {
         preferCSSPageSize: false
       });
 
-      console.log('PDF généré, taille:', pdfBuffer.length, 'bytes');
       await browser.close();
+
+      if (isDev) {
+        console.log('[DEV] PDF généré, taille:', pdfBuffer.length, 'bytes');
+      }
 
       return pdfBuffer;
     } catch (error) {
-      console.error('Erreur génération contrat:', error);
+      console.error('Erreur génération contrat:', error.message);
       throw error;
     }
   }
