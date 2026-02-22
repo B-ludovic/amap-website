@@ -26,6 +26,8 @@ model User {
 
   resetToken       String?   @unique
   resetTokenExpiry DateTime?
+
+  tokenVersion     Int       @default(1)
   
   subscriptions       Subscription[]
   subscriptionRequests SubscriptionRequest[]
