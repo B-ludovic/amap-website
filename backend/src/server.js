@@ -25,6 +25,7 @@ import distributionRoutes from './routes/distribution.routes.js';
 import themeRoutes from './routes/theme.routes.js';
 import recipesRoutes from './routes/recipes.routes.js';
 import contactRoutes from './routes/contact.routes.js';
+import closuresRoutes from './routes/closures.routes.js';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -126,6 +127,7 @@ app.use('/api/distribution', distributionRoutes);
 app.use('/api/recipes', recipesRoutes);
 app.use('/api/contact', publicLimiter);
 app.use('/api/contact', contactRoutes);
+app.use('/api/closures', closuresRoutes);
 
 // Route 404 - si aucune route ne correspond
 app.use((_req, res) => {

@@ -550,6 +550,19 @@ enum InquiryStatus {
 }
 
 
+// FERMETURE AMAP //
+
+model AmapClosure {
+  id        String   @id @default(uuid())
+  startDate DateTime
+  endDate   DateTime
+  reason    String?
+  createdAt DateTime @default(now())
+
+  @@index([startDate])
+}
+
+
 // THÈME SAISONNIER (Existant - conservé) //
 
 model ThemeConfig {
