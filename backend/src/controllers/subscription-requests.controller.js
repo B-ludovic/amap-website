@@ -51,6 +51,10 @@ export const submitRequest = asyncHandler(async (req, res) => {
     throw new HttpBadRequestError('Modalité de paiement invalide ou non renseignée');
   }
 
+  if (message && message.length > 1000) {
+    throw new HttpBadRequestError('Message : 1000 caractères maximum.');
+  }
+
   // Vérifier qu'il n'a pas déjà une demande en attente
   const existingRequest = await prisma.subscriptionRequest.findFirst({
     where: {

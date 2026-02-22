@@ -11,6 +11,10 @@ const sendContactMessage = asyncHandler(async (req, res) => {
     throw new HttpBadRequestError('Tous les champs sont requis.');
   }
 
+  if (name.length > 100) throw new HttpBadRequestError('Nom : 100 caractères maximum.');
+  if (subject.length > 200) throw new HttpBadRequestError('Sujet : 200 caractères maximum.');
+  if (message.length > 5000) throw new HttpBadRequestError('Message : 5000 caractères maximum.');
+
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
     throw new HttpBadRequestError('Email invalide.');

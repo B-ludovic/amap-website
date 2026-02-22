@@ -26,13 +26,25 @@ const submitInquiry = asyncHandler(async (req, res) => {
     availability
   } = req.body;
 
-  // Validation
+  // Validation présence
   if (!firstName || !lastName || !email || !phone || !farmName || !address || !city || !postalCode || !products) {
     throw new HttpBadRequestError('Tous les champs obligatoires doivent être remplis');
   }
 
+  // Validation longueurs
+  if (firstName.length > 100) throw new HttpBadRequestError('Prénom : 100 caractères maximum.');
+  if (lastName.length > 100) throw new HttpBadRequestError('Nom : 100 caractères maximum.');
+  if (farmName.length > 200) throw new HttpBadRequestError('Nom de l\'exploitation : 200 caractères maximum.');
+  if (address.length > 255) throw new HttpBadRequestError('Adresse : 255 caractères maximum.');
+  if (city.length > 100) throw new HttpBadRequestError('Ville : 100 caractères maximum.');
+  if (message && message.length > 2000) throw new HttpBadRequestError('Message : 2000 caractères maximum.');
+
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     throw new HttpBadRequestError('Email invalide');
+  }
+
+  if (!/^\d{5}$/.test(postalCode)) {
+    throw new HttpBadRequestError('Code postal invalide (5 chiffres requis).');
   }
 
   const inquiry = await prisma.producerInquiry.create({
