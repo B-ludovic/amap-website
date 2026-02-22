@@ -23,12 +23,18 @@ const authMiddleware = asyncHandler(async (req, _res, next) => {
                 role: true,
                 emailVerified: true,
                 deletedAt: true,
+                tokenVersion: true,
             },
         });
 
         // Vérifier que l'utilisateur existe et n'est pas supprimé
         if (!user || user.deletedAt) {
             throw new HttpUnauthorizedError('Utilisateur non trouvé ou compte supprimé.');
+        }
+
+        // Vérifier que le token n'a pas été révoqué (tokenVersion)
+        if (decoded.tokenVersion !== user.tokenVersion) {
+            throw new HttpUnauthorizedError('Session expirée. Veuillez vous reconnecter.');
         }
 
         req.user = user;
