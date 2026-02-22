@@ -13,8 +13,8 @@ import {
 } from '../utils/httpErrors.js';
 
 // Token JWT
-const generateToken = (userId) => {
-    return jwt.sign({ id: userId }, process.env.JWT_SECRET, {
+const generateToken = (userId, tokenVersion) => {
+    return jwt.sign({ id: userId, tokenVersion }, process.env.JWT_SECRET, {
         expiresIn: '7d',
     });
 };
@@ -122,8 +122,8 @@ const login = asyncHandler(async (req, res) => {
         throw new HttpUnauthorizedError('Ce compte a été supprimé.');
     }
 
-    // Generer un token JWT et le poser en cookie HttpOnly
-    const token = generateToken(user.id);
+    // Generer un token JWT (avec version pour révocation) et le poser en cookie HttpOnly
+    const token = generateToken(user.id, user.tokenVersion);
     res.cookie('authToken', token, cookieOptions);
 
     res.json({
@@ -339,8 +339,14 @@ const resetPassword = asyncHandler(async (req, res) => {
     });
 });
 
-// Déconnexion
-const logout = asyncHandler(async (_req, res) => {
+// Déconnexion — incrémente tokenVersion pour révoquer immédiatement tous les tokens actifs
+const logout = asyncHandler(async (req, res) => {
+    if (req.user?.id) {
+        await prisma.user.update({
+            where: { id: req.user.id },
+            data: { tokenVersion: { increment: 1 } },
+        });
+    }
     res.clearCookie('authToken', { path: '/' });
     res.json({ success: true, message: 'Déconnexion réussie.' });
 });
