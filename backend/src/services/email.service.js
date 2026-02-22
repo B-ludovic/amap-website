@@ -31,7 +31,8 @@ class EmailService {
             <body>
               <div class="container">
                 <div class="header">
-                  <h1>🌱 Bienvenue chez Aux P'tits Pois !</h1>
+                  <img src="${process.env.FRONTEND_URL}/icons/logo.png" alt="Aux P'tits Pois" style="display: block; margin: 0 auto 15px; max-height: 70px;">
+                  <h1>Bienvenue chez Aux P'tits Pois !</h1>
                 </div>
                 <div class="content">
                   <p>Bonjour ${user.firstName},</p>
@@ -106,7 +107,8 @@ class EmailService {
             <body>
               <div class="container">
                 <div class="header">
-                  <h1>🌱 Confirmez votre email</h1>
+                  <img src="${process.env.FRONTEND_URL}/icons/logo.png" alt="Aux P'tits Pois" style="display: block; margin: 0 auto 15px; max-height: 70px;">
+                  <h1>Confirmez votre email</h1>
                 </div>
                 <div class="content">
                   <p>Bonjour ${user.firstName},</p>
@@ -175,7 +177,8 @@ class EmailService {
             <body>
               <div class="container">
                 <div class="header">
-                  <h1><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle; margin-right: 8px;"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/></svg>Réinitialisation de mot de passe</h1>
+                  <img src="${process.env.FRONTEND_URL}/icons/logo.png" alt="Aux P'tits Pois" style="display: block; margin: 0 auto 15px; max-height: 70px;">
+                  <h1>Réinitialisation de mot de passe</h1>
                 </div>
                 <div class="content">
                   <p>Bonjour ${user.firstName},</p>
@@ -250,7 +253,8 @@ class EmailService {
             <body>
               <div class="container">
                 <div class="header">
-                  <h1><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle; margin-right: 8px;"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9 12 2 2 4-4"/></svg>Demande d'abonnement reçue !</h1>
+                  <img src="${process.env.FRONTEND_URL}/icons/logo.png" alt="Aux P'tits Pois" style="display: block; margin: 0 auto 15px; max-height: 70px;">
+                  <h1>Demande d'abonnement reçue !</h1>
                 </div>
                 <div class="content">
                   <p>Bonjour ${request.firstName},</p>
@@ -324,7 +328,8 @@ class EmailService {
             <body>
               <div class="container">
                 <div class="header">
-                  <h1><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle; margin-right: 8px;"><path d="M2 22 16 8"/><path d="M3.47 12.53 5 11l1.53 1.53a3.5 3.5 0 0 1 0 4.94L5 19l-1.53-1.53a3.5 3.5 0 0 1 0-4.94Z"/><path d="M7.47 8.53 9 7l1.53 1.53a3.5 3.5 0 0 1 0 4.94L9 15l-1.53-1.53a3.5 3.5 0 0 1 0-4.94Z"/><path d="M11.47 4.53 13 3l1.53 1.53a3.5 3.5 0 0 1 0 4.94L13 11l-1.53-1.53a3.5 3.5 0 0 1 0-4.94Z"/><path d="M20 2h2v2a4 4 0 0 1-4 4h-2V6a4 4 0 0 1 4-4Z"/><path d="M11.47 17.47 13 19l-1.53 1.53a3.5 3.5 0 0 1-4.94 0L5 19l1.53-1.53a3.5 3.5 0 0 1 4.94 0Z"/><path d="M15.47 13.47 17 15l-1.53 1.53a3.5 3.5 0 0 1-4.94 0L9 15l1.53-1.53a3.5 3.5 0 0 1 4.94 0Z"/><path d="M19.47 9.47 21 11l-1.53 1.53a3.5 3.5 0 0 1-4.94 0L13 11l1.53-1.53a3.5 3.5 0 0 1 4.94 0Z"/></svg>Candidature reçue !</h1>
+                  <img src="${process.env.FRONTEND_URL}/icons/logo.png" alt="Aux P'tits Pois" style="display: block; margin: 0 auto 15px; max-height: 70px;">
+                  <h1>Candidature reçue !</h1>
                 </div>
                 <div class="content">
                   <p>Bonjour ${inquiry.firstName},</p>
@@ -395,6 +400,7 @@ class EmailService {
             <body>
               <div class="container">
                 <div class="header">
+                  <img src="${process.env.FRONTEND_URL}/icons/logo.png" alt="Aux P'tits Pois" style="display: block; margin: 0 auto 15px; max-height: 70px;">
                   <h1>Nouveau message de contact</h1>
                 </div>
                 <div class="content">
@@ -448,7 +454,7 @@ class EmailService {
 
         for (const recipient of batch) {
           try {
-            const { data, error } = await resend.emails.send({
+            const { error } = await resend.emails.send({
               from: EMAIL_FROM,
               to: recipient.email,
               subject: newsletter.subject,
@@ -468,7 +474,8 @@ class EmailService {
                   <body>
                     <div class="container">
                       <div class="header">
-                        <h1>🌱 Aux P'tits Pois</h1>
+                        <img src="${process.env.FRONTEND_URL}/icons/logo.png" alt="Aux P'tits Pois" style="display: block; margin: 0 auto 15px; max-height: 70px;">
+                        <h1>Aux P'tits Pois</h1>
                       </div>
                       <div class="content">
                         ${newsletter.content}
@@ -538,7 +545,8 @@ class EmailService {
             <body>
               <div class="container">
                 <div class="header">
-                  <h1><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle; margin-right: 8px;"><path d="M5.8 11.3 2 22l10.7-3.79"/><path d="M4 3h.01"/><path d="M22 8h.01"/><path d="M15 2h.01"/><path d="M22 20h.01"/><path d="m22 2-2.24.75a2.9 2.9 0 0 0-1.96 3.12v0c.1.86-.57 1.63-1.45 1.63h-.38c-.86 0-1.6.6-1.76 1.44L14 10"/><path d="m22 13-.82-.33c-.86-.34-1.82.2-1.98 1.11v0c-.11.7-.72 1.22-1.43 1.22H17"/><path d="m11 2 .33.82c.34.86-.2 1.82-1.11 1.98v0C9.52 4.9 9 5.52 9 6.23V7"/><path d="M11 13c1.93 1.93 2.83 4.17 2 5-.83.83-3.07-.07-5-2-1.93-1.93-2.83-4.17-2-5 .83-.83 3.07.07 5 2Z"/></svg>Bienvenue dans l'aventure !</h1>
+                  <img src="${process.env.FRONTEND_URL}/icons/logo.png" alt="Aux P'tits Pois" style="display: block; margin: 0 auto 15px; max-height: 70px;">
+                  <h1>Bienvenue dans l'aventure !</h1>
                 </div>
                 <div class="content">
                   <p>Bonjour ${user.firstName},</p>
