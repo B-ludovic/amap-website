@@ -393,6 +393,32 @@ const updateSubscription = asyncHandler(async (req, res) => {
   });
 });
 
+// ACTIVER UN ABONNEMENT (ADMIN) - PENDING → ACTIVE
+const activateSubscription = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  const subscription = await prisma.subscription.findUnique({ where: { id } });
+
+  if (!subscription) {
+    throw new HttpNotFoundError('Abonnement introuvable');
+  }
+
+  if (subscription.status !== 'PENDING') {
+    throw new HttpBadRequestError('Seuls les abonnements en attente peuvent être activés');
+  }
+
+  const activated = await prisma.subscription.update({
+    where: { id },
+    data: { status: 'ACTIVE' }
+  });
+
+  res.json({
+    success: true,
+    message: 'Abonnement activé avec succès',
+    data: activated
+  });
+});
+
 // ANNULER UN ABONNEMENT (ADMIN)
 const cancelSubscription = asyncHandler(async (req, res) => {
   const { id } = req.params;
@@ -668,6 +694,7 @@ export {
   getSubscriptionById,
   createSubscription,
   updateSubscription,
+  activateSubscription,
   cancelSubscription,
   pauseSubscription,
   resumeSubscription,

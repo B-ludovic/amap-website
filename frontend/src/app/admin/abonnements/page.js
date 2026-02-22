@@ -5,19 +5,11 @@ import api from "../../../lib/api";
 import { useModal } from "../../../contexts/ModalContext";
 import SubscriptionDetailModal from "../../../components/admin/SubscriptionDetailModal";
 import ContractModal from "../../../components/admin/ContractModal";
-import PauseModal from "../../../components/admin/PauseModal";
 import "../../../styles/admin/components.css";
 import "../../../styles/admin/dashboard.css";
 import "../../../styles/admin/layout.css";
 import "../../../styles/admin/subscription.css";
-import {
-    CreditCard,
-    Eye,
-    XCircle,
-    PauseCircle,
-    PlayCircle,
-    Search
-} from "lucide-react";
+import { CreditCard, Eye, Search } from "lucide-react";
 
 export default function AdminSubscriptionsPage() {
   const [subscriptions, setSubscriptions] = useState([]);
@@ -33,10 +25,8 @@ export default function AdminSubscriptionsPage() {
   const [selectedSubscription, setSelectedSubscription] = useState(null);
   const [isContractModalOpen, setIsContractModalOpen] = useState(false);
   const [selectedSubscriptionForContract, setSelectedSubscriptionForContract] = useState(null);
-  const [isPauseModalOpen, setIsPauseModalOpen] = useState(false);
-  const [subscriptionToPause, setSubscriptionToPause] = useState(null);
-  
-  const { showSuccess, showError } = useModal();
+
+  const { showError } = useModal();
 
   useEffect(() => {
     fetchSubscriptions();
@@ -76,50 +66,6 @@ export default function AdminSubscriptionsPage() {
       setIsDetailModalOpen(true);
     } catch (error) {
       showError('Erreur', 'Erreur lors du chargement des détails');
-    }
-  };
-
-  const handlePause = (sub) => {
-    setSubscriptionToPause(sub);
-    setIsPauseModalOpen(true);
-  };
-
-  const handlePauseClose = (shouldRefresh) => {
-    setIsPauseModalOpen(false);
-    setSubscriptionToPause(null);
-    if (shouldRefresh) {
-      showSuccess('Succès', 'Abonnement mis en pause');
-      fetchSubscriptions();
-      fetchStats();
-    }
-  };
-
-  const handleResume = async (subscriptionId) => {
-    if (!confirm('Reprendre cet abonnement ?')) return;
-
-    try {
-      await api.subscriptions.resume(subscriptionId);
-      showSuccess('Succès', 'Abonnement réactivé');
-      fetchSubscriptions();
-      fetchStats();
-    } catch (error) {
-      showError('Erreur', error.response?.data?.message || 'Erreur lors de la réactivation');
-    }
-  };
-
-  const handleCancel = async (subscriptionId) => {
-    const reason = prompt('Raison de l\'annulation :');
-    if (!reason) return;
-
-    if (!confirm('Êtes-vous sûr de vouloir annuler cet abonnement ?')) return;
-
-    try {
-      await api.subscriptions.cancel(subscriptionId, { reason });
-      showSuccess('Succès', 'Abonnement annulé');
-      fetchSubscriptions();
-      fetchStats();
-    } catch (error) {
-      showError('Erreur', error.response?.data?.message || 'Erreur lors de l\'annulation');
     }
   };
 
@@ -378,36 +324,6 @@ export default function AdminSubscriptionsPage() {
                       >
                         <Eye size={18} />
                       </button>
-
-                      {sub.status === 'ACTIVE' && (
-                        <button
-                          className="btn btn-icon"
-                          onClick={() => handlePause(sub)}
-                          title="Mettre en pause"
-                        >
-                          <PauseCircle size={18} />
-                        </button>
-                      )}
-
-                      {sub.status === 'PAUSED' && (
-                        <button
-                          className="btn btn-icon btn-success"
-                          onClick={() => handleResume(sub.id)}
-                          title="Reprendre"
-                        >
-                          <PlayCircle size={18} />
-                        </button>
-                      )}
-
-                      {(sub.status === 'ACTIVE' || sub.status === 'PAUSED') && (
-                        <button
-                          className="btn btn-icon btn-danger"
-                          onClick={() => handleCancel(sub.id)}
-                          title="Annuler"
-                        >
-                          <XCircle size={18} />
-                        </button>
-                      )}
                     </div>
                   </td>
                 </tr>
@@ -434,16 +350,10 @@ export default function AdminSubscriptionsPage() {
             setIsDetailModalOpen(false);
             setSelectedSubscription(null);
           }}
-          onUpdate={fetchSubscriptions}
+          onUpdate={() => { fetchSubscriptions(); fetchStats(); }}
         />
       )}
 
-      {isPauseModalOpen && subscriptionToPause && (
-        <PauseModal
-          subscription={subscriptionToPause}
-          onClose={handlePauseClose}
-        />
-      )}
     </div>
   );
 }

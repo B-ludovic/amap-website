@@ -590,10 +590,16 @@ const api = {
       });
     },
 
-    cancel: async (id, data) => {
+    activate: async (id) => {
+      return fetchAPI(`/subscriptions/${id}/activate`, {
+        method: 'PUT',
+        requiresAuth: true,
+      });
+    },
+
+    cancel: async (id) => {
       return fetchAPI(`/subscriptions/${id}/cancel`, {
         method: 'PUT',
-        body: data,
         requiresAuth: true,
       });
     },

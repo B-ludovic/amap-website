@@ -1,9 +1,76 @@
 'use client';
 
-import { X, User, CreditCard, Calendar, MapPin, Package, CheckCircle } from 'lucide-react';
+import { useState } from 'react';
+import { X, User, CreditCard, Calendar, MapPin, Package, CheckCircle, PauseCircle, PlayCircle, XCircle } from 'lucide-react';
+import { useModal } from '../../contexts/ModalContext';
+import api from '../../lib/api';
+import PauseModal from './PauseModal';
 import '../../styles/admin/components.css';
 
 export default function SubscriptionDetailModal({ subscription, onClose, onUpdate }) {
+  const { showConfirm, showSuccess, showError } = useModal();
+  const [isPauseModalOpen, setIsPauseModalOpen] = useState(false);
+
+  const handleActivate = () => {
+    showConfirm(
+      'Activer l\'abonnement',
+      `Confirmer l'activation de l'abonnement de ${subscription.user.firstName} ${subscription.user.lastName} ?`,
+      async () => {
+        try {
+          await api.subscriptions.activate(subscription.id);
+          showSuccess('Succès', 'Abonnement activé');
+          onUpdate();
+          onClose();
+        } catch (err) {
+          showError('Erreur', err.response?.data?.message || 'Erreur lors de l\'activation');
+        }
+      }
+    );
+  };
+
+  const handleResilier = () => {
+    showConfirm(
+      'Résilier l\'abonnement',
+      `Êtes-vous sûr de vouloir résilier l'abonnement de ${subscription.user.firstName} ${subscription.user.lastName} ? Cette action est irréversible.`,
+      async () => {
+        try {
+          await api.subscriptions.cancel(subscription.id);
+          showSuccess('Succès', 'Abonnement résilié');
+          onUpdate();
+          onClose();
+        } catch (err) {
+          showError('Erreur', err.response?.data?.message || 'Erreur lors de la résiliation');
+        }
+      }
+    );
+  };
+
+  const handleResume = () => {
+    showConfirm(
+      'Reprendre l\'abonnement',
+      `Reprendre l'abonnement de ${subscription.user.firstName} ${subscription.user.lastName} ?`,
+      async () => {
+        try {
+          await api.subscriptions.resume(subscription.id);
+          showSuccess('Succès', 'Abonnement repris');
+          onUpdate();
+          onClose();
+        } catch (err) {
+          showError('Erreur', err.response?.data?.message || 'Erreur lors de la reprise');
+        }
+      }
+    );
+  };
+
+  const handlePauseClose = (shouldRefresh) => {
+    setIsPauseModalOpen(false);
+    if (shouldRefresh) {
+      showSuccess('Succès', 'Abonnement mis en pause');
+      onUpdate();
+      onClose();
+    }
+  };
+
   const formatDate = (date) => {
     return new Date(date).toLocaleDateString('fr-FR', {
       year: 'numeric',
@@ -218,8 +285,45 @@ export default function SubscriptionDetailModal({ subscription, onClose, onUpdat
           <button className="btn btn-secondary" onClick={onClose}>
             Fermer
           </button>
+
+          <div className="modal-footer-actions">
+            {subscription.status === 'PENDING' && (
+              <button className="btn btn-success" onClick={handleActivate}>
+                <CheckCircle size={16} />
+                Activer
+              </button>
+            )}
+
+            {subscription.status === 'ACTIVE' && (
+              <button className="btn btn-secondary" onClick={() => setIsPauseModalOpen(true)}>
+                <PauseCircle size={16} />
+                Mettre en pause
+              </button>
+            )}
+
+            {subscription.status === 'PAUSED' && (
+              <button className="btn btn-success" onClick={handleResume}>
+                <PlayCircle size={16} />
+                Reprendre
+              </button>
+            )}
+
+            {(subscription.status === 'PENDING' || subscription.status === 'ACTIVE' || subscription.status === 'PAUSED') && (
+              <button className="btn btn-danger" onClick={handleResilier}>
+                <XCircle size={16} />
+                Résilier
+              </button>
+            )}
+          </div>
         </div>
       </div>
+
+      {isPauseModalOpen && (
+        <PauseModal
+          subscription={subscription}
+          onClose={handlePauseClose}
+        />
+      )}
     </div>
   );
 }

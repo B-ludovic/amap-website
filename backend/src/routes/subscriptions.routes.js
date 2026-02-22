@@ -4,6 +4,7 @@ import {
   getSubscriptionById,
   createSubscription,
   updateSubscription,
+  activateSubscription,
   cancelSubscription,
   pauseSubscription,
   resumeSubscription,
@@ -32,6 +33,7 @@ router.get('/:id/contract', authMiddleware, adminOnly, generateContractFromSubsc
 router.get('/:id', authMiddleware, adminOnly, getSubscriptionById);
 router.post('/', authMiddleware, adminOnly, createSubscription);
 router.put('/:id', authMiddleware, adminOnly, updateSubscription);
+router.put('/:id/activate', authMiddleware, adminOnly, activateSubscription);
 router.put('/:id/cancel', authMiddleware, adminOnly, cancelSubscription);
 router.put('/:id/pause', authMiddleware, adminOnly, pauseSubscription);
 router.put('/:id/resume', authMiddleware, adminOnly, resumeSubscription);
