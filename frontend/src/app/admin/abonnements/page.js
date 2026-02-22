@@ -176,9 +176,9 @@ export default function AdminSubscriptionsPage() {
 
   const getBasketSizeBadge = (size) => {
     return size === 'SMALL' ? (
-      <span className="basket-badge basket-small">Petit</span>
+      <span className="badge basket-small">Petit</span>
     ) : (
-      <span className="basket-badge basket-large">Grand</span>
+      <span className="badge basket-large">Grand</span>
     );
   };
 
@@ -346,7 +346,9 @@ export default function AdminSubscriptionsPage() {
                   </td>
 
                   <td>
-                    {getBasketSizeBadge(sub.basketSize)}
+                    <div className="subscription-badges">
+                      {getBasketSizeBadge(sub.basketSize)}
+                    </div>
                   </td>
 
                   <td>

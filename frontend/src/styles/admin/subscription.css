@@ -246,15 +246,14 @@
   font-size: 0.85rem;
   font-weight: 500;
   white-space: nowrap;
-  height: 28px;
 }
 
-.basket-badge.basket-small {
+.basket-small {
   background: #dbeafe;
   color: #1e40af;
 }
 
-.basket-badge.basket-large {
+.basket-large {
   background: #fce7f3;
   color: #be185d;
 }
