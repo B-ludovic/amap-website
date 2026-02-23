@@ -603,6 +603,92 @@ class EmailService {
       return { success: false, error: error.message };
     }
   }
+
+  /* Envoie un rappel de renouvellement 30 jours avant la fin de l'abonnement */
+
+  async sendRenewalReminderEmail(subscription, user) {
+    try {
+      const endDate = new Date(subscription.endDate).toLocaleDateString('fr-FR', {
+        day: 'numeric', month: 'long', year: 'numeric'
+      });
+      const type = subscription.type === 'ANNUAL' ? 'Annuel' : 'Découverte';
+      const basket = subscription.basketSize === 'SMALL' ? 'Petit panier (2-4 kg)' : 'Grand panier (6-8 kg)';
+
+      const { data, error } = await resend.emails.send({
+        from: EMAIL_FROM,
+        to: user.email,
+        subject: 'Votre abonnement Aux P\'tits Pois expire bientôt',
+        html: `
+          <!DOCTYPE html>
+          <html lang="fr">
+          <head>
+            <meta charset="utf-8">
+            <style>
+              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+              .header { background: linear-gradient(135deg, #d97706 0%, #b45309 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+              .header h1 { margin: 0; font-size: 1.4rem; }
+              .content { background: #f9f7f4; padding: 30px; border-radius: 0 0 8px 8px; }
+              .info-box { background: white; border: 1px solid #e2e8f0; padding: 20px; border-radius: 6px; margin: 20px 0; }
+              .info-box p { margin: 6px 0; }
+              .warning { background: #fffbeb; border-left: 4px solid #d97706; padding: 14px 18px; border-radius: 4px; margin: 20px 0; }
+              .button { display: inline-block; background: #6b9d5a; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; margin: 20px 0; }
+              .footer { text-align: center; margin-top: 30px; color: #6b7280; font-size: 13px; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <img src="${process.env.FRONTEND_URL}/icons/logo.png" alt="Aux P'tits Pois" style="display:block;margin:0 auto 15px;max-height:70px;">
+                <h1>Votre abonnement expire bientôt</h1>
+              </div>
+              <div class="content">
+                <p>Bonjour ${user.firstName},</p>
+                <p>Votre abonnement Aux P'tits Pois arrive à échéance dans <strong>30 jours</strong>. Pensez à le renouveler pour continuer à bénéficier de vos paniers hebdomadaires !</p>
+
+                <div class="info-box">
+                  <h3 style="margin-top:0;">Votre abonnement actuel</h3>
+                  <p><strong>N° :</strong> ${subscription.subscriptionNumber}</p>
+                  <p><strong>Type :</strong> ${type}</p>
+                  <p><strong>Panier :</strong> ${basket}</p>
+                  <p><strong>Date de fin :</strong> ${endDate}</p>
+                </div>
+
+                <div class="warning">
+                  Sans renouvellement, votre abonnement sera automatiquement clôturé à l'échéance et vous ne recevrez plus de paniers.
+                </div>
+
+                <p>Pour renouveler, contactez-nous directement ou faites une nouvelle demande en ligne :</p>
+
+                <div style="text-align:center;">
+                  <a href="${process.env.FRONTEND_URL}/nos-abonnements" class="button">Renouveler mon abonnement</a>
+                </div>
+
+                <p>Si vous avez des questions, contactez-nous à <a href="mailto:auxptitspois@gmail.com">auxptitspois@gmail.com</a>.</p>
+                <p>À bientôt,<br>L'équipe Aux P'tits Pois</p>
+              </div>
+              <div class="footer">
+                <p>Aux P'tits Pois - AMAP Solidaire</p>
+                <p style="font-size:12px;">Vous recevez cet email car vous êtes abonné(e) à l'AMAP.</p>
+              </div>
+            </div>
+          </body>
+          </html>
+        `,
+      });
+
+      if (error) {
+        console.error('Erreur envoi rappel renouvellement:', error);
+        return { success: false, error };
+      }
+
+      if (process.env.NODE_ENV !== 'production') console.log(`[DEV] Rappel renouvellement envoyé à ${user.email}`);
+      return { success: true, data };
+    } catch (error) {
+      console.error('Erreur envoi rappel renouvellement:', error);
+      return { success: false, error: error.message };
+    }
+  }
 }
 
 export default new EmailService();
