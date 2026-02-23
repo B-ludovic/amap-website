@@ -26,6 +26,7 @@ import themeRoutes from './routes/theme.routes.js';
 import recipesRoutes from './routes/recipes.routes.js';
 import contactRoutes from './routes/contact.routes.js';
 import closuresRoutes from './routes/closures.routes.js';
+import { startRenewalReminderJob } from './jobs/renewalReminder.job.js';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -145,6 +146,7 @@ app.use(errorHandler);
 const startServer = async () => {
   try {
     await connectDB();
+    startRenewalReminderJob();
 
     app.listen(PORT, () => {
       console.log(`✅ Serveur backend démarré sur http://localhost:${PORT}`);
