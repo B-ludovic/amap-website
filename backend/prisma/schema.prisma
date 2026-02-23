@@ -218,13 +218,16 @@ model Subscription {
   pauses          SubscriptionPause[]
   payments        Payment[]
   
+  renewalReminderSentAt DateTime?
+
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
-  
+
   @@index([userId])
   @@index([status])
   @@index([type])
   @@index([pricingType])
+  @@index([endDate])
 }
 
 enum SubscriptionType {
