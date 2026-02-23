@@ -959,6 +959,12 @@ const getStats = asyncHandler(async (req, res) => {
       where: { status: 'ACTIVE' }
     });
 
+    const in30Days = new Date();
+    in30Days.setDate(in30Days.getDate() + 30);
+    const expiringSoon = await prisma.subscription.count({
+      where: { status: 'ACTIVE', endDate: { gte: new Date(), lte: in30Days } }
+    });
+
     const pendingRequests = await prisma.subscriptionRequest.count({
       where: { status: 'PENDING' }
     });
@@ -995,6 +1001,7 @@ const getStats = asyncHandler(async (req, res) => {
           products: totalProducts,
           subscriptions: totalSubscriptions,
           activeSubscriptions: activeSubscriptions,
+          expiringSoon: expiringSoon,
           pendingRequests: pendingRequests,
           producerInquiries: producerInquiries
         },
