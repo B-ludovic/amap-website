@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '../../contexts/AuthContext';
 import api from '../../lib/api';
-import { LayoutDashboard, Users, ShoppingCart, Package, TrendingUp, XCircle } from 'lucide-react';
+import { LayoutDashboard, Users, ShoppingCart, Package, TrendingUp, XCircle, Bell } from 'lucide-react';
 import '../../styles/admin/dashboard.css';
 import { useModal } from '../../contexts/ModalContext';
 
@@ -113,6 +113,17 @@ export default function AdminDashboard() {
                 <p className="admin-stat-label">Demandes en attente</p>
                 <p className="admin-stat-value">{stats.stats.pendingRequests}</p>
                 <p className="admin-stat-subtitle">{stats.stats.pendingRequests} abonnements · {stats.stats.producerInquiries} producteurs</p>
+              </div>
+            </Link>
+
+            <Link href="/admin/abonnements" className={`admin-stat-card${stats.stats.expiringSoon > 0 ? ' admin-stat-card--warning' : ''}`}>
+              <div className="admin-stat-icon warning">
+                <Bell size={24} />
+              </div>
+              <div className="admin-stat-content">
+                <p className="admin-stat-label">Expirent dans 30 jours</p>
+                <p className="admin-stat-value">{stats.stats.expiringSoon}</p>
+                <p className="admin-stat-subtitle">abonnement{stats.stats.expiringSoon !== 1 ? 's' : ''} actif{stats.stats.expiringSoon !== 1 ? 's' : ''}</p>
               </div>
             </Link>
           </div>
