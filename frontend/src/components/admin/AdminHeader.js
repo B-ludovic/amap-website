@@ -1,10 +1,33 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Bell, Search } from 'lucide-react';
+import api from '../../lib/api';
 
 export default function AdminHeader() {
   const { user } = useAuth();
+  const [notifCount, setNotifCount] = useState(0);
+
+  useEffect(() => {
+    async function fetchNotifCount() {
+      try {
+        const [statsRes, messagesRes] = await Promise.all([
+          api.admin.stats.get(),
+          api.contactMessages.getAll({ status: 'UNREAD' }),
+        ]);
+        const { pendingRequests = 0, producerInquiries = 0 } = statsRes.data.stats;
+        const unread = messagesRes.data.messages.length ?? 0;
+        setNotifCount(pendingRequests + producerInquiries + unread);
+      } catch {
+        // silencieux — le badge reste à 0
+      }
+    }
+
+    fetchNotifCount();
+    window.addEventListener('contact-unread-changed', fetchNotifCount);
+    return () => window.removeEventListener('contact-unread-changed', fetchNotifCount);
+  }, []);
 
   return (
     <header className="admin-header">
@@ -24,7 +47,9 @@ export default function AdminHeader() {
           {/* Notifications */}
           <button className="admin-header-icon-btn">
             <Bell size={20} />
-            <span className="admin-notification-badge">3</span>
+            {notifCount > 0 && (
+              <span className="admin-notification-badge">{notifCount}</span>
+            )}
           </button>
 
           {/* User */}
