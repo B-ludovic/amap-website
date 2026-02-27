@@ -197,6 +197,13 @@ export const admin = {
     },
   },
 
+  // Recherche globale
+  search: async (q) => {
+    return fetchAPI(`/admin/search?q=${encodeURIComponent(q)}`, {
+      requiresAuth: true,
+    });
+  },
+
   // Exemples
   examples: {
     getStats: async () => {
