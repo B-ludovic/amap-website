@@ -1014,6 +1014,63 @@ const getStats = asyncHandler(async (req, res) => {
   }
 });
 
+// RECHERCHE GLOBALE //
+
+const globalSearch = asyncHandler(async (req, res) => {
+  const { q } = req.query;
+  if (!q || q.trim().length < 2) {
+    return res.json({ success: true, data: { users: [], subscriptions: [], messages: [], newsletters: [] } });
+  }
+
+  const term = q.trim();
+  const mode = 'insensitive';
+  const LIMIT = 4;
+
+  const [users, subscriptions, messages, newsletters] = await Promise.all([
+    prisma.user.findMany({
+      where: {
+        deletedAt: null,
+        OR: [
+          { firstName: { contains: term, mode } },
+          { lastName: { contains: term, mode } },
+          { email: { contains: term, mode } },
+        ],
+      },
+      select: { id: true, firstName: true, lastName: true, email: true, role: true },
+      take: LIMIT,
+    }),
+    prisma.subscription.findMany({
+      where: {
+        OR: [
+          { subscriptionNumber: { contains: term, mode } },
+          { user: { firstName: { contains: term, mode } } },
+          { user: { lastName: { contains: term, mode } } },
+        ],
+      },
+      select: { id: true, subscriptionNumber: true, status: true, user: { select: { firstName: true, lastName: true } } },
+      take: LIMIT,
+    }),
+    prisma.contactMessage.findMany({
+      where: {
+        OR: [
+          { name: { contains: term, mode } },
+          { email: { contains: term, mode } },
+          { subject: { contains: term, mode } },
+        ],
+      },
+      select: { id: true, name: true, email: true, subject: true, status: true },
+      take: LIMIT,
+    }),
+    prisma.newsletter.findMany({
+      where: { subject: { contains: term, mode } },
+      select: { id: true, subject: true, sentAt: true, sentCount: true },
+      take: LIMIT,
+    }),
+  ]);
+
+  res.json({ success: true, data: { users, subscriptions, messages, newsletters } });
+});
+
 // GESTION DES EXEMPLES //
 
 // Récupérer les stats des exemples
@@ -1105,6 +1162,7 @@ export {
   updateBlogPost,
   deleteBlogPost,
   getStats,
+  globalSearch,
   getExampleStats,
   deleteAllExamples
 };

@@ -21,7 +21,8 @@ import {
   updateBlogPost,
   deleteBlogPost,
   getExampleStats,
-  deleteAllExamples
+  deleteAllExamples,
+  globalSearch
 } from '../controllers/admin.controller.js';
 import {
   getAllContactMessages,
@@ -69,6 +70,9 @@ router.delete('/blog/:id', deleteBlogPost);
 
 // STATISTIQUES
 router.get('/stats', getStats);
+
+// RECHERCHE GLOBALE
+router.get('/search', globalSearch);
 
 // GESTION DES EXEMPLES DE DONNÉES
 router.get('/examples/stats', getExampleStats);
