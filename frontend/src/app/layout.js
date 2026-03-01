@@ -22,7 +22,7 @@ import '../styles/admin/components.css';
 import '../styles/admin/parametres.css';
 
 
-const metadata = {
+export const metadata = {
   title: 'Aux P\'tits Pois - AMAP locale',
   description: 'Commandez vos paniers de produits locaux et bio auprès de nos producteurs partenaires',
 };
@@ -44,5 +44,4 @@ function RootLayout({ children }) {
   );
 }
 
-export { metadata };
 export default RootLayout;
