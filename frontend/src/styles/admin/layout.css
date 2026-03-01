@@ -163,10 +163,16 @@
   gap: var(--spacing-xl);
 }
 
-/* Search */
-.admin-header-search {
+/* Search wrapper (position relative pour le dropdown) */
+.admin-search-wrapper {
   flex: 1;
   max-width: 500px;
+  position: relative;
+}
+
+/* Search */
+.admin-header-search {
+  width: 100%;
   position: relative;
   display: flex;
   align-items: center;
@@ -198,6 +204,79 @@
 
 .admin-search-input::placeholder {
   color: var(--text-light);
+}
+
+@keyframes admin-search-spin {
+  to { transform: rotate(360deg); }
+}
+.admin-search-spinner {
+  animation: admin-search-spin 0.8s linear infinite;
+  flex-shrink: 0;
+}
+
+/* Dropdown résultats */
+.admin-search-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: var(--white);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-lg);
+  z-index: 200;
+  max-height: 420px;
+  overflow-y: auto;
+  padding: var(--spacing-sm) 0;
+}
+
+.admin-search-empty {
+  padding: var(--spacing-md) var(--spacing-lg);
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  margin: 0;
+}
+
+.admin-search-group {
+  padding: var(--spacing-xs) 0;
+}
+
+.admin-search-group + .admin-search-group {
+  border-top: 1px solid var(--border-color);
+}
+
+.admin-search-group-title {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-lg);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0;
+}
+
+.admin-search-result {
+  display: block;
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  background: none;
+  border: none;
+  text-align: left;
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background 0.15s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.admin-search-result:hover {
+  background: var(--background-color);
+  color: var(--primary-color);
 }
 
 /* Actions */
