@@ -1,7 +1,17 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ShoppingBasket, Calendar, Package, Leaf, Clock, Users, Search, Lightbulb } from 'lucide-react';
+import { ShoppingBasket, Calendar, Leaf, LeafyGreen, Apple, Egg, Wheat, Clock, Users, Search, Lightbulb } from 'lucide-react';
+
+const categoryIcon = (category) => {
+  switch (category) {
+    case 'FRUITS':    return Apple;
+    case 'EGGS':      return Egg;
+    case 'GROCERY':   return Wheat;
+    case 'VEGETABLES':
+    default:          return LeafyGreen;
+  }
+};
 import { useModal } from '../../contexts/ModalContext';
 import api from '../../lib/api';
 import Link from 'next/link';
@@ -226,12 +236,15 @@ export default function WeeklyBasketPublicPage() {
                 </div>
 
                 <ul className="products-list">
-                  {group.items.map((item) => (
-                    <li key={item.id} className="product-item">
-                      <Package size={16} />
-                      <span>{item.product.name}</span>
-                    </li>
-                  ))}
+                  {group.items.map((item) => {
+                    const Icon = categoryIcon(item.product.category);
+                    return (
+                      <li key={item.id} className="product-item">
+                        <Icon size={16} />
+                        <span>{item.product.name}</span>
+                      </li>
+                    );
+                  })}
                 </ul>
               </div>
             ))}
@@ -251,7 +264,7 @@ export default function WeeklyBasketPublicPage() {
                 <ul className="products-list">
                   {freeItems.map((item) => (
                     <li key={item.id} className="product-item">
-                      <Package size={16} />
+                      <Leaf size={16} />
                       <span>{item.customProductName}</span>
                     </li>
                   ))}
