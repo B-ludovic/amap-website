@@ -220,6 +220,20 @@ export const admin = {
     },
   },
 
+  // Journal d'audit
+  auditLogs: {
+    getAll: async (params = {}) => {
+      const query = new URLSearchParams();
+      if (params.severity) query.set('severity', params.severity);
+      if (params.action)   query.set('action',   params.action);
+      if (params.page)     query.set('page',     params.page);
+      if (params.limit)    query.set('limit',    params.limit);
+      return fetchAPI(`/admin/audit-logs?${query.toString()}`, {
+        requiresAuth: true,
+      });
+    },
+  },
+
   // Points de retrait
   pickupLocations: {
     getAll: async () => {

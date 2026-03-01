@@ -19,7 +19,8 @@ import {
   UserPlus,
   CreditCard,
   Sprout,
-  DoorClosed
+  DoorClosed,
+  ShieldCheck
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
@@ -130,6 +131,11 @@ export default function AdminSidebar({ currentPath }) {
       title: 'Fermetures AMAP',
       icon: DoorClosed,
       path: '/admin/fermetures'
+    },
+    {
+      title: 'Historique',
+      icon: ShieldCheck,
+      path: '/admin/journal'
     },
     {
       title: 'Paramètres',
