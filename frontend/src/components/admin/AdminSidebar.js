@@ -133,7 +133,7 @@ export default function AdminSidebar({ currentPath }) {
       path: '/admin/fermetures'
     },
     {
-      title: 'Historique',
+      title: 'Journal d\'audit',
       icon: ShieldCheck,
       path: '/admin/journal'
     },

@@ -54,10 +54,11 @@ Ce projet est un site complet permettant de gérer une AMAP de A à Z :
 ## 🚀 Technologies utilisées
 
 ### Frontend
-- **Next.js 15** - Framework React pour le rendu côté serveur
+- **Next.js 15** - Framework React pour le rendu côté serveur (SSR, sitemap, robots.txt natifs)
 - **React 18** - Interface utilisateur réactive
 - **Lucide React** - Icônes modernes
 - **CSS natif** - Styling avec variables CSS et responsive design
+- **isomorphic-dompurify** - Sanitisation XSS du contenu HTML externe
 - **Tarteaucitron.js** - Gestion des cookies conforme RGPD
 
 ### Backend
@@ -65,6 +66,7 @@ Ce projet est un site complet permettant de gérer une AMAP de A à Z :
 - **Prisma** - ORM pour la base de données
 - **PostgreSQL** - Base de données relationnelle
 - **JWT + Bcrypt** - Authentification sécurisée
+- **Zod** - Validation des entrées avec schémas centralisés
 - **Puppeteer + Handlebars** - Génération de contrats PDF
 - **Resend** - Service d'envoi d'emails professionnel
 - **TheMealDB API** - Base de données de recettes
