@@ -37,8 +37,23 @@ const PORT = process.env.PORT || 4000;
 app.use(helmet());
 
 // CORS - autorise le frontend à appeler l'API
+const ALLOWED_ORIGINS = [
+  'http://localhost:3000',
+  'http://localhost:3001',
+  process.env.FRONTEND_URL,
+  'https://auxptitspois.fr',
+  'https://www.auxptitspois.fr',
+].filter(Boolean);
+
 const corsOptions = {
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: (origin, callback) => {
+    // Autoriser les requêtes sans origin (Postman, serveur à serveur)
+    if (!origin || ALLOWED_ORIGINS.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`Origine non autorisée par CORS : ${origin}`));
+    }
+  },
   credentials: true,
 };
 app.use(cors(corsOptions));
