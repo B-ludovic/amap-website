@@ -2,23 +2,15 @@ import { asyncHandler } from '../middlewares/error.middleware.js';
 import emailService from '../services/email.service.js';
 import { prisma } from '../config/database.js';
 import { HttpBadRequestError, HttpNotFoundError, httpStatusCodes } from '../utils/httpErrors.js';
+import { ContactSchema } from '../utils/validation.schemas.js';
 
 // POST /api/contact — Envoi d'un message de contact (public)
 const sendContactMessage = asyncHandler(async (req, res) => {
-  const { name, email, subject, message } = req.body;
-
-  if (!name || !email || !subject || !message) {
-    throw new HttpBadRequestError('Tous les champs sont requis.');
+  const parsed = ContactSchema.safeParse(req.body);
+  if (!parsed.success) {
+    throw new HttpBadRequestError(parsed.error.errors[0].message);
   }
-
-  if (name.length > 100) throw new HttpBadRequestError('Nom : 100 caractères maximum.');
-  if (subject.length > 200) throw new HttpBadRequestError('Sujet : 200 caractères maximum.');
-  if (message.length > 5000) throw new HttpBadRequestError('Message : 5000 caractères maximum.');
-
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
-    throw new HttpBadRequestError('Email invalide.');
-  }
+  const { name, email, subject, message } = parsed.data;
 
   // 1. Sauvegarder en base
   const contactMessage = await prisma.contactMessage.create({
