@@ -6,6 +6,7 @@ import {
   HttpConflictError,
   httpStatusCodes
 } from '../utils/httpErrors.js';
+import { ProducerSchema, ProductSchema, BasketTypeSchema, BlogPostSchema } from '../utils/validation.schemas.js';
 
 
 // GESTION DES PRODUCTEURS //
@@ -13,12 +14,11 @@ import {
 
 // CRÉER UN PRODUCTEUR 
 const createProducer = asyncHandler(async (req, res) => {
-  const { name, description, email, phone, specialty, image } = req.body;
-
-  // Vérifier les champs requis
-  if (!name || !description || !email) {
-    throw new HttpBadRequestError('Nom, description et email requis');
+  const parsed = ProducerSchema.safeParse(req.body);
+  if (!parsed.success) {
+    throw new HttpBadRequestError(parsed.error.errors[0].message);
   }
+  const { name, description, email, phone, specialty, image } = parsed.data;
 
   // Vérifier que l'email n'existe pas déjà
   const existingProducer = await prisma.producer.findUnique({
@@ -147,11 +147,11 @@ const getAllProducers = asyncHandler(async (req, res) => {
 
 // CRÉER UN PRODUIT
 const createProduct = asyncHandler(async (req, res) => {
-  const { name, producerId, unit, category, description, stock, isExample } = req.body;
-
-  if (!name || !producerId || !unit) {
-    throw new HttpBadRequestError('Nom, producteur et unité requis');
+  const parsed = ProductSchema.safeParse(req.body);
+  if (!parsed.success) {
+    throw new HttpBadRequestError(parsed.error.errors[0].message);
   }
+  const { name, producerId, unit, category, description, stock, isExample } = parsed.data;
 
   const producer = await prisma.producer.findUnique({
     where: { id: producerId }
@@ -280,15 +280,12 @@ const getAllProducts = asyncHandler(async (req, res) => {
 
 // CRÉER UN TYPE DE PANIER 
 const createBasketType = asyncHandler(async (req, res) => {
-  const { name, description, price, image, products } = req.body;
-
-  if (!name || !description || !price) {
-    throw new HttpBadRequestError('Nom, description et prix requis');
+  const parsed = BasketTypeSchema.safeParse(req.body);
+  if (!parsed.success) {
+    throw new HttpBadRequestError(parsed.error.errors[0].message);
   }
-
-  if (price <= 0) {
-    throw new HttpBadRequestError('Le prix doit être supérieur à 0');
-  }
+  const { name, description, price, image } = parsed.data;
+  const { products } = req.body;
 
   // Créer le panier avec ses produits
   const basketType = await prisma.basketType.create({
@@ -809,12 +806,12 @@ const getActiveTheme = asyncHandler(async (req, res) => {
 
 // CRÉER UN ARTICLE DE BLOG 
 const createBlogPost = asyncHandler(async (req, res) => {
-  const { title, slug, content, excerpt, image, isPublished } = req.body;
-  const authorId = req.user.id;
-
-  if (!title || !content) {
-    throw new HttpBadRequestError('Titre et contenu requis');
+  const parsed = BlogPostSchema.safeParse(req.body);
+  if (!parsed.success) {
+    throw new HttpBadRequestError(parsed.error.errors[0].message);
   }
+  const { title, slug, content, excerpt, image, isPublished } = parsed.data;
+  const authorId = req.user.id;
 
   // Vérifier que le slug n'existe pas déjà
   if (slug) {
