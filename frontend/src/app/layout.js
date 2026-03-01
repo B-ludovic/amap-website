@@ -23,8 +23,28 @@ import '../styles/admin/parametres.css';
 
 
 export const metadata = {
-  title: 'Aux P\'tits Pois - AMAP locale',
-  description: 'Commandez vos paniers de produits locaux et bio auprès de nos producteurs partenaires',
+  title: {
+    default: 'Aux P\'tits Pois - AMAP locale',
+    template: '%s | Aux P\'tits Pois',
+  },
+  description: 'Commandez vos paniers de produits locaux et bio auprès de nos producteurs partenaires. AMAP solidaire avec tarif accessible à tous.',
+  keywords: ['AMAP', 'panier bio', 'légumes locaux', 'circuit court', 'agriculture biologique', 'producteurs locaux'],
+  openGraph: {
+    title: 'Aux P\'tits Pois - AMAP locale',
+    description: 'Commandez vos paniers de produits locaux et bio auprès de nos producteurs partenaires.',
+    type: 'website',
+    locale: 'fr_FR',
+    siteName: 'Aux P\'tits Pois',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Aux P\'tits Pois - AMAP locale',
+    description: 'Commandez vos paniers de produits locaux et bio auprès de nos producteurs partenaires.',
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 function RootLayout({ children }) {
