@@ -10,6 +10,7 @@ import {
   HttpConflictError,
   httpStatusCodes
 } from '../utils/httpErrors.js';
+import { logAudit } from '../services/audit.service.js';
 
 // SOUMETTRE UNE DEMANDE D'ABONNEMENT (UTILISATEUR CONNECTÉ)
 export const submitRequest = asyncHandler(async (req, res) => {
@@ -184,6 +185,10 @@ export const updateRequestStatus = asyncHandler(async (req, res) => {
     }
   });
 
+  if (status === 'REJECTED') {
+    await logAudit(req, 'REJECT_SUBSCRIPTION_REQUEST', 'IMPORTANT', { type: 'SUBSCRIPTION_REQUEST', id, label: request.email });
+  }
+
   res.json({
     success: true,
     message: 'Statut mis à jour avec succès',
@@ -319,6 +324,8 @@ export const approveAndCreateSubscription = asyncHandler(async (req, res) => {
 
   // 9. Envoyer email de confirmation
   await emailService.sendSubscriptionConfirmation(subscription, user);
+
+  await logAudit(req, 'APPROVE_SUBSCRIPTION_REQUEST', 'IMPORTANT', { type: 'SUBSCRIPTION_REQUEST', id, label: user.email }, { subscriptionNumber: subscription.subscriptionNumber });
 
   res.status(httpStatusCodes.CREATED).json({
     success: true,

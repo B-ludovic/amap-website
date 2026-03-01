@@ -7,6 +7,7 @@ import {
   httpStatusCodes
 } from '../utils/httpErrors.js';
 import { ProducerSchema, ProductSchema, BasketTypeSchema, BlogPostSchema } from '../utils/validation.schemas.js';
+import { logAudit } from '../services/audit.service.js';
 
 
 // GESTION DES PRODUCTEURS //
@@ -39,6 +40,8 @@ const createProducer = asyncHandler(async (req, res) => {
       image
     }
   });
+
+  await logAudit(req, 'CREATE_PRODUCER', 'IMPORTANT', { type: 'PRODUCER', id: producer.id, label: producer.name });
 
   res.status(httpStatusCodes.CREATED).json({
     success: true,
@@ -118,6 +121,8 @@ const deleteProducer = asyncHandler(async (req, res) => {
     where: { id }
   });
 
+  await logAudit(req, 'DELETE_PRODUCER', 'IMPORTANT', { type: 'PRODUCER', id, label: producer.name });
+
   res.json({
     success: true,
     message: 'Producteur supprimé avec succès'
@@ -175,6 +180,8 @@ const createProduct = asyncHandler(async (req, res) => {
       producer: true
     }
   });
+
+  await logAudit(req, 'CREATE_PRODUCT', 'IMPORTANT', { type: 'PRODUCT', id: product.id, label: product.name });
 
   res.status(httpStatusCodes.CREATED).json({
     success: true,
@@ -254,6 +261,8 @@ const deleteProduct = asyncHandler(async (req, res) => {
   await prisma.product.delete({
     where: { id }
   });
+
+  await logAudit(req, 'DELETE_PRODUCT', 'IMPORTANT', { type: 'PRODUCT', id, label: product.name });
 
   res.json({
     success: true,
@@ -684,6 +693,8 @@ const changeUserRole = asyncHandler(async (req, res) => {
     }
   });
 
+  await logAudit(req, 'CHANGE_USER_ROLE', 'CRITICAL', { type: 'USER', id: userId, label: user.email }, { oldRole: user.role, newRole: role });
+
   res.json({
     success: true,
     message: 'Rôle modifié avec succès',
@@ -719,6 +730,8 @@ const deleteUser = asyncHandler(async (req, res) => {
       deletedAt: new Date()
     }
   });
+
+  await logAudit(req, 'DELETE_USER', 'CRITICAL', { type: 'USER', id: userId, label: user.email });
 
   res.json({
     success: true,
@@ -1132,9 +1145,48 @@ const deleteAllExamples = asyncHandler(async (req, res) => {
     });
   });
 
+  await logAudit(req, 'DELETE_EXAMPLES', 'IMPORTANT');
+
   res.json({
     success: true,
     message: 'Tous les exemples ont été supprimés avec succès'
+  });
+});
+
+// JOURNAL D'AUDIT //
+
+const getAuditLogs = asyncHandler(async (req, res) => {
+  const { severity, action, page = 1, limit = 50 } = req.query;
+  const parsedPage = Math.max(parseInt(page) || 1, 1);
+  const parsedLimit = Math.min(parseInt(limit) || 50, 200);
+  const skip = (parsedPage - 1) * parsedLimit;
+
+  const where = {
+    ...(severity && { severity }),
+    ...(action  && { action }),
+  };
+
+  const [logs, total] = await Promise.all([
+    prisma.auditLog.findMany({
+      where,
+      skip,
+      take: parsedLimit,
+      orderBy: { createdAt: 'desc' },
+    }),
+    prisma.auditLog.count({ where }),
+  ]);
+
+  res.json({
+    success: true,
+    data: {
+      logs,
+      pagination: {
+        total,
+        page: parsedPage,
+        limit: parsedLimit,
+        totalPages: Math.ceil(total / parsedLimit),
+      },
+    },
   });
 });
 
@@ -1161,5 +1213,6 @@ export {
   getStats,
   globalSearch,
   getExampleStats,
-  deleteAllExamples
+  deleteAllExamples,
+  getAuditLogs
 };

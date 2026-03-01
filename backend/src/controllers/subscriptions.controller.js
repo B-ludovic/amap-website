@@ -8,6 +8,7 @@ import {
   HttpConflictError,
   httpStatusCodes
 } from '../utils/httpErrors.js';
+import { logAudit } from '../services/audit.service.js';
 
 // Générer un numéro d'abonnement unique
 const generateSubscriptionNumber = async () => {
@@ -452,6 +453,8 @@ const cancelSubscription = asyncHandler(async (req, res) => {
   });
 
   // TODO: Envoyer email d'annulation
+
+  await logAudit(req, 'CANCEL_SUBSCRIPTION', 'IMPORTANT', { type: 'SUBSCRIPTION', id, label: subscription.subscriptionNumber });
 
   res.json({
     success: true,

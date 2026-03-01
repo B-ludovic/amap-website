@@ -566,6 +566,56 @@ model AmapClosure {
 }
 
 
+// JOURNAL D'AUDIT //
+
+model AuditLog {
+  id          String   @id @default(uuid())
+
+  adminId     String?
+  adminEmail  String
+
+  action      AuditAction
+  severity    AuditSeverity
+
+  targetType  String?
+  targetId    String?
+  targetLabel String?
+
+  details     Json?
+
+  ipAddress   String?
+
+  createdAt   DateTime @default(now())
+
+  @@index([adminId])
+  @@index([action])
+  @@index([severity])
+  @@index([createdAt])
+}
+
+enum AuditAction {
+  // Critique
+  DELETE_USER
+  CHANGE_USER_ROLE
+  // Importante
+  CREATE_PRODUCER
+  DELETE_PRODUCER
+  CREATE_PRODUCT
+  DELETE_PRODUCT
+  DELETE_CONTACT_MESSAGE
+  DELETE_EXAMPLES
+  APPROVE_SUBSCRIPTION_REQUEST
+  REJECT_SUBSCRIPTION_REQUEST
+  CANCEL_SUBSCRIPTION
+  UPDATE_SUBSCRIPTION_STATUS
+}
+
+enum AuditSeverity {
+  CRITICAL
+  IMPORTANT
+}
+
+
 // THÈME SAISONNIER (Existant - conservé) //
 
 model ThemeConfig {
