@@ -103,6 +103,15 @@ const adminSearchLimiter = rateLimit({
   message: { success: false, error: { message: 'Trop de recherches, réessayez dans 15 minutes.' } },
 });
 
+// Rate limiting — routes admin générales
+const adminLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 200,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, error: { message: 'Trop de requêtes admin, réessayez dans 15 minutes.' } },
+});
+
 // === ROUTES ===
 
 // Route de base
@@ -128,6 +137,7 @@ app.use('/api/auth/reset-password', publicLimiter);
 app.use('/api/auth', authRoutes);
 app.use('/api/producers', producersRoutes);
 app.use('/api/admin/users/by-email', adminSearchLimiter);
+app.use('/api/admin', adminLimiter);
 app.use('/api/admin', adminRoutes);
 
 // Routes supplémentaires
