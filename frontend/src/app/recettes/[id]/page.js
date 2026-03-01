@@ -6,6 +6,7 @@ import { Clock, ChefHat, ArrowLeft, Users, Leaf } from 'lucide-react';
 import { useModal } from '../../../contexts/ModalContext';
 import api from '../../../lib/api';
 import Link from 'next/link';
+import DOMPurify from 'isomorphic-dompurify';
 import '../../../styles/public/recipes-detail.css';
 
 export default function RecipeDetailPage() {
@@ -135,10 +136,10 @@ export default function RecipeDetailPage() {
               </div>
 
               {recipe.summary && (
-                <div 
+                <div
                   className="recipe-summary"
-                  dangerouslySetInnerHTML={{ 
-                    __html: recipe.summary.replace(/<a[^>]*>|<\/a>/g, '') 
+                  dangerouslySetInnerHTML={{
+                    __html: DOMPurify.sanitize(recipe.summary, { ALLOWED_TAGS: ['p', 'b', 'i', 'em', 'strong', 'br'] })
                   }}
                 />
               )}
@@ -230,10 +231,10 @@ export default function RecipeDetailPage() {
                     ))}
                   </ol>
                 ) : recipe.instructions ? (
-                  <div 
+                  <div
                     className="instructions-html"
-                    dangerouslySetInnerHTML={{ 
-                      __html: recipe.instructions 
+                    dangerouslySetInnerHTML={{
+                      __html: DOMPurify.sanitize(recipe.instructions, { ALLOWED_TAGS: ['p', 'ol', 'ul', 'li', 'b', 'i', 'em', 'strong', 'br'] })
                     }}
                   />
                 ) : (
