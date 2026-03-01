@@ -50,7 +50,7 @@ export default function SubscriptionRequestPage() {
         pricingType: formData.pricingType,
         message: formData.message
       };
-      localStorage.setItem('pendingSubscriptionRequest', JSON.stringify(pendingRequest));
+      sessionStorage.setItem('pendingSubscriptionRequest', JSON.stringify(pendingRequest));
       
       showError(
         'Connexion requise',
@@ -65,12 +65,12 @@ export default function SubscriptionRequestPage() {
   // Récupérer les données sauvegardées si elles existent
   useEffect(() => {
     if (isAuthenticated) {
-      const pendingRequest = localStorage.getItem('pendingSubscriptionRequest');
+      const pendingRequest = sessionStorage.getItem('pendingSubscriptionRequest');
       if (pendingRequest) {
         try {
           const data = JSON.parse(pendingRequest);
           setFormData(prev => ({ ...prev, ...data }));
-          localStorage.removeItem('pendingSubscriptionRequest');
+          sessionStorage.removeItem('pendingSubscriptionRequest');
           showSuccess('Données récupérées', 'Vous pouvez maintenant finaliser votre demande');
         } catch (error) {
           console.error('Erreur récupération données:', error);
