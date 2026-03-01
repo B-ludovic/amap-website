@@ -12,7 +12,7 @@ export default function CookieConsent() {
     const script = document.createElement('script');
     script.src = '/tarteaucitron/tarteaucitron.js';
     script.async = true;
-    
+
     script.onload = () => {
       // Vérifier que tarteaucitron est chargé
       if (!window.tarteaucitron) {
@@ -20,38 +20,46 @@ export default function CookieConsent() {
         return;
       }
 
-      // Initialiser Tarteaucitron
-      window.tarteaucitron.init(tarteaucitronConfig);
+      // Charger les définitions de services avant d'initialiser
+      const servicesScript = document.createElement('script');
+      servicesScript.src = '/tarteaucitron/tarteaucitron.services.js';
 
-      // Activer les services
-      const { googleAnalytics, stripe, youtube, googleMaps } = tarteaucitronServices;
+      servicesScript.onload = () => {
+        // Initialiser Tarteaucitron
+        window.tarteaucitron.init(tarteaucitronConfig);
 
-      // Google Analytics
-      if (googleAnalytics.enabled) {
-        window.tarteaucitron.user.gtagUa = googleAnalytics.id;
-        window.tarteaucitron.user.gtagMore = function () {
-          // Configuration supplémentaire GA si nécessaire
-        };
-        (window.tarteaucitron.job = window.tarteaucitron.job || []).push('gtag');
-      }
+        // Activer les services
+        const { googleAnalytics, stripe, youtube, googleMaps } = tarteaucitronServices;
 
-      // Stripe (obligatoire)
-      if (stripe.enabled) {
-        (window.tarteaucitron.job = window.tarteaucitron.job || []).push('stripe');
-      }
+        // Google Analytics
+        if (googleAnalytics.enabled) {
+          window.tarteaucitron.user.gtagUa = googleAnalytics.id;
+          window.tarteaucitron.user.gtagMore = function () {
+            // Configuration supplémentaire GA si nécessaire
+          };
+          (window.tarteaucitron.job = window.tarteaucitron.job || []).push('gtag');
+        }
 
-      // YouTube
-      if (youtube.enabled) {
-        (window.tarteaucitron.job = window.tarteaucitron.job || []).push('youtube');
-      }
+        // Stripe (obligatoire)
+        if (stripe.enabled) {
+          (window.tarteaucitron.job = window.tarteaucitron.job || []).push('stripe');
+        }
 
-      // Google Maps
-      if (googleMaps.enabled && googleMaps.apiKey) {
-        window.tarteaucitron.user.googlemapsKey = googleMaps.apiKey;
-        (window.tarteaucitron.job = window.tarteaucitron.job || []).push('googlemaps');
-      }
+        // YouTube
+        if (youtube.enabled) {
+          (window.tarteaucitron.job = window.tarteaucitron.job || []).push('youtube');
+        }
 
-      console.log('✅ Tarteaucitron initialisé');
+        // Google Maps
+        if (googleMaps.enabled && googleMaps.apiKey) {
+          window.tarteaucitron.user.googlemapsKey = googleMaps.apiKey;
+          (window.tarteaucitron.job = window.tarteaucitron.job || []).push('googlemaps');
+        }
+
+        console.log('✅ Tarteaucitron initialisé');
+      };
+
+      document.head.appendChild(servicesScript);
     };
 
     script.onerror = () => {
