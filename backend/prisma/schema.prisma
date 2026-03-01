@@ -134,31 +134,24 @@ model Product {
   id          String      @id @default(uuid())
   name        String
   producerId  String
-  unit        ProductUnit
   category    ProductCategory?
   description String?     @db.Text
   image       String?
-  stock       Float?      @default(0)
   isActive    Boolean     @default(true)
   isExample   Boolean     @default(false)
-  
+
   producer    Producer    @relation(fields: [producerId], references: [id])
-  
+
   weeklyBasketItems WeeklyBasketItem[]
   recipeProducts    RecipeProduct[]
-  
+
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
   deletedAt   DateTime?
-  
+
   @@index([producerId])
   @@index([category])
   @@index([isActive])
-}
-
-enum ProductUnit {
-  KG      // Kilogramme
-  PIECE   // Pièce
 }
 
 enum ProductCategory {
@@ -324,17 +317,15 @@ model WeeklyBasket {
 }
 
 model WeeklyBasketItem {
-  id              String   @id @default(uuid())
-  weeklyBasketId  String
-  productId       String
-  
-  quantitySmall   Float
-  quantityLarge   Float
-  
-  weeklyBasket    WeeklyBasket @relation(fields: [weeklyBasketId], references: [id], onDelete: Cascade)
-  product         Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
-  
-  @@unique([weeklyBasketId, productId])
+  id                String   @id @default(uuid())
+  weeklyBasketId    String
+  productId         String?
+  customProductName String?
+
+  weeklyBasket      WeeklyBasket  @relation(fields: [weeklyBasketId], references: [id], onDelete: Cascade)
+  product           Product?      @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([weeklyBasketId])
   @@index([productId])
 }
 

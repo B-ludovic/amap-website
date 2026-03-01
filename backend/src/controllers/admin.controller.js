@@ -156,7 +156,7 @@ const createProduct = asyncHandler(async (req, res) => {
   if (!parsed.success) {
     throw new HttpBadRequestError(parsed.error.errors[0].message);
   }
-  const { name, producerId, unit, category, description, stock, isExample } = parsed.data;
+  const { name, producerId, category, description, isExample } = parsed.data;
 
   const producer = await prisma.producer.findUnique({
     where: { id: producerId }
@@ -170,10 +170,8 @@ const createProduct = asyncHandler(async (req, res) => {
     data: {
       name,
       producerId,
-      unit,
       category,
       description,
-      stock: stock ? parseFloat(stock) : 0,
       isExample: isExample || false
     },
     include: {
@@ -193,7 +191,7 @@ const createProduct = asyncHandler(async (req, res) => {
 // MODIFIER UN PRODUIT
 const updateProduct = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { name, producerId, unit, category, description, stock, isExample } = req.body;
+  const { name, producerId, category, description, isExample } = req.body;
 
   const product = await prisma.product.findUnique({
     where: { id }
@@ -218,10 +216,8 @@ const updateProduct = asyncHandler(async (req, res) => {
     data: {
       name,
       producerId,
-      unit,
       category,
       description,
-      stock: stock !== undefined ? parseFloat(stock) : undefined,
       isExample
     },
     include: {

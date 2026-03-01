@@ -12,10 +12,8 @@ export const ProducerSchema = z.object({
 export const ProductSchema = z.object({
   name:        z.string().min(1, 'Nom requis').max(200),
   producerId:  z.string().min(1, 'Producteur requis'),
-  unit:        z.string().min(1, 'Unité requise').max(50),
   category:    z.string().max(100).optional(),
   description: z.string().max(1000).optional(),
-  stock:       z.coerce.number().min(0).optional(),
   isExample:   z.boolean().optional(),
 });
 

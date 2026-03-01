@@ -14,7 +14,6 @@ import {
     Edit2,
     Trash2,
     Copy,
-    Eye,
     Send
 } from "lucide-react";
 
@@ -140,15 +139,6 @@ export default function AdminWeeklyBasketPage() {
     });
   };
 
-  const calculateTotalWeight = (items, size) => {
-    const field = size === 'SMALL' ? 'quantitySmall' : 'quantityLarge';
-    return items.reduce((sum, item) => {
-      if (item.product.unit === 'KG') {
-        return sum + item[field];
-      }
-      return sum;
-    }, 0).toFixed(2);
-  };
 
   if (loading) {
     return <div className="loading-state">Chargement...</div>;
@@ -181,17 +171,9 @@ export default function AdminWeeklyBasketPage() {
           <p className="current-basket-date">{formatDate(currentBasket.distributionDate)}</p>
           
           <div className="current-basket-summary">
-            <div className="basket-size-info">
-              <div className="size-card">
-                <div className="size-label">Petit panier (2-4 kg)</div>
-                <div className="size-weight">{calculateTotalWeight(currentBasket.items, 'SMALL')} kg</div>
-                <div className="size-products">{currentBasket.items.length} produits</div>
-              </div>
-              <div className="size-card">
-                <div className="size-label">Grand panier (6-8 kg)</div>
-                <div className="size-weight">{calculateTotalWeight(currentBasket.items, 'LARGE')} kg</div>
-                <div className="size-products">{currentBasket.items.length} produits</div>
-              </div>
+            <div className="current-basket-count">
+              <ShoppingBasket size={18} />
+              <span>{currentBasket.items.length} produit{currentBasket.items.length > 1 ? 's' : ''}</span>
             </div>
           </div>
 
@@ -268,22 +250,11 @@ export default function AdminWeeklyBasketPage() {
                   <span>{basket.items.length} produits</span>
                 </div>
 
-                <div className="basket-weights">
-                  <div className="weight-item">
-                    <span className="weight-label">Petit</span>
-                    <span className="weight-value">{calculateTotalWeight(basket.items, 'SMALL')} kg</span>
-                  </div>
-                  <div className="weight-item">
-                    <span className="weight-label">Grand</span>
-                    <span className="weight-value">{calculateTotalWeight(basket.items, 'LARGE')} kg</span>
-                  </div>
-                </div>
-
                 {basket.items.length > 0 && (
                   <div className="basket-products-preview">
                     {basket.items.slice(0, 3).map((item) => (
                       <div key={item.id} className="product-preview-item">
-                        • {item.product.name}
+                        • {item.product?.name || item.customProductName}
                       </div>
                     ))}
                     {basket.items.length > 3 && (

@@ -7,6 +7,22 @@ import {
   httpStatusCodes
 } from '../utils/httpErrors.js';
 
+// Inclusion standard des items avec leur produit éventuel
+const itemsInclude = {
+  items: {
+    include: {
+      product: {
+        include: {
+          producer: {
+            select: { id: true, name: true, specialty: true }
+          }
+        }
+      }
+    },
+    orderBy: { id: 'asc' }
+  }
+};
+
 // RÉCUPÉRER TOUS LES PANIERS HEBDOMADAIRES
 const getAllWeeklyBaskets = asyncHandler(async (req, res) => {
   const { year, published, limit = 20 } = req.query;
@@ -26,31 +42,11 @@ const getAllWeeklyBaskets = asyncHandler(async (req, res) => {
   const baskets = await prisma.weeklyBasket.findMany({
     where,
     take: parseInt(limit),
-    include: {
-      items: {
-        include: {
-          product: {
-            include: {
-              producer: {
-                select: {
-                  id: true,
-                  name: true
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    orderBy: {
-      distributionDate: 'desc'
-    }
+    include: itemsInclude,
+    orderBy: { distributionDate: 'desc' }
   });
 
-  res.json({
-    success: true,
-    data: baskets
-  });
+  res.json({ success: true, data: baskets });
 });
 
 // RÉCUPÉRER UN PANIER HEBDOMADAIRE
@@ -59,77 +55,27 @@ const getWeeklyBasketById = asyncHandler(async (req, res) => {
 
   const basket = await prisma.weeklyBasket.findUnique({
     where: { id },
-    include: {
-      items: {
-        include: {
-          product: {
-            include: {
-              producer: {
-                select: {
-                  id: true,
-                  name: true,
-                  specialty: true
-                }
-              }
-            }
-          }
-        },
-        orderBy: {
-          product: {
-            name: 'asc'
-          }
-        }
-      }
-    }
+    include: itemsInclude
   });
 
   if (!basket) {
     throw new HttpNotFoundError('Panier hebdomadaire introuvable');
   }
 
-  res.json({
-    success: true,
-    data: basket
-  });
+  res.json({ success: true, data: basket });
 });
 
 // RÉCUPÉRER LE PANIER DE LA SEMAINE EN COURS (PUBLIC)
-const getCurrentWeeklyBasket = asyncHandler(async (req, res) => {
+const getCurrentWeeklyBasket = asyncHandler(async (_req, res) => {
   const now = new Date();
-  
-  // Chercher le panier publié le plus récent
+
   const basket = await prisma.weeklyBasket.findFirst({
     where: {
       isPublished: true,
-      distributionDate: {
-        gte: now // Distribution future ou aujourd'hui
-      }
+      distributionDate: { gte: now }
     },
-    include: {
-      items: {
-        include: {
-          product: {
-            include: {
-              producer: {
-                select: {
-                  id: true,
-                  name: true,
-                  specialty: true
-                }
-              }
-            }
-          }
-        },
-        orderBy: {
-          product: {
-            name: 'asc'
-          }
-        }
-      }
-    },
-    orderBy: {
-      distributionDate: 'asc'
-    }
+    include: itemsInclude,
+    orderBy: { distributionDate: 'asc' }
   });
 
   if (!basket) {
@@ -140,11 +86,22 @@ const getCurrentWeeklyBasket = asyncHandler(async (req, res) => {
     });
   }
 
-  res.json({
-    success: true,
-    data: basket
-  });
+  res.json({ success: true, data: basket });
 });
+
+// Construit la liste d'items à créer depuis le tableau envoyé par le client
+// Chaque item doit avoir soit productId, soit customProductName
+const buildItemsCreate = (items) => {
+  return items.map(item => {
+    if (item.productId) {
+      return { productId: item.productId };
+    }
+    if (item.customProductName?.trim()) {
+      return { customProductName: item.customProductName.trim() };
+    }
+    return null;
+  }).filter(Boolean);
+};
 
 // CRÉER UN PANIER HEBDOMADAIRE
 const createWeeklyBasket = asyncHandler(async (req, res) => {
@@ -154,7 +111,6 @@ const createWeeklyBasket = asyncHandler(async (req, res) => {
     throw new HttpBadRequestError('Numéro de semaine, année et date de distribution requis');
   }
 
-  // Vérifier qu'un panier n'existe pas déjà pour cette semaine
   const existing = await prisma.weeklyBasket.findUnique({
     where: {
       year_weekNumber: {
@@ -168,32 +124,17 @@ const createWeeklyBasket = asyncHandler(async (req, res) => {
     throw new HttpConflictError('Un panier existe déjà pour cette semaine');
   }
 
-  // Créer le panier avec ses items
+  const itemsData = buildItemsCreate(items || []);
+
   const basket = await prisma.weeklyBasket.create({
     data: {
       weekNumber: parseInt(weekNumber),
       year: parseInt(year),
       distributionDate: new Date(distributionDate),
       notes,
-      items: items && items.length > 0 ? {
-        create: items.map(item => ({
-          productId: item.productId,
-          quantitySmall: parseFloat(item.quantitySmall),
-          quantityLarge: parseFloat(item.quantityLarge)
-        }))
-      } : undefined
+      items: itemsData.length > 0 ? { create: itemsData } : undefined
     },
-    include: {
-      items: {
-        include: {
-          product: {
-            include: {
-              producer: true
-            }
-          }
-        }
-      }
-    }
+    include: itemsInclude
   });
 
   res.status(httpStatusCodes.CREATED).json({
@@ -214,22 +155,13 @@ const updateWeeklyBasket = asyncHandler(async (req, res) => {
     throw new HttpNotFoundError('Panier hebdomadaire introuvable');
   }
 
-  // Si des items sont fournis, supprimer les anciens et créer les nouveaux
   if (items && Array.isArray(items)) {
-    // Supprimer tous les items existants
-    await prisma.weeklyBasketItem.deleteMany({
-      where: { weeklyBasketId: id }
-    });
+    await prisma.weeklyBasketItem.deleteMany({ where: { weeklyBasketId: id } });
 
-    // Créer les nouveaux items
-    if (items.length > 0) {
+    const itemsData = buildItemsCreate(items);
+    if (itemsData.length > 0) {
       await prisma.weeklyBasketItem.createMany({
-        data: items.map(item => ({
-          weeklyBasketId: id,
-          productId: item.productId,
-          quantitySmall: parseFloat(item.quantitySmall),
-          quantityLarge: parseFloat(item.quantityLarge)
-        }))
+        data: itemsData.map(item => ({ weeklyBasketId: id, ...item }))
       });
     }
   }
@@ -240,17 +172,7 @@ const updateWeeklyBasket = asyncHandler(async (req, res) => {
       ...(distributionDate && { distributionDate: new Date(distributionDate) }),
       notes
     },
-    include: {
-      items: {
-        include: {
-          product: {
-            include: {
-              producer: true
-            }
-          }
-        }
-      }
-    }
+    include: itemsInclude
   });
 
   res.json({
@@ -281,10 +203,7 @@ const deleteWeeklyBasket = asyncHandler(async (req, res) => {
 
   await prisma.weeklyBasket.delete({ where: { id } });
 
-  res.json({
-    success: true,
-    message: 'Panier hebdomadaire supprimé avec succès'
-  });
+  res.json({ success: true, message: 'Panier hebdomadaire supprimé avec succès' });
 });
 
 // PUBLIER UN PANIER HEBDOMADAIRE
@@ -306,17 +225,8 @@ const publishWeeklyBasket = asyncHandler(async (req, res) => {
 
   const published = await prisma.weeklyBasket.update({
     where: { id },
-    data: {
-      isPublished: true,
-      publishedAt: new Date()
-    },
-    include: {
-      items: {
-        include: {
-          product: true
-        }
-      }
-    }
+    data: { isPublished: true, publishedAt: new Date() },
+    include: itemsInclude
   });
 
   // TODO: Envoyer newsletter aux abonnés actifs
@@ -346,7 +256,6 @@ const duplicateWeeklyBasket = asyncHandler(async (req, res) => {
     throw new HttpNotFoundError('Panier introuvable');
   }
 
-  // Vérifier qu'un panier n'existe pas déjà
   const existing = await prisma.weeklyBasket.findUnique({
     where: {
       year_weekNumber: {
@@ -360,7 +269,6 @@ const duplicateWeeklyBasket = asyncHandler(async (req, res) => {
     throw new HttpConflictError('Un panier existe déjà pour cette semaine');
   }
 
-  // Créer le nouveau panier avec les mêmes produits
   const duplicated = await prisma.weeklyBasket.create({
     data: {
       weekNumber: parseInt(weekNumber),
@@ -369,19 +277,12 @@ const duplicateWeeklyBasket = asyncHandler(async (req, res) => {
       notes: original.notes,
       items: {
         create: original.items.map(item => ({
-          productId: item.productId,
-          quantitySmall: item.quantitySmall,
-          quantityLarge: item.quantityLarge
+          productId: item.productId || undefined,
+          customProductName: item.customProductName || undefined
         }))
       }
     },
-    include: {
-      items: {
-        include: {
-          product: true
-        }
-      }
-    }
+    include: itemsInclude
   });
 
   res.status(httpStatusCodes.CREATED).json({
@@ -394,10 +295,10 @@ const duplicateWeeklyBasket = asyncHandler(async (req, res) => {
 // AJOUTER UN PRODUIT AU PANIER
 const addProductToBasket = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { productId, quantitySmall, quantityLarge } = req.body;
+  const { productId, customProductName } = req.body;
 
-  if (!productId || !quantitySmall || !quantityLarge) {
-    throw new HttpBadRequestError('Produit et quantités requis');
+  if (!productId && !customProductName?.trim()) {
+    throw new HttpBadRequestError('productId ou customProductName requis');
   }
 
   const basket = await prisma.weeklyBasket.findUnique({ where: { id } });
@@ -406,40 +307,21 @@ const addProductToBasket = asyncHandler(async (req, res) => {
     throw new HttpNotFoundError('Panier introuvable');
   }
 
-  // Vérifier que le produit existe
-  const product = await prisma.product.findUnique({ where: { id: productId } });
-
-  if (!product) {
-    throw new HttpNotFoundError('Produit introuvable');
-  }
-
-  // Vérifier que le produit n'est pas déjà dans le panier
-  const existing = await prisma.weeklyBasketItem.findUnique({
-    where: {
-      weeklyBasketId_productId: {
-        weeklyBasketId: id,
-        productId
-      }
+  if (productId) {
+    const product = await prisma.product.findUnique({ where: { id: productId } });
+    if (!product) {
+      throw new HttpNotFoundError('Produit introuvable');
     }
-  });
-
-  if (existing) {
-    throw new HttpConflictError('Ce produit est déjà dans le panier');
   }
 
   const item = await prisma.weeklyBasketItem.create({
     data: {
       weeklyBasketId: id,
-      productId,
-      quantitySmall: parseFloat(quantitySmall),
-      quantityLarge: parseFloat(quantityLarge)
+      productId: productId || null,
+      customProductName: customProductName?.trim() || null
     },
     include: {
-      product: {
-        include: {
-          producer: true
-        }
-      }
+      product: { include: { producer: true } }
     }
   });
 
@@ -450,65 +332,52 @@ const addProductToBasket = asyncHandler(async (req, res) => {
   });
 });
 
-// MODIFIER UN PRODUIT DU PANIER
+// MODIFIER UN ITEM DU PANIER (changer le produit ou le nom libre)
 const updateBasketProduct = asyncHandler(async (req, res) => {
-  const { id, productId } = req.params;
-  const { quantitySmall, quantityLarge } = req.body;
+  const { id, itemId } = req.params;
+  const { productId, customProductName } = req.body;
 
-  const item = await prisma.weeklyBasketItem.findUnique({
-    where: {
-      weeklyBasketId_productId: {
-        weeklyBasketId: id,
-        productId
-      }
-    }
+  if (!productId && !customProductName?.trim()) {
+    throw new HttpBadRequestError('productId ou customProductName requis');
+  }
+
+  const item = await prisma.weeklyBasketItem.findFirst({
+    where: { id: itemId, weeklyBasketId: id }
   });
 
   if (!item) {
-    throw new HttpNotFoundError('Produit introuvable dans ce panier');
+    throw new HttpNotFoundError('Entrée introuvable dans ce panier');
   }
 
   const updated = await prisma.weeklyBasketItem.update({
-    where: { id: item.id },
+    where: { id: itemId },
     data: {
-      quantitySmall: parseFloat(quantitySmall),
-      quantityLarge: parseFloat(quantityLarge)
+      productId: productId || null,
+      customProductName: customProductName?.trim() || null
     },
     include: {
-      product: true
+      product: { include: { producer: true } }
     }
   });
 
-  res.json({
-    success: true,
-    message: 'Quantités mises à jour',
-    data: updated
-  });
+  res.json({ success: true, message: 'Item mis à jour', data: updated });
 });
 
 // RETIRER UN PRODUIT DU PANIER
 const removeProductFromBasket = asyncHandler(async (req, res) => {
-  const { id, productId } = req.params;
+  const { id, itemId } = req.params;
 
-  const item = await prisma.weeklyBasketItem.findUnique({
-    where: {
-      weeklyBasketId_productId: {
-        weeklyBasketId: id,
-        productId
-      }
-    }
+  const item = await prisma.weeklyBasketItem.findFirst({
+    where: { id: itemId, weeklyBasketId: id }
   });
 
   if (!item) {
-    throw new HttpNotFoundError('Produit introuvable dans ce panier');
+    throw new HttpNotFoundError('Entrée introuvable dans ce panier');
   }
 
-  await prisma.weeklyBasketItem.delete({ where: { id: item.id } });
+  await prisma.weeklyBasketItem.delete({ where: { id: itemId } });
 
-  res.json({
-    success: true,
-    message: 'Produit retiré du panier'
-  });
+  res.json({ success: true, message: 'Produit retiré du panier' });
 });
 
 export {

@@ -10,11 +10,9 @@ const getISOWeekAndYear = (dateStr) => {
   const [year, month, day] = dateStr.split('-').map(Number);
   const date = new Date(year, month - 1, day);
 
-  // Décaler vers le jeudi de la même semaine ISO
-  const dayOfWeek = (date.getDay() + 6) % 7; // 0=Lun … 6=Dim
+  const dayOfWeek = (date.getDay() + 6) % 7;
   const thursday = new Date(year, month - 1, day - dayOfWeek + 3);
 
-  // Premier jeudi de l'année ISO (= fin de la semaine 1)
   const isoYear = thursday.getFullYear();
   const jan1 = new Date(isoYear, 0, 1);
   const jan1Dow = (jan1.getDay() + 6) % 7;
@@ -34,9 +32,9 @@ export default function WeeklyBasketModal({ basket, lastBasket, onClose }) {
     distributionDate: '',
     notes: '',
   });
+  // Chaque item : { type: 'catalogue' | 'libre', productId: '', customProductName: '' }
   const [composition, setComposition] = useState([]);
   const [errors, setErrors] = useState({});
-  const [weightWarnings, setWeightWarnings] = useState({ small: false, large: false });
   const [reconduireApplied, setReconduireApplied] = useState(false);
 
   useEffect(() => {
@@ -55,10 +53,9 @@ export default function WeeklyBasketModal({ basket, lastBasket, onClose }) {
       if (basket.items && basket.items.length > 0) {
         setComposition(
           basket.items.map(item => ({
-            productId: item.product?.id || item.productId,
-            quantitySmall: item.quantitySmall,
-            quantityLarge: item.quantityLarge,
-            product: item.product
+            type: item.productId ? 'catalogue' : 'libre',
+            productId: item.productId || '',
+            customProductName: item.customProductName || '',
           }))
         );
       }
@@ -96,23 +93,21 @@ export default function WeeklyBasketModal({ basket, lastBasket, onClose }) {
     if (!lastBasket) return;
     setComposition(
       lastBasket.items.map(item => ({
-        productId: item.product?.id || item.productId,
-        quantitySmall: item.quantitySmall,
-        quantityLarge: item.quantityLarge,
-        product: item.product,
+        type: item.productId ? 'catalogue' : 'libre',
+        productId: item.productId || '',
+        customProductName: item.customProductName || '',
       }))
     );
     if (lastBasket.notes) {
       setFormData(prev => ({ ...prev, notes: lastBasket.notes }));
     }
     setReconduireApplied(true);
-    setTimeout(() => checkWeightLimits(), 0);
   };
 
   const handleAddProduct = () => {
     setComposition(prev => [
       ...prev,
-      { productId: '', quantitySmall: 0, quantityLarge: 0, product: null }
+      { type: 'catalogue', productId: '', customProductName: '' }
     ]);
   };
 
@@ -120,53 +115,17 @@ export default function WeeklyBasketModal({ basket, lastBasket, onClose }) {
     setComposition(prev => prev.filter((_, i) => i !== index));
   };
 
-  const calculateTotalWeight = (size) => {
-    return composition.reduce((total, item) => {
-      if (!item.product || item.product.unit !== 'KG') return total;
-      const quantity = size === 'small' ? item.quantitySmall : item.quantityLarge;
-      return total + (parseFloat(quantity) || 0);
-    }, 0);
-  };
-
-  const checkWeightLimits = () => {
-    const smallWeight = calculateTotalWeight('small');
-    const largeWeight = calculateTotalWeight('large');
-
-    setWeightWarnings({
-      small: smallWeight < 2 || smallWeight > 4,
-      large: largeWeight < 6 || largeWeight > 8
-    });
-
-    return {
-      small: smallWeight,
-      large: largeWeight,
-      smallValid: smallWeight >= 2 && smallWeight <= 4,
-      largeValid: largeWeight >= 6 && largeWeight <= 8
-    };
-  };
-
-  const handleProductChange = (index, field, value) => {
+  const handleItemChange = (index, field, value) => {
     setComposition(prev => {
-      const newComposition = [...prev];
-
-      if (field === 'productId') {
-        const selectedProduct = products.find(p => p.id === value);
-        newComposition[index] = {
-          ...newComposition[index],
-          productId: value,
-          product: selectedProduct
-        };
+      const next = [...prev];
+      if (field === 'type') {
+        // Réinitialiser les champs de l'autre mode
+        next[index] = { type: value, productId: '', customProductName: '' };
       } else {
-        newComposition[index] = {
-          ...newComposition[index],
-          [field]: parseFloat(value) || 0
-        };
+        next[index] = { ...next[index], [field]: value };
       }
-
-      return newComposition;
+      return next;
     });
-
-    setTimeout(() => checkWeightLimits(), 0);
   };
 
   const validate = () => {
@@ -188,20 +147,13 @@ export default function WeeklyBasketModal({ basket, lastBasket, onClose }) {
       newErrors.composition = 'Ajoutez au moins un produit';
     }
 
-    const hasInvalidProducts = composition.some(
-      item => !item.productId || item.quantitySmall <= 0 || item.quantityLarge <= 0
+    const hasInvalid = composition.some(item =>
+      (item.type === 'catalogue' && !item.productId) ||
+      (item.type === 'libre' && !item.customProductName.trim())
     );
 
-    if (hasInvalidProducts) {
-      newErrors.composition = 'Tous les produits doivent avoir des quantités valides';
-    }
-
-    const weights = checkWeightLimits();
-    if (!weights.smallValid) {
-      newErrors.weightSmall = `Poids Petit panier: ${weights.small.toFixed(2)} kg (recommandé: 2-4 kg)`;
-    }
-    if (!weights.largeValid) {
-      newErrors.weightLarge = `Poids Grand panier: ${weights.large.toFixed(2)} kg (recommandé: 6-8 kg)`;
+    if (hasInvalid) {
+      newErrors.composition = 'Tous les produits doivent être renseignés';
     }
 
     setErrors(newErrors);
@@ -216,16 +168,18 @@ export default function WeeklyBasketModal({ basket, lastBasket, onClose }) {
     setLoading(true);
 
     try {
+      const items = composition.map(item =>
+        item.type === 'catalogue'
+          ? { productId: item.productId }
+          : { customProductName: item.customProductName.trim() }
+      );
+
       const dataToSend = {
         weekNumber: parseInt(formData.weekNumber),
         year: parseInt(formData.year),
         distributionDate: formData.distributionDate,
         notes: formData.notes,
-        items: composition.map(item => ({
-          productId: item.productId,
-          quantitySmall: parseFloat(item.quantitySmall),
-          quantityLarge: parseFloat(item.quantityLarge)
-        }))
+        items
       };
 
       if (basket) {
@@ -289,7 +243,7 @@ export default function WeeklyBasketModal({ basket, lastBasket, onClose }) {
               </div>
             )}
 
-            {/* Date de distribution — primaire, remplit automatiquement semaine/année */}
+            {/* Date de distribution */}
             <div className="form-group">
               <label htmlFor="distributionDate">
                 Date de distribution <span className="required">*</span>
@@ -312,7 +266,7 @@ export default function WeeklyBasketModal({ basket, lastBasket, onClose }) {
               )}
             </div>
 
-            {/* Semaine / Année — auto-remplis, restent éditables */}
+            {/* Semaine / Année */}
             <div className="form-row">
               <div className="form-group">
                 <label htmlFor="weekNumber">
@@ -365,7 +319,7 @@ export default function WeeklyBasketModal({ basket, lastBasket, onClose }) {
 
             {/* Composition */}
             <div className="form-group">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div className="basket-composition-header">
                 <label>
                   Composition du panier <span className="required">*</span>
                 </label>
@@ -383,26 +337,6 @@ export default function WeeklyBasketModal({ basket, lastBasket, onClose }) {
                 <span className="error-message">{errors.composition}</span>
               )}
 
-              {composition.length > 0 && composition.some(item => item.product?.unit === 'KG') && (
-                <div className="weight-summary">
-                  <div className={`weight-info ${weightWarnings.small ? 'weight-warning' : 'weight-ok'}`}>
-                    <strong>Poids Petit panier:</strong> {calculateTotalWeight('small').toFixed(2)} kg
-                    <span className="weight-range">(recommandé: 2-4 kg)</span>
-                  </div>
-                  <div className={`weight-info ${weightWarnings.large ? 'weight-warning' : 'weight-ok'}`}>
-                    <strong>Poids Grand panier:</strong> {calculateTotalWeight('large').toFixed(2)} kg
-                    <span className="weight-range">(recommandé: 6-8 kg)</span>
-                  </div>
-                </div>
-              )}
-
-              {errors.weightSmall && (
-                <span className="error-message">{errors.weightSmall}</span>
-              )}
-              {errors.weightLarge && (
-                <span className="error-message">{errors.weightLarge}</span>
-              )}
-
               {composition.length === 0 ? (
                 <div className="empty-composition">
                   <ShoppingBasket size={32} />
@@ -412,54 +346,47 @@ export default function WeeklyBasketModal({ basket, lastBasket, onClose }) {
                 <div className="basket-composition-list">
                   {composition.map((item, index) => (
                     <div key={index} className="basket-composition-item">
-                      <div className="composition-product-select">
-                        <label>Produit</label>
-                        <select
-                          value={item.productId}
-                          onChange={(e) => handleProductChange(index, 'productId', e.target.value)}
-                          required
+
+                      {/* Toggle catalogue / libre */}
+                      <div className="basket-item-type-toggle">
+                        <button
+                          type="button"
+                          className={`toggle-btn${item.type === 'catalogue' ? ' active' : ''}`}
+                          onClick={() => handleItemChange(index, 'type', 'catalogue')}
                         >
-                          <option value="">Sélectionner un produit</option>
-                          {products.map(product => (
-                            <option key={product.id} value={product.id}>
-                              {product.name} ({product.producer.name})
-                              {product.stock != null && ` - Stock: ${product.stock} ${product.unit === 'KG' ? 'kg' : 'pièce(s)'}`}
-                            </option>
-                          ))}
-                        </select>
-                        {item.product && item.product.stock != null && (
-                          <small className="stock-info">
-                            Stock disponible: {item.product.stock} {item.product.unit === 'KG' ? 'kg' : 'pièce(s)'}
-                          </small>
-                        )}
+                          Catalogue
+                        </button>
+                        <button
+                          type="button"
+                          className={`toggle-btn${item.type === 'libre' ? ' active' : ''}`}
+                          onClick={() => handleItemChange(index, 'type', 'libre')}
+                        >
+                          Libre
+                        </button>
                       </div>
 
-                      <div className="composition-quantities">
-                        <div className="quantity-input">
-                          <label>Petit</label>
+                      {/* Champ selon le mode */}
+                      <div className="basket-item-field">
+                        {item.type === 'catalogue' ? (
+                          <select
+                            value={item.productId}
+                            onChange={(e) => handleItemChange(index, 'productId', e.target.value)}
+                          >
+                            <option value="">Sélectionner un produit</option>
+                            {products.map(product => (
+                              <option key={product.id} value={product.id}>
+                                {product.name} ({product.producer.name})
+                              </option>
+                            ))}
+                          </select>
+                        ) : (
                           <input
-                            type="number"
-                            step="0.1"
-                            min="0"
-                            value={item.quantitySmall}
-                            onChange={(e) => handleProductChange(index, 'quantitySmall', e.target.value)}
-                            placeholder="0"
-                            required
+                            type="text"
+                            value={item.customProductName}
+                            onChange={(e) => handleItemChange(index, 'customProductName', e.target.value)}
+                            placeholder="Nom du produit libre..."
                           />
-                        </div>
-
-                        <div className="quantity-input">
-                          <label>Grand</label>
-                          <input
-                            type="number"
-                            step="0.1"
-                            min="0"
-                            value={item.quantityLarge}
-                            onChange={(e) => handleProductChange(index, 'quantityLarge', e.target.value)}
-                            placeholder="0"
-                            required
-                          />
-                        </div>
+                        )}
                       </div>
 
                       <button

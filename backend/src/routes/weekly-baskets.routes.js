@@ -33,7 +33,7 @@ router.post('/:id/duplicate', authMiddleware, adminOnly, duplicateWeeklyBasket);
 
 // Gestion des produits dans le panier
 router.post('/:id/products', authMiddleware, adminOnly, addProductToBasket);
-router.put('/:id/products/:productId', authMiddleware, adminOnly, updateBasketProduct);
-router.delete('/:id/products/:productId', authMiddleware, adminOnly, removeProductFromBasket);
+router.put('/:id/products/:itemId', authMiddleware, adminOnly, updateBasketProduct);
+router.delete('/:id/products/:itemId', authMiddleware, adminOnly, removeProductFromBasket);
 
 export default router;
