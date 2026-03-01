@@ -2,6 +2,7 @@ import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import Providers from '../components/Providers';
 import CookieConsent from '../components/CookieConsent';
+import JsonLd from '../components/JsonLd';
 import '../styles/variables.css';
 import '../styles/globals.css';
 import '../styles/components/modal.css';
@@ -47,10 +48,26 @@ export const metadata = {
   },
 };
 
+const organizationJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'LocalBusiness',
+  name: "Aux P'tits Pois",
+  description: 'AMAP solidaire proposant des paniers de légumes bio et locaux auprès de producteurs partenaires.',
+  url: 'https://auxptitspois.fr',
+  '@id': 'https://auxptitspois.fr/#organization',
+  areaServed: {
+    '@type': 'GeoCircle',
+    geoMidpoint: { '@type': 'GeoCoordinates' },
+    geoRadius: '30000',
+  },
+  inLanguage: 'fr',
+};
+
 function RootLayout({ children }) {
   return (
     <html lang="fr">
       <body>
+        <JsonLd data={organizationJsonLd} />
         <Providers>
           <Header />
           <main className="main-content">
