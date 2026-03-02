@@ -421,13 +421,14 @@
 .btn-secondary {
   background-color: var(--white);
   color: var(--primary-color);
-  border: 2px solid white;
+  border: 2px solid var(--primary-color);
 }
 
 .btn-secondary:hover {
-  background-color: transparent;
+  background-color: var(--primary-color);
   color: var(--white);
   transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
 }
 
 .btn-lg {
