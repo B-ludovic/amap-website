@@ -3,7 +3,22 @@ import Link from 'next/link';
 import Image from 'next/image';
 import '../styles/public/home.css';
 
-export default function HomePage() {
+async function fetchProducers() {
+  try {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/producers`,
+      { next: { revalidate: 3600 } }
+    );
+    if (!res.ok) return [];
+    const json = await res.json();
+    return json.data?.producers || [];
+  } catch {
+    return [];
+  }
+}
+
+export default async function HomePage() {
+  const producers = await fetchProducers();
   return (
     <div className="home-page">
       {/* Hero Section */}
@@ -152,7 +167,26 @@ export default function HomePage() {
           <p className="section-description">
             Découvrez les agriculteurs passionnés qui cultivent vos légumes avec soin et respect.
           </p>
-          
+
+          {producers.length > 0 && (
+            <div className="producers-preview-grid">
+              {producers.slice(0, 3).map(producer => (
+                <div key={producer.id} className="producer-preview-card">
+                  <div className="producer-preview-icon">
+                    <Leaf size={24} />
+                  </div>
+                  <h3>{producer.name}</h3>
+                  {producer.specialty && (
+                    <p className="producer-preview-specialty">{producer.specialty}</p>
+                  )}
+                  {producer.description && (
+                    <p className="producer-preview-desc">{producer.description}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
           <div className="cta-center">
             <Link href="/nos-producteurs" className="btn btn-primary">
               Rencontrer nos producteurs
