@@ -535,8 +535,8 @@
 }
 
 .hero-section .btn-primary:hover {
-  background: rgba(255, 255, 255, 0.9);
-  color: var(--primary-color);
+  background: var(--primary-color);
+  color: var(--white);
   transform: translateY(-2px);
   box-shadow: var(--shadow-xl);
 }

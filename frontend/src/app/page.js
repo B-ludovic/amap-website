@@ -61,7 +61,7 @@ export default async function HomePage() {
               <ShoppingBasket size={20} />
               Découvrir nos abonnements
             </Link>
-            <Link href="/panier-semaine" className="btn btn-secondary btn-lg">
+            <Link href="/panier-semaine" className="btn btn-primary btn-lg">
               Voir le panier de la semaine
             </Link>
           </div>
@@ -278,7 +278,7 @@ export default async function HomePage() {
                 href="https://maps.google.com/?q=340+Avenue+du+Général+de+Gaulle,+92140+Clamart"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="btn btn-secondary"
+                className="btn btn-primary"
               >
                 Voir sur la carte
               </a>
@@ -292,7 +292,7 @@ export default async function HomePage() {
                 Chaque <strong>mercredi</strong><br />
                 de <strong>18h15 à 19h15</strong>
               </p>
-              <Link href="/panier-semaine" className="btn btn-secondary">
+              <Link href="/panier-semaine" className="btn btn-primary">
                 Voir le panier de la semaine
               </Link>
             </div>

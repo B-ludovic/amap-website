@@ -365,7 +365,7 @@ export default function WeeklyBasketPublicPage() {
 
           {recipes.length > 0 && (
             <div className="cta-center">
-              <Link href="/recettes" className="btn btn-secondary">
+              <Link href="/recettes" className="btn btn-primary">
                 Voir toutes les recettes
               </Link>
             </div>
