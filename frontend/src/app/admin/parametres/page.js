@@ -9,12 +9,9 @@ import {
     Trash2,
     Palette,
     Info,
-    ShoppingCart,
     Save,
-    RefreshCcw,
     Tractor,
     Carrot,
-    ShoppingBasket,
     MapPin,
     CheckCircle,
     Flower2,
@@ -68,8 +65,6 @@ export default function AdminParametresPage() {
     const [saving, setSaving] = useState(false);
     const [exampleStats, setExampleStats] = useState(null);
     const [totalStats, setTotalStats] = useState(null);
-    const [activeTheme, setActiveTheme] = useState('null');
-
     // Onglet actif
     const [activeTab, setActiveTab] = useState('examples');
 
@@ -88,23 +83,6 @@ export default function AdminParametresPage() {
         contactPhone: '06 12 34 56 78',
         address: '12 rue de la République, 75001 Paris',
         description: 'AMAP locale proposant des paniers de produits bio et de saison',
-    });
-
-    const [orderConfig, setOrderConfig] = useState({
-        minOrderDelay: 48,
-        minOrderAmount: 0,
-        serviceFee: 0,
-        ordersEnabled: true,
-    });
-
-    const [pickupData, setPickupData] = useState({
-        id: null,
-        name: '',
-        address: '',
-        city: '',
-        postalCode: '',
-        schedule: 'Mercredi 18h15 - 19h15',
-        instructions: '',
     });
 
     useEffect(() => {
@@ -130,7 +108,6 @@ export default function AdminParametresPage() {
             try {
                 const themeRes = await api.admin.theme.getActive();
                 if (themeRes.data.theme) {
-                    setActiveTheme(themeRes.data.theme);
                     setThemeData({
                         season: themeRes.data.theme.season,
                         primaryColor: themeRes.data.theme.primaryColor,
@@ -143,24 +120,6 @@ export default function AdminParametresPage() {
                 console.log('Pas de thème actif, utilisation du thème par défaut');
             }
 
-            // Charger le point de retrait unique
-            try {
-                const pickupRes = await api.admin.pickupLocations.getAll();
-                if (pickupRes.data.pickupLocations && pickupRes.data.pickupLocations.length > 0) {
-                    const pickup = pickupRes.data.pickupLocations[0]; // Récupérer le premier (unique)
-                    setPickupData({
-                        id: pickup.id,
-                        name: pickup.name,
-                        address: pickup.address,
-                        city: pickup.city,
-                        postalCode: pickup.postalCode,
-                        schedule: pickup.schedule,
-                        instructions: pickup.instructions || '',
-                    });
-                }
-            } catch (error) {
-                console.log('Pas de point de retrait configuré');
-            }
         } catch (error) {
             console.error('Erreur lors du chargement:', error);
         } finally {
@@ -208,52 +167,6 @@ export default function AdminParametresPage() {
             showSuccess('Informations sauvegardées', 'Les informations ont été mises à jour.');
         } catch (error) {
             showError('Erreur', error.message);
-        } finally {
-            setSaving(false);
-        }
-    };
-
-    const handleSaveOrderConfig = async () => {
-        setSaving(true);
-        try {
-            // TODO: API pour sauvegarder la config des commandes
-            showSuccess('Configuration sauvegardée', 'La configuration a été mise à jour.');
-        } catch (error) {
-            showError('Erreur', error.message);
-        } finally {
-            setSaving(false);
-        }
-    };
-
-    const handleSavePickup = async () => {
-        setSaving(true);
-        try {
-            if (pickupData.id) {
-                // Mettre à jour le point de retrait existant
-                await api.admin.pickupLocations.update(pickupData.id, {
-                    name: pickupData.name,
-                    address: pickupData.address,
-                    city: pickupData.city,
-                    postalCode: pickupData.postalCode,
-                    schedule: pickupData.schedule,
-                    instructions: pickupData.instructions,
-                });
-            } else {
-                // Créer un nouveau point de retrait
-                const response = await api.admin.pickupLocations.create({
-                    name: pickupData.name,
-                    address: pickupData.address,
-                    city: pickupData.city,
-                    postalCode: pickupData.postalCode,
-                    schedule: pickupData.schedule,
-                    instructions: pickupData.instructions,
-                    isActive: true,
-                });
-                setPickupData({ ...pickupData, id: response.data.pickupLocation.id });
-            }
-            showSuccess('Point de retrait sauvegardé', 'Les informations ont été mises à jour.');
-        } catch (error) {
-            showError('Erreur', error.response?.data?.message || error.message);
         } finally {
             setSaving(false);
         }
@@ -316,13 +229,6 @@ export default function AdminParametresPage() {
                     >
                         <Info size={18} />
                         Informations générales
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('pickup')}
-                        className={`admin-tab ${activeTab === 'pickup' ? 'admin-tab-active' : ''}`}
-                    >
-                        <MapPin size={18} />
-                        Point de retrait
                     </button>
                 </div>
 
@@ -676,116 +582,6 @@ export default function AdminParametresPage() {
                         </div>
                     )}
 
-                    {/* POINT DE RETRAIT */}
-                    {activeTab === 'pickup' && (
-                        <div className="admin-section">
-                            <h2 className="admin-section-title">Point de retrait</h2>
-                            <p className="admin-section-description">
-                                Configurez l'adresse et les horaires du point de retrait unique de votre AMAP.
-                            </p>
-
-                            <div className="form-grid">
-                                <div className="form-group form-group-full">
-                                    <label htmlFor="pickupName" className="form-label">
-                                        Nom du lieu
-                                    </label>
-                                    <input
-                                        type="text"
-                                        id="pickupName"
-                                        value={pickupData.name}
-                                        onChange={(e) => setPickupData({ ...pickupData, name: e.target.value })}
-                                        placeholder="Ex: Maison des associations"
-                                        className="input"
-                                    />
-                                </div>
-
-                                <div className="form-group form-group-full">
-                                    <label htmlFor="pickupAddress" className="form-label">
-                                        Adresse complète
-                                    </label>
-                                    <input
-                                        type="text"
-                                        id="pickupAddress"
-                                        value={pickupData.address}
-                                        onChange={(e) => setPickupData({ ...pickupData, address: e.target.value })}
-                                        placeholder="12 rue de la République"
-                                        className="input"
-                                    />
-                                </div>
-
-                                <div className="form-group">
-                                    <label htmlFor="pickupCity" className="form-label">
-                                        Ville
-                                    </label>
-                                    <input
-                                        type="text"
-                                        id="pickupCity"
-                                        value={pickupData.city}
-                                        onChange={(e) => setPickupData({ ...pickupData, city: e.target.value })}
-                                        placeholder="Paris"
-                                        className="input"
-                                    />
-                                </div>
-
-                                <div className="form-group">
-                                    <label htmlFor="pickupPostalCode" className="form-label">
-                                        Code postal
-                                    </label>
-                                    <input
-                                        type="text"
-                                        id="pickupPostalCode"
-                                        value={pickupData.postalCode}
-                                        onChange={(e) => setPickupData({ ...pickupData, postalCode: e.target.value })}
-                                        placeholder="75001"
-                                        className="input"
-                                    />
-                                </div>
-
-                                <div className="form-group form-group-full">
-                                    <label htmlFor="pickupSchedule" className="form-label">
-                                        Horaires de retrait
-                                    </label>
-                                    <input
-                                        type="text"
-                                        id="pickupSchedule"
-                                        value={pickupData.schedule}
-                                        onChange={(e) => setPickupData({ ...pickupData, schedule: e.target.value })}
-                                        placeholder="Mercredi 18h15 - 19h15"
-                                        className="input"
-                                    />
-                                    <p className="form-help">
-                                        Indiquez les jours et heures de distribution
-                                    </p>
-                                </div>
-
-                                <div className="form-group form-group-full">
-                                    <label htmlFor="pickupInstructions" className="form-label">
-                                        Instructions d'accès
-                                    </label>
-                                    <textarea
-                                        id="pickupInstructions"
-                                        value={pickupData.instructions}
-                                        onChange={(e) => setPickupData({ ...pickupData, instructions: e.target.value })}
-                                        placeholder="Code porte: 1234A, Parking disponible rue adjacente..."
-                                        className="textarea"
-                                        rows="4"
-                                    />
-                                    <p className="form-help">
-                                        Informations pratiques pour les adhérents (code porte, parking, etc.)
-                                    </p>
-                                </div>
-                            </div>
-
-                            <button
-                                onClick={handleSavePickup}
-                                disabled={saving}
-                                className="btn btn-primary"
-                            >
-                                <Save size={20} />
-                                {saving ? 'Enregistrement...' : 'Sauvegarder'}
-                            </button>
-                        </div>
-                    )}
                 </div>
             </div>
         </div>
