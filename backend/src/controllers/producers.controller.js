@@ -3,7 +3,7 @@ import { asyncHandler } from '../middlewares/error.middleware.js';
 import { HttpNotFoundError } from '../utils/httpErrors.js';
 
 // RÉCUPÉRER TOUS LES PRODUCTEURS 
-const getAllProducers = asyncHandler(async (req, res) => {
+const getAllProducers = asyncHandler(async (_req, res) => {
   // Récupérer seulement les producteurs actifs
   const producers = await prisma.producer.findMany({
     where: {
@@ -19,7 +19,6 @@ const getAllProducers = asyncHandler(async (req, res) => {
           id: true,
           name: true,
           description: true,
-          unit: true,
           category: true,
           image: true,
         }
@@ -54,7 +53,6 @@ const getProducerById = asyncHandler(async (req, res) => {
           id: true,
           name: true,
           description: true,
-          unit: true,
           category: true,
           image: true,
           createdAt: true,
