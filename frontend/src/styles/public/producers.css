@@ -433,40 +433,6 @@
   color: var(--white);
 }
 
-/* BOUTONS */
-
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-sm) var(--spacing-lg);
-  font-size: var(--font-size-base);
-  font-weight: 500;
-  border-radius: var(--border-radius-md);
-  border: none;
-  cursor: pointer;
-  transition: var(--transition-normal);
-  text-decoration: none;
-  font-family: inherit;
-}
-
-.btn-primary {
-  background-color: var(--primary-color);
-  color: var(--white);
-}
-
-.btn-primary:hover {
-  background-color: var(--primary-hover);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
-}
-
-.btn-lg {
-  padding: var(--spacing-md) var(--spacing-xl);
-  font-size: var(--font-size-lg);
-}
-
 /* Boutons dans subscription-cta */
 .subscription-cta .btn-primary {
   background: var(--white) !important;

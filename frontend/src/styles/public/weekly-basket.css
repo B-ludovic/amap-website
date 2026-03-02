@@ -363,8 +363,6 @@
   color: var(--white);
   max-width: 800px;
   margin: 0 auto;
-  box-shadow: 0 20px 25px -5px var(--shadow-color);
-  background: var(--gradient-soft-banner);
 }
 
 .cta-card h2 {
