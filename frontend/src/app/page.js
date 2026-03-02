@@ -22,7 +22,7 @@ export default function HomePage() {
               <ShoppingBasket size={20} />
               Découvrir nos abonnements
             </Link>
-            <Link href="/panier-semaine" className="btn btn-primary btn-lg">
+            <Link href="/panier-semaine" className="btn btn-secondary btn-lg">
               Voir le panier de la semaine
             </Link>
           </div>
