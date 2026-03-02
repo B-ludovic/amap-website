@@ -501,7 +501,7 @@
 }
 
 .btn-primary:hover {
-  background-color: var(--primary-hover);
+  background: var(--primary-hover);
   transform: translateY(-1px);
   box-shadow: var(--shadow-xl);
   color: var(--white);
