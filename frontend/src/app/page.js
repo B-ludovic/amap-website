@@ -49,9 +49,14 @@ export default function HomePage() {
           </div>
           <h2>Une AMAP accessible à tous</h2>
           <p className="section-description">
-            En partenariat avec le Secours Catholique, nous proposons un tarif solidaire 
+            En partenariat avec le Secours Catholique, nous proposons un tarif solidaire
             pour permettre à chacun d'accéder à une alimentation saine et locale.
           </p>
+          <div className="cta-center">
+            <Link href="/nos-abonnements" className="btn btn-primary">
+              Voir les tarifs
+            </Link>
+          </div>
         </div>
       </section>
 
