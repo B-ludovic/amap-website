@@ -1,15 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
-import { Sprout, MapPin, Mail, Phone, MessageSquare, CheckCircle, Package, Heart, TrendingUp } from 'lucide-react';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Sprout, MapPin, Mail, MessageSquare, CheckCircle, Package, Heart, TrendingUp } from 'lucide-react';
 import { useModal } from '../../contexts/ModalContext';
 import api from '../../lib/api';
 import '../../styles/public/become-producer.css';
 
 export default function BecomeProducerPage() {
   const router = useRouter();
-  const { showModal, showSuccess, showError } = useModal();
+  const { showSuccess, showError } = useModal();
 
   const [formData, setFormData] = useState({
     firstName: '',
