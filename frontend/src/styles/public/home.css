@@ -504,7 +504,7 @@
   background-color: var(--primary-hover);
   transform: translateY(-1px);
   box-shadow: var(--shadow-xl);
-  color: var(--text-primary);
+  color: var(--white);
 }
 
 .btn-secondary {
@@ -525,21 +525,35 @@
   font-size: var(--font-size-lg);
 }
 
-/* Section avec bouton dans hero et join-section */
-.hero-section .btn-primary,
-.hero-section .btn-secondary {
+/* Boutons dans le hero (sur fond vert foncé) */
+.hero-section .btn-primary {
   background: var(--white);
   color: var(--primary-color);
   font-weight: 600;
   box-shadow: var(--shadow-lg);
+  border: none;
 }
 
-.hero-section .btn-primary:hover,
-.hero-section .btn-secondary:hover {
+.hero-section .btn-primary:hover {
   background: rgba(255, 255, 255, 0.9);
+  color: var(--primary-color);
   transform: translateY(-2px);
   box-shadow: var(--shadow-xl);
-  color: var(--text-primary)
+}
+
+.hero-section .btn-secondary {
+  background: transparent;
+  color: var(--white);
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  font-weight: 600;
+}
+
+.hero-section .btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: var(--white);
+  color: var(--white);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-xl);
 }
 
 .join-section .btn-primary {
