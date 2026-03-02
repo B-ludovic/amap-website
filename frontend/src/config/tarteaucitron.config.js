@@ -73,7 +73,7 @@ export const tarteaucitronServices = {
   // Google Analytics (optionnel)
   googleAnalytics: {
     enabled: true, // Service de statistiques (optionnel)
-    id: 'G-XXXXXXXXXX' // Remplacer par ton vrai ID Google Analytics
+    id: 'G-ZWJ7FYLJ5X' // Remplacer par ton vrai ID Google Analytics
   },
   
   // Stripe (obligatoire pour paiements)
