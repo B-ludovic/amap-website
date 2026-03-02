@@ -1,4 +1,4 @@
-import { ShoppingBasket, Users, Heart, Leaf, ArrowRight } from 'lucide-react';
+import { ShoppingBasket, Users, Heart, Leaf, ArrowRight, MapPin, Clock } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import '../styles/public/home.css';
@@ -157,6 +157,47 @@ export default function HomePage() {
             <Link href="/nos-producteurs" className="btn btn-primary">
               Rencontrer nos producteurs
             </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Où et quand */}
+      <section className="location-section">
+        <div className="container">
+          <h2 className="section-title">Où et quand nous trouver ?</h2>
+          <div className="location-cards">
+            <div className="location-card">
+              <div className="location-icon">
+                <MapPin size={28} />
+              </div>
+              <h3>Point de retrait</h3>
+              <p>
+                Paroisse Saint François de Sales de Clamart<br />
+                340 Avenue du Général de Gaulle<br />
+                92140 Clamart
+              </p>
+              <a
+                href="https://maps.google.com/?q=340+Avenue+du+Général+de+Gaulle,+92140+Clamart"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn-secondary"
+              >
+                Voir sur la carte
+              </a>
+            </div>
+            <div className="location-card">
+              <div className="location-icon">
+                <Clock size={28} />
+              </div>
+              <h3>Horaires de distribution</h3>
+              <p>
+                Chaque <strong>mercredi</strong><br />
+                de <strong>18h15 à 19h15</strong>
+              </p>
+              <Link href="/panier-semaine" className="btn btn-secondary">
+                Voir le panier de la semaine
+              </Link>
+            </div>
           </div>
         </div>
       </section>

@@ -247,6 +247,61 @@
   text-align: center;
 }
 
+/* OÙ ET QUAND */
+
+.location-section {
+  padding: var(--spacing-3xl) 0;
+  background-color: var(--white);
+}
+
+.location-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--spacing-xl);
+  margin-top: var(--spacing-2xl);
+}
+
+.location-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: var(--spacing-2xl);
+  border: 2px solid var(--border-color);
+  border-radius: var(--border-radius-lg);
+  gap: var(--spacing-md);
+  transition: var(--transition-normal);
+}
+
+.location-card:hover {
+  border-color: var(--primary-color);
+  box-shadow: var(--shadow-md);
+}
+
+.location-icon {
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  color: var(--white);
+  border-radius: var(--border-radius-md);
+}
+
+.location-card h3 {
+  font-size: var(--font-size-xl);
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.location-card p {
+  font-size: var(--font-size-base);
+  color: var(--text-secondary);
+  line-height: 1.7;
+  flex: 1;
+}
+
 /* DEVENIR PRODUCTEUR */
 
 .join-section {
