@@ -1,4 +1,7 @@
 import { ShoppingBasket, Users, Heart, Leaf, LeafyGreen, Apple, Egg, Wheat, ArrowRight, MapPin, Clock } from 'lucide-react';
+import Link from 'next/link';
+import Image from 'next/image';
+import '../styles/public/home.css';
 
 const categoryIcon = (category) => {
   switch (category) {
@@ -9,9 +12,6 @@ const categoryIcon = (category) => {
     default:          return LeafyGreen;
   }
 };
-import Link from 'next/link';
-import Image from 'next/image';
-import '../styles/public/home.css';
 
 async function fetchCurrentBasket() {
   try {
