@@ -725,10 +725,18 @@
   margin-top: var(--spacing-xl);
 }
 
-.cta-center :hover {
-  transform: translateY(-1px);
-  color: var(--primary-hover);
-  background-color: var(--primary-color);
+/* Boutons dans la section CTA (sur fond vert foncé) */
+.basket-cta .btn-primary {
+  background: var(--white);
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+.basket-cta .btn-primary:hover {
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--primary-color);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-xl);
 }
 
 /* Très petits mobiles (max-width: 480px) */
