@@ -12,7 +12,7 @@ export const tarteaucitronConfig = {
   "cookieName": "auxptitspois_tarteaucitron",
   
   // Position du bandeau (middle/top/bottom)
-  "orientation": "middle",
+  "orientation": "bottom",
   
   // Grouper les services par catégorie
   "groupServices": false,

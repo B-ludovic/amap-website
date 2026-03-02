@@ -43,8 +43,9 @@ function Header() {
   // Bloquer le scroll et gérer la touche Échap quand le menu mobile est ouvert
   useEffect(() => {
     if (isMenuOpen) {
-      // Bloquer le scroll du body
+      // Bloquer le scroll du body (html requis pour Safari)
       document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
 
       // Fermer avec la touche Échap
       const handleEscape = (e) => {
@@ -57,6 +58,7 @@ function Header() {
 
       return () => {
         document.body.style.overflow = '';
+        document.documentElement.style.overflow = '';
         document.removeEventListener('keydown', handleEscape);
       };
     }
