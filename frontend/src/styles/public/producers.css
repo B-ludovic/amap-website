@@ -366,6 +366,19 @@
   background-color: var(--white);
 }
 
+.join-cta .btn-primary {
+  background-color: var(--white);
+  color: var(--primary-color);
+  border: 2px solid var(--primary-color);
+}
+
+.join-cta .btn-primary:hover {
+  background-color: var(--primary-color);
+  color: var(--white);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
 .cta-card {
   display: flex;
   gap: var(--spacing-xl);
