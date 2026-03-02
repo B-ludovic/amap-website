@@ -36,11 +36,13 @@ export const metadata = {
     type: 'website',
     locale: 'fr_FR',
     siteName: 'Aux P\'tits Pois',
+    images: [{ url: '/images/og-image.png', width: 1200, height: 630, alt: 'Aux P\'tits Pois - AMAP locale' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Aux P\'tits Pois - AMAP locale',
     description: 'Commandez vos paniers de produits locaux et bio auprès de nos producteurs partenaires.',
+    images: ['/images/og-image.png'],
   },
   robots: {
     index: true,
