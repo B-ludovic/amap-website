@@ -1,7 +1,31 @@
-import { ShoppingBasket, Users, Heart, Leaf, ArrowRight, MapPin, Clock } from 'lucide-react';
+import { ShoppingBasket, Users, Heart, Leaf, LeafyGreen, Apple, Egg, Wheat, ArrowRight, MapPin, Clock } from 'lucide-react';
+
+const categoryIcon = (category) => {
+  switch (category) {
+    case 'FRUITS':    return Apple;
+    case 'EGGS':      return Egg;
+    case 'GROCERY':   return Wheat;
+    case 'VEGETABLES':
+    default:          return LeafyGreen;
+  }
+};
 import Link from 'next/link';
 import Image from 'next/image';
 import '../styles/public/home.css';
+
+async function fetchCurrentBasket() {
+  try {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/weekly-baskets/current`,
+      { next: { revalidate: 3600 } }
+    );
+    if (!res.ok) return null;
+    const json = await res.json();
+    return json.data || null;
+  } catch {
+    return null;
+  }
+}
 
 async function fetchProducers() {
   try {
@@ -18,7 +42,7 @@ async function fetchProducers() {
 }
 
 export default async function HomePage() {
-  const producers = await fetchProducers();
+  const [producers, currentBasket] = await Promise.all([fetchProducers(), fetchCurrentBasket()]);
   return (
     <div className="home-page">
       {/* Hero Section */}
@@ -54,6 +78,46 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Panier de la semaine */}
+      {currentBasket && (
+        <section className="current-basket-preview-section">
+          <div className="container">
+            <div className="current-basket-preview-card">
+              <div className="current-basket-preview-header">
+                <div className="current-basket-preview-badge">
+                  <ShoppingBasket size={18} />
+                  <span>Panier de la semaine</span>
+                </div>
+                <h2>Semaine {currentBasket.weekNumber} · {currentBasket.year}</h2>
+                {currentBasket.notes && (
+                  <p className="current-basket-preview-notes">{currentBasket.notes}</p>
+                )}
+              </div>
+              <ul className="current-basket-preview-items">
+                {currentBasket.items.slice(0, 6).map(item => {
+                  const Icon = item.product ? categoryIcon(item.product.category) : Leaf;
+                  return (
+                    <li key={item.id}>
+                      <Icon size={14} />
+                      <span>{item.product?.name || item.customProductName}</span>
+                    </li>
+                  );
+                })}
+                {currentBasket.items.length > 6 && (
+                  <li className="more-items">
+                    +{currentBasket.items.length - 6} autre{currentBasket.items.length - 6 > 1 ? 's' : ''}
+                  </li>
+                )}
+              </ul>
+              <Link href="/panier-semaine" className="btn btn-primary">
+                Voir la composition complète
+                <ArrowRight size={16} />
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* AMAP Solidaire */}
       <section className="solidarity-section">

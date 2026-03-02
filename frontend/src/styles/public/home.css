@@ -83,6 +83,92 @@
   box-shadow: var(--shadow-lg);
 }
 
+/* PANIER DE LA SEMAINE PREVIEW */
+
+.current-basket-preview-section {
+  padding: var(--spacing-2xl) 0;
+  background-color: #f5f5f5;
+}
+
+.current-basket-preview-card {
+  background: var(--white);
+  border: 2px solid var(--primary-color);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-2xl);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--spacing-xl);
+  box-shadow: var(--shadow-md);
+}
+
+.current-basket-preview-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.current-basket-preview-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  background-color: rgba(107, 157, 90, 0.12);
+  color: var(--primary-color);
+  padding: var(--spacing-xs) var(--spacing-md);
+  border-radius: var(--border-radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.current-basket-preview-card h2 {
+  font-size: var(--font-size-2xl);
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.current-basket-preview-notes {
+  font-size: var(--font-size-base);
+  color: var(--text-secondary);
+  font-style: italic;
+  max-width: 600px;
+}
+
+.current-basket-preview-items {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  padding: 0;
+  margin: 0;
+}
+
+.current-basket-preview-items li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  background-color: rgba(107, 157, 90, 0.08);
+  color: var(--text-primary);
+  padding: var(--spacing-xs) var(--spacing-md);
+  border-radius: var(--border-radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  border: 1px solid rgba(107, 157, 90, 0.2);
+}
+
+.current-basket-preview-items li svg {
+  color: var(--primary-color);
+  flex-shrink: 0;
+}
+
+.current-basket-preview-items .more-items {
+  background-color: var(--border-color);
+  color: var(--text-secondary);
+  border-color: transparent;
+}
+
 /* SOLIDARITÉ SECTION */
 
 .solidarity-section {
