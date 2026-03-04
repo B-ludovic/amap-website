@@ -71,8 +71,11 @@ export default function AdminWeeklyBasketPage() {
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (basketId) => {
-    if (!confirm('Êtes-vous sûr de vouloir supprimer ce panier hebdomadaire ?')) {
+  const handleDelete = async (basketId, isPublished) => {
+    const message = isPublished
+      ? 'Ce panier est publié et visible par les adhérents. Êtes-vous sûr de vouloir le supprimer ?'
+      : 'Êtes-vous sûr de vouloir supprimer ce panier hebdomadaire ?';
+    if (!confirm(message)) {
       return;
     }
 
@@ -297,15 +300,13 @@ export default function AdminWeeklyBasketPage() {
                     Publier
                   </button>
                 )}
-                {!basket.isPublished && (
-                  <button
-                    className="btn btn-icon btn-danger"
-                    onClick={() => handleDelete(basket.id)}
-                    title="Supprimer"
-                  >
-                    <Trash2 size={18} color="var(--error-color-dark)" />
-                  </button>
-                )}
+                <button
+                  className="btn btn-icon btn-danger"
+                  onClick={() => handleDelete(basket.id, basket.isPublished)}
+                  title="Supprimer"
+                >
+                  <Trash2 size={18} color="var(--error-color-dark)" />
+                </button>
               </div>
             </div>
           ))}
