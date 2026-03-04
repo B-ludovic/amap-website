@@ -153,7 +153,7 @@ class EmailService {
 
   async sendPasswordResetEmail(user, resetToken) {
     try {
-      const resetUrl = `${process.env.FRONTEND_URL}/auth/reset-password/${resetToken}`;
+      const resetUrl = `${process.env.FRONTEND_URL}/auth/reset-password?token=${resetToken}`;
 
       const { data, error } = await resend.emails.send({
         from: EMAIL_FROM,
