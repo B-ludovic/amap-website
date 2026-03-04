@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ShoppingBasket, Calendar, Leaf, LeafyGreen, Apple, Egg, Wheat, Clock, Users, Search, Lightbulb } from 'lucide-react';
+import { ShoppingBasket, Calendar, Leaf, LeafyGreen, Apple, Egg, Wheat, Clock, Users, Search, Lightbulb, MapPin } from 'lucide-react';
 
 const categoryIcon = (category) => {
   switch (category) {
@@ -155,9 +155,19 @@ export default function WeeklyBasketPublicPage() {
               <Calendar size={20} />
               <span>Distribution : {formatDate(basket.distributionDate)}</span>
             </div>
-            <p className="basket-schedule">
-              Mercredi de 18h15 à 19h15
-            </p>
+            <div className="basket-info-row">
+              <div className="basket-info-pill">
+                <Clock size={18} />
+                <span>Mercredi de 18h15 à 19h15</span>
+              </div>
+              <div className="basket-info-pill">
+                <MapPin size={18} />
+                <span>
+                  Paroisse Saint François de Sales de Clamart,{' '}
+                  340 Avenue du Général de Gaulle, 92140 Clamart
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
