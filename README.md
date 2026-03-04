@@ -183,7 +183,7 @@ npm start
 
 ## ☁️ Déploiement
 
-Le projet est déployé en deux parties séparées :
+Le projet sera déployé en deux parties séparées :
 
 - **Frontend → [Vercel](https://vercel.com)** : simple à configurer, déploiement automatique depuis GitHub, HTTPS inclus.
 - **Backend + Base de données → [Render](https://render.com)** : un service Web pour l'API Express, et une base PostgreSQL managée.
@@ -203,7 +203,7 @@ FRONTEND_URL=https://votre-site.vercel.app
 NEXT_PUBLIC_API_URL=https://votre-api.onrender.com
 ```
 
-> ⚠️ Sur Render en version gratuite, le backend se met en veille après 15 min d'inactivité. Première requête un peu lente, c'est normal.
+> Sur Render en version gratuite, le backend se met en veille après 15 min d'inactivité. Première requête un peu lente, c'est normal.
 
 
 ## ✨ Fonctionnalités principales
