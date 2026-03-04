@@ -5,6 +5,16 @@ import { X, Plus, Trash2, ShoppingBasket, RefreshCw } from 'lucide-react';
 import { useModal } from '../../contexts/ModalContext';
 import api from '../../lib/api';
 
+// Prochain jour de distribution fixe (mercredi = 3)
+const DISTRIBUTION_DAY = 3;
+const getNextDistributionDate = () => {
+  const today = new Date();
+  const daysUntil = (DISTRIBUTION_DAY - today.getDay() + 7) % 7 || 7;
+  const next = new Date(today);
+  next.setDate(today.getDate() + daysUntil);
+  return next.toISOString().split('T')[0];
+};
+
 // Calcul du numéro de semaine ISO (lundi = début de semaine)
 const getISOWeekAndYear = (dateStr) => {
   const [year, month, day] = dateStr.split('-').map(Number);
@@ -59,6 +69,15 @@ export default function WeeklyBasketModal({ basket, lastBasket, onClose }) {
           }))
         );
       }
+    } else {
+      const nextDate = getNextDistributionDate();
+      const { week, year } = getISOWeekAndYear(nextDate);
+      setFormData(prev => ({
+        ...prev,
+        distributionDate: nextDate,
+        weekNumber: week.toString(),
+        year,
+      }));
     }
   }, [basket]);
 
@@ -266,44 +285,6 @@ export default function WeeklyBasketModal({ basket, lastBasket, onClose }) {
               )}
             </div>
 
-            {/* Semaine / Année */}
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="weekNumber">
-                  Semaine <span className="required">*</span>
-                </label>
-                <input
-                  type="number"
-                  id="weekNumber"
-                  name="weekNumber"
-                  min="1"
-                  max="52"
-                  value={formData.weekNumber}
-                  onChange={handleChange}
-                  className={errors.weekNumber ? 'input-error' : ''}
-                />
-                {errors.weekNumber && (
-                  <span className="error-message">{errors.weekNumber}</span>
-                )}
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="year">
-                  Année <span className="required">*</span>
-                </label>
-                <input
-                  type="number"
-                  id="year"
-                  name="year"
-                  value={formData.year}
-                  onChange={handleChange}
-                  className={errors.year ? 'input-error' : ''}
-                />
-                {errors.year && (
-                  <span className="error-message">{errors.year}</span>
-                )}
-              </div>
-            </div>
 
             <div className="form-group">
               <label htmlFor="notes">Notes (optionnel)</label>
