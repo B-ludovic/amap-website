@@ -11,7 +11,7 @@ Plateforme web moderne pour la gestion d'une AMAP (Association pour le Maintien 
 ![Nos producteurs](screenshots/nos-producteurs.png)
 *Liste des producteurs partenaires*
 
-![Nos abonnements](screenshots/nos-abonnement.png)
+![Nos abonnements](screenshots/nos-abonnements.png)
 *Page de présentation des abonnements avec tarif solidaire*
 
 ![Inscription](screenshots/inscription.png)
