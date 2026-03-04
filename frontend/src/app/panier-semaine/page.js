@@ -155,17 +155,18 @@ export default function WeeklyBasketPublicPage() {
               <Calendar size={20} />
               <span>Distribution : {formatDate(basket.distributionDate)}</span>
             </div>
-            <div className="basket-info-row">
-              <div className="basket-info-pill">
+            <div className="basket-info-card">
+              <div className="basket-info-item">
                 <Clock size={18} />
                 <span>Mercredi de 18h15 à 19h15</span>
               </div>
-              <div className="basket-info-pill">
+              <div className="basket-info-divider" />
+              <div className="basket-info-item">
                 <MapPin size={18} />
-                <span>
-                  Paroisse Saint François de Sales de Clamart,{' '}
-                  340 Avenue du Général de Gaulle, 92140 Clamart
-                </span>
+                <div>
+                  <span>Paroisse Saint François de Sales de Clamart</span>
+                  <span className="basket-info-sub">340 Avenue du Général de Gaulle, 92140 Clamart</span>
+                </div>
               </div>
             </div>
           </div>

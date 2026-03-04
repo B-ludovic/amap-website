@@ -77,6 +77,9 @@
   text-align: center;
   max-width: 800px;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .basket-badge {
@@ -116,31 +119,50 @@
   font-weight: 600;
 }
 
-.basket-info-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-sm);
-  justify-content: center;
-  margin-top: var(--spacing-md);
-}
-
-.basket-info-pill {
+.basket-info-card {
   display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-xs);
+  flex-direction: column;
+  margin-top: var(--spacing-lg);
   background-color: rgba(255, 255, 255, 0.18);
   border: 1px solid rgba(255, 255, 255, 0.35);
-  padding: var(--spacing-sm) var(--spacing-md);
-  border-radius: var(--border-radius-lg);
-  backdrop-filter: blur(10px);
+  border-radius: var(--border-radius-xl);
+  backdrop-filter: blur(12px);
+  overflow: hidden;
+  text-align: left;
+}
+
+.basket-info-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-xl);
   font-size: var(--font-size-sm);
   font-weight: 500;
   color: var(--text-primary);
 }
 
-.basket-info-pill svg {
+.basket-info-item svg {
   flex-shrink: 0;
+  margin-top: 2px;
   opacity: 0.85;
+}
+
+.basket-info-item > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.basket-info-sub {
+  font-size: var(--font-size-xs);
+  opacity: 0.75;
+  font-weight: 400;
+}
+
+.basket-info-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.3);
+  margin: 0 var(--spacing-md);
 }
 
 /* MESSAGE DE LA SEMAINE */
