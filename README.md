@@ -30,7 +30,7 @@ Plateforme web moderne pour la gestion d'une AMAP (Association pour le Maintien 
 ![Producteurs mobile](screenshots/mobile-producteurs.png)
 *Liste des producteurs en version mobile*
 
-![Abonnements mobile](screenshots/mobile-abonnement.png)
+![Abonnements mobile](screenshots/mobile-abonnements.png)
 *Abonnements responsive avec cards*
 
 ![Connexion mobile](screenshots/mobile-connexion.png)
