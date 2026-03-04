@@ -38,8 +38,8 @@ function ResetPasswordPage() {
       return;
     }
 
-    if (password.length < 6) {
-      showError('Erreur', 'Le mot de passe doit contenir au moins 6 caractères.');
+    if (password.length < 12) {
+      showError('Erreur', 'Le mot de passe doit contenir au moins 12 caractères.');
       return;
     }
 
@@ -111,7 +111,7 @@ function ResetPasswordPage() {
                   className="form-input"
                   placeholder="••••••••"
                   required
-                  minLength={6}
+                  minLength={12}
                   disabled={loading}
                 />
                 <button
@@ -140,7 +140,7 @@ function ResetPasswordPage() {
                   className="form-input"
                   placeholder="••••••••"
                   required
-                  minLength={6}
+                  minLength={12}
                   disabled={loading}
                 />
                 <button

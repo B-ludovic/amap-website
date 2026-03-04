@@ -292,14 +292,13 @@ const forgotPassword = asyncHandler(async (req, res) => {
 
 // Réinitialisation du mot de passe
 const resetPassword = asyncHandler(async (req, res) => {
-    const { token } = req.params;
-    const { newPassword } = req.body;
+    const { token, password } = req.body;
 
-    if (!newPassword) {
+    if (!password) {
         throw new HttpBadRequestError('Nouveau mot de passe est requis.');
     }
 
-    if (newPassword.length < 12) {
+    if (password.length < 12) {
         throw new HttpBadRequestError('Le mot de passe doit contenir au moins 12 caractères.');
     }
 
@@ -321,7 +320,7 @@ const resetPassword = asyncHandler(async (req, res) => {
     }
 
     // Hasher le nouveau mot de passe
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     // Mettre à jour le mot de passe et supprimer le token
     await prisma.user.update({

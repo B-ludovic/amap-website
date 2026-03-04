@@ -29,7 +29,7 @@ router.post('/resend-confirmation', resendConfirmationEmail);
 router.post('/forgot-password', forgotPassword);
 
 // Réinitialisation du mot de passe
-router.post('/reset-password/:token', resetPassword);
+router.post('/reset-password', resetPassword);
 
 // Déconnexion
 router.post('/logout', logout);
