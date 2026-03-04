@@ -321,6 +321,12 @@
   align-items: center;
   justify-content: center;
   background: var(--background-color);
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.basket-card-actions .btn-icon.btn-danger:hover {
+  background: #b91c1c;
+  color: white;
 }
 
 /* Basket Status Badge */
