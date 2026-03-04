@@ -181,6 +181,30 @@ npm run build
 npm start
 ```
 
+## ☁️ Déploiement
+
+Le projet est déployé en deux parties séparées :
+
+- **Frontend → [Vercel](https://vercel.com)** : simple à configurer, déploiement automatique depuis GitHub, HTTPS inclus.
+- **Backend + Base de données → [Render](https://render.com)** : un service Web pour l'API Express, et une base PostgreSQL managée.
+
+### Variables d'environnement à configurer
+
+**Sur Render (backend) :**
+```
+DATABASE_URL=...        # fournie automatiquement par Render PostgreSQL
+JWT_SECRET=...
+RESEND_API_KEY=...
+FRONTEND_URL=https://votre-site.vercel.app
+```
+
+**Sur Vercel (frontend) :**
+```
+NEXT_PUBLIC_API_URL=https://votre-api.onrender.com
+```
+
+> ⚠️ Sur Render en version gratuite, le backend se met en veille après 15 min d'inactivité. Première requête un peu lente, c'est normal.
+
 
 ## ✨ Fonctionnalités principales
 
@@ -189,7 +213,7 @@ npm start
 - ✅ Connexion avec authentification JWT
 - ✅ Réinitialisation de mot de passe (forgot password / reset password)
 - ✅ Demande d'abonnement en ligne avec choix de la modalité de paiement (obligatoire)
-- ✅ Consultation du panier de la semaine
+- ✅ Consultation du panier de la semaine (avec l'horaire et l'adresse de retrait bien visibles)
 - ✅ Suggestions de recettes basées sur les légumes du panier
 - ✅ Recherche de recettes (par nom ou par ingrédients)
 - ✅ Visualisation des producteurs partenaires
@@ -205,7 +229,8 @@ npm start
 - ✅ Génération de contrats d'adhésion en PDF (Puppeteer + Handlebars)
 - ✅ Visualisation du contrat directement dans un modal (iframe) avec bouton de téléchargement
 - ✅ Contrats pré-remplis automatiquement (coordonnées client, ville, date de signature, modalité de paiement)
-- ✅ Création des paniers hebdomadaires avec calcul automatique des poids
+- ✅ Création des paniers hebdomadaires avec calcul automatique des poids, date de distribution pré-remplie (prochain mercredi) et semaine calculée automatiquement
+- ✅ Suppression des paniers même publiés (avec message de confirmation renforcé pour éviter les erreurs)
 - ✅ Gestion du stock des produits
 - ✅ Organisation des permanences avec assignation de bénévoles
 - ✅ Statistiques du tableau de bord
