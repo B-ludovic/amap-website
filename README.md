@@ -58,6 +58,7 @@ Ce projet est un site complet permettant de gérer une AMAP de A à Z :
 - **React 18** - Interface utilisateur réactive
 - **Lucide React** - Icônes modernes
 - **CSS natif** - Styling avec variables CSS et responsive design
+- **Tiptap** - Éditeur rich-text (gras, italique, titres, listes, séparateur)
 - **isomorphic-dompurify** - Sanitisation XSS du contenu HTML externe
 - **Tarteaucitron.js** - Gestion des cookies conforme RGPD
 
@@ -238,7 +239,10 @@ NEXT_PUBLIC_API_URL=https://votre-api.onrender.com
 - ✅ Gestion des points de retrait
 - ✅ Distinction des données d'exemple vs données réelles
 - ✅ Service d'envoi d'emails avec Resend API
-- ✅ Communication par newsletter avec envoi groupé
+- ✅ Communication par newsletter avec envoi groupé, programmation et brouillons
+- ✅ Éditeur rich-text Tiptap dans la création de newsletter (gras, italique, titres, listes, séparateur horizontal)
+- ✅ Template email HTML professionnel pour les newsletters (header, footer, mise en page soignée)
+- ✅ Confirmations modales personnalisées (plus de `confirm()` natif du navigateur)
 - ✅ Interface admin complète avec sidebar navigation
 - ✅ Gestion des messages de contact (lecture, statut lu/non-lu/archivé, suppression, badge de notification dans la sidebar)
 
@@ -323,6 +327,7 @@ Les thèmes sont stockés en base de données et appliqués dynamiquement via le
 - `npm start` - Lance le serveur en production
 - `npx prisma studio` - Interface graphique pour la DB
 - `npx prisma migrate dev` - Crée une nouvelle migration
+- `node scripts/create-admin.js` - Crée le premier compte admin en production (script interactif, non versionné)
 
 ### Frontend
 - `npm run dev` - Lance Next.js en développement
