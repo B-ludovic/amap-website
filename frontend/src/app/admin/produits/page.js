@@ -1,14 +1,12 @@
 'use client';
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import api from "../../../lib/api";
 import { useModal } from "../../../contexts/ModalContext";
 import { Plus, Search, Edit, Trash2, Filter } from "lucide-react";
 import ProductModal from "../../../components/admin/ProductModal";
 
 export default function AdminProductsPage() {
-  const router = useRouter();
   const { showConfirm, showSuccess, showError } = useModal();
   
   const [products, setProducts] = useState([]);
@@ -153,8 +151,7 @@ export default function AdminProductsPage() {
                   <tr>
                     <th>Nom</th>
                     <th>Producteur</th>
-                    <th>Unité</th>
-                    <th>Origine</th>
+                    <th>Catégorie</th>
                     <th>Type</th>
                     <th className="admin-table-actions-header">Actions</th>
                   </tr>
@@ -171,12 +168,7 @@ export default function AdminProductsPage() {
                         </div>
                       </td>
                       <td>{product.producer?.name || '-'}</td>
-                      <td>
-                        <span className="admin-unit-badge">
-                          {product.unit}
-                        </span>
-                      </td>
-                      <td>{product.origin || '-'}</td>
+                      <td>{product.category || '-'}</td>
                       <td>
                         {product.isExample ? (
                           <span className="badge badge-warning">Exemple</span>
@@ -219,7 +211,6 @@ export default function AdminProductsPage() {
                         <span className="badge badge-warning badge-sm">Exemple</span>
                       )}
                     </div>
-                    <span className="admin-unit-badge">{product.unit}</span>
                   </div>
 
                   <div className="admin-card-body">
@@ -228,8 +219,8 @@ export default function AdminProductsPage() {
                       <span className="admin-card-value">{product.producer?.name || '-'}</span>
                     </div>
                     <div className="admin-card-row">
-                      <span className="admin-card-label">Origine</span>
-                      <span className="admin-card-value">{product.origin || '-'}</span>
+                      <span className="admin-card-label">Catégorie</span>
+                      <span className="admin-card-value">{product.category || '-'}</span>
                     </div>
                     <div className="admin-card-row">
                       <span className="admin-card-label">Type</span>

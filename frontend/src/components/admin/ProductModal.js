@@ -5,21 +5,14 @@ import { X } from 'lucide-react';
 import { useModal } from '../../contexts/ModalContext';
 import api from '../../lib/api';
 
-const UNITS = [
-  { value: 'KG', label: 'Kilogramme (kg)' },
-  { value: 'PIECE', label: 'Pièce' },
-];
-
 export default function ProductModal({ product, producers, onClose }) {
   const { showSuccess, showError } = useModal();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     producerId: '',
-    unit: 'KG',
     category: '',
     description: '',
-    stock: '',
     isExample: false,
   });
   const [errors, setErrors] = useState({});
@@ -29,10 +22,8 @@ export default function ProductModal({ product, producers, onClose }) {
       setFormData({
         name: product.name || '',
         producerId: product.producerId || '',
-        unit: product.unit || 'KG',
         category: product.category || '',
         description: product.description || '',
-        stock: product.stock != null ? product.stock.toString() : '',
         isExample: product.isExample ?? false,
       });
     }
@@ -58,10 +49,6 @@ export default function ProductModal({ product, producers, onClose }) {
 
     if (!formData.producerId) {
       newErrors.producerId = 'Le producteur est requis';
-    }
-
-    if (!formData.unit) {
-      newErrors.unit = 'L\'unité est requise';
     }
 
     setErrors(newErrors);
@@ -152,27 +139,6 @@ export default function ProductModal({ product, producers, onClose }) {
               {errors.producerId && <span className="form-error">{errors.producerId}</span>}
             </div>
 
-            {/* Unité */}
-            <div className="form-group">
-              <label htmlFor="unit" className="form-label required">
-                Unité de vente
-              </label>
-              <select
-                id="unit"
-                name="unit"
-                value={formData.unit}
-                onChange={handleChange}
-                className={`select ${errors.unit ? 'input-error' : ''}`}
-              >
-                {UNITS.map(unit => (
-                  <option key={unit.value} value={unit.value}>
-                    {unit.label}
-                  </option>
-                ))}
-              </select>
-              {errors.unit && <span className="form-error">{errors.unit}</span>}
-            </div>
-
             {/* Catégorie */}
             <div className="form-group">
               <label htmlFor="category" className="form-label">
@@ -191,27 +157,6 @@ export default function ProductModal({ product, producers, onClose }) {
                 <option value="EGGS">Œufs</option>
                 <option value="GROCERY">Épicerie</option>
               </select>
-            </div>
-
-            {/* Stock */}
-            <div className="form-group">
-              <label htmlFor="stock" className="form-label">
-                Stock disponible
-              </label>
-              <input
-                type="number"
-                id="stock"
-                name="stock"
-                value={formData.stock}
-                onChange={handleChange}
-                className="input"
-                placeholder="0"
-                step="0.1"
-                min="0"
-              />
-              <p className="form-help">
-                En {formData.unit === 'KG' ? 'kilogrammes' : 'pièces'}
-              </p>
             </div>
 
             {/* Description */}

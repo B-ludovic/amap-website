@@ -156,7 +156,8 @@ const createProduct = asyncHandler(async (req, res) => {
   if (!parsed.success) {
     throw new HttpBadRequestError(parsed.error.errors[0].message);
   }
-  const { name, producerId, category, description, isExample } = parsed.data;
+  const { name: rawName, producerId, category, description, isExample } = parsed.data;
+  const name = rawName.trim().charAt(0).toUpperCase() + rawName.trim().slice(1);
 
   const producer = await prisma.producer.findUnique({
     where: { id: producerId }
@@ -164,6 +165,13 @@ const createProduct = asyncHandler(async (req, res) => {
 
   if (!producer) {
     throw new HttpNotFoundError('Producteur introuvable');
+  }
+
+  const existing = await prisma.product.findFirst({
+    where: { name, producerId }
+  });
+  if (existing) {
+    throw new HttpBadRequestError(`"${name}" existe déjà pour ce producteur`);
   }
 
   const product = await prisma.product.create({
@@ -191,7 +199,8 @@ const createProduct = asyncHandler(async (req, res) => {
 // MODIFIER UN PRODUIT
 const updateProduct = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { name, producerId, category, description, isExample } = req.body;
+  const { name: rawName, producerId, category, description, isExample } = req.body;
+  const name = rawName ? rawName.trim().charAt(0).toUpperCase() + rawName.trim().slice(1) : undefined;
 
   const product = await prisma.product.findUnique({
     where: { id }
