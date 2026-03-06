@@ -547,14 +547,6 @@ const api = {
     },
 
     markAsPickedUp: async (pickupId, data) => {
-      if (pickupId === 'new') {
-        return fetchAPI('/distribution/pickup', {
-          method: 'POST',
-          body: data,
-          requiresAuth: true,
-        });
-      }
-      
       return fetchAPI(`/distribution/pickup/${pickupId}`, {
         method: 'PUT',
         body: data,

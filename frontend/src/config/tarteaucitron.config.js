@@ -76,9 +76,9 @@ export const tarteaucitronServices = {
     id: 'G-ZWJ7FYLJ5X' // Remplacer par ton vrai ID Google Analytics
   },
   
-  // Stripe (obligatoire pour paiements)
+  // Stripe (paiement natif, pas un service de tracking — non géré par tarteaucitron)
   stripe: {
-    enabled: true
+    enabled: false
   },
   
   // YouTube (si tu embeddes des vidéos)

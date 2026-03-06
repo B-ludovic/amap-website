@@ -8,3 +8,7 @@ build/
 
 # Prisma
 /src/generated/prisma
+
+# Fichiers de configuration locaux
+backend/test-contract.pdf
+backend/scripts/

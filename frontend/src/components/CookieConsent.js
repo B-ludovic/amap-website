@@ -25,38 +25,36 @@ export default function CookieConsent() {
       servicesScript.src = '/tarteaucitron/tarteaucitron.services.js';
 
       servicesScript.onload = () => {
+        // Éviter la double initialisation (React StrictMode, re-render)
+        if (window.tarteaucitron.state) return;
+
+        const { googleAnalytics, youtube, googleMaps } = tarteaucitronServices;
+
+        // Réinitialiser job pour éviter les résidus d'une exécution précédente
+        window.tarteaucitron.job = [];
+
+        // Pré-remplir les données utilisateur avant init
+        if (googleAnalytics.enabled) {
+          window.tarteaucitron.user.gtagUa = googleAnalytics.id;
+          window.tarteaucitron.user.gtagMore = function () {};
+        }
+        if (googleMaps.enabled && googleMaps.apiKey) {
+          window.tarteaucitron.user.googlemapsKey = googleMaps.apiKey;
+        }
+
         // Initialiser Tarteaucitron
         window.tarteaucitron.init(tarteaucitronConfig);
 
-        // Activer les services
-        const { googleAnalytics, stripe, youtube, googleMaps } = tarteaucitronServices;
+        // Push uniquement les services définis dans tarteaucitron.services
+        const pushService = (key) => {
+          if (window.tarteaucitron.services?.[key]) {
+            window.tarteaucitron.job.push(key);
+          }
+        };
 
-        // Google Analytics
-        if (googleAnalytics.enabled) {
-          window.tarteaucitron.user.gtagUa = googleAnalytics.id;
-          window.tarteaucitron.user.gtagMore = function () {
-            // Configuration supplémentaire GA si nécessaire
-          };
-          (window.tarteaucitron.job = window.tarteaucitron.job || []).push('gtag');
-        }
-
-        // Stripe (obligatoire)
-        if (stripe.enabled) {
-          (window.tarteaucitron.job = window.tarteaucitron.job || []).push('stripe');
-        }
-
-        // YouTube
-        if (youtube.enabled) {
-          (window.tarteaucitron.job = window.tarteaucitron.job || []).push('youtube');
-        }
-
-        // Google Maps
-        if (googleMaps.enabled && googleMaps.apiKey) {
-          window.tarteaucitron.user.googlemapsKey = googleMaps.apiKey;
-          (window.tarteaucitron.job = window.tarteaucitron.job || []).push('googlemaps');
-        }
-
-        console.log('✅ Tarteaucitron initialisé');
+        if (googleAnalytics.enabled) pushService('gtag');
+        if (youtube.enabled)         pushService('youtube');
+        if (googleMaps.enabled && googleMaps.apiKey) pushService('googlemaps');
       };
 
       document.head.appendChild(servicesScript);
