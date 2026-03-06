@@ -460,32 +460,43 @@ class EmailService {
               subject: newsletter.subject,
               html: `
                 <!DOCTYPE html>
-                <html>
+                <html lang="fr">
                   <head>
                     <meta charset="utf-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
                     <style>
-                      body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-                      .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                      .header { background: linear-gradient(135deg, #6b9d5a 0%, #5a8a4a 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
-                      .content { background: white; padding: 30px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 8px 8px; }
-                      .footer { text-align: center; margin-top: 30px; color: #6b7280; font-size: 14px; }
+                      body { margin: 0; padding: 0; background-color: #f4f6f3; font-family: Georgia, 'Times New Roman', serif; color: #2d3a2d; }
+                      .wrapper { background-color: #f4f6f3; padding: 40px 20px; }
+                      .container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.08); }
+                      .header { background: linear-gradient(135deg, #5a8a4a 0%, #3d6b30 100%); padding: 36px 40px; text-align: center; }
+                      .header img { display: block; margin: 0 auto 16px; max-height: 64px; }
+                      .header h1 { margin: 0; color: #ffffff; font-size: 26px; font-weight: 700; letter-spacing: 0.5px; }
+                      .header p { margin: 6px 0 0; color: rgba(255,255,255,0.85); font-size: 14px; font-style: italic; }
+                      .divider { height: 4px; background: linear-gradient(90deg, #a8c87a, #f5c842, #a8c87a); }
+                      .content { padding: 40px; font-size: 16px; line-height: 1.75; color: #3a4a3a; }
+                      .content p { margin: 0 0 16px; }
+                      .footer { background: #f9faf7; border-top: 1px solid #e8ede4; padding: 28px 40px; text-align: center; }
+                      .footer p { margin: 0 0 8px; color: #6b7c6b; font-size: 13px; line-height: 1.6; }
+                      .footer .unsub { font-size: 11px; color: #9aaa9a; margin-top: 16px; }
                     </style>
                   </head>
                   <body>
-                    <div class="container">
-                      <div class="header">
-                        <img src="${process.env.FRONTEND_URL}/icons/logo.png" alt="Aux P'tits Pois" style="display: block; margin: 0 auto 15px; max-height: 70px;">
-                        <h1>Aux P'tits Pois</h1>
-                      </div>
-                      <div class="content">
-                        ${newsletter.content}
-                      </div>
-                      <div class="footer">
-                        <p>Aux P'tits Pois - AMAP Solidaire<br>
-                        Distribution : Mercredi 18h15-19h15</p>
-                        <p style="font-size: 12px; margin-top: 20px;">
-                          Vous recevez cet email car vous êtes abonné à Aux P'tits Pois.
-                        </p>
+                    <div class="wrapper">
+                      <div class="container">
+                        <div class="header">
+                          <img src="${process.env.FRONTEND_URL}/icons/logo.png" alt="Aux P'tits Pois">
+                          <h1>Aux P'tits Pois</h1>
+                          <p>AMAP Solidaire</p>
+                        </div>
+                        <div class="divider"></div>
+                        <div class="content">
+                          ${newsletter.content.replace(/\n/g, '<br>')}
+                        </div>
+                        <div class="footer">
+                          <p><strong>Aux P'tits Pois — AMAP Solidaire</strong></p>
+                          <p>Distribution chaque mercredi de 18h15 à 19h15</p>
+                          <p class="unsub">Vous recevez cet email car vous êtes adhérent à l'AMAP Aux P'tits Pois.</p>
+                        </div>
                       </div>
                     </div>
                   </body>

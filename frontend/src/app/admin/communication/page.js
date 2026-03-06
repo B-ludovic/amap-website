@@ -27,7 +27,7 @@ export default function AdminCommunicationPage() {
     const [selectedNewsletter, setSelectedNewsletter] = useState(null);
     const [filter, setFilter] = useState('all');
 
-    const { showSuccess, showError } = useModal();
+    const { showSuccess, showError, showConfirm } = useModal();
 
     useEffect(() => {
         fetchStats();
@@ -76,34 +76,38 @@ export default function AdminCommunicationPage() {
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (newsletterId) => {
-    if (!confirm('Êtes-vous sûr de vouloir supprimer cette newsletter ?')) {
-      return;
-    }
-
-    try {
-      await api.newsletters.delete(newsletterId);
-      showSuccess('Succès', 'Newsletter supprimée avec succès');
-      fetchNewsletters();
-      fetchStats();
-    } catch (error) {
-      showError('Erreur', error.response?.data?.message || 'Erreur lors de la suppression');
-    }
+  const handleDelete = (newsletterId) => {
+    showConfirm(
+      'Supprimer la newsletter',
+      'Êtes-vous sûr de vouloir supprimer cette newsletter ? Cette action est irréversible.',
+      async () => {
+        try {
+          await api.newsletters.delete(newsletterId);
+          showSuccess('Succès', 'Newsletter supprimée avec succès');
+          fetchNewsletters();
+          fetchStats();
+        } catch (error) {
+          showError('Erreur', error.response?.data?.message || 'Erreur lors de la suppression');
+        }
+      }
+    );
   };
 
-  const handleSend = async (newsletterId) => {
-    if (!confirm('Êtes-vous sûr de vouloir envoyer cette newsletter maintenant ?')) {
-      return;
-    }
-
-    try {
-      const response = await api.newsletters.send(newsletterId);
-      showSuccess('Succès', `Newsletter envoyée à ${response.data.sentCount} destinataire(s)`);
-      fetchNewsletters();
-      fetchStats();
-    } catch (error) {
-      showError('Erreur', error.response?.data?.message || 'Erreur lors de l\'envoi');
-    }
+  const handleSend = (newsletterId) => {
+    showConfirm(
+      'Envoyer la newsletter',
+      'Êtes-vous sûr de vouloir envoyer cette newsletter maintenant ? Elle sera envoyée à tous les destinataires ciblés.',
+      async () => {
+        try {
+          const response = await api.newsletters.send(newsletterId);
+          showSuccess('Newsletter envoyée', `Envoyée avec succès à ${response.data.sentCount} destinataire(s)`);
+          fetchNewsletters();
+          fetchStats();
+        } catch (error) {
+          showError('Erreur', error.response?.data?.message || 'Erreur lors de l\'envoi');
+        }
+      }
+    );
   };
 
   const handleModalClose = (shouldRefresh) => {
