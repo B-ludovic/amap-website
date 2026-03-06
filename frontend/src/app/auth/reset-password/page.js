@@ -123,7 +123,7 @@ function ResetPasswordPage() {
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
               </div>
-              <p className="form-hint">Minimum 6 caractères</p>
+              <p className="form-hint">Minimum 12 caractères</p>
             </div>
 
             <div className="form-group">
