@@ -20,11 +20,12 @@ const generateToken = (userId, tokenVersion) => {
 };
 
 // Options du cookie d'auth
-// secure: false en dev (localhost HTTP), true en prod (HTTPS requis)
+// En prod : cross-domain (Vercel → Render), SameSite=None obligatoire avec Secure=true
+const isProduction = process.env.NODE_ENV === 'production';
 const cookieOptions = {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'Strict',
+    secure: isProduction,
+    sameSite: isProduction ? 'None' : 'Strict',
     maxAge: 7 * 24 * 60 * 60 * 1000,
     path: '/',
 };

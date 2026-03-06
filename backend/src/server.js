@@ -37,10 +37,13 @@ const PORT = process.env.PORT || 4000;
 app.use(helmet());
 
 // CORS - autorise le frontend à appeler l'API
+// Déploiement : frontend sur Vercel (auxptitspois.fr), backend sur Render
+// → Ajouter l'URL Vercel de prévisualisation si besoin (ex: https://amap-website-xxx.vercel.app)
+// → FRONTEND_URL doit être défini dans les variables d'env Render (ex: https://auxptitspois.fr)
 const ALLOWED_ORIGINS = [
   'http://localhost:3000',
   'http://localhost:3001',
-  process.env.FRONTEND_URL,
+  process.env.FRONTEND_URL,   // à configurer sur Render : https://auxptitspois.fr
   'https://auxptitspois.fr',
   'https://www.auxptitspois.fr',
 ].filter(Boolean);
