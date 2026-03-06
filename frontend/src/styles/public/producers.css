@@ -368,13 +368,14 @@
 
 .join-cta .btn-primary {
   background-color: var(--white);
-  color: var(--primary-color);
-  border: 2px solid var(--primary-color);
+  color: #2d5a27;
+  border: 2px solid #2d5a27;
 }
 
 .join-cta .btn-primary:hover {
-  background-color: var(--primary-color);
+  background-color: #2d5a27;
   color: var(--white);
+  border-color: #2d5a27;
   transform: translateY(-1px);
   box-shadow: var(--shadow-md);
 }
@@ -383,10 +384,19 @@
   display: flex;
   gap: var(--spacing-xl);
   align-items: center;
-  background: linear-gradient(135deg, rgba(107, 157, 90, 0.08), rgba(107, 157, 90, 0.03));
+  background: linear-gradient(135deg, rgba(107, 157, 90, 0.12), rgba(212, 165, 116, 0.08));
+  border: 1px solid rgba(107, 157, 90, 0.25);
   padding: var(--spacing-2xl);
   border-radius: var(--border-radius-lg);
   box-shadow: var(--shadow-md);
+}
+
+.cta-content h2 {
+  color: #2d5a27;
+}
+
+.cta-content p {
+  color: #4a4a4a;
 }
 
 .cta-icon {
