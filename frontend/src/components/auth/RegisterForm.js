@@ -11,7 +11,9 @@ function RegisterForm({ onSubmit, loading }) {
     firstName: '',
     lastName: '',
     phone: '',
-    address: '',
+    street: '',
+    postalCode: '',
+    city: '',
   });
 
   const [errors, setErrors] = useState({});
@@ -68,8 +70,18 @@ function RegisterForm({ onSubmit, loading }) {
       newErrors.phone = 'Numéro de téléphone invalide';
     }
 
-    if (!formData.address) {
-      newErrors.address = 'Adresse requise';
+    if (!formData.street) {
+      newErrors.street = 'Adresse requise';
+    }
+
+    if (!formData.postalCode) {
+      newErrors.postalCode = 'Code postal requis';
+    } else if (!/^\d{5}$/.test(formData.postalCode)) {
+      newErrors.postalCode = 'Code postal invalide (5 chiffres)';
+    }
+
+    if (!formData.city) {
+      newErrors.city = 'Ville requise';
     }
 
     return newErrors;
@@ -84,9 +96,9 @@ function RegisterForm({ onSubmit, loading }) {
       return;
     }
 
-    // Enlever confirmPassword avant d'envoyer au backend
-    const { confirmPassword, ...dataToSend } = formData;
-    onSubmit(dataToSend);
+    // Concaténer l'adresse et enlever les champs séparés
+    const { confirmPassword, street, postalCode, city, ...rest } = formData;
+    onSubmit({ ...rest, address: `${street}, ${postalCode} ${city}` });
   };
 
   return (
@@ -182,25 +194,70 @@ function RegisterForm({ onSubmit, loading }) {
       </div>
 
       <div className="form-group">
-        <label htmlFor="address" className="form-label">
+        <label htmlFor="street" className="form-label">
           Adresse
         </label>
         <div className="input-wrapper">
           <MapPin size={20} className="input-icon" />
           <input
             type="text"
-            id="address"
-            name="address"
-            className="input input-with-icon"
-            value={formData.address}
+            id="street"
+            name="street"
+            className={`input input-with-icon ${errors.street ? 'input-error' : ''}`}
+            value={formData.street}
             onChange={handleChange}
-            placeholder="12 rue des Fleurs, 75001 Paris"
+            placeholder="12 rue des Fleurs"
             disabled={loading}
           />
         </div>
-        {errors.address && (
-          <span className="form-error">{errors.address}</span>
+        {errors.street && (
+          <span className="form-error">{errors.street}</span>
         )}
+      </div>
+
+      <div className="form-row">
+        <div className="form-group">
+          <label htmlFor="postalCode" className="form-label">
+            Code postal
+          </label>
+          <div className="input-wrapper">
+            <input
+              type="text"
+              id="postalCode"
+              name="postalCode"
+              className={`input ${errors.postalCode ? 'input-error' : ''}`}
+              value={formData.postalCode}
+              onChange={handleChange}
+              placeholder="75001"
+              maxLength={5}
+              disabled={loading}
+            />
+          </div>
+          {errors.postalCode && (
+            <span className="form-error">{errors.postalCode}</span>
+          )}
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="city" className="form-label">
+            Ville
+          </label>
+          <div className="input-wrapper">
+            <input
+              type="text"
+              id="city"
+              name="city"
+              className={`input ${errors.city ? 'input-error' : ''}`}
+              value={formData.city}
+              onChange={handleChange}
+              placeholder="Paris"
+              disabled={loading}
+            />
+          </div>
+          {errors.city && (
+            <span className="form-error">{errors.city}</span>
+          )}
+        </div>
       </div>
 
       <div className="form-group">
