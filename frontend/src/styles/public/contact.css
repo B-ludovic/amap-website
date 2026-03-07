@@ -208,6 +208,7 @@
   gap: var(--spacing-sm);
   margin-top: var(--spacing-xs);
   flex-wrap: wrap;
+  justify-content: center;
 }
 
 .social-links a {
