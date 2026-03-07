@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Sprout, MapPin, Package, Leaf, Mail, Phone, ExternalLink  } from 'lucide-react';
 import Link from 'next/link';
@@ -8,7 +8,7 @@ import { useModal } from '../../contexts/ModalContext';
 import api from '../../lib/api';
 import '../../styles/public/producers.css';
 
-export default function ProducersPage() {
+function ProducersPage() {
   const [producers, setProducers] = useState([]);
   const [loading, setLoading] = useState(true);
   const { showError } = useModal();
@@ -261,5 +261,12 @@ export default function ProducersPage() {
         </div>
       </section>
     </div>
+  );
+}
+export default function Page() {
+  return (
+    <Suspense>
+      <ProducersPage />
+    </Suspense>
   );
 }

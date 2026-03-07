@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { ShoppingBasket, MessageSquare, CheckCircle, Heart, LogIn } from 'lucide-react';
 import { useModal } from '../../contexts/ModalContext';
@@ -9,7 +9,7 @@ import api from '../../lib/api';
 import '../../styles/public/subscription-request.css';
 
 
-export default function SubscriptionRequestPage() {
+function SubscriptionRequestPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { showSuccess, showError } = useModal();
@@ -433,5 +433,12 @@ export default function SubscriptionRequestPage() {
         </div>
       </div>
     </div>
+  );
+}
+export default function Page() {
+  return (
+    <Suspense>
+      <SubscriptionRequestPage />
+    </Suspense>
   );
 }
