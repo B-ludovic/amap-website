@@ -21,14 +21,37 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useModal } from '../../contexts/ModalContext';
+import api from '../../lib/api';
 
 function Header() {
   const router = useRouter();
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [notifs, setNotifs] = useState({ requests: 0, producers: 0, messages: 0 });
   const { user, logout } = useAuth();
   const { showConfirm } = useModal();
+
+  useEffect(() => {
+    if (user?.role !== 'ADMIN') return;
+    async function fetchNotifs() {
+      try {
+        const [statsRes, messagesRes] = await Promise.all([
+          api.admin.stats.get(),
+          api.contactMessages.getAll({ status: 'UNREAD' }),
+        ]);
+        const { pendingRequests = 0, producerInquiries = 0 } = statsRes.data.stats;
+        setNotifs({
+          requests: pendingRequests,
+          producers: producerInquiries,
+          messages: messagesRes.data.messages.length ?? 0,
+        });
+      } catch { /* silencieux */ }
+    }
+    fetchNotifs();
+    window.addEventListener('contact-unread-changed', fetchNotifs);
+    return () => window.removeEventListener('contact-unread-changed', fetchNotifs);
+  }, [user]);
 
   // Détecter le scroll pour changer le style du header
   useEffect(() => {
@@ -206,6 +229,7 @@ function Header() {
                     <Link href="/admin/demandes-abonnements" className="mobile-nav-link" onClick={closeMenu}>
                       <UserPlus size={18} />
                       Demandes abonnements
+                      {notifs.requests > 0 && <span className="mobile-nav-badge">{notifs.requests}</span>}
                     </Link>
                     <Link href="/admin/abonnements" className="mobile-nav-link" onClick={closeMenu}>
                       <CreditCard size={18} />
@@ -214,6 +238,7 @@ function Header() {
                     <Link href="/admin/demandes-producteurs" className="mobile-nav-link" onClick={closeMenu}>
                       <Sprout size={18} />
                       Demandes producteurs
+                      {notifs.producers > 0 && <span className="mobile-nav-badge">{notifs.producers}</span>}
                     </Link>
                     <Link href="/admin/producteurs" className="mobile-nav-link" onClick={closeMenu}>
                       <Tractor size={18} />
@@ -238,6 +263,7 @@ function Header() {
                     <Link href="/admin/communication" className="mobile-nav-link" onClick={closeMenu}>
                       <Mail size={18} />
                       Communication
+                      {notifs.messages > 0 && <span className="mobile-nav-badge">{notifs.messages}</span>}
                     </Link>
                     <Link href="/admin/parametres" className="mobile-nav-link" onClick={closeMenu}>
                       <Settings size={18} />
