@@ -33,6 +33,8 @@ export default function AdminSidebar({ currentPath }) {
   const { showConfirm } = useModal();
   const [openMenus, setOpenMenus] = useState({});
   const [unreadCount, setUnreadCount] = useState(0);
+  const [pendingSubscriptions, setPendingSubscriptions] = useState(0);
+  const [pendingProducers, setPendingProducers] = useState(0);
 
   useEffect(() => {
     const fetchUnreadCount = () => {
@@ -41,7 +43,17 @@ export default function AdminSidebar({ currentPath }) {
         .catch(() => {});
     };
 
+    const fetchPendingCounts = () => {
+      api.subscriptionRequests.getAll({ status: 'PENDING' })
+        .then(data => setPendingSubscriptions(data.data?.requests?.length ?? 0))
+        .catch(() => {});
+      api.producerInquiries.getAll({ status: 'PENDING' })
+        .then(data => setPendingProducers(data.data?.inquiries?.length ?? 0))
+        .catch(() => {});
+    };
+
     fetchUnreadCount();
+    fetchPendingCounts();
     window.addEventListener('contact-unread-changed', fetchUnreadCount);
     return () => window.removeEventListener('contact-unread-changed', fetchUnreadCount);
   }, []);
@@ -79,7 +91,8 @@ export default function AdminSidebar({ currentPath }) {
     {
       title: 'Demandes abonnements',
       icon: UserPlus,
-      path: '/admin/demandes-abonnements'
+      path: '/admin/demandes-abonnements',
+      badge: pendingSubscriptions
     },
     {
       title: 'Abonnements',
@@ -89,7 +102,8 @@ export default function AdminSidebar({ currentPath }) {
     {
       title: 'Demandes producteurs',
       icon: Sprout,
-      path: '/admin/demandes-producteurs'
+      path: '/admin/demandes-producteurs',
+      badge: pendingProducers
     },
     {
       title: 'Producteurs',
