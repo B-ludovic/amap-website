@@ -8,6 +8,7 @@ import {
 } from '../utils/httpErrors.js';
 import { ProducerSchema, ProductSchema, BasketTypeSchema, BlogPostSchema } from '../utils/validation.schemas.js';
 import { logAudit } from '../services/audit.service.js';
+import { normalizeTitleCase } from '../utils/normalize.js';
 
 
 // GESTION DES PRODUCTEURS //
@@ -32,7 +33,7 @@ const createProducer = asyncHandler(async (req, res) => {
 
   const producer = await prisma.producer.create({
     data: {
-      name,
+      name: normalizeTitleCase(name),
       description,
       email,
       phone,
@@ -77,7 +78,7 @@ const updateProducer = asyncHandler(async (req, res) => {
   const updatedProducer = await prisma.producer.update({
     where: { id },
     data: {
-      name,
+      name: name ? normalizeTitleCase(name) : undefined,
       description,
       email,
       phone,
