@@ -11,6 +11,7 @@ import {
   HttpConflictError,
   httpStatusCodes,
 } from '../utils/httpErrors.js';
+import { normalizeFirstName, normalizeLastName, normalizeTitleCase } from '../utils/normalize.js';
 
 // Token JWT
 const generateToken = (userId, tokenVersion) => {
@@ -62,10 +63,10 @@ const register = asyncHandler(async (req, res) => {
         data: {
             email,
             password: hashedPassword,
-            firstName,
-            lastName,
+            firstName: normalizeFirstName(firstName),
+            lastName: normalizeLastName(lastName),
             phone,
-            address,
+            address: normalizeTitleCase(address),
             emailVerified: false,
             emailVerifyToken: emailVerifyTokenHash,
             emailVerifyTokenExpiry,
