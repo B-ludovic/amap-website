@@ -6,6 +6,7 @@ import {
   HttpBadRequestError,
   httpStatusCodes
 } from '../utils/httpErrors.js';
+import { normalizeFirstName, normalizeLastName, normalizeTitleCase } from '../utils/normalize.js';
 
 // SOUMETTRE UNE DEMANDE (PUBLIC)
 const submitInquiry = asyncHandler(async (req, res) => {
@@ -49,13 +50,13 @@ const submitInquiry = asyncHandler(async (req, res) => {
 
   const inquiry = await prisma.producerInquiry.create({
     data: {
-      firstName,
-      lastName,
+      firstName: normalizeFirstName(firstName),
+      lastName: normalizeLastName(lastName),
       email,
       phone,
-      farmName,
-      address,
-      city,
+      farmName: normalizeTitleCase(farmName),
+      address: normalizeTitleCase(address),
+      city: normalizeTitleCase(city),
       postalCode,
       distance,
       products,
