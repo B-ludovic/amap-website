@@ -361,7 +361,7 @@
 /* Empty State */
 .empty-state {
   text-align: center;
-  padding: var(--spacing-xxl) var(--spacing-lg);
+  padding: var(--spacing-3xl) var(--spacing-lg);
   color: var(--text-muted);
 }
 
@@ -384,7 +384,7 @@
 /* Loading State */
 .loading-state {
   text-align: center;
-  padding: var(--spacing-xxl);
+  padding: var(--spacing-3xl);
   color: var(--text-muted);
   font-size: 1.1rem;
 }

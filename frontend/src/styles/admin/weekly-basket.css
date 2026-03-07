@@ -421,7 +421,7 @@
 /* Empty State */
 .empty-baskets {
   text-align: center;
-  padding: var(--spacing-xxl) var(--spacing-lg);
+  padding: var(--spacing-3xl) var(--spacing-lg);
   color: var(--text-muted);
 }
 
