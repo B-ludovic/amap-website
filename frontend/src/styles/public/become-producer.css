@@ -83,6 +83,7 @@
   box-shadow: var(--shadow-md);
   border: 1px solid var(--border-color);
   transition: var(--transition-normal);
+  text-align: center;
 }
 
 .benefit-card:hover {
@@ -95,6 +96,8 @@
   height: 64px;
   display: flex;
   align-items: center;
+  margin-left: auto;
+  margin-right: auto;
   justify-content: center;
   background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
   color: var(--white);
