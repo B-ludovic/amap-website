@@ -93,6 +93,12 @@
 .benefit-icon {
   width: 64px;
   height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  color: var(--white);
+  border-radius: var(--border-radius-md);
   margin-bottom: var(--spacing-lg);
 }
 
@@ -140,8 +146,15 @@
 }
 
 .criteria-icon {
+  flex-shrink: 0;
   width: 48px;
   height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  color: var(--white);
+  border-radius: var(--border-radius-md);
 }
 
 .criteria-content h3 {
