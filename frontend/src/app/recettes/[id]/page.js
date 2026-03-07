@@ -240,6 +240,20 @@ export default function RecipeDetailPage() {
                 ) : (
                   <p className="no-data">Instructions non disponibles</p>
                 )}
+
+                {recipe.sourceUrl && (
+                  <p className="recipe-source-inline">
+                    Source :{' '}
+                    <a
+                      href={recipe.sourceUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="source-link"
+                    >
+                      {recipe.sourceName || recipe.sourceUrl}
+                    </a>
+                  </p>
+                )}
               </div>
 
               {/* Informations nutritionnelles */}
@@ -262,27 +276,6 @@ export default function RecipeDetailPage() {
           </div>
         </div>
       </section>
-
-      {/* Source */}
-      {recipe.sourceUrl && (
-        <section className="recipe-source">
-          <div className="container">
-            <div className="source-card">
-              <p>
-                Recette originale disponible sur{' '}
-                <a 
-                  href={recipe.sourceUrl} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="source-link"
-                >
-                  {recipe.sourceName || 'le site source'}
-                </a>
-              </p>
-            </div>
-          </div>
-        </section>
-      )}
 
       {/* CTA */}
       <section className="recipe-cta">
