@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Check, ShoppingBasket, Calendar, Heart, MapPin } from 'lucide-react';
+import { Check, ShoppingBasket, Calendar, Heart, MapPin, CreditCard } from 'lucide-react';
 import Link from 'next/link';
 import '../../styles/public/subscriptions.css';
 
@@ -259,7 +259,7 @@ export default function SubscriptionsPage() {
             </div>
 
             <div className="info-card">
-              <div className="info-card-icon"><Heart size={28} /></div>
+              <div className="info-card-icon"><CreditCard size={28} /></div>
               <h3>Paiement</h3>
               <p>
                 Paiement uniquement par <strong>chèque</strong>. Nous vous recontactons
