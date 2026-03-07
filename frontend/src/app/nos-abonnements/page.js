@@ -234,7 +234,7 @@ export default function SubscriptionsPage() {
           
           <div className="info-grid">
             <div className="info-card">
-              <div className="icon-badge"><Calendar size={28} /></div>
+              <div className="info-card-icon"><Calendar size={28} /></div>
               <h3>Distribution</h3>
               <p>
                 Chaque <strong>mercredi</strong> de <strong>18h15 à 19h15</strong>
@@ -250,7 +250,7 @@ export default function SubscriptionsPage() {
             </div>
 
             <div className="info-card">
-              <div className="icon-badge"><ShoppingBasket size={28} /></div>
+              <div className="info-card-icon"><ShoppingBasket size={28} /></div>
               <h3>Composition</h3>
               <p>
                 Vous composez vous-même votre panier parmi les légumes disponibles 
@@ -259,11 +259,11 @@ export default function SubscriptionsPage() {
             </div>
 
             <div className="info-card">
-              <div className="icon-badge"><Heart size={28} /></div>
+              <div className="info-card-icon"><Heart size={28} /></div>
               <h3>Paiement</h3>
               <p>
-                Chèque, virement ou espèces. Nous vous recontactons après votre demande 
-                pour finaliser l'inscription.
+                Paiement uniquement par <strong>chèque</strong>. Nous vous recontactons
+                après votre demande pour finaliser l'inscription.
               </p>
             </div>
           </div>
