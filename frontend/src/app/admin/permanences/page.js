@@ -220,7 +220,7 @@ export default function AdminPermanencesPage() {
                   <Edit2 size={18} />
                 </button>
                 <button
-                  className="btn btn-icon"
+                  className="btn btn-icon btn-warning"
                   onClick={() => handleDuplicate(shift)}
                   title="Dupliquer"
                 >

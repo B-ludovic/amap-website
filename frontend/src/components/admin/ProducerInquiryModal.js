@@ -10,7 +10,7 @@ export default function ProducerInquiryModal({ inquiry, onClose }) {
   const [adminNotes, setAdminNotes] = useState(inquiry.adminNotes || '');
   const [loading, setLoading] = useState(false);
   
-  const { showSuccess, showError } = useModal();
+  const { showSuccess, showError, showConfirm } = useModal();
 
   const handleUpdateStatus = async (newStatus, createProducer = false) => {
     try {
@@ -40,10 +40,11 @@ export default function ProducerInquiryModal({ inquiry, onClose }) {
   };
 
   const handleAcceptAndCreate = async () => {
-    if (!confirm('Accepter cette demande et créer le producteur ?')) {
-      return;
-    }
-
+    const confirmed = await showConfirm(
+      'Accepter la demande',
+      'Accepter cette demande et créer le producteur ?'
+    );
+    if (!confirmed) return;
     await handleUpdateStatus('ACCEPTED', true);
   };
 

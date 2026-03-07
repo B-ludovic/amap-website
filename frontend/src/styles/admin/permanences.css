@@ -138,26 +138,41 @@
 }
 
 .btn-icon {
+  flex: 1;
   padding: var(--spacing-sm);
-  background: transparent;
-  border: 1px solid var(--border-color);
+  border: none;
   border-radius: var(--border-radius-sm);
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
+  color: white;
+  height: 38px;
 }
 
-.btn-icon:hover {
-  background-color: var(--background-secondary);
-  border-color: var(--primary-color);
+.btn-icon:not(.btn-danger):not(.btn-warning) {
+  background-color: #3b82f6;
+}
+
+.btn-icon:not(.btn-danger):not(.btn-warning):hover {
+  background-color: #2563eb;
+}
+
+.btn-icon.btn-warning {
+  background-color: #f59e0b;
+}
+
+.btn-icon.btn-warning:hover {
+  background-color: #d97706;
+}
+
+.btn-icon.btn-danger {
+  background-color: #dc2626;
 }
 
 .btn-icon.btn-danger:hover {
-  background-color: #fee;
-  border-color: #dc3545;
-  color: #dc3545;
+  background-color: #b91c1c;
 }
 
 /* État vide */
