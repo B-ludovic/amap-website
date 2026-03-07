@@ -24,7 +24,7 @@
     "tarteaucitronjs": "^1.28.0"
   },
   "devDependencies": {
-    "eslint": "^8",
+    "eslint": "^9",
     "eslint-config-next": "^15"
   }
 }
