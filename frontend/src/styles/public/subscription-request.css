@@ -382,7 +382,7 @@
 
 /* Cards d'information */
 
-.info-card {
+.request-summary .info-card {
   background: var(--white);
   border-radius: var(--border-radius-lg);
   padding: var(--spacing-lg);
@@ -390,21 +390,21 @@
   border: 1px solid #e5e5e5;
 }
 
-.info-card h4 {
+.request-summary .info-card h4 {
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-bold);
   color: var(--primary-color);
   margin: 0 0 var(--spacing-md) 0;
 }
 
-.info-card p {
+.request-summary .info-card p {
   font-size: var(--font-size-sm);
   color: var(--text-secondary);
   margin: 0 0 var(--spacing-sm) 0;
   line-height: 1.5;
 }
 
-.info-card p:last-child {
+.request-summary .info-card p:last-child {
   margin-bottom: 0;
 }
 
