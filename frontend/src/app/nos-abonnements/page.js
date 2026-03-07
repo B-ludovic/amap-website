@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Check, ShoppingBasket, Calendar, Heart } from 'lucide-react';
+import { Check, ShoppingBasket, Calendar, Heart, MapPin } from 'lucide-react';
 import Link from 'next/link';
 import '../../styles/public/subscriptions.css';
 
@@ -238,6 +238,14 @@ export default function SubscriptionsPage() {
               <h3>Distribution</h3>
               <p>
                 Chaque <strong>mercredi</strong> de <strong>18h15 à 19h15</strong>
+              </p>
+              <p className="info-card-address">
+                <MapPin size={16} />
+                <span>
+                  Paroisse Saint François de Sales de Clamart<br />
+                  340 Avenue du Général de Gaulle<br />
+                  92140 Clamart
+                </span>
               </p>
             </div>
 
