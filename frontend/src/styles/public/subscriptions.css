@@ -346,9 +346,10 @@
   border-radius: 12px;
 }
 
-.info-card svg {
-  color: var(--primary-color);
-  margin-bottom: 1rem;
+.info-card .icon-badge {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 1rem;
 }
 
 .info-card h3 {

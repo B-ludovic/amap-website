@@ -188,7 +188,7 @@ export default function BecomeProducerPage() {
           
           <div className="benefits-grid">
             <div className="benefit-card">
-              <div className="benefit-icon">
+              <div className="benefit-icon icon-badge">
                 <TrendingUp size={32} />
               </div>
               <h3>Débouchés garantis</h3>
@@ -199,7 +199,7 @@ export default function BecomeProducerPage() {
             </div>
 
             <div className="benefit-card">
-              <div className="benefit-icon">
+              <div className="benefit-icon icon-badge">
                 <Heart size={32} />
               </div>
               <h3>Prix justes</h3>
@@ -210,7 +210,7 @@ export default function BecomeProducerPage() {
             </div>
 
             <div className="benefit-card">
-              <div className="benefit-icon">
+              <div className="benefit-icon icon-badge">
                 <MapPin size={32} />
               </div>
               <h3>Circuit ultra-court</h3>
@@ -221,7 +221,7 @@ export default function BecomeProducerPage() {
             </div>
 
             <div className="benefit-card">
-              <div className="benefit-icon">
+              <div className="benefit-icon icon-badge">
                 <Package size={32} />
               </div>
               <h3>Planification facilitée</h3>
@@ -241,7 +241,7 @@ export default function BecomeProducerPage() {
           
           <div className="criteria-list">
             <div className="criteria-item">
-              <div className="criteria-icon">
+              <div className="criteria-icon icon-badge">
                 <Sprout size={24} />
               </div>
               <div className="criteria-content">
@@ -254,7 +254,7 @@ export default function BecomeProducerPage() {
             </div>
 
             <div className="criteria-item">
-              <div className="criteria-icon">
+              <div className="criteria-icon icon-badge">
                 <MapPin size={24} />
               </div>
               <div className="criteria-content">
@@ -267,7 +267,7 @@ export default function BecomeProducerPage() {
             </div>
 
             <div className="criteria-item">
-              <div className="criteria-icon">
+              <div className="criteria-icon icon-badge">
                 <Package size={24} />
               </div>
               <div className="criteria-content">
@@ -280,7 +280,7 @@ export default function BecomeProducerPage() {
             </div>
 
             <div className="criteria-item">
-              <div className="criteria-icon">
+              <div className="criteria-icon icon-badge">
                 <Heart size={24} />
               </div>
               <div className="criteria-content">

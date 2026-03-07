@@ -49,15 +49,8 @@
 }
 
 .faq-section-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   width: 40px;
   height: 40px;
-  background: rgba(107, 157, 90, 0.12);
-  color: var(--primary-color);
-  border-radius: var(--border-radius-lg);
-  flex-shrink: 0;
 }
 
 .faq-section-title {

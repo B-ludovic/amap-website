@@ -146,7 +146,7 @@ export default async function HomePage() {
           
           <div className="values-grid">
             <div className="value-card">
-              <div className="value-icon">
+              <div className="value-icon icon-badge">
                 <Leaf size={32} />
               </div>
               <h3>Agriculture biologique</h3>
@@ -157,7 +157,7 @@ export default async function HomePage() {
             </div>
 
             <div className="value-card">
-              <div className="value-icon">
+              <div className="value-icon icon-badge">
                 <Users size={32} />
               </div>
               <h3>Circuit court</h3>
@@ -168,7 +168,7 @@ export default async function HomePage() {
             </div>
 
             <div className="value-card">
-              <div className="value-icon">
+              <div className="value-icon icon-badge">
                 <Heart size={32} />
               </div>
               <h3>Solidarité</h3>
@@ -236,7 +236,7 @@ export default async function HomePage() {
             <div className="producers-preview-grid">
               {producers.slice(0, 3).map(producer => (
                 <div key={producer.id} className="producer-preview-card">
-                  <div className="producer-preview-icon">
+                  <div className="producer-preview-icon icon-badge">
                     <Leaf size={24} />
                   </div>
                   <h3>{producer.name}</h3>
@@ -265,7 +265,7 @@ export default async function HomePage() {
           <h2 className="section-title">Où et quand nous trouver ?</h2>
           <div className="location-cards">
             <div className="location-card">
-              <div className="location-icon">
+              <div className="location-icon icon-badge">
                 <MapPin size={28} />
               </div>
               <h3>Point de retrait</h3>
@@ -284,7 +284,7 @@ export default async function HomePage() {
               </a>
             </div>
             <div className="location-card">
-              <div className="location-icon">
+              <div className="location-icon icon-badge">
                 <Clock size={28} />
               </div>
               <h3>Horaires de distribution</h3>

@@ -243,12 +243,6 @@
 .value-icon {
   width: 72px;
   height: 72px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-  color: var(--white);
-  border-radius: var(--border-radius-md);
   margin: 0 auto var(--spacing-lg);
 }
 
@@ -367,12 +361,6 @@
 .location-icon {
   width: 64px;
   height: 64px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-  color: var(--white);
-  border-radius: var(--border-radius-md);
 }
 
 .location-card h3 {
@@ -413,12 +401,6 @@
 .producer-preview-icon {
   width: 56px;
   height: 56px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-  color: var(--white);
-  border-radius: var(--border-radius-md);
   margin: 0 auto var(--spacing-md);
 }
 

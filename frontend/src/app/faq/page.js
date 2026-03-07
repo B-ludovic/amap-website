@@ -105,7 +105,7 @@ export default function FaqPage() {
         {FAQ_CATEGORIES.map(category => (
           <section key={category.id} className="faq-section">
             <div className="faq-section-header">
-              <span className="faq-section-icon">{category.icon}</span>
+              <span className="faq-section-icon icon-badge">{category.icon}</span>
               <h2 className="faq-section-title">{category.title}</h2>
             </div>
 

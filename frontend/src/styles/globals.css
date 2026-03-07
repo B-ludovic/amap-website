@@ -521,6 +521,17 @@ button {
   }
 }
 
+/* Utilitaire badge icône — partagé entre toutes les cards informatives publiques */
+.icon-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  color: var(--white);
+  border-radius: var(--border-radius-md);
+}
+
 /* Point de rupture pour les très petits mobiles (max-width: 480px) */
 @media (max-width: 480px) {
   /* Toutes les grilles s'empilent sur une seule colonne pour maximiser la lisibilité */
