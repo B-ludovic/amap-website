@@ -284,7 +284,7 @@ export default function AdminWeeklyBasketPage() {
                   <Edit2 size={18} />
                 </button>
                 <button
-                  className="btn btn-icon"
+                  className="btn btn-icon btn-warning"
                   onClick={() => handleDuplicate(basket)}
                   title="Dupliquer"
                 >
@@ -305,7 +305,7 @@ export default function AdminWeeklyBasketPage() {
                   onClick={() => handleDelete(basket.id, basket.isPublished)}
                   title="Supprimer"
                 >
-                  <Trash2 size={18} color="var(--error-color-dark)" />
+                  <Trash2 size={18} />
                 </button>
               </div>
             </div>

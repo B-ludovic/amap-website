@@ -97,22 +97,47 @@ class RecipeService {
                 console.error('Erreur traduction query:', error);
             }
 
-            const response = await fetch(
+            const urls = [
                 `${THEMEALDB_BASE_URL}/search.php?s=${encodeURIComponent(englishQuery)}`
-            );
-
-            if (!response.ok) {
-                throw new Error(`TheMealDB API error: ${response.status}`);
+            ];
+            if (normalizedQuery.toLowerCase() !== englishQuery.toLowerCase()) {
+                urls.push(`${THEMEALDB_BASE_URL}/search.php?s=${encodeURIComponent(normalizedQuery)}`);
             }
 
-            const data = await response.json();
+            const responses = await Promise.all(urls.map(url => fetch(url)));
+            for (const response of responses) {
+                if (!response.ok) throw new Error(`TheMealDB API error: ${response.status}`);
+            }
+            const datasets = await Promise.all(responses.map(r => r.json()));
 
-            if (!data.meals) {
+            const mealsMap = new Map();
+            for (const data of datasets) {
+                for (const meal of (data.meals || [])) {
+                    mealsMap.set(meal.idMeal, meal);
+                }
+            }
+            // Si aucun résultat, essayer en supprimant progressivement le début du mot
+            // Ex: "hamburger" → "amburger" → "mburger" → "burger" → résultat trouvé
+            if (mealsMap.size === 0) {
+                for (let i = 1; i < englishQuery.length - 3; i++) {
+                    const suffix = englishQuery.slice(i);
+                    const res = await fetch(`${THEMEALDB_BASE_URL}/search.php?s=${encodeURIComponent(suffix)}`);
+                    if (res.ok) {
+                        const d = await res.json();
+                        if (d.meals && d.meals.length > 0) {
+                            for (const meal of d.meals) mealsMap.set(meal.idMeal, meal);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (mealsMap.size === 0) {
                 return [];
             }
 
             const recipes = await Promise.all(
-                data.meals.slice(0, number).map(async (meal) => {
+                [...mealsMap.values()].slice(0, number).map(async (meal) => {
                     const translatedTitle = await this.translateToFrench(meal.strMeal);
 
                     return {
