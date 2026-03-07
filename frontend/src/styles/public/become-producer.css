@@ -244,7 +244,7 @@
 
 /* FORMULAIRE */
 
-.form-section {
+.become-producer-page .form-section {
   padding: var(--spacing-3xl) 0;
   background: var(--gradient-soft-banner);
 }
