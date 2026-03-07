@@ -282,10 +282,6 @@ export default function SubscriptionDetailModal({ subscription, onClose, onUpdat
         </div>
 
         <div className="modal-footer">
-          <button className="btn btn-secondary" onClick={onClose}>
-            Fermer
-          </button>
-
           <div className="modal-footer-actions">
             {subscription.status === 'PENDING' && (
               <button className="btn btn-success" onClick={handleActivate}>

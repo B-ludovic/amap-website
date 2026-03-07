@@ -235,14 +235,6 @@ export default function ProducerInquiryModal({ inquiry, onClose }) {
         </div>
 
         <div className="modal-footer">
-          <button
-            type="button"
-            className="btn btn-secondary"
-            onClick={() => onClose(false)}
-            disabled={loading}
-          >
-            Fermer
-          </button>
 
           {inquiry.status === 'PENDING' && (
             <>

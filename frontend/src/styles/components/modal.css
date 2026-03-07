@@ -85,7 +85,19 @@
   border-top: 1px solid var(--border-color);
   display: flex;
   justify-content: flex-end;
+  align-items: center;
   gap: var(--spacing-md);
+}
+
+.modal-footer .btn {
+  height: 42px;
+  white-space: nowrap;
+}
+
+.modal-footer .btn-secondary {
+  background-color: #f3f4f6;
+  color: var(--text-dark);
+  border: 1px solid var(--border-color);
 }
 
 @keyframes slideUp {

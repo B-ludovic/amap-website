@@ -191,15 +191,6 @@ export default function SubscriptionRequestModal({ request, onClose }) {
         </div>
 
         <div className="modal-footer">
-          <button
-            type="button"
-            className="btn btn-secondary"
-            onClick={() => onClose(false)}
-            disabled={loading || downloadingContract}
-          >
-            Fermer
-          </button>
-
           {/* Bouton télécharger contrat (si approuvé) */}
           {request.status === 'APPROVED' && (
             <button
