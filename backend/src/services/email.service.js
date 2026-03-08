@@ -1,6 +1,14 @@
-import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const transporter = nodemailer.createTransport({
+  host: 'smtp-relay.brevo.com',
+  port: 587,
+  secure: false,
+  auth: {
+    user: process.env.BREVO_SMTP_USER,
+    pass: process.env.BREVO_SMTP_KEY,
+  },
+});
 
 const EMAIL_FROM = process.env.EMAIL_FROM || 'Aux P\'tits Pois <noreply@auxptitspois.fr>';
 
@@ -10,10 +18,10 @@ class EmailService {
 
   async sendWelcomeEmail(user) {
     try {
-      const { data, error } = await resend.emails.send({
+      await transporter.sendMail({
         from: EMAIL_FROM,
         to: user.email,
-        subject: 'Bienvenue chez Aux P\'tits Pois 🌱',
+        subject: 'Bienvenue chez Aux P\'tits Pois',
         html: `
           <!DOCTYPE html>
           <html>
@@ -36,24 +44,24 @@ class EmailService {
                 </div>
                 <div class="content">
                   <p>Bonjour ${user.firstName},</p>
-                  
+
                   <p>Merci d'avoir créé votre compte sur Aux P'tits Pois, votre AMAP locale pour des produits frais, bio et de saison.</p>
-                  
+
                   <p>Votre compte est maintenant actif et vous pouvez :</p>
                   <ul>
                     <li>Consulter le panier de la semaine</li>
                     <li>Faire une demande d'abonnement</li>
                     <li>Découvrir nos producteurs locaux</li>
                   </ul>
-                  
+
                   <div style="text-align: center;">
                     <a href="${process.env.FRONTEND_URL}/nos-abonnements" class="button">
                       Découvrir nos abonnements
                     </a>
                   </div>
-                  
+
                   <p>Si vous avez des questions, n'hésitez pas à nous contacter à <a href="mailto:auxptitspois@gmail.com">auxptitspois@gmail.com</a>.</p>
-                  
+
                   <p>À très bientôt,<br>L'équipe Aux P'tits Pois</p>
                 </div>
                 <div class="footer">
@@ -66,13 +74,8 @@ class EmailService {
         `,
       });
 
-      if (error) {
-        console.error('Erreur envoi email bienvenue:', error);
-        return { success: false, error };
-      }
-
       if (process.env.NODE_ENV !== 'production') console.log('[DEV] Email bienvenue envoyé');
-      return { success: true, data };
+      return { success: true };
     } catch (error) {
       console.error('Erreur envoi email bienvenue:', error);
       return { success: false, error: error.message };
@@ -85,7 +88,7 @@ class EmailService {
     try {
       const verifyUrl = `${process.env.FRONTEND_URL}/auth/confirm-email/${verifyToken}`;
 
-      const { data, error } = await resend.emails.send({
+      await transporter.sendMail({
         from: EMAIL_FROM,
         to: user.email,
         subject: 'Confirmez votre adresse email - Aux P\'tits Pois',
@@ -135,13 +138,8 @@ class EmailService {
         `,
       });
 
-      if (error) {
-        console.error('Erreur envoi email vérification:', error);
-        return { success: false, error };
-      }
-
       if (process.env.NODE_ENV !== 'production') console.log('[DEV] Email vérification envoyé');
-      return { success: true, data };
+      return { success: true };
     } catch (error) {
       console.error('Erreur envoi email vérification:', error);
       return { success: false, error: error.message };
@@ -150,12 +148,11 @@ class EmailService {
 
   /* Envoie un email de récupération de mot de passe */
 
-
   async sendPasswordResetEmail(user, resetToken) {
     try {
       const resetUrl = `${process.env.FRONTEND_URL}/auth/reset-password?token=${resetToken}`;
 
-      const { data, error } = await resend.emails.send({
+      await transporter.sendMail({
         from: EMAIL_FROM,
         to: user.email,
         subject: 'Réinitialisation de votre mot de passe',
@@ -182,28 +179,28 @@ class EmailService {
                 </div>
                 <div class="content">
                   <p>Bonjour ${user.firstName},</p>
-                  
+
                   <p>Vous avez demandé à réinitialiser votre mot de passe pour votre compte Aux P'tits Pois.</p>
-                  
+
                   <p>Cliquez sur le bouton ci-dessous pour créer un nouveau mot de passe :</p>
-                  
+
                   <div style="text-align: center;">
                     <a href="${resetUrl}" class="button">
                       Réinitialiser mon mot de passe
                     </a>
                   </div>
-                  
+
                   <div class="warning">
-                    <strong><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle; margin-right: 4px;"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Attention :</strong> Ce lien est valable pendant 1 heure seulement.
+                    <strong>Attention :</strong> Ce lien est valable pendant 1 heure seulement.
                   </div>
-                  
+
                   <p>Si vous n'avez pas demandé cette réinitialisation, ignorez simplement cet email. Votre mot de passe actuel reste inchangé.</p>
-                  
+
                   <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
                     Si le bouton ne fonctionne pas, copiez et collez ce lien dans votre navigateur :<br>
                     <a href="${resetUrl}" style="color: #3b82f6; word-break: break-all;">${resetUrl}</a>
                   </p>
-                  
+
                   <p>L'équipe Aux P'tits Pois</p>
                 </div>
                 <div class="footer">
@@ -215,13 +212,8 @@ class EmailService {
         `,
       });
 
-      if (error) {
-        console.error('Erreur envoi email reset password:', error);
-        return { success: false, error };
-      }
-
       if (process.env.NODE_ENV !== 'production') console.log('[DEV] Email reset password envoyé');
-      return { success: true, data };
+      return { success: true };
     } catch (error) {
       console.error('Erreur envoi email reset password:', error);
       return { success: false, error: error.message };
@@ -232,7 +224,7 @@ class EmailService {
 
   async sendSubscriptionRequestConfirmation(request) {
     try {
-      const { data, error } = await resend.emails.send({
+      await transporter.sendMail({
         from: EMAIL_FROM,
         to: request.email,
         subject: 'Demande d\'abonnement reçue - Aux P\'tits Pois',
@@ -258,16 +250,16 @@ class EmailService {
                 </div>
                 <div class="content">
                   <p>Bonjour ${request.firstName},</p>
-                  
+
                   <p>Nous avons bien reçu votre demande d'abonnement à Aux P'tits Pois.</p>
-                  
+
                   <div class="info-box">
                     <h3 style="margin-top: 0;">Récapitulatif de votre demande :</h3>
                     <p><strong>Type :</strong> ${request.type === 'ANNUAL' ? 'Abonnement Annuel' : 'Abonnement Découverte (3 mois)'}</p>
                     <p><strong>Panier :</strong> ${request.basketSize === 'SMALL' ? 'Petit panier (2-4 kg)' : 'Grand panier (6-8 kg)'}</p>
                     <p><strong>Tarification :</strong> ${request.pricingType === 'NORMAL' ? 'Tarif normal' : 'Tarif solidaire'}</p>
                   </div>
-                  
+
                   <h3>Prochaines étapes :</h3>
                   <ol>
                     <li>Nous étudions votre demande (sous 48h)</li>
@@ -276,9 +268,9 @@ class EmailService {
                     <li>Votre abonnement est activé</li>
                     <li>Vous recevez votre premier panier le mercredi suivant !</li>
                   </ol>
-                  
+
                   <p>Si vous avez des questions, n'hésitez pas à nous contacter à <a href="mailto:auxptitspois@gmail.com">auxptitspois@gmail.com</a>.</p>
-                  
+
                   <p>À très bientôt,<br>L'équipe Aux P'tits Pois</p>
                 </div>
                 <div class="footer">
@@ -291,13 +283,8 @@ class EmailService {
         `,
       });
 
-      if (error) {
-        console.error('Erreur envoi email confirmation demande:', error);
-        return { success: false, error };
-      }
-
       if (process.env.NODE_ENV !== 'production') console.log('[DEV] Email confirmation demande envoyé');
-      return { success: true, data };
+      return { success: true };
     } catch (error) {
       console.error('Erreur envoi email confirmation demande:', error);
       return { success: false, error: error.message };
@@ -308,7 +295,7 @@ class EmailService {
 
   async sendProducerInquiryConfirmation(inquiry) {
     try {
-      const { data, error } = await resend.emails.send({
+      await transporter.sendMail({
         from: EMAIL_FROM,
         to: inquiry.email,
         subject: 'Candidature reçue - Aux P\'tits Pois',
@@ -333,11 +320,11 @@ class EmailService {
                 </div>
                 <div class="content">
                   <p>Bonjour ${inquiry.firstName},</p>
-                  
+
                   <p>Merci pour votre intérêt à rejoindre le réseau de producteurs d'Aux P'tits Pois.</p>
-                  
+
                   <p>Nous avons bien reçu votre candidature pour <strong>${inquiry.farmName}</strong> et nous vous recontacterons très prochainement pour échanger sur votre projet.</p>
-                  
+
                   <h3>Prochaines étapes :</h3>
                   <ol>
                     <li>Nous étudions votre candidature (sous 48h)</li>
@@ -346,9 +333,9 @@ class EmailService {
                     <li>Validation et intégration au réseau</li>
                     <li>Première livraison !</li>
                   </ol>
-                  
+
                   <p>Si vous avez des questions, n'hésitez pas à nous contacter à <a href="mailto:auxptitspois@gmail.com">auxptitspois@gmail.com</a>.</p>
-                  
+
                   <p>À très bientôt,<br>L'équipe Aux P'tits Pois</p>
                 </div>
                 <div class="footer">
@@ -360,13 +347,8 @@ class EmailService {
         `,
       });
 
-      if (error) {
-        console.error('Erreur envoi email confirmation producteur:', error);
-        return { success: false, error };
-      }
-
       if (process.env.NODE_ENV !== 'production') console.log('[DEV] Email confirmation producteur envoyé');
-      return { success: true, data };
+      return { success: true };
     } catch (error) {
       console.error('Erreur envoi email confirmation producteur:', error);
       return { success: false, error: error.message };
@@ -377,7 +359,7 @@ class EmailService {
 
   async sendContactMessage({ name, email, subject, message }) {
     try {
-      const { data, error } = await resend.emails.send({
+      await transporter.sendMail({
         from: EMAIL_FROM,
         to: 'auxptitspois@gmail.com',
         replyTo: email,
@@ -424,13 +406,8 @@ class EmailService {
         `,
       });
 
-      if (error) {
-        console.error('Erreur envoi email contact:', error);
-        return { success: false, error };
-      }
-
       if (process.env.NODE_ENV !== 'production') console.log('[DEV] Email contact envoyé');
-      return { success: true, data };
+      return { success: true };
     } catch (error) {
       console.error('Erreur envoi email contact:', error);
       return { success: false, error: error.message };
@@ -447,14 +424,14 @@ class EmailService {
         errors: []
       };
 
-      // Envoi en batch (max 50 emails à la fois avec Resend)
+      // Envoi en batch (max 50 emails à la fois)
       const batchSize = 50;
       for (let i = 0; i < recipients.length; i += batchSize) {
         const batch = recipients.slice(i, i + batchSize);
 
         for (const recipient of batch) {
           try {
-            const { error } = await resend.emails.send({
+            await transporter.sendMail({
               from: EMAIL_FROM,
               to: recipient.email,
               subject: newsletter.subject,
@@ -503,13 +480,7 @@ class EmailService {
                 </html>
               `,
             });
-
-            if (error) {
-              results.failed++;
-              results.errors.push({ email: recipient.email, error });
-            } else {
-              results.sent++;
-            }
+            results.sent++;
           } catch (emailError) {
             results.failed++;
             results.errors.push({ email: recipient.email, error: emailError.message });
@@ -534,7 +505,7 @@ class EmailService {
 
   async sendSubscriptionConfirmation(subscription, user) {
     try {
-      const { data, error } = await resend.emails.send({
+      await transporter.sendMail({
         from: EMAIL_FROM,
         to: user.email,
         subject: 'Votre abonnement est activé !',
@@ -561,9 +532,9 @@ class EmailService {
                 </div>
                 <div class="content">
                   <p>Bonjour ${user.firstName},</p>
-                  
+
                   <p>Félicitations ! Votre abonnement Aux P'tits Pois est maintenant <strong>activé</strong>.</p>
-                  
+
                   <div class="info-box">
                     <h3 style="margin-top: 0;">Votre abonnement :</h3>
                     <p><strong>N° :</strong> ${subscription.subscriptionNumber}</p>
@@ -571,26 +542,26 @@ class EmailService {
                     <p><strong>Panier :</strong> ${subscription.basketSize === 'SMALL' ? 'Petit panier (2-4 kg)' : 'Grand panier (6-8 kg)'}</p>
                     <p><strong>Début :</strong> ${new Date(subscription.startDate).toLocaleDateString('fr-FR')}</p>
                   </div>
-                  
+
                   <div class="highlight">
-                    <h3 style="margin-top: 0;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6b9d5a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle; margin-right: 4px;"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>Retrait de votre panier</h3>
+                    <h3 style="margin-top: 0;">Retrait de votre panier</h3>
                     <p style="margin: 0;"><strong>Chaque mercredi de 18h15 à 19h15</strong><br>
                     ${subscription.pickupLocation.name}<br>
                     ${subscription.pickupLocation.address}<br>
                     ${subscription.pickupLocation.postalCode} ${subscription.pickupLocation.city}</p>
                   </div>
-                  
+
                   <h3>Comment ça marche ?</h3>
                   <ol>
                     <li>Chaque semaine, nous publions la composition du panier</li>
                     <li>Vous composez votre panier selon votre formule</li>
                     <li>Vous venez le récupérer le mercredi</li>
                   </ol>
-                  
+
                   <p>Rendez-vous dès mercredi prochain pour votre premier panier !</p>
-                  
+
                   <p>Si vous avez des questions, contactez-nous à <a href="mailto:auxptitspois@gmail.com">auxptitspois@gmail.com</a>.</p>
-                  
+
                   <p>À très bientôt,<br>L'équipe Aux P'tits Pois</p>
                 </div>
                 <div class="footer">
@@ -602,13 +573,8 @@ class EmailService {
         `,
       });
 
-      if (error) {
-        console.error('Erreur envoi email confirmation abonnement:', error);
-        return { success: false, error };
-      }
-
       if (process.env.NODE_ENV !== 'production') console.log('[DEV] Email confirmation abonnement envoyé');
-      return { success: true, data };
+      return { success: true };
     } catch (error) {
       console.error('Erreur envoi email confirmation abonnement:', error);
       return { success: false, error: error.message };
@@ -625,7 +591,7 @@ class EmailService {
       const type = subscription.type === 'ANNUAL' ? 'Annuel' : 'Découverte';
       const basket = subscription.basketSize === 'SMALL' ? 'Petit panier (2-4 kg)' : 'Grand panier (6-8 kg)';
 
-      const { data, error } = await resend.emails.send({
+      await transporter.sendMail({
         from: EMAIL_FROM,
         to: user.email,
         subject: 'Votre abonnement Aux P\'tits Pois expire bientôt',
@@ -688,13 +654,8 @@ class EmailService {
         `,
       });
 
-      if (error) {
-        console.error('Erreur envoi rappel renouvellement:', error);
-        return { success: false, error };
-      }
-
       if (process.env.NODE_ENV !== 'production') console.log(`[DEV] Rappel renouvellement envoyé à ${user.email}`);
-      return { success: true, data };
+      return { success: true };
     } catch (error) {
       console.error('Erreur envoi rappel renouvellement:', error);
       return { success: false, error: error.message };

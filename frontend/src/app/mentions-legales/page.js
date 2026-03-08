@@ -28,11 +28,18 @@ export default function MentionsLegalesPage() {
         <section className="legal-section">
           <h2>Hébergement</h2>
           <p>
-            Le site est hébergé par :<br />
+            Le frontend est hébergé par :<br />
             <strong>Vercel Inc.</strong><br />
             340 S Lemon Ave #4133<br />
             Walnut, CA 91789, USA<br />
             Site web : <a href="https://vercel.com" target="_blank" rel="noopener noreferrer">vercel.com</a>
+          </p>
+          <p>
+            Le backend est hébergé par :<br />
+            <strong>Render Services, Inc.</strong><br />
+            525 Brannan St, Suite 300<br />
+            San Francisco, CA 94107, USA<br />
+            Site web : <a href="https://render.com" target="_blank" rel="noopener noreferrer">render.com</a>
           </p>
         </section>
 
