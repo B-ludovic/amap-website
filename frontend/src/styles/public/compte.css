@@ -12,6 +12,10 @@
   align-items: center;
   justify-content: center;
   gap: 0.4rem;
+}
+
+.compte-card-footer .btn,
+.compte-card-footer button {
   flex: 1;
 }
 
