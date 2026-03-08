@@ -69,7 +69,7 @@ Ce projet est un site complet permettant de gérer une AMAP de A à Z :
 - **JWT + Bcrypt** - Authentification sécurisée
 - **Zod** - Validation des entrées avec schémas centralisés
 - **Puppeteer + Handlebars** - Génération de contrats PDF
-- **Resend** - Service d'envoi d'emails professionnel
+- **Nodemailer + Brevo SMTP** - Service d'envoi d'emails professionnel
 - **TheMealDB API** - Base de données de recettes
 - **Google Translate API** - Traduction automatique des recettes en français
 
@@ -123,7 +123,8 @@ cp .env.example .env
 # Éditer .env avec vos paramètres :
 # - DATABASE_URL (PostgreSQL)
 # - JWT_SECRET
-# - RESEND_API_KEY (pour l'envoi d'emails)
+# - BREVO_SMTP_USER (login SMTP Brevo)
+# - BREVO_SMTP_KEY (clé SMTP Brevo)
 # - FRONTEND_URL
 
 # Lancer les migrations
@@ -184,24 +185,30 @@ npm start
 
 ## ☁️ Déploiement
 
-Le projet sera déployé en deux parties séparées :
+Le projet est déployé en production sur :
 
-- **Frontend → [Vercel](https://vercel.com)** : simple à configurer, déploiement automatique depuis GitHub, HTTPS inclus.
-- **Backend + Base de données → [Render](https://render.com)** : un service Web pour l'API Express, et une base PostgreSQL managée.
+- **Frontend → [Vercel](https://vercel.com)** : déploiement automatique depuis GitHub, HTTPS inclus.
+  - URL : https://auxptitspois.fr
+- **Backend + Base de données → [Render](https://render.com)** : service Web pour l'API Express et base PostgreSQL managée.
+  - URL : https://api.auxptitspois.fr
 
 ### Variables d'environnement à configurer
 
 **Sur Render (backend) :**
 ```
-DATABASE_URL=...        # fournie automatiquement par Render PostgreSQL
+DATABASE_URL=...           # fournie automatiquement par Render PostgreSQL
 JWT_SECRET=...
-RESEND_API_KEY=...
-FRONTEND_URL=https://votre-site.vercel.app
+JWT_EXPIRE=...
+NODE_ENV=production
+FRONTEND_URL=https://auxptitspois.fr
+BREVO_SMTP_USER=...        # login SMTP Brevo (Settings → SMTP et API)
+BREVO_SMTP_KEY=...         # clé SMTP Brevo
+SPOONACULAR_API_KEY=...    # optionnel
 ```
 
 **Sur Vercel (frontend) :**
 ```
-NEXT_PUBLIC_API_URL=https://votre-api.onrender.com
+NEXT_PUBLIC_API_URL=https://api.auxptitspois.fr
 ```
 
 > Sur Render en version gratuite, le backend se met en veille après 15 min d'inactivité. Première requête un peu lente, c'est normal.
@@ -219,7 +226,8 @@ NEXT_PUBLIC_API_URL=https://votre-api.onrender.com
 - ✅ Recherche de recettes (par nom ou par ingrédients)
 - ✅ Visualisation des producteurs partenaires
 - ✅ Gestion du profil (affichage adresse, téléphone)
-- ✅ Envoi d'emails automatiques (bienvenue, confirmation, etc.)
+- ✅ Envoi d'emails automatiques (bienvenue, vérification email, confirmation abonnement, etc.)
+- ✅ Bouton "Vérifier mon compte" sur la page profil si l'email n'est pas encore confirmé
 
 ### Pour les administrateurs
 - ✅ Gestion des demandes d'abonnement
@@ -238,7 +246,7 @@ NEXT_PUBLIC_API_URL=https://votre-api.onrender.com
 - ✅ Système de thèmes saisonniers - 4 thèmes personnalisables (Printemps, Été, Automne, Hiver)
 - ✅ Gestion des points de retrait
 - ✅ Distinction des données d'exemple vs données réelles
-- ✅ Service d'envoi d'emails avec Resend API
+- ✅ Service d'envoi d'emails avec Brevo SMTP (nodemailer)
 - ✅ Communication par newsletter avec envoi groupé, programmation et brouillons
 - ✅ Éditeur rich-text Tiptap dans la création de newsletter (gras, italique, titres, listes, séparateur horizontal)
 - ✅ Template email HTML professionnel pour les newsletters (header, footer, mise en page soignée)
