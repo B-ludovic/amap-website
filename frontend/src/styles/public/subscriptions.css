@@ -1,6 +1,6 @@
 /* Hero */
 .subscriptions-hero {
-  background: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)), url('/placeholder/legumes-panier.png') center/cover no-repeat;
+  background: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)), url('/placeholder/legumes-panier.webp') center/cover no-repeat;
   color: var(--white);
   padding: 4rem 0;
   text-align: center;

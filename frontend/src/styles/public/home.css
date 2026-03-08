@@ -19,7 +19,7 @@
   align-items: center;
   justify-content: center;
   padding: var(--spacing-3xl) var(--spacing-lg);
-  background: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)), url('/placeholder/legumes-ete.png') center/cover no-repeat;
+  background: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)), url('/placeholder/legumes-ete.webp') center/cover no-repeat;
   min-height: 600px;
 }
 

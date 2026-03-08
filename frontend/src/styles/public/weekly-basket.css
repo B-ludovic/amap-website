@@ -54,7 +54,7 @@
 /* HERO SECTION */
 
 .basket-hero {
-  background: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)), url('/placeholder/legumes-ht.png') center/cover no-repeat;
+  background: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)), url('/placeholder/legumes-ht.webp') center/cover no-repeat;
   color: var(--white);
   padding: var(--spacing-3xl) 0;
   position: relative;

@@ -8,7 +8,7 @@
 /* --- Hero --- */
 
 .faq-hero {
-  background: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)), url('/placeholder/legumes-jardin.png') center/cover no-repeat;
+  background: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)), url('/placeholder/legumes-jardin.webp') center/cover no-repeat;
   padding: 5rem 2rem 4rem;
   text-align: center;
   border-bottom: 1px solid var(--border-color);

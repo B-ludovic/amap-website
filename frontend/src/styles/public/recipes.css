@@ -7,7 +7,7 @@
 /* Hero Section */
 .recipes-hero {
   padding: var(--spacing-3xl) 0;
-  background: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)), url('/placeholder/legumes-cuisine.png') center/cover no-repeat;
+  background: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)), url('/placeholder/legumes-cuisine.webp') center/cover no-repeat;
   text-align: center;
   color: var(--white);
 }
