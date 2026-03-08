@@ -1,4 +1,16 @@
 import nodemailer from 'nodemailer';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const logoPath = path.join(__dirname, '../assets/logo.png');
+const LOGO_BASE64 = fs.existsSync(logoPath)
+  ? `data:image/png;base64,${fs.readFileSync(logoPath).toString('base64')}`
+  : null;
+const logoImg = LOGO_BASE64
+  ? `<img src="${LOGO_BASE64}" alt="Aux P'tits Pois" style="display: block; margin: 0 auto 15px; max-height: 70px;">`
+  : '';
 
 const transporter = nodemailer.createTransport({
   host: 'smtp-relay.brevo.com',
@@ -39,7 +51,7 @@ class EmailService {
             <body>
               <div class="container">
                 <div class="header">
-                  <img src="${process.env.FRONTEND_URL}/icons/logo.png" alt="Aux P'tits Pois" style="display: block; margin: 0 auto 15px; max-height: 70px;">
+                  ${logoImg}
                   <h1>Bienvenue chez Aux P'tits Pois !</h1>
                 </div>
                 <div class="content">
@@ -110,7 +122,7 @@ class EmailService {
             <body>
               <div class="container">
                 <div class="header">
-                  <img src="${process.env.FRONTEND_URL}/icons/logo.png" alt="Aux P'tits Pois" style="display: block; margin: 0 auto 15px; max-height: 70px;">
+                  ${logoImg}
                   <h1>Confirmez votre email</h1>
                 </div>
                 <div class="content">
@@ -174,7 +186,7 @@ class EmailService {
             <body>
               <div class="container">
                 <div class="header">
-                  <img src="${process.env.FRONTEND_URL}/icons/logo.png" alt="Aux P'tits Pois" style="display: block; margin: 0 auto 15px; max-height: 70px;">
+                  ${logoImg}
                   <h1>Réinitialisation de mot de passe</h1>
                 </div>
                 <div class="content">
@@ -245,7 +257,7 @@ class EmailService {
             <body>
               <div class="container">
                 <div class="header">
-                  <img src="${process.env.FRONTEND_URL}/icons/logo.png" alt="Aux P'tits Pois" style="display: block; margin: 0 auto 15px; max-height: 70px;">
+                  ${logoImg}
                   <h1>Demande d'abonnement reçue !</h1>
                 </div>
                 <div class="content">
@@ -315,7 +327,7 @@ class EmailService {
             <body>
               <div class="container">
                 <div class="header">
-                  <img src="${process.env.FRONTEND_URL}/icons/logo.png" alt="Aux P'tits Pois" style="display: block; margin: 0 auto 15px; max-height: 70px;">
+                  ${logoImg}
                   <h1>Candidature reçue !</h1>
                 </div>
                 <div class="content">
@@ -382,7 +394,7 @@ class EmailService {
             <body>
               <div class="container">
                 <div class="header">
-                  <img src="${process.env.FRONTEND_URL}/icons/logo.png" alt="Aux P'tits Pois" style="display: block; margin: 0 auto 15px; max-height: 70px;">
+                  ${logoImg}
                   <h1>Nouveau message de contact</h1>
                 </div>
                 <div class="content">
@@ -461,7 +473,7 @@ class EmailService {
                     <div class="wrapper">
                       <div class="container">
                         <div class="header">
-                          <img src="${process.env.FRONTEND_URL}/icons/logo.png" alt="Aux P'tits Pois">
+                          ${logoImg}
                           <h1>Aux P'tits Pois</h1>
                           <p>AMAP Solidaire</p>
                         </div>
@@ -527,7 +539,7 @@ class EmailService {
             <body>
               <div class="container">
                 <div class="header">
-                  <img src="${process.env.FRONTEND_URL}/icons/logo.png" alt="Aux P'tits Pois" style="display: block; margin: 0 auto 15px; max-height: 70px;">
+                  ${logoImg}
                   <h1>Bienvenue dans l'aventure !</h1>
                 </div>
                 <div class="content">
@@ -616,7 +628,7 @@ class EmailService {
           <body>
             <div class="container">
               <div class="header">
-                <img src="${process.env.FRONTEND_URL}/icons/logo.png" alt="Aux P'tits Pois" style="display:block;margin:0 auto 15px;max-height:70px;">
+                ${logoImg}
                 <h1>Votre abonnement expire bientôt</h1>
               </div>
               <div class="content">

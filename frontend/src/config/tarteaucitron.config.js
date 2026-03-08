@@ -21,7 +21,7 @@ export const tarteaucitronConfig = {
   "serviceDefaultState": "wait",
   
   // Afficher petit bandeau après fermeture
-  "showAlertSmall": false,
+  "showAlertSmall": true,
   
   // Afficher liste des cookies
   "cookieslist": true,
