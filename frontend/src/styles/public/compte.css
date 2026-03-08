@@ -4,6 +4,31 @@
   padding: var(--spacing-2xl) 0;
 }
 
+/* Email non vérifié */
+.btn-warning {
+  background: #f59e0b;
+  color: white;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  flex: 1;
+}
+
+.btn-warning:hover {
+  background: #d97706;
+  color: white;
+}
+
+.compte-verified-sent {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--success-color, #16a34a);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
 /* Header */
 .compte-header {
   display: flex;
@@ -45,6 +70,10 @@
 .compte-card-footer {
   padding: var(--spacing-lg);
   border-top: var(--border-width) solid var(--border-color);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
 }
 
 /* Informations */
