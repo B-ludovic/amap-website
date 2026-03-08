@@ -15,17 +15,17 @@
 /* HERO SECTION */
 
 .hero-section {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--spacing-3xl);
+  display: flex;
   align-items: center;
+  justify-content: center;
   padding: var(--spacing-3xl) var(--spacing-lg);
-  background: var(--gradient-hero);
+  background: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)), url('/placeholder/legumes-ete.png') center/cover no-repeat;
   min-height: 600px;
 }
 
 .hero-content {
-  max-width: 600px;
+  max-width: 700px;
+  text-align: center;
 }
 
 .hero-title {
@@ -34,7 +34,7 @@
   color: var(--white);
   margin-bottom: var(--spacing-md);
   line-height: 1.2;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
 .hero-subtitle {
@@ -43,6 +43,7 @@
   font-weight: 600;
   margin-bottom: var(--spacing-lg);
   opacity: 0.95;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.4);
 }
 
 .hero-description {
@@ -50,17 +51,17 @@
   color: var(--white);
   line-height: 1.7;
   margin-bottom: var(--spacing-2xl);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.4);
 }
 
 .hero-actions {
   display: flex;
   gap: var(--spacing-md);
   flex-wrap: wrap;
+  justify-content: center;
 }
 
 .hero-actions .btn {
-  flex: 1;
-  min-width: 250px;
   justify-content: center;
 }
 

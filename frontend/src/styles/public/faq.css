@@ -8,7 +8,7 @@
 /* --- Hero --- */
 
 .faq-hero {
-  background: linear-gradient(135deg, #f0f7ed 0%, #fef9f3 100%);
+  background: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)), url('/placeholder/legumes-jardin.png') center/cover no-repeat;
   padding: 5rem 2rem 4rem;
   text-align: center;
   border-bottom: 1px solid var(--border-color);
@@ -17,15 +17,17 @@
 .faq-hero-title {
   font-size: var(--font-size-4xl);
   font-weight: var(--font-weight-bold);
-  color: var(--primary-color);
+  color: var(--white);
   margin-bottom: var(--spacing-md);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
 .faq-hero-subtitle {
   font-size: var(--font-size-lg);
-  color: var(--text-secondary);
+  color: var(--white);
   max-width: 540px;
   margin: 0 auto;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.4);
 }
 
 /* --- Contenu --- */

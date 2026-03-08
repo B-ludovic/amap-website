@@ -7,14 +7,16 @@
 /* Hero Section */
 .recipes-hero {
   padding: var(--spacing-3xl) 0;
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
+  background: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)), url('/placeholder/legumes-cuisine.png') center/cover no-repeat;
   text-align: center;
-  color: var(--text-primary);
+  color: var(--white);
 }
 
 .recipes-hero h1 {
   font-size: var(--font-size-4xl);
+  color: var(--white);
   margin-bottom: var(--spacing-md);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
 .hero-subtitle {
@@ -22,6 +24,7 @@
   max-width: 700px;
   margin: 0 auto;
   line-height: var(--line-height-relaxed);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.4);
 }
 
 /* Search Section */

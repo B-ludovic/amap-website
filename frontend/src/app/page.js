@@ -66,17 +66,6 @@ export default async function HomePage() {
             </Link>
           </div>
         </div>
-        <div className="hero-image">
-          <div className="hero-image-placeholder">
-            <Image 
-              src="/agriculteurs.png" 
-              alt="Agriculteur local"
-              width={400}
-              height={400}
-              priority
-            />
-          </div>
-        </div>
       </section>
 
       {/* Panier de la semaine */}

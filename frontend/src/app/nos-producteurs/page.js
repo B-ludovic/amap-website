@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
 import { Sprout, MapPin, Package, Leaf, Mail, Phone, ExternalLink  } from 'lucide-react';
 import Link from 'next/link';
 import { useModal } from '../../contexts/ModalContext';
@@ -106,7 +105,10 @@ function ProducersPage() {
                 const placeholderImages = [
                   '/placeholder/legumes-terre.png',
                   '/placeholder/legumes-panier.png',
-                  '/placeholder/legumes-cuisine.png'
+                  '/placeholder/legumes-cuisine.png',
+                  '/placeholder/legumes-ete.png',
+                  '/placeholder/legumes-ht.png',
+                  '/placeholder/legumes-jardin.png'
                 ];
                 const placeholderImage = placeholderImages[index % placeholderImages.length];
                 
@@ -114,8 +116,8 @@ function ProducersPage() {
                 <div key={producer.id} className="producer-card">
                   {/* Image placeholder */}
                   <div className="producer-image">
-                    {producer.imageUrl ? (
-                      <img src={producer.imageUrl} alt={producer.name} />
+                    {producer.image ? (
+                      <img src={producer.image} alt={producer.name} />
                     ) : (
                       <img 
                         src={placeholderImage} 
