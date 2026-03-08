@@ -227,6 +227,15 @@
   text-decoration: none;
 }
 
+.social-unavailable {
+  padding: var(--spacing-xs) var(--spacing-md);
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--text-light);
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-sm);
+  cursor: default;
+}
+
 /* Lien FAQ */
 .faq-link {
   background: var(--warning-light);

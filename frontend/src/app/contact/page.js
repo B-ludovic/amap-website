@@ -158,8 +158,9 @@ export default function ContactPage() {
               <div className="info-content">
                 <h3>Adresse</h3>
                 <p>
-                  [Adresse du point de retrait]<br />
-                  [Code postal] [Ville]
+                  Paroisse Saint François de Sales de Clamart<br />
+                  340 Avenue du Général de Gaulle<br />
+                  92140 Clamart
                 </p>
               </div>
             </div>
@@ -180,8 +181,8 @@ export default function ContactPage() {
               <div className="info-content">
                 <h3>Suivez-nous</h3>
                 <div className="social-links">
-                  <a href="#" target="_blank" rel="noopener noreferrer">Facebook</a>
-                  <a href="#" target="_blank" rel="noopener noreferrer">Instagram</a>
+                  <span className="social-unavailable">Facebook (bientôt disponible)</span>
+                  <span className="social-unavailable">Instagram (bientôt disponible)</span>
                 </div>
               </div>
             </div>
