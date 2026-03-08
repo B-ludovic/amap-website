@@ -349,7 +349,7 @@ const logout = asyncHandler(async (req, res) => {
             data: { tokenVersion: { increment: 1 } },
         });
     }
-    res.clearCookie('authToken', { path: '/' });
+    res.clearCookie('authToken', { ...cookieOptions, maxAge: undefined });
     res.json({ success: true, message: 'Déconnexion réussie.' });
 });
 
