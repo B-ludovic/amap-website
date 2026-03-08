@@ -54,8 +54,8 @@ function RegisterForm({ onSubmit, loading }) {
 
     if (!formData.password) {
       newErrors.password = 'Mot de passe requis';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Le mot de passe doit contenir au moins 6 caractères';
+    } else if (formData.password.length < 12) {
+      newErrors.password = 'Le mot de passe doit contenir au moins 12 caractères';
     }
 
     if (!formData.confirmPassword) {
@@ -285,8 +285,10 @@ function RegisterForm({ onSubmit, loading }) {
             {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
           </button>
         </div>
-        {errors.password && (
+        {errors.password ? (
           <span className="form-error">{errors.password}</span>
+        ) : (
+          <p className="form-hint">Minimum 12 caractères</p>
         )}
       </div>
 

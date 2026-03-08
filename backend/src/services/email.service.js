@@ -9,7 +9,7 @@ const LOGO_BASE64 = fs.existsSync(logoPath)
   ? `data:image/png;base64,${fs.readFileSync(logoPath).toString('base64')}`
   : null;
 const logoImg = LOGO_BASE64
-  ? `<img src="${LOGO_BASE64}" alt="Aux P'tits Pois" style="display: block; margin: 0 auto 15px; max-height: 70px;">`
+  ? `<img src="${LOGO_BASE64}" alt="Aux P'tits Pois" width="70" height="70" style="display: block; margin: 0 auto 15px;">`
   : '';
 
 const transporter = nodemailer.createTransport({
