@@ -6,41 +6,18 @@ Plateforme web moderne pour la gestion d'une AMAP (Association pour le Maintien 
 
 ### Interface publique (Desktop)
 ![Page d'accueil](screenshots/accueil.png)
-*Page d'accueil avec hero section dynamique*
-
 ![Nos producteurs](screenshots/nos-producteurs.png)
-*Liste des producteurs partenaires*
-
 ![Nos abonnements](screenshots/nos-abonnements.png)
-*Page de présentation des abonnements avec tarif solidaire*
-
 ![Inscription](screenshots/inscription.png)
-*Formulaire d'inscription des nouveaux membres*
-
 ![Détail d'une recette](screenshots/detail-recette.png)
-*Page de présentation d'une recette*
 
 ### Interface mobile responsive
 ![Menu burger](screenshots/menu-burger.png)
-*Navigation mobile avec drawer et animation staggered*
-
 ![Accueil mobile](screenshots/mobile-accueil.png)
-*Page d'accueil optimisée mobile*
-
 ![Producteurs mobile](screenshots/mobile-producteurs.png)
-*Liste des producteurs en version mobile*
-
 ![Abonnements mobile](screenshots/mobile-abonnements.png)
-*Abonnements responsive avec cards*
-
 ![Connexion mobile](screenshots/mobile-connexion.png)
-*Formulaire de connexion adapté mobile*
-
 ![Inscription mobile](screenshots/mobile-inscription.png)
-*Inscription simplifiée sur mobile*
-
-
-
 
 ## 📋 Description
 
@@ -213,117 +190,59 @@ NEXT_PUBLIC_API_URL=https://api.auxptitspois.fr
 
 > Sur Render en version gratuite, le backend se met en veille après 15 min d'inactivité. Première requête un peu lente, c'est normal.
 
-
 ## ✨ Fonctionnalités principales
 
 ### Pour les adhérents
-- ✅ Inscription et création de compte (prénom, nom, email, téléphone, adresse — tous obligatoires)
-- ✅ Connexion avec authentification JWT
-- ✅ Réinitialisation de mot de passe (forgot password / reset password)
-- ✅ Demande d'abonnement en ligne avec choix de la modalité de paiement (obligatoire)
-- ✅ Consultation du panier de la semaine (avec l'horaire et l'adresse de retrait bien visibles)
-- ✅ Suggestions de recettes basées sur les légumes du panier
-- ✅ Recherche de recettes (par nom ou par ingrédients)
-- ✅ Visualisation des producteurs partenaires
-- ✅ Gestion du profil (affichage adresse, téléphone)
-- ✅ Envoi d'emails automatiques (bienvenue, vérification email, confirmation abonnement, etc.)
-- ✅ Bouton "Vérifier mon compte" sur la page profil si l'email n'est pas encore confirmé
+- Inscription, connexion JWT, réinitialisation de mot de passe
+- Demande d'abonnement en ligne (choix panier, tarification, modalité de paiement)
+- Consultation du panier de la semaine avec horaire et adresse de retrait
+- Suggestions et recherche de recettes basées sur les légumes du panier
+- Visualisation des producteurs partenaires
+- Gestion du profil, vérification d'email
 
 ### Pour les administrateurs
-- ✅ Gestion des demandes d'abonnement
-- ✅ Activation, résiliation et mise en pause des abonnements depuis le modal détail (avec confirmations sécurisées)
-- ✅ Pause individuelle des abonnements (limite 2 semaines/an par abonné)
-- ✅ Fermetures collectives de l'AMAP (3 semaines/an divisibles) avec newsletter automatique aux abonnés actifs
-- ✅ Suivi des retraits restants par abonnement (base 49 paniers/an, décompte hebdomadaire)
-- ✅ Génération de contrats d'adhésion en PDF (Puppeteer + Handlebars)
-- ✅ Visualisation du contrat directement dans un modal (iframe) avec bouton de téléchargement
-- ✅ Contrats pré-remplis automatiquement (coordonnées client, ville, date de signature, modalité de paiement)
-- ✅ Création des paniers hebdomadaires avec calcul automatique des poids, date de distribution pré-remplie (prochain mercredi) et semaine calculée automatiquement
-- ✅ Suppression des paniers même publiés (avec message de confirmation renforcé pour éviter les erreurs)
-- ✅ Gestion du stock des produits
-- ✅ Organisation des permanences avec assignation de bénévoles
-- ✅ Statistiques du tableau de bord
-- ✅ Système de thèmes saisonniers - 4 thèmes personnalisables (Printemps, Été, Automne, Hiver)
-- ✅ Gestion des points de retrait
-- ✅ Distinction des données d'exemple vs données réelles
-- ✅ Service d'envoi d'emails avec Brevo SMTP (nodemailer)
-- ✅ Communication par newsletter avec envoi groupé, programmation et brouillons
-- ✅ Éditeur rich-text Tiptap dans la création de newsletter (gras, italique, titres, listes, séparateur horizontal)
-- ✅ Template email HTML professionnel pour les newsletters (header, footer, mise en page soignée)
-- ✅ Confirmations modales personnalisées (plus de `confirm()` natif du navigateur)
-- ✅ Interface admin complète avec sidebar navigation
-- ✅ Gestion des messages de contact (lecture, statut lu/non-lu/archivé, suppression, badge de notification dans la sidebar)
+- Gestion des demandes, abonnements (activation, résiliation, pause individuelle)
+- Fermetures collectives de l'AMAP avec newsletter automatique
+- Génération de contrats PDF pré-remplis (Puppeteer + Handlebars)
+- Création des paniers hebdomadaires avec calcul automatique
+- Gestion des produits, permanences, points de retrait
+- Tableau de bord avec statistiques
+- Envoi de newsletters (rich-text Tiptap, envoi groupé, programmation, brouillons)
+- Gestion des messages de contact (statut lu/non-lu/archivé)
+- Système de thèmes saisonniers (Printemps, Été, Automne, Hiver)
 
 ### Recettes & Cuisine
-- ✅ Intégration API TheMealDB (base de données gratuite de recettes)
-- ✅ Traduction automatique en français des recettes et ingrédients
-- ✅ Suggestions de recettes basées sur le panier hebdomadaire
-- ✅ Recherche de recettes par nom (ex: "soupe", "gratin")
-- ✅ Recherche de recettes par ingrédients (ex: "tomates, courgettes")
-- ✅ Pages dédiées avec liste et détails des recettes
-- ✅ Affichage des temps de préparation et nombre de portions
+- Intégration API TheMealDB avec traduction automatique en français
+- Recherche par nom ou par ingrédients
+- Pages dédiées avec liste et détail des recettes
 
-### Design & UX
-- ✅ Design responsive (desktop, tablet, mobile)
-- ✅ Menu burger mobile avec drawer animé (staggered animation)
-- ✅ Cards responsives pour les tableaux admin (≤992px)
-- ✅ Dégradé pastel sur navigation mobile
-- ✅ Thèmes saisonniers avec changement dynamique des couleurs
-- ✅ Animations fluides et transitions CSS
-- ✅ Icônes Lucide React modernes
-- ✅ États de chargement et messages de confirmation
-- ✅ Bandeau de cookies RGPD (accept/refuser/personnaliser)
-
-### Conformité & Sécurité
-- ✅ Gestion des cookies conforme RGPD avec Tarteaucitron.js
-- ✅ Authentification JWT + hachage des mots de passe (bcrypt)
-- ✅ Protection des routes avec middlewares de rôles (MEMBER, VOLUNTEER, ADMIN)
-- ✅ Rate limiting sur les endpoints sensibles (login, reset password, PDF)
-- ✅ Headers HTTP sécurisés (Helmet.js)
-- ✅ Taille des requêtes limitée (body limit 100kb)
+### Design & Sécurité
+- Design responsive (desktop, tablet, mobile) avec thèmes saisonniers dynamiques
+- Authentification JWT + bcrypt, protection des routes par rôle (MEMBER, VOLUNTEER, ADMIN)
+- Rate limiting, headers sécurisés (Helmet.js), sanitisation XSS
+- Gestion des cookies conforme RGPD (Tarteaucitron.js)
 
 ## 📊 Base de données
 
 Le schéma Prisma comprend :
-- **Users** - Utilisateurs (membres, bénévoles, admins) — avec téléphone et adresse obligatoires
+- **Users** - Utilisateurs (membres, bénévoles, admins)
 - **Subscriptions** - Abonnements aux paniers
-- **SubscriptionPause** - Pauses individuelles des abonnements (limite 2 semaines/an)
-- **AmapClosure** - Fermetures collectives de l'AMAP (limite 3 semaines/an)
-- **SubscriptionRequests** - Demandes d'abonnement avec modalité de paiement
+- **SubscriptionPause** - Pauses individuelles (limite 2 semaines/an)
+- **AmapClosure** - Fermetures collectives (limite 3 semaines/an)
+- **SubscriptionRequests** - Demandes d'abonnement
 - **WeeklyBaskets** - Paniers hebdomadaires
-- **WeeklyPickup** - Retraits hebdomadaires (suivi de distribution)
+- **WeeklyPickup** - Suivi des retraits
 - **Products** - Produits avec gestion du stock
 - **Producers** - Producteurs locaux
 - **Shifts** - Permanences de distribution
 - **Newsletters** - Communications
-- **ContactMessage** - Messages de contact des visiteurs
-- Et plus...
+- **ContactMessage** - Messages de contact
 
 ## 🎨 Personnalisation
 
-### Thèmes saisonniers
-Le site propose un système de thèmes dynamiques qui s'adaptent aux saisons. Les administrateurs peuvent :
-- Choisir parmi 4 thèmes prédéfinis (Printemps, Été, Automne, Hiver)
-- Personnaliser les couleurs de chaque thème
-- Activer le thème de leur choix instantanément
+Les administrateurs peuvent choisir parmi 4 thèmes saisonniers prédéfinis (Printemps, Été, Automne, Hiver) et personnaliser leurs couleurs. Les thèmes sont stockés en base de données et appliqués dynamiquement via le `ThemeProvider` React.
 
-Les thèmes modifient automatiquement :
-- Les couleurs principales et secondaires
-- Les dégradés des bannières
-- Les boutons et éléments interactifs
-- La couleur d'arrière-plan
-
-### Variables CSS
-Les couleurs et styles sont centralisés dans `frontend/src/styles/variables.css` :
-```css
---primary-color: #6b9d5a;      /* Couleur primaire */
---secondary-color: #d4a574;    /* Couleur secondaire */
---accent-color: #c85a3f;       /* Couleur d'accent */
---background-color: #f9f7f4;   /* Arrière-plan */
---gradient-button: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-```
-
-Les thèmes sont stockés en base de données et appliqués dynamiquement via le `ThemeProvider` React.
+Les couleurs et styles sont centralisés dans `frontend/src/styles/variables.css`.
 
 ## 📝 Scripts disponibles
 
@@ -335,7 +254,7 @@ Les thèmes sont stockés en base de données et appliqués dynamiquement via le
 - `npm start` - Lance le serveur en production
 - `npx prisma studio` - Interface graphique pour la DB
 - `npx prisma migrate dev` - Crée une nouvelle migration
-- `node scripts/create-admin.js` - Crée le premier compte admin en production (script interactif, non versionné)
+- `node scripts/create-admin.js` - Crée le premier compte admin en production
 
 ### Frontend
 - `npm run dev` - Lance Next.js en développement
@@ -362,12 +281,6 @@ Ce projet est développé pour une AMAP locale. Tous droits réservés.
 ## Crédits
 
 - **Icônes** : [Flaticon](https://www.flaticon.com)
-
-## 🤝 Contribution
-
-Projet en développement actif. Pour toute question ou suggestion :
-- Ouvrir une issue sur GitHub
-- Contacter l'équipe de développement
 
 ---
 
