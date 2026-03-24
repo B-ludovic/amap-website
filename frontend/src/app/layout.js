@@ -1,7 +1,7 @@
+import Script from 'next/script';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import Providers from '../components/Providers';
-import CookieConsent from '../components/CookieConsent';
 import JsonLd from '../components/JsonLd';
 import '../styles/variables.css';
 import '../styles/globals.css';
@@ -88,6 +88,14 @@ const organizationJsonLd = {
 function RootLayout({ children }) {
   return (
     <html lang="fr">
+      <head>
+        <link rel="dns-prefetch" href="//cdntag.tarteaucitron.io" />
+        <link rel="preconnect" href="https://cdntag.tarteaucitron.io" crossOrigin="" />
+        <Script
+          src="https://cdntag.tarteaucitron.io/load.js?domain=www.auxptitspois.fr&uuid=ce57c85a0e6bbd0e05b4bcc6929885a9347df0c1"
+          strategy="beforeInteractive"
+        />
+      </head>
       <body>
         <a href="#main-content" className="skip-link">Aller au contenu principal</a>
         <JsonLd data={organizationJsonLd} />
@@ -97,7 +105,6 @@ function RootLayout({ children }) {
             {children}
           </main>
           <Footer />
-          <CookieConsent />
         </Providers>
       </body>
     </html>

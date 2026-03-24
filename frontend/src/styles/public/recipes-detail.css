@@ -59,7 +59,7 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--spacing-2xl);
-  align-items: start;
+  align-items: flex-start;
 }
 
 .recipe-hero-image {
@@ -267,7 +267,7 @@
 .instruction-step {
   display: flex;
   gap: var(--spacing-lg);
-  align-items: start;
+  align-items: flex-start;
 }
 
 .step-number {
