@@ -50,8 +50,11 @@ const ALLOWED_ORIGINS = [
 
 const corsOptions = {
   origin: (origin, callback) => {
-    // Autoriser les requêtes sans origin (Postman, serveur à serveur)
-    if (!origin || ALLOWED_ORIGINS.includes(origin)) {
+    // En développement, autoriser les requêtes sans origin (Postman, etc.)
+    if (!origin && process.env.NODE_ENV !== 'production') {
+      return callback(null, true);
+    }
+    if (origin && ALLOWED_ORIGINS.includes(origin)) {
       callback(null, true);
     } else {
       callback(new Error(`Origine non autorisée par CORS : ${origin}`));
