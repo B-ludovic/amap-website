@@ -73,6 +73,16 @@ app.use(express.urlencoded({ extended: true, limit: '100kb' }));
 // Parse les cookies
 app.use(cookieParser());
 
+// Rate limiting — global (anti-DoS basique sur toute l'API)
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 300,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, error: { message: 'Trop de requêtes, réessayez dans 15 minutes.' } },
+});
+app.use('/api', globalLimiter);
+
 // Rate limiting — authentification (anti brute-force)
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
