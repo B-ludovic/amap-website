@@ -5,7 +5,9 @@ import '../../styles/public/legal.css'
 
 export default function MentionsLegalesPage() {
   const handleOpenCookiePanel = () => {
-    // À implémenter avec le gestionnaire de cookies choisi
+    if (typeof window !== 'undefined' && window.orejime) {
+      window.orejime.prompt();
+    }
   };
 
   return (
@@ -79,7 +81,7 @@ export default function MentionsLegalesPage() {
             <li><strong>Authentification</strong> : Permettent de vous identifier et d'accéder à votre espace membre</li>
             <li><strong>Panier</strong> : Mémorisent vos sélections de produits</li>
             <li><strong>Sécurité</strong> : Protection contre les attaques et fraudes</li>
-            <li><strong>Gestion du consentement</strong> : Mémorise vos choix concernant les cookies</li>
+            <li><strong>Gestion du consentement</strong> : Cookie <code>orejime</code> — mémorise vos choix concernant les cookies (13 mois)</li>
           </ul>
 
           <h4>2. Cookies analytiques (optionnels)</h4>
