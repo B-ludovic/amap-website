@@ -101,14 +101,6 @@ const publicLimiter = rateLimit({
 });
 
 // Rate limiting — recherche utilisateur par email (anti-énumération)
-const adminSearchLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 30,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { success: false, error: { message: 'Trop de recherches, réessayez dans 15 minutes.' } },
-});
-
 // Rate limiting — routes admin générales
 const adminLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -142,7 +134,6 @@ app.use('/api/auth/resend-confirmation', publicLimiter);
 app.use('/api/auth/reset-password', publicLimiter);
 app.use('/api/auth', authRoutes);
 app.use('/api/producers', producersRoutes);
-app.use('/api/admin/users/by-email', adminSearchLimiter);
 app.use('/api/admin', adminLimiter);
 app.use('/api/admin', adminRoutes);
 
