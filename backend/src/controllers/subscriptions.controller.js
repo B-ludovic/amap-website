@@ -2,6 +2,7 @@ import { prisma } from '../config/database.js';
 import { asyncHandler } from '../middlewares/error.middleware.js';
 import emailService from '../services/email.service.js';
 import contractService from '../services/contract.service.js';
+import { z } from 'zod';
 import {
   HttpNotFoundError,
   HttpBadRequestError,
@@ -42,7 +43,7 @@ const submitSubscriptionRequest = asyncHandler(async (req, res) => {
     throw new HttpBadRequestError('Tous les champs obligatoires doivent être remplis');
   }
 
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+  if (!z.string().email().safeParse(email).success) {
     throw new HttpBadRequestError('Email invalide');
   }
 

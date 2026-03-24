@@ -1,6 +1,7 @@
 import { prisma } from '../config/database.js';
 import { asyncHandler } from '../middlewares/error.middleware.js';
 import emailService from '../services/email.service.js';
+import { z } from 'zod';
 import {
   HttpNotFoundError,
   HttpBadRequestError,
@@ -40,7 +41,7 @@ const submitInquiry = asyncHandler(async (req, res) => {
   if (city.length > 100) throw new HttpBadRequestError('Ville : 100 caractères maximum.');
   if (message && message.length > 2000) throw new HttpBadRequestError('Message : 2000 caractères maximum.');
 
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+  if (!z.string().email().safeParse(email).success) {
     throw new HttpBadRequestError('Email invalide');
   }
 
