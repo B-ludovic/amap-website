@@ -312,6 +312,12 @@ export const auth = {
     });
   },
 
+  exportMe: async () => {
+    return fetchAPI('/auth/me/export', {
+      requiresAuth: true,
+    });
+  },
+
   deleteMe: async () => {
     return fetchAPI('/auth/me', {
       method: 'DELETE',

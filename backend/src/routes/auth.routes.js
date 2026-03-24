@@ -4,6 +4,7 @@ import {
   login,
   logout,
   getMe,
+  exportMe,
   deleteMe,
   confirmEmail,
   resendConfirmationEmail,
@@ -37,6 +38,9 @@ router.post('/logout', logout);
 
 // Récupérer les informations de l'utilisateur connecté
 router.get('/me', authMiddleware, getMe);
+
+// Export des données personnelles (RGPD art. 20)
+router.get('/me/export', authMiddleware, exportMe);
 
 // Suppression du compte (RGPD art. 17)
 router.delete('/me', authMiddleware, deleteMe);

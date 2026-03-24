@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Package, MapPin, ShoppingBasket, User, Mail, Phone, Shield, CheckCircle, Trash2 } from 'lucide-react';
+import { Package, MapPin, ShoppingBasket, User, Mail, Phone, Shield, CheckCircle, Trash2, Download } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useModal } from '../../contexts/ModalContext';
 import { auth as authApi } from '../../lib/api';
@@ -39,6 +39,21 @@ function ComptePage() {
         router.push('/');
       }
     );
+  };
+
+  const handleExportData = async () => {
+    try {
+      const data = await authApi.exportMe();
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'mes-donnees-auxptitspois.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      // L'erreur est gérée globalement
+    }
   };
 
   const handleDeleteAccount = () => {
@@ -149,6 +164,13 @@ function ComptePage() {
                   </button>
                 )
               )}
+              <button
+                className="btn btn-secondary"
+                onClick={handleExportData}
+              >
+                <Download size={16} />
+                Exporter mes données
+              </button>
               <button
                 className="btn btn-danger btn-delete-account"
                 onClick={handleDeleteAccount}

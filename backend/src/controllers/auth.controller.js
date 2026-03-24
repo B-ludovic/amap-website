@@ -341,6 +341,70 @@ const resetPassword = asyncHandler(async (req, res) => {
     });
 });
 
+// Export des données personnelles (RGPD art. 20 — droit à la portabilité)
+const exportMe = asyncHandler(async (req, res) => {
+    const user = await prisma.user.findUnique({
+        where: { id: req.user.id },
+        select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            phone: true,
+            address: true,
+            role: true,
+            emailVerified: true,
+            createdAt: true,
+            subscriptionRequests: {
+                select: {
+                    type: true,
+                    basketSize: true,
+                    pricingType: true,
+                    paymentMethod: true,
+                    status: true,
+                    createdAt: true,
+                }
+            },
+            subscriptions: {
+                select: {
+                    subscriptionNumber: true,
+                    type: true,
+                    basketSize: true,
+                    pricingType: true,
+                    status: true,
+                    startDate: true,
+                    endDate: true,
+                    pickups: {
+                        select: {
+                            pickupDate: true,
+                            status: true,
+                        }
+                    },
+                    pauses: {
+                        select: {
+                            startDate: true,
+                            endDate: true,
+                            reason: true,
+                        }
+                    },
+                }
+            },
+        }
+    });
+
+    if (!user) {
+        throw new HttpNotFoundError('Compte introuvable');
+    }
+
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Disposition', 'attachment; filename="mes-donnees-auxptitspois.json"');
+    res.json({
+        exportDate: new Date().toISOString(),
+        source: 'Aux P\'tits Pois — export RGPD art. 20',
+        data: user,
+    });
+});
+
 // Suppression du compte — soft delete + déconnexion immédiate (RGPD art. 17)
 const deleteMe = asyncHandler(async (req, res) => {
     const user = await prisma.user.findUnique({ where: { id: req.user.id } });
@@ -375,6 +439,7 @@ export {
     login,
     logout,
     getMe,
+    exportMe,
     deleteMe,
     confirmEmail,
     resendConfirmationEmail,
