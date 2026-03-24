@@ -2,6 +2,7 @@ import nodemailer from 'nodemailer';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import DOMPurify from 'isomorphic-dompurify';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const logoPath = path.join(__dirname, '../assets/logo.png');
@@ -404,7 +405,7 @@ class EmailService {
                     <p><strong>Sujet :</strong> ${subject}</p>
                   </div>
                   <p><strong>Message :</strong></p>
-                  <div class="message-box">${message}</div>
+                  <div class="message-box">${DOMPurify.sanitize(message, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] })}</div>
                   <p style="color: #6b7280; font-size: 14px;">
                     Répondez directement à cet email pour contacter ${name}.
                   </p>
@@ -479,7 +480,7 @@ class EmailService {
                         </div>
                         <div class="divider"></div>
                         <div class="content">
-                          ${newsletter.content.replace(/\n/g, '<br>')}
+                          ${DOMPurify.sanitize(newsletter.content.replace(/\n/g, '<br>'))}
                         </div>
                         <div class="footer">
                           <p><strong>Aux P'tits Pois — AMAP Solidaire</strong></p>
