@@ -285,9 +285,9 @@ function RegisterForm({ onSubmit, loading }) {
             type="button"
             className="input-toggle"
             onClick={() => setShowPassword(!showPassword)}
-            tabIndex={-1}
+            aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
           >
-            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+            {showPassword ? <EyeOff size={20} aria-hidden="true" /> : <Eye size={20} aria-hidden="true" />}
           </button>
         </div>
         {errors.password ? (
@@ -317,9 +317,9 @@ function RegisterForm({ onSubmit, loading }) {
             type="button"
             className="input-toggle"
             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-            tabIndex={-1}
+            aria-label={showConfirmPassword ? 'Masquer la confirmation' : 'Afficher la confirmation'}
           >
-            {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+            {showConfirmPassword ? <EyeOff size={20} aria-hidden="true" /> : <Eye size={20} aria-hidden="true" />}
           </button>
         </div>
         {errors.confirmPassword && (

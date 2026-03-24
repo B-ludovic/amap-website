@@ -23,6 +23,11 @@ Les pages publiques de ce site (accueil, abonnements, producteurs, recettes, FAQ
 - Site : https://auxptitspois.fr
 - Directrice de publication : Kerina DAVIGNY
 
+## Fonctionnalités clés
+- Paniers hebdomadaires de légumes bio et locaux
+- Suggestions de recettes personnalisées en fonction des légumes présents dans le panier de la semaine
+- Recettes traduites en français (source : TheMealDB)
+
 ## Producteurs partenaires
 - LES TROIS PARCELLES — Simon RONCERAY (maraîcher bio)
 

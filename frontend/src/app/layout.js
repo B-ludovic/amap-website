@@ -89,10 +89,11 @@ function RootLayout({ children }) {
   return (
     <html lang="fr">
       <body>
+        <a href="#main-content" className="skip-link">Aller au contenu principal</a>
         <JsonLd data={organizationJsonLd} />
         <Providers>
           <Header />
-          <main className="main-content">
+          <main className="main-content" id="main-content">
             {children}
           </main>
           <Footer />

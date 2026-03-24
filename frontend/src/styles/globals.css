@@ -1,5 +1,24 @@
 /* Styles globaux pour Aux P'tits Pois */
 
+/* Lien d'évitement (accessibilité clavier) */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: var(--spacing-md);
+  z-index: 9999;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background-color: var(--primary-color);
+  color: var(--white);
+  font-weight: var(--font-weight-semibold);
+  border-radius: var(--border-radius-md);
+  text-decoration: none;
+  transition: top 0.1s;
+}
+
+.skip-link:focus {
+  top: var(--spacing-md);
+}
+
 /* Reset de base */
 *,
 *::before,
