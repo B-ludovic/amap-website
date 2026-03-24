@@ -18,9 +18,25 @@ export default function MentionsLegalesPage() {
         <section className="legal-section">
           <h2>Éditeur du site</h2>
           <p>
-            <strong>Aux P'tits Pois</strong><br />
+            <strong>Association Aux P'tits Pois</strong><br />
             Association loi 1901<br />
-            Adresse : 14, rue du Chateau 45300 Yère-la-ville<br />
+            Siège social : 14, rue du Château 45300 Yèvre-la-Ville<br />
+            Email de contact : auxptitspois@gmail.com
+          </p>
+          <p>
+            <strong>Directrice de la publication :</strong> Kerina DAVIGNY<br />
+            <strong>Conception et développement :</strong> Ludovic BATAILLE
+          </p>
+          <h2>Partenaire Agricole</h2>
+          <p>
+            L'association collabore avec le producteur suivant pour la fourniture des paniers :
+          </p>
+          <p>
+            <strong>LES TROIS PARCELLES</strong><br />
+            Représenté par M. Simon RONCERAY<br />
+            14, rue du Château 45300 Yèvre-la-Ville<br />
+            SIRET : 815 169 974 000 12<br />
+            Téléphone : 06 30 41 28 67<br />
             Email : lestroisparcelles@gmail.com
           </p>
         </section>

@@ -228,3 +228,11 @@
     padding: var(--spacing-md);
   }
 }
+
+/* Suppression du compte */
+.btn-delete-account {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  margin-left: auto;
+}

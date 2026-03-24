@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Package, MapPin, ShoppingBasket, User, Mail, Phone, Shield, CheckCircle } from 'lucide-react';
+import { Package, MapPin, ShoppingBasket, User, Mail, Phone, Shield, CheckCircle, Trash2 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useModal } from '../../contexts/ModalContext';
 import { auth as authApi } from '../../lib/api';
@@ -37,6 +37,22 @@ function ComptePage() {
       () => {
         logout();
         router.push('/');
+      }
+    );
+  };
+
+  const handleDeleteAccount = () => {
+    showConfirm(
+      'Supprimer mon compte',
+      'Cette action est irréversible. Toutes vos données seront supprimées. Êtes-vous sûr de vouloir continuer ?',
+      async () => {
+        try {
+          await authApi.deleteMe();
+          logout();
+          router.push('/');
+        } catch {
+          // L'erreur est gérée globalement
+        }
       }
     );
   };
@@ -133,6 +149,13 @@ function ComptePage() {
                   </button>
                 )
               )}
+              <button
+                className="btn btn-danger btn-delete-account"
+                onClick={handleDeleteAccount}
+              >
+                <Trash2 size={16} />
+                Supprimer mon compte
+              </button>
             </div>
           </div>
 

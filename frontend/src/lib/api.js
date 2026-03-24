@@ -311,6 +311,13 @@ export const auth = {
       body: { token, password },
     });
   },
+
+  deleteMe: async () => {
+    return fetchAPI('/auth/me', {
+      method: 'DELETE',
+      requiresAuth: true,
+    });
+  },
 };
 
 const api = {

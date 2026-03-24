@@ -341,6 +341,23 @@ const resetPassword = asyncHandler(async (req, res) => {
     });
 });
 
+// Suppression du compte — soft delete + déconnexion immédiate (RGPD art. 17)
+const deleteMe = asyncHandler(async (req, res) => {
+    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+
+    if (!user || user.deletedAt) {
+        throw new HttpNotFoundError('Compte introuvable');
+    }
+
+    await prisma.user.update({
+        where: { id: req.user.id },
+        data: { deletedAt: new Date() },
+    });
+
+    res.clearCookie('authToken', { ...cookieOptions, maxAge: undefined });
+    res.json({ success: true, message: 'Votre compte a été supprimé.' });
+});
+
 // Déconnexion — incrémente tokenVersion pour révoquer immédiatement tous les tokens actifs
 const logout = asyncHandler(async (req, res) => {
     if (req.user?.id) {
@@ -358,6 +375,7 @@ export {
     login,
     logout,
     getMe,
+    deleteMe,
     confirmEmail,
     resendConfirmationEmail,
     forgotPassword,
