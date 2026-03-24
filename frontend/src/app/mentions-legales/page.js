@@ -68,12 +68,7 @@ export default function MentionsLegalesPage() {
             <li><strong>Gestion du consentement</strong> : Mémorise vos choix concernant les cookies</li>
           </ul>
 
-          <h4>2. Cookies de paiement</h4>
-          <p>
-            <strong>Stripe</strong> : Notre prestataire de paiement sécurisé utilise des cookies pour assurer la sécurité des transactions.
-          </p>
-
-          <h4>3. Cookies analytiques (optionnels)</h4>
+          <h4>2. Cookies analytiques (optionnels)</h4>
           <p>
             Avec votre consentement, nous utilisons Google Analytics pour comprendre comment vous utilisez notre site. 
             Ces statistiques sont anonymisées et nous aident à améliorer votre expérience.

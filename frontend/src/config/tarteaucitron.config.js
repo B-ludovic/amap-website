@@ -76,11 +76,6 @@ export const tarteaucitronServices = {
     id: 'G-ECKDCT8G95'
   },
   
-  // Stripe (paiement natif, pas un service de tracking — non géré par tarteaucitron)
-  stripe: {
-    enabled: false
-  },
-  
   // YouTube (si tu embeddes des vidéos)
   youtube: {
     enabled: false
