@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client';
 
 // On crée une seule instance de Prisma pour toute l'application
 const prisma = new PrismaClient({
-  log: ['query', 'error', 'warn'], // On log les requêtes SQL en développement
+  log: process.env.NODE_ENV === 'production' ? ['error'] : ['error', 'warn'],
 });
 
 // Fonction pour se connecter à la base de données
