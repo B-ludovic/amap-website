@@ -62,7 +62,7 @@ function LoginForm({ onSubmit, loading }) {
           Email
         </label>
         <div className="input-wrapper">
-          <Mail size={20} className="input-icon" />
+          <Mail size={20} className="input-icon" aria-hidden="true" />
           <input
             type="email"
             id="email"
@@ -72,10 +72,14 @@ function LoginForm({ onSubmit, loading }) {
             onChange={handleChange}
             placeholder="votre@email.com"
             disabled={loading}
+            required
+            aria-required="true"
+            autoComplete="email"
+            aria-describedby={errors.email ? 'login-email-error' : undefined}
           />
         </div>
         {errors.email && (
-          <span className="form-error">{errors.email}</span>
+          <span id="login-email-error" className="form-error">{errors.email}</span>
         )}
       </div>
 
@@ -84,7 +88,7 @@ function LoginForm({ onSubmit, loading }) {
           Mot de passe
         </label>
         <div className="input-wrapper">
-          <Lock size={20} className="input-icon" />
+          <Lock size={20} className="input-icon" aria-hidden="true" />
           <input
             type={showPassword ? 'text' : 'password'}
             id="password"
@@ -94,6 +98,10 @@ function LoginForm({ onSubmit, loading }) {
             onChange={handleChange}
             placeholder="••••••••"
             disabled={loading}
+            required
+            aria-required="true"
+            autoComplete="current-password"
+            aria-describedby={errors.password ? 'login-password-error' : undefined}
           />
           <button
             type="button"
@@ -105,7 +113,7 @@ function LoginForm({ onSubmit, loading }) {
           </button>
         </div>
         {errors.password && (
-          <span className="form-error">{errors.password}</span>
+          <span id="login-password-error" className="form-error">{errors.password}</span>
         )}
       </div>
 

@@ -65,20 +65,20 @@ export default function ContactPage() {
             <h2>Envoyez-nous un message</h2>
 
             {status === 'success' && (
-              <div className="alert alert-success">
-                <CheckCircle size={18} /> Votre message a été envoyé avec succès ! Nous vous répondrons dans les plus brefs délais.
+              <div className="alert alert-success" role="alert" aria-live="polite">
+                <CheckCircle size={18} aria-hidden="true" /> Votre message a été envoyé avec succès ! Nous vous répondrons dans les plus brefs délais.
               </div>
             )}
 
             {status === 'error' && (
-              <div className="alert alert-error">
-                <XCircle size={18} /> {errorMessage || 'Une erreur est survenue. Veuillez réessayer.'}
+              <div className="alert alert-error" role="alert" aria-live="assertive">
+                <XCircle size={18} aria-hidden="true" /> {errorMessage || 'Une erreur est survenue. Veuillez réessayer.'}
               </div>
             )}
 
             <form onSubmit={handleSubmit} className="contact-form">
               <div className="form-group">
-                <label htmlFor="name">Nom complet *</label>
+                <label htmlFor="name">Nom complet <span aria-label="obligatoire">*</span></label>
                 <input
                   type="text"
                   id="name"
@@ -86,12 +86,14 @@ export default function ContactPage() {
                   value={formData.name}
                   onChange={handleChange}
                   required
+                  aria-required="true"
+                  autoComplete="name"
                   disabled={status === 'sending'}
                 />
               </div>
 
               <div className="form-group">
-                <label htmlFor="email">Email *</label>
+                <label htmlFor="email">Email <span aria-label="obligatoire">*</span></label>
                 <input
                   type="email"
                   id="email"
@@ -99,12 +101,14 @@ export default function ContactPage() {
                   value={formData.email}
                   onChange={handleChange}
                   required
+                  aria-required="true"
+                  autoComplete="email"
                   disabled={status === 'sending'}
                 />
               </div>
 
               <div className="form-group">
-                <label htmlFor="subject">Sujet *</label>
+                <label htmlFor="subject">Sujet <span aria-label="obligatoire">*</span></label>
                 <input
                   type="text"
                   id="subject"
@@ -112,19 +116,21 @@ export default function ContactPage() {
                   value={formData.subject}
                   onChange={handleChange}
                   required
+                  aria-required="true"
                   disabled={status === 'sending'}
                   placeholder="Ex: Question sur les abonnements"
                 />
               </div>
 
               <div className="form-group">
-                <label htmlFor="message">Message *</label>
+                <label htmlFor="message">Message <span aria-label="obligatoire">*</span></label>
                 <textarea
                   id="message"
                   name="message"
                   value={formData.message}
                   onChange={handleChange}
                   required
+                  aria-required="true"
                   disabled={status === 'sending'}
                   rows="6"
                   placeholder="Votre message..."

@@ -118,11 +118,15 @@ export default function FaqPage() {
                       className="faq-question"
                       onClick={() => toggle(category.id, index)}
                       aria-expanded={open}
+                      aria-controls={`faq-answer-${category.id}-${index}`}
                     >
                       <span>{item.question}</span>
-                      <ChevronDown size={20} className="faq-chevron" />
+                      <ChevronDown size={20} className="faq-chevron" aria-hidden="true" />
                     </button>
-                    <div className="faq-answer">
+                    <div
+                      id={`faq-answer-${category.id}-${index}`}
+                      className="faq-answer"
+                    >
                       <p>{item.answer}</p>
                     </div>
                   </div>

@@ -167,7 +167,9 @@ function Header() {
           <button
             className="header-menu-toggle"
             onClick={toggleMenu}
-            aria-label="Toggle menu"
+            aria-label={isMenuOpen ? 'Fermer le menu' : 'Ouvrir le menu de navigation'}
+            aria-expanded={isMenuOpen}
+            aria-controls="mobile-menu"
           >
             <span className={`menu-icon ${isMenuOpen ? 'menu-icon-open' : ''}`}>
               <span></span>
@@ -185,7 +187,7 @@ function Header() {
         />
 
         {/* Menu mobile */}
-        <div className={`header-mobile-menu ${isMenuOpen ? 'mobile-menu-open' : ''}`}>
+        <div id="mobile-menu" className={`header-mobile-menu ${isMenuOpen ? 'mobile-menu-open' : ''}`}>
           <div className="mobile-menu-header">
             <Link href="/" className="mobile-logo" onClick={closeMenu}>
               <Image src="/icons/logo.png" alt="Logo Aux P'tits Pois" width={32} height={32} className="logo-icon" />
@@ -229,7 +231,7 @@ function Header() {
                     <Link href="/admin/demandes-abonnements" className="mobile-nav-link" onClick={closeMenu}>
                       <UserPlus size={18} />
                       Demandes abonnements
-                      {notifs.requests > 0 && <span className="mobile-nav-badge">{notifs.requests}</span>}
+                      {notifs.requests > 0 && <span className="mobile-nav-badge" aria-label={`${notifs.requests} demande(s) en attente`}>{notifs.requests}</span>}
                     </Link>
                     <Link href="/admin/abonnements" className="mobile-nav-link" onClick={closeMenu}>
                       <CreditCard size={18} />
@@ -238,7 +240,7 @@ function Header() {
                     <Link href="/admin/demandes-producteurs" className="mobile-nav-link" onClick={closeMenu}>
                       <Sprout size={18} />
                       Demandes producteurs
-                      {notifs.producers > 0 && <span className="mobile-nav-badge">{notifs.producers}</span>}
+                      {notifs.producers > 0 && <span className="mobile-nav-badge" aria-label={`${notifs.producers} demande(s) producteur en attente`}>{notifs.producers}</span>}
                     </Link>
                     <Link href="/admin/producteurs" className="mobile-nav-link" onClick={closeMenu}>
                       <Tractor size={18} />
@@ -263,7 +265,7 @@ function Header() {
                     <Link href="/admin/communication" className="mobile-nav-link" onClick={closeMenu}>
                       <Mail size={18} />
                       Communication
-                      {notifs.messages > 0 && <span className="mobile-nav-badge">{notifs.messages}</span>}
+                      {notifs.messages > 0 && <span className="mobile-nav-badge" aria-label={`${notifs.messages} message(s) non lu(s)`}>{notifs.messages}</span>}
                     </Link>
                     <Link href="/admin/parametres" className="mobile-nav-link" onClick={closeMenu}>
                       <Settings size={18} />

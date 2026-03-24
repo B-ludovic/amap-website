@@ -114,7 +114,7 @@ function RegisterForm({ onSubmit, loading }) {
             Prénom
           </label>
           <div className="input-wrapper">
-            <User size={20} className="input-icon" />
+            <User size={20} className="input-icon" aria-hidden="true" />
             <input
               type="text"
               id="firstName"
@@ -124,10 +124,14 @@ function RegisterForm({ onSubmit, loading }) {
               onChange={handleChange}
               placeholder="Jean"
               disabled={loading}
+              required
+              aria-required="true"
+              autoComplete="given-name"
+              aria-describedby={errors.firstName ? 'reg-firstName-error' : undefined}
             />
           </div>
           {errors.firstName && (
-            <span className="form-error">{errors.firstName}</span>
+            <span id="reg-firstName-error" className="form-error">{errors.firstName}</span>
           )}
         </div>
 
@@ -136,7 +140,7 @@ function RegisterForm({ onSubmit, loading }) {
             Nom
           </label>
           <div className="input-wrapper">
-            <User size={20} className="input-icon" />
+            <User size={20} className="input-icon" aria-hidden="true" />
             <input
               type="text"
               id="lastName"
@@ -146,10 +150,14 @@ function RegisterForm({ onSubmit, loading }) {
               onChange={handleChange}
               placeholder="Dupont"
               disabled={loading}
+              required
+              aria-required="true"
+              autoComplete="family-name"
+              aria-describedby={errors.lastName ? 'reg-lastName-error' : undefined}
             />
           </div>
           {errors.lastName && (
-            <span className="form-error">{errors.lastName}</span>
+            <span id="reg-lastName-error" className="form-error">{errors.lastName}</span>
           )}
         </div>
       </div>
@@ -159,7 +167,7 @@ function RegisterForm({ onSubmit, loading }) {
           Email
         </label>
         <div className="input-wrapper">
-          <Mail size={20} className="input-icon" />
+          <Mail size={20} className="input-icon" aria-hidden="true" />
           <input
             type="email"
             id="email"
@@ -169,10 +177,14 @@ function RegisterForm({ onSubmit, loading }) {
             onChange={handleChange}
             placeholder="votre@email.com"
             disabled={loading}
+            required
+            aria-required="true"
+            autoComplete="email"
+            aria-describedby={errors.email ? 'reg-email-error' : undefined}
           />
         </div>
         {errors.email && (
-          <span className="form-error">{errors.email}</span>
+          <span id="reg-email-error" className="form-error">{errors.email}</span>
         )}
       </div>
 
@@ -181,7 +193,7 @@ function RegisterForm({ onSubmit, loading }) {
           Téléphone
         </label>
         <div className="input-wrapper">
-          <Phone size={20} className="input-icon" />
+          <Phone size={20} className="input-icon" aria-hidden="true" />
           <input
             type="tel"
             id="phone"
@@ -191,10 +203,14 @@ function RegisterForm({ onSubmit, loading }) {
             onChange={handleChange}
             placeholder="06 12 34 56 78"
             disabled={loading}
+            required
+            aria-required="true"
+            autoComplete="tel"
+            aria-describedby={errors.phone ? 'reg-phone-error' : undefined}
           />
         </div>
         {errors.phone && (
-          <span className="form-error">{errors.phone}</span>
+          <span id="reg-phone-error" className="form-error">{errors.phone}</span>
         )}
       </div>
 
@@ -203,7 +219,7 @@ function RegisterForm({ onSubmit, loading }) {
           Adresse
         </label>
         <div className="input-wrapper">
-          <MapPin size={20} className="input-icon" />
+          <MapPin size={20} className="input-icon" aria-hidden="true" />
           <input
             type="text"
             id="street"
@@ -213,10 +229,14 @@ function RegisterForm({ onSubmit, loading }) {
             onChange={handleChange}
             placeholder="12 rue des Fleurs"
             disabled={loading}
+            required
+            aria-required="true"
+            autoComplete="street-address"
+            aria-describedby={errors.street ? 'reg-street-error' : undefined}
           />
         </div>
         {errors.street && (
-          <span className="form-error">{errors.street}</span>
+          <span id="reg-street-error" className="form-error">{errors.street}</span>
         )}
       </div>
 
@@ -236,10 +256,14 @@ function RegisterForm({ onSubmit, loading }) {
               placeholder="75001"
               maxLength={5}
               disabled={loading}
+              required
+              aria-required="true"
+              autoComplete="postal-code"
+              aria-describedby={errors.postalCode ? 'reg-postalCode-error' : undefined}
             />
           </div>
           {errors.postalCode && (
-            <span className="form-error">{errors.postalCode}</span>
+            <span id="reg-postalCode-error" className="form-error">{errors.postalCode}</span>
           )}
         </div>
 
@@ -257,10 +281,14 @@ function RegisterForm({ onSubmit, loading }) {
               onChange={handleChange}
               placeholder="Paris"
               disabled={loading}
+              required
+              aria-required="true"
+              autoComplete="address-level2"
+              aria-describedby={errors.city ? 'reg-city-error' : undefined}
             />
           </div>
           {errors.city && (
-            <span className="form-error">{errors.city}</span>
+            <span id="reg-city-error" className="form-error">{errors.city}</span>
           )}
         </div>
       </div>
@@ -270,7 +298,7 @@ function RegisterForm({ onSubmit, loading }) {
           Mot de passe
         </label>
         <div className="input-wrapper">
-          <Lock size={20} className="input-icon" />
+          <Lock size={20} className="input-icon" aria-hidden="true" />
           <input
             type={showPassword ? 'text' : 'password'}
             id="password"
@@ -280,6 +308,10 @@ function RegisterForm({ onSubmit, loading }) {
             onChange={handleChange}
             placeholder="••••••••"
             disabled={loading}
+            required
+            aria-required="true"
+            autoComplete="new-password"
+            aria-describedby={errors.password ? 'reg-password-error' : 'reg-password-hint'}
           />
           <button
             type="button"
@@ -291,9 +323,9 @@ function RegisterForm({ onSubmit, loading }) {
           </button>
         </div>
         {errors.password ? (
-          <span className="form-error">{errors.password}</span>
+          <span id="reg-password-error" className="form-error">{errors.password}</span>
         ) : (
-          <p className="form-hint">Minimum 12 caractères</p>
+          <p id="reg-password-hint" className="form-hint">Minimum 12 caractères</p>
         )}
       </div>
 
@@ -302,7 +334,7 @@ function RegisterForm({ onSubmit, loading }) {
           Confirmer le mot de passe
         </label>
         <div className="input-wrapper">
-          <Lock size={20} className="input-icon" />
+          <Lock size={20} className="input-icon" aria-hidden="true" />
           <input
             type={showConfirmPassword ? 'text' : 'password'}
             id="confirmPassword"
@@ -312,6 +344,10 @@ function RegisterForm({ onSubmit, loading }) {
             onChange={handleChange}
             placeholder="••••••••"
             disabled={loading}
+            required
+            aria-required="true"
+            autoComplete="new-password"
+            aria-describedby={errors.confirmPassword ? 'reg-confirmPassword-error' : undefined}
           />
           <button
             type="button"
@@ -323,7 +359,7 @@ function RegisterForm({ onSubmit, loading }) {
           </button>
         </div>
         {errors.confirmPassword && (
-          <span className="form-error">{errors.confirmPassword}</span>
+          <span id="reg-confirmPassword-error" className="form-error">{errors.confirmPassword}</span>
         )}
       </div>
 
