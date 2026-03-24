@@ -34,6 +34,20 @@ export function ThemeProvider({ children }) {
       root.style.setProperty('--secondary-color', themeData.secondaryColor);
       root.style.setProperty('--accent-color', themeData.accentColor);
       root.style.setProperty('--background-color', themeData.backgroundColor);
+
+      // Calcule automatiquement la couleur de texte accessible pour btn-primary
+      const lum = (hex) => {
+        const [r, g, b] = hex.replace('#', '').match(/.{2}/g)
+          .map(v => { const c = parseInt(v, 16) / 255; return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; });
+        return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+      };
+      const cr = (l1, l2) => (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
+      const pl = lum(themeData.primaryColor);
+      const btnText = cr(1.0, pl) >= cr(lum('#2d3748'), pl) ? '#ffffff' : '#2d3748';
+
+      root.style.setProperty('--btn-primary-text', btnText);
+      // Bouton en couleur primaire unie (évite les problèmes de contraste sur le dégradé secondaire)
+      root.style.setProperty('--gradient-button', themeData.primaryColor);
     }
   };
 

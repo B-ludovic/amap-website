@@ -32,27 +32,27 @@ const SEASONS = [
 
 const SEASON_COLORS = {
     SPRING: {
-        primaryColor: '#6b9d5a',
+        primaryColor: '#4a7a3a',
         secondaryColor: '#d4a574',
-        accentColor: '#c85a3f',
+        accentColor: '#b04535',
         backgroundColor: '#f9f7f4',
     },
     SUMMER: {
-        primaryColor: '#f59e0b',
+        primaryColor: '#c47d0a',
         secondaryColor: '#fcd34d',
-        accentColor: '#fb923c',
+        accentColor: '#a85508',
         backgroundColor: '#fffbeb',
     },
     AUTUMN: {
         primaryColor: '#c2410c',
         secondaryColor: '#d97706',
-        accentColor: '#ea580c',
+        accentColor: '#b91c1c',
         backgroundColor: '#fff7ed',
     },
     WINTER: {
-        primaryColor: '#0891b2',
+        primaryColor: '#0e7490',
         secondaryColor: '#06b6d4',
-        accentColor: '#0284c7',
+        accentColor: '#1d4ed8',
         backgroundColor: '#f0f9ff',
     },
 };
@@ -71,9 +71,9 @@ export default function AdminParametresPage() {
     // Form data pour les differentes sections
     const [themeData, setThemeData] = useState({
         season: 'SPRING',
-        primaryColor: '#6b9d5a',
+        primaryColor: '#4a7a3a',
         secondaryColor: '#d4a574',
-        accentColor: '#c85a3f',
+        accentColor: '#b04535',
         backgroundColor: '#f9f7f4',
     });
 
