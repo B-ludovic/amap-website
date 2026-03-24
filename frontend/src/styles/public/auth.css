@@ -198,3 +198,7 @@
       padding-top: var(--spacing-lg);
   }
 }
+
+.btn-full {
+  width: 100%;
+}

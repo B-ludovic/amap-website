@@ -122,7 +122,7 @@ export default function AdminFermeturesPage() {
         <span className="closure-quota-label">
           {daysRemaining > 0
             ? <><strong>{daysRemaining}</strong> jour{daysRemaining > 1 ? 's' : ''} restant{daysRemaining > 1 ? 's' : ''}</>
-            : <span style={{ color: '#dc2626' }}>Quota atteint</span>
+            : <span className="closure-quota-exceeded">Quota atteint</span>
           }
         </span>
       </div>
@@ -175,7 +175,7 @@ export default function AdminFermeturesPage() {
 
       {/* Avertissement quota atteint */}
       {daysRemaining === 0 && (
-        <div className="closure-modal-warning" style={{ marginTop: 'var(--spacing-lg)' }}>
+        <div className="closure-modal-warning closure-quota-warning">
           <AlertTriangle size={16} />
           <span>
             Le quota de 3 semaines de fermeture pour {new Date().getFullYear()} est atteint.

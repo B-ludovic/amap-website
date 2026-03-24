@@ -84,7 +84,7 @@ export default function ClosureModal({ daysUsed, daysRemaining, onClose }) {
           ) : (
             <>
               {/* Quota restant */}
-              <div className="pause-weeks-counter" style={{ marginBottom: 'var(--spacing-md)' }}>
+              <div className="pause-weeks-counter closure-weeks-counter">
                 <span>Jours de fermeture utilisés cette année :</span>
                 <strong>{daysUsed} / 21</strong>
               </div>
@@ -114,10 +114,10 @@ export default function ClosureModal({ daysUsed, daysRemaining, onClose }) {
 
               {/* Durée calculée */}
               {daysRequested > 0 && (
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '-8px' }}>
+                <p className="closure-duration-hint">
                   Durée : {daysRequested} jour{daysRequested > 1 ? 's' : ''}
                   {wouldExceed && (
-                    <span style={{ color: '#dc2626', marginLeft: '8px' }}>
+                    <span className="closure-quota-exceeded">
                       — dépasse le quota restant ({daysRemaining} j)
                     </span>
                   )}

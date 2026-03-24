@@ -324,9 +324,8 @@ function RegisterForm({ onSubmit, loading }) {
 
       <button
         type="submit"
-        className="btn btn-primary btn-lg"
+        className="btn btn-primary btn-lg btn-full"
         disabled={loading}
-        style={{ width: '100%' }}
       >
         {loading ? 'Inscription...' : 'S\'inscrire'}
       </button>

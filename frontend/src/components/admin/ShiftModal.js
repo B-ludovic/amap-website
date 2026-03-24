@@ -256,7 +256,7 @@ export default function ShiftModal({ shift, onClose }) {
 
             {/* Bénévoles assignés */}
             <div className="form-group">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-sm)' }}>
+              <div className="shift-volunteers-header">
                 <label>Bénévoles assignés</label>
                 <button
                   type="button"
@@ -269,30 +269,16 @@ export default function ShiftModal({ shift, onClose }) {
               </div>
 
               {selectedVolunteers.length === 0 ? (
-                <div style={{ 
-                  textAlign: 'center', 
-                  padding: 'var(--spacing-lg)', 
-                  background: 'var(--background-color)', 
-                  borderRadius: 'var(--border-radius-sm)',
-                  color: 'var(--text-secondary)'
-                }}>
+                <div className="shift-volunteers-empty">
                   <p>Aucun bénévole assigné</p>
                 </div>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
+                <div className="shift-volunteers-list">
                   {selectedVolunteers.map((volunteer, index) => (
-                    <div key={index} style={{ 
-                      display: 'flex', 
-                      gap: 'var(--spacing-sm)', 
-                      alignItems: 'center',
-                      padding: 'var(--spacing-sm)',
-                      background: 'var(--background-color)',
-                      borderRadius: 'var(--border-radius-sm)'
-                    }}>
+                    <div key={index} className="shift-volunteer-row">
                       <select
                         value={volunteer.userId}
                         onChange={(e) => handleVolunteerChange(index, e.target.value)}
-                        style={{ flex: 1 }}
                         required
                       >
                         <option value="">Sélectionner un membre</option>

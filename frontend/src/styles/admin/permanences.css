@@ -244,3 +244,38 @@
     flex-wrap: wrap;
   }
 }
+
+/* Volunteers section dans ShiftModal */
+.shift-volunteers-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-sm);
+}
+
+.shift-volunteers-empty {
+  text-align: center;
+  padding: var(--spacing-lg);
+  background: var(--background-color);
+  border-radius: var(--border-radius-sm);
+  color: var(--text-secondary);
+}
+
+.shift-volunteers-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.shift-volunteer-row {
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: center;
+  padding: var(--spacing-sm);
+  background: var(--background-color);
+  border-radius: var(--border-radius-sm);
+}
+
+.shift-volunteer-row select {
+  flex: 1;
+}
