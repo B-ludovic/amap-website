@@ -151,7 +151,7 @@ button {
 
 .btn-primary {
   background: var(--gradient-button);
-  color: var(--white);
+  color: var(--btn-primary-text, var(--white));
   border: none;
 }
 
@@ -346,8 +346,8 @@ button {
 }
 
 .badge-primary {
-  background-color: var(--primary-color);
-  color: var(--text-primary);
+  background-color: #3d6b2d;
+  color: var(--white);
 }
 
 .badge-success {
@@ -357,7 +357,7 @@ button {
 
 .badge-error {
   background-color: var(--error-color);
-  color: var(--white);
+  color: #7f1d1d;
 }
 
 .badge-warning {

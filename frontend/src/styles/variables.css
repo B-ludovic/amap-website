@@ -3,14 +3,14 @@
 :root {
   /* COULEURS PRINTEMPS (par défaut) - Terre & Nature */
   --primary-color: #6b9d5a;
-  --primary-hover: #5a8a4a;
+  --primary-hover: #4a7a3a;
   --secondary-color: #d4a574;
-  --accent-color: #c85a3f;
+  --accent-color: #b04535;
   --background-color: #f9f7f4;
   
   /* COULEURS NEUTRES */
   --text-primary: #2d3748;
-  --text-secondary: #718096;
+  --text-secondary: #4a5568;
   --text-light: #a0aec0;
   --white: #ffffff;
   --border-color: #e2e8f0;
@@ -84,7 +84,8 @@
   
   /* GRADIENTS */
   --gradient-hero: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-  --gradient-button: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+  --gradient-button: linear-gradient(135deg, #3d6b2d 0%, #7a5228 100%);
+  --btn-primary-text: var(--white);
   --gradient-soft-banner: linear-gradient(135deg, rgba(107, 157, 90, 0.5) 0%, rgba(255, 183, 77, 0.08) 100%);
   --gradient-footer: linear-gradient(135deg, #f0f7ed 0%, #fef9f3 100%);
   
@@ -112,31 +113,39 @@
 [data-theme="spring"] {
   --primary-color: #a7f3d0;
   --secondary-color: #fcd34d;
-  --accent-color: #fb923c;
+  --accent-color: #a85508;
   --background-color: #fef3f9;
   --gradient-hero: linear-gradient(135deg, #a7f3d0 0%, #fcd34d 100%);
+  --gradient-button: var(--primary-color);
+  --btn-primary-text: var(--text-primary);
 }
 
 [data-theme="summer"] {
   --primary-color: #fef08a;
   --secondary-color: #fde047;
-  --accent-color: #fb923c;
+  --accent-color: #a85508;
   --background-color: #fffbeb;
   --gradient-hero: linear-gradient(135deg, #fef08a 0%, #fde047 100%);
+  --gradient-button: var(--primary-color);
+  --btn-primary-text: var(--text-primary);
 }
 
 [data-theme="autumn"] {
   --primary-color: #fdba74;
   --secondary-color: #fb923c;
-  --accent-color: #dc2626;
+  --accent-color: #b91c1c;
   --background-color: #fff7ed;
   --gradient-hero: linear-gradient(135deg, #fdba74 0%, #fb923c 100%);
+  --gradient-button: var(--primary-color);
+  --btn-primary-text: var(--text-primary);
 }
 
 [data-theme="winter"] {
   --primary-color: #a5b4fc;
   --secondary-color: #818cf8;
-  --accent-color: #6366f1;
+  --accent-color: #4338ca;
   --background-color: #eef2ff;
   --gradient-hero: linear-gradient(135deg, #e0e7ff 0%, #4338ca 100%);
+  --gradient-button: var(--primary-color);
+  --btn-primary-text: var(--text-primary);
 }
