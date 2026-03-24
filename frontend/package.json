@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "postinstall": "node scripts/copy-tarteaucitron.js"
+    "postinstall": "node scripts/copy-orejime.js"
   },
   "dependencies": {
     "@stripe/react-stripe-js": "^5.4.1",
@@ -19,9 +19,9 @@
     "isomorphic-dompurify": "^3.0.0",
     "lucide-react": "^0.556.0",
     "next": "^15",
+    "orejime": "^3.1.1",
     "react": "^18",
-    "react-dom": "^18",
-    "tarteaucitronjs": "^1.28.0"
+    "react-dom": "^18"
   },
   "devDependencies": {
     "eslint": "^9",

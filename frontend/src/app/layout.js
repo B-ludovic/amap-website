@@ -1,14 +1,15 @@
+import CookieConsent from '../components/CookieConsent';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import Providers from '../components/Providers';
-import CookieConsent from '../components/CookieConsent';
 import JsonLd from '../components/JsonLd';
+import '../../public/orejime/orejime-standard.css';
+import '../styles/components/orejime.css';
 import '../styles/variables.css';
 import '../styles/globals.css';
 import '../styles/components/modal.css';
 import '../styles/components/header.css';
 import '../styles/components/footer.css';
-import '../styles/components/tarteaucitron.css';
 import '../styles/public/auth.css';
 import '../styles/public/compte.css';
 import '../styles/public/home.css';

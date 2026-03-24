@@ -5,14 +5,7 @@ import '../../styles/public/legal.css'
 
 export default function MentionsLegalesPage() {
   const handleOpenCookiePanel = () => {
-    if (typeof window === 'undefined') return;
-    // Méthode 1 : API tarteaucitron si disponible
-    if (window.tarteaucitron?.userInterface?.openPanel) {
-      window.tarteaucitron.userInterface.openPanel();
-      return;
-    }
-    // Méthode 2 : clic sur l'icône tarteaucitron injectée dans la page
-    document.getElementById('tarteaucitronIcon')?.click();
+    // À implémenter avec le gestionnaire de cookies choisi
   };
 
   return (

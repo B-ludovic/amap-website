@@ -1,0 +1,13 @@
+/* Personnalisation du bandeau de consentement Orejime */
+
+.orejime-Env {
+  --orejime-font-family: var(--font-family);
+  --orejime-color-background: var(--white);
+  --orejime-color-text: var(--text-primary);
+  --orejime-color-subdued: var(--text-secondary);
+  --orejime-color-interactive: var(--primary-color);
+  --orejime-color-on-interactive: var(--btn-primary-text, #ffffff);
+  --orejime-color-backdrop: rgba(0, 0, 0, 0.5);
+  --orejime-color-shadow: 45, 55, 72; /* --text-primary en RGB */
+  --orejime-radius: var(--border-radius-lg);
+}
