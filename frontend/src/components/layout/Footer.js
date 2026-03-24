@@ -116,34 +116,22 @@ function Footer() {
             © {currentYear} Aux P&apos;tits Pois. Tous droits réservés.
           </p>
           <div className="footer-socials">
-            <a
-              href="https://facebook.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="footer-social-link"
-              aria-label="Facebook"
-            >
-              <Image 
-                src="/icons/facebook.png" 
-                alt="Facebook" 
-                width={20} 
+            <span className="footer-social-link footer-social-disabled" aria-label="Facebook (bientôt disponible)">
+              <Image
+                src="/icons/facebook.png"
+                alt="Facebook"
+                width={20}
                 height={20}
               />
-            </a>
-            <a
-              href="https://instagram.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="footer-social-link"
-              aria-label="Instagram"
-            >
-              <Image 
-                src="/icons/instagram.png" 
-                alt="Instagram" 
-                width={20} 
+            </span>
+            <span className="footer-social-link footer-social-disabled" aria-label="Instagram (bientôt disponible)">
+              <Image
+                src="/icons/instagram.png"
+                alt="Instagram"
+                width={20}
                 height={20}
               />
-            </a>
+            </span>
             <a
               href="mailto:auxptitspois@gmail.com"
               className="footer-social-link"

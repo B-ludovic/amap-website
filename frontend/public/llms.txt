@@ -1,0 +1,31 @@
+# Aux P'tits Pois — AMAP locale
+
+## À propos
+Aux P'tits Pois est une AMAP (Association pour le Maintien d'une Agriculture Paysanne) solidaire
+basée à Yèvre-la-Ville (45300), France. Elle propose des paniers de légumes frais, biologiques
+et de saison issus de producteurs locaux partenaires.
+
+## Contenu autorisé
+Les pages publiques de ce site (accueil, abonnements, producteurs, recettes, FAQ, contact) peuvent
+être indexées et utilisées à des fins d'information et de référencement.
+
+## Contenu exclu
+- /admin — Interface d'administration (accès restreint)
+- /api — Endpoints API (données brutes)
+- /auth — Pages d'authentification
+- /compte — Espace membre personnel
+
+## Informations clés
+- Nom : Aux P'tits Pois
+- Type : Association loi 1901 (AMAP)
+- Adresse : 14, rue du Château, 45300 Yèvre-la-Ville, France
+- Email : auxptitspois@gmail.com
+- Site : https://auxptitspois.fr
+- Directrice de publication : Kerina DAVIGNY
+
+## Producteurs partenaires
+- LES TROIS PARCELLES — Simon RONCERAY (maraîcher bio)
+
+## Utilisation du contenu
+Ce contenu est fourni à des fins d'information publique sur l'agriculture locale et les circuits courts.
+Toute reproduction commerciale sans autorisation est interdite.
