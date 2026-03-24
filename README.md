@@ -47,8 +47,9 @@ Ce projet est un site complet permettant de gérer une AMAP de A à Z :
 - **Zod** - Validation des entrées avec schémas centralisés
 - **Puppeteer + Handlebars** - Génération de contrats PDF
 - **Nodemailer + Brevo SMTP** - Service d'envoi d'emails professionnel
+- **isomorphic-dompurify** - Sanitisation XSS des emails (contact, newsletter)
 - **TheMealDB API** - Base de données de recettes
-- **Google Translate API** - Traduction automatique des recettes en français
+- **google-translate-api-x** - Traduction automatique des recettes en français (sans clé API)
 
 ## 📁 Structure du projet
 
@@ -175,12 +176,10 @@ Le projet est déployé en production sur :
 ```
 DATABASE_URL=...           # fournie automatiquement par Render PostgreSQL
 JWT_SECRET=...
-JWT_EXPIRE=...
 NODE_ENV=production
 FRONTEND_URL=https://auxptitspois.fr
 BREVO_SMTP_USER=...        # login SMTP Brevo (Settings → SMTP et API)
 BREVO_SMTP_KEY=...         # clé SMTP Brevo
-SPOONACULAR_API_KEY=...    # optionnel
 ```
 
 **Sur Vercel (frontend) :**
@@ -199,6 +198,8 @@ NEXT_PUBLIC_API_URL=https://api.auxptitspois.fr
 - Suggestions et recherche de recettes basées sur les légumes du panier
 - Visualisation des producteurs partenaires
 - Gestion du profil, vérification d'email
+- Export des données personnelles (RGPD art. 20)
+- Suppression du compte (RGPD art. 17)
 
 ### Pour les administrateurs
 - Gestion des demandes, abonnements (activation, résiliation, pause individuelle)
@@ -219,8 +220,9 @@ NEXT_PUBLIC_API_URL=https://api.auxptitspois.fr
 ### Design & Sécurité
 - Design responsive (desktop, tablet, mobile) avec thèmes saisonniers dynamiques
 - Authentification JWT + bcrypt, protection des routes par rôle (MEMBER, VOLUNTEER, ADMIN)
-- Rate limiting, headers sécurisés (Helmet.js), sanitisation XSS
+- Rate limiting global, headers sécurisés (Helmet.js), sanitisation XSS (DOMPurify)
 - Gestion des cookies conforme RGPD (Tarteaucitron.js)
+- Purge automatique des données : comptes supprimés (90j), inscriptions non vérifiées (30j)
 
 ## 📊 Base de données
 

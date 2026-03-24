@@ -1,78 +1,45 @@
 'use client';
 
-import { useEffect } from 'react';
+import Script from 'next/script';
 import { tarteaucitronConfig, tarteaucitronServices } from '../config/tarteaucitron.config';
 
 export default function CookieConsent() {
-  useEffect(() => {
-    // Vérifier si on est côté client
-    if (typeof window === 'undefined') return;
+  const initTarteaucitron = () => {
+    if (typeof window === 'undefined' || !window.tarteaucitron) return;
 
-    // Charger le script principal
-    const script = document.createElement('script');
-    script.src = '/tarteaucitron/tarteaucitron.js';
-    script.async = true;
+    const { googleAnalytics, youtube, googleMaps } = tarteaucitronServices;
 
-    script.onload = () => {
-      // Vérifier que tarteaucitron est chargé
-      if (!window.tarteaucitron) {
-        console.error('Tarteaucitron failed to load');
-        return;
+    // Charger les définitions de services (gtag, youtube, etc.) puis initialiser
+    const servicesScript = document.createElement('script');
+    servicesScript.src = '/tarteaucitron/tarteaucitron.services.js';
+    servicesScript.onload = () => {
+      window.tarteaucitron.init(tarteaucitronConfig);
+
+      window.tarteaucitron.job = window.tarteaucitron.job || [];
+
+      if (googleAnalytics?.enabled && googleAnalytics?.id) {
+        window.tarteaucitron.user.gtagUa = googleAnalytics.id;
+        window.tarteaucitron.user.gtagMore = function () {};
+        window.tarteaucitron.job.push('gtag');
       }
 
-      // Charger les définitions de services avant d'initialiser
-      const servicesScript = document.createElement('script');
-      servicesScript.src = '/tarteaucitron/tarteaucitron.services.js';
+      if (youtube?.enabled) {
+        window.tarteaucitron.job.push('youtube');
+      }
 
-      servicesScript.onload = () => {
-        // Éviter la double initialisation (React StrictMode, re-render)
-        if (window.tarteaucitron.state) return;
-
-        const { googleAnalytics, youtube, googleMaps } = tarteaucitronServices;
-
-        // Réinitialiser job pour éviter les résidus d'une exécution précédente
-        window.tarteaucitron.job = [];
-
-        // Pré-remplir les données utilisateur avant init
-        if (googleAnalytics.enabled) {
-          window.tarteaucitron.user.gtagUa = googleAnalytics.id;
-          window.tarteaucitron.user.gtagMore = function () {};
-        }
-        if (googleMaps.enabled && googleMaps.apiKey) {
-          window.tarteaucitron.user.googlemapsKey = googleMaps.apiKey;
-        }
-
-        // Initialiser Tarteaucitron
-        window.tarteaucitron.init(tarteaucitronConfig);
-
-        // Push uniquement les services définis dans tarteaucitron.services
-        const pushService = (key) => {
-          if (window.tarteaucitron.services?.[key]) {
-            window.tarteaucitron.job.push(key);
-          }
-        };
-
-        if (googleAnalytics.enabled) pushService('gtag');
-        if (youtube.enabled)         pushService('youtube');
-        if (googleMaps.enabled && googleMaps.apiKey) pushService('googlemaps');
-      };
-
-      document.head.appendChild(servicesScript);
-    };
-
-    script.onerror = () => {
-      console.error('❌ Erreur de chargement de Tarteaucitron');
-    };
-
-    document.head.appendChild(script);
-
-    // Cleanup
-    return () => {
-      if (script.parentNode) {
-        script.parentNode.removeChild(script);
+      if (googleMaps?.enabled && googleMaps?.apiKey) {
+        window.tarteaucitron.user.googlemapsKey = googleMaps.apiKey;
+        window.tarteaucitron.job.push('googlemaps');
       }
     };
-  }, []);
+    document.head.appendChild(servicesScript);
+  };
 
-  return null;
+  return (
+    <Script
+      src="/tarteaucitron/tarteaucitron.js"
+      strategy="afterInteractive"
+      onLoad={initTarteaucitron}
+    />
+  );
 }
