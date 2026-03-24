@@ -23,6 +23,11 @@ Les pages publiques de ce site (accueil, abonnements, producteurs, recettes, FAQ
 - Site : https://auxptitspois.fr
 - Directrice de publication : Kerina DAVIGNY
 
+## Point de retrait
+- Lieu : Paroisse Saint François de Sales de Clamart
+- Adresse : 340 Avenue du Général de Gaulle, 92140 Clamart
+- Horaires : Chaque mercredi de 18h15 à 19h15
+
 ## Fonctionnalités clés
 - Paniers hebdomadaires de légumes bio et locaux
 - Suggestions de recettes personnalisées en fonction des légumes présents dans le panier de la semaine

@@ -77,6 +77,20 @@ const organizationJsonLd = {
   description: 'AMAP solidaire proposant des paniers de légumes bio et locaux auprès de producteurs partenaires.',
   url: 'https://auxptitspois.fr',
   '@id': 'https://auxptitspois.fr/#organization',
+  email: 'auxptitspois@gmail.com',
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: '340 Avenue du Général de Gaulle',
+    addressLocality: 'Clamart',
+    postalCode: '92140',
+    addressCountry: 'FR',
+  },
+  openingHoursSpecification: {
+    '@type': 'OpeningHoursSpecification',
+    dayOfWeek: 'Wednesday',
+    opens: '18:15',
+    closes: '19:15',
+  },
   areaServed: {
     '@type': 'GeoCircle',
     geoMidpoint: { '@type': 'GeoCoordinates' },
