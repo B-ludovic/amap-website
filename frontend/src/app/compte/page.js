@@ -105,7 +105,7 @@ function ComptePage() {
             <div className="compte-card-body">
               <div className="compte-info-group">
                 <span className="compte-info-label">
-                  <User size={20} className="compte-info-icon" />
+                  <User size={20} className="compte-info-icon" aria-hidden="true" />
                   Nom complet
                 </span>
                 <span className="compte-info-value">
@@ -114,7 +114,7 @@ function ComptePage() {
               </div>
               <div className="compte-info-group">
                 <span className="compte-info-label">
-                  <Mail size={20} className="compte-info-icon" />
+                  <Mail size={20} className="compte-info-icon" aria-hidden="true" />
                   Email
                 </span>
                 <span className="compte-info-value">{user.email}</span>
@@ -122,7 +122,7 @@ function ComptePage() {
               {user.phone && (
                 <div className="compte-info-group">
                   <span className="compte-info-label">
-                    <Phone size={20} className="compte-info-icon" />
+                    <Phone size={20} className="compte-info-icon" aria-hidden="true" />
                     Téléphone
                   </span>
                   <span className="compte-info-value">{user.phone}</span>
@@ -131,7 +131,7 @@ function ComptePage() {
               {user.address && (
                 <div className="compte-info-group">
                   <span className="compte-info-label">
-                    <MapPin size={20} className="compte-info-icon" />
+                    <MapPin size={20} className="compte-info-icon" aria-hidden="true" />
                     Adresse
                   </span>
                   <span className="compte-info-value">{user.address}</span>
@@ -139,7 +139,7 @@ function ComptePage() {
               )}
               <div className="compte-info-group">
                 <span className="compte-info-label">
-                  <Shield size={20} className="compte-info-icon" />
+                  <Shield size={20} className="compte-info-icon" aria-hidden="true" />
                   Rôle
                 </span>
                 <span className="badge badge-primary">{user.role}</span>
@@ -152,7 +152,7 @@ function ComptePage() {
               {!user.emailVerified && (
                 resendStatus === 'sent' ? (
                   <span className="compte-verified-sent">
-                    <CheckCircle size={16} /> Email envoyé !
+                    <CheckCircle size={16} aria-hidden="true" /> Email envoyé !
                   </span>
                 ) : (
                   <button
@@ -168,14 +168,14 @@ function ComptePage() {
                 className="btn btn-secondary"
                 onClick={handleExportData}
               >
-                <Download size={16} />
+                <Download size={16} aria-hidden="true" />
                 Exporter mes données
               </button>
               <button
                 className="btn btn-danger btn-delete-account"
                 onClick={handleDeleteAccount}
               >
-                <Trash2 size={16} />
+                <Trash2 size={16} aria-hidden="true" />
                 Supprimer mon compte
               </button>
             </div>
@@ -189,7 +189,7 @@ function ComptePage() {
             <div className="compte-card-body">
               <div className="compte-actions">
                 <Link href="/compte/commandes" className="compte-action-link">
-                  <Package size={32} className="compte-action-icon" />
+                  <Package size={32} className="compte-action-icon" aria-hidden="true" />
                   <div className="compte-action-content">
                     <span className="compte-action-title">Mes commandes</span>
                     <span className="compte-action-description">
@@ -199,7 +199,7 @@ function ComptePage() {
                 </Link>
 
                 <Link href="/compte/adresses" className="compte-action-link">
-                  <MapPin size={32} className="compte-action-icon" />
+                  <MapPin size={32} className="compte-action-icon" aria-hidden="true" />
                   <div className="compte-action-content">
                     <span className="compte-action-title">Mes adresses</span>
                     <span className="compte-action-description">
@@ -209,7 +209,7 @@ function ComptePage() {
                 </Link>
 
                 <Link href="/paniers" className="compte-action-link">
-                  <ShoppingBasket size={32} className="compte-action-icon" />
+                  <ShoppingBasket size={32} className="compte-action-icon" aria-hidden="true" />
                   <div className="compte-action-content">
                     <span className="compte-action-title">Commander un panier</span>
                     <span className="compte-action-description">

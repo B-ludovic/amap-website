@@ -8,7 +8,7 @@ import '../../styles/public/faq.css';
 const FAQ_CATEGORIES = [
   {
     id: 'abonnement',
-    icon: <Leaf size={22} />,
+    icon: <Leaf size={22} aria-hidden="true" />,
     title: "L'abonnement",
     items: [
       {
@@ -31,7 +31,7 @@ const FAQ_CATEGORIES = [
   },
   {
     id: 'panier',
-    icon: <ShoppingBasket size={22} />,
+    icon: <ShoppingBasket size={22} aria-hidden="true" />,
     title: "Le contenu du panier",
     items: [
       {
@@ -50,7 +50,7 @@ const FAQ_CATEGORIES = [
   },
   {
     id: 'paiement',
-    icon: <CreditCard size={22} />,
+    icon: <CreditCard size={22} aria-hidden="true" />,
     title: "Paiement",
     items: [
       {
@@ -61,7 +61,7 @@ const FAQ_CATEGORIES = [
   },
   {
     id: 'compte',
-    icon: <User size={22} />,
+    icon: <User size={22} aria-hidden="true" />,
     title: "Mon compte",
     items: [
       {

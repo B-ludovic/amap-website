@@ -123,7 +123,7 @@ export default function WeeklyBasketPublicPage() {
       <div className="weekly-basket-public-page">
         <div className="container">
           <div className="empty-basket">
-            <ShoppingBasket size={64} />
+            <ShoppingBasket size={64} aria-hidden="true" />
             <h2>Aucun panier publié</h2>
             <p>Le panier de la semaine n'est pas encore disponible.</p>
             <p className="empty-subtitle">Revenez bientôt pour découvrir la sélection de légumes frais !</p>
@@ -147,22 +147,22 @@ export default function WeeklyBasketPublicPage() {
         <div className="container">
           <div className="basket-hero-content">
             <div className="basket-badge">
-              <ShoppingBasket size={20} />
+              <ShoppingBasket size={20} aria-hidden="true" />
               <span>Panier de la semaine</span>
             </div>
             <h1>Semaine {basket.weekNumber} - {basket.year}</h1>
             <div className="basket-date">
-              <Calendar size={20} />
+              <Calendar size={20} aria-hidden="true" />
               <span>Distribution : {formatDate(basket.distributionDate)}</span>
             </div>
             <div className="basket-info-card">
               <div className="basket-info-item">
-                <Clock size={18} />
+                <Clock size={18} aria-hidden="true" />
                 <span>Mercredi de 18h15 à 19h15</span>
               </div>
               <div className="basket-info-divider" />
               <div className="basket-info-item">
-                <MapPin size={18} />
+                <MapPin size={18} aria-hidden="true" />
                 <div>
                   <span>Paroisse Saint François de Sales de Clamart</span>
                   <span className="basket-info-sub">340 Avenue du Général de Gaulle, 92140 Clamart</span>
@@ -179,7 +179,7 @@ export default function WeeklyBasketPublicPage() {
           <div className="container">
             <div className="message-card">
               <div className="message-icon">
-                <Leaf size={24} />
+                <Leaf size={24} aria-hidden="true" />
               </div>
               <div className="message-content">
                 <h3>Le mot de la semaine</h3>
@@ -196,7 +196,7 @@ export default function WeeklyBasketPublicPage() {
           <div className="summary-cards">
             <div className="summary-card">
               <div className="summary-icon small">
-                <ShoppingBasket size={24} />
+                <ShoppingBasket size={24} aria-hidden="true" />
               </div>
               <div className="summary-content">
                 <h3>Petit Panier</h3>
@@ -210,7 +210,7 @@ export default function WeeklyBasketPublicPage() {
 
             <div className="summary-card">
               <div className="summary-icon large">
-                <ShoppingBasket size={32} />
+                <ShoppingBasket size={32} aria-hidden="true" />
               </div>
               <div className="summary-content">
                 <h3>Grand Panier</h3>
@@ -236,7 +236,7 @@ export default function WeeklyBasketPublicPage() {
               <div key={producerName} className="producer-section">
                 <div className="producer-header">
                   <div className="producer-icon">
-                    <Leaf size={24} />
+                    <Leaf size={24} aria-hidden="true" />
                   </div>
                   <div className="producer-info">
                     <h3>{producerName}</h3>
@@ -265,7 +265,7 @@ export default function WeeklyBasketPublicPage() {
               <div className="producer-section">
                 <div className="producer-header">
                   <div className="producer-icon">
-                    <Leaf size={24} />
+                    <Leaf size={24} aria-hidden="true" />
                   </div>
                   <div className="producer-info">
                     <h3>Autres produits</h3>
@@ -275,7 +275,7 @@ export default function WeeklyBasketPublicPage() {
                 <ul className="products-list">
                   {freeItems.map((item) => (
                     <li key={item.id} className="product-item">
-                      <Leaf size={16} />
+                      <Leaf size={16} aria-hidden="true" />
                       <span>{item.customProductName}</span>
                     </li>
                   ))}
@@ -304,11 +304,11 @@ export default function WeeklyBasketPublicPage() {
                     <h3>{recipe.title}</h3>
                     <div className="recipe-meta">
                       <span className="meta-item">
-                        <Clock size={16} />
+                        <Clock size={16} aria-hidden="true" />
                         {recipe.readyInMinutes} min
                       </span>
                       <span className="meta-item">
-                        <Users size={16} />
+                        <Users size={16} aria-hidden="true" />
                         {recipe.servings} pers.
                       </span>
                     </div>
@@ -346,7 +346,7 @@ export default function WeeklyBasketPublicPage() {
 
                 <form onSubmit={handleManualSearch} className="search-form">
                   <div className="search-input-wrapper">
-                    <Search size={20} />
+                    <Search size={20} aria-hidden="true" />
                     <input
                       type="text"
                       placeholder={
@@ -366,7 +366,7 @@ export default function WeeklyBasketPublicPage() {
 
                 {searchMode === 'ingredients' && (
                   <p className="search-hint">
-                    <Lightbulb size={16} />
+                    <Lightbulb size={16} aria-hidden="true" />
                     <span>Séparez les ingrédients par des virgules</span>
                   </p>
                 )}

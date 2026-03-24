@@ -58,7 +58,7 @@ export default async function HomePage() {
           </p>
           <div className="hero-actions">
             <Link href="/nos-abonnements" className="btn btn-primary btn-lg">
-              <ShoppingBasket size={20} />
+              <ShoppingBasket size={20} aria-hidden="true" />
               Découvrir nos abonnements
             </Link>
             <Link href="/panier-semaine" className="btn btn-primary btn-lg">
@@ -75,7 +75,7 @@ export default async function HomePage() {
             <div className="current-basket-preview-card">
               <div className="current-basket-preview-header">
                 <div className="current-basket-preview-badge">
-                  <ShoppingBasket size={18} />
+                  <ShoppingBasket size={18} aria-hidden="true" />
                   <span>Panier de la semaine</span>
                 </div>
                 <h2>Semaine {currentBasket.weekNumber} · {currentBasket.year}</h2>
@@ -101,7 +101,7 @@ export default async function HomePage() {
               </ul>
               <Link href="/panier-semaine" className="btn btn-primary">
                 Voir la composition complète
-                <ArrowRight size={16} />
+                <ArrowRight size={16} aria-hidden="true" />
               </Link>
             </div>
           </div>
@@ -112,7 +112,7 @@ export default async function HomePage() {
       <section className="solidarity-section">
         <div className="container">
           <div className="solidarity-badge">
-            <Heart size={24} />
+            <Heart size={24} aria-hidden="true" />
             <span>AMAP Solidaire</span>
           </div>
           <h2>Une AMAP accessible à tous</h2>
@@ -136,7 +136,7 @@ export default async function HomePage() {
           <div className="values-grid">
             <div className="value-card">
               <div className="value-icon">
-                <Leaf size={32} />
+                <Leaf size={32} aria-hidden="true" />
               </div>
               <h3>Agriculture biologique</h3>
               <p>
@@ -147,7 +147,7 @@ export default async function HomePage() {
 
             <div className="value-card">
               <div className="value-icon">
-                <Users size={32} />
+                <Users size={32} aria-hidden="true" />
               </div>
               <h3>Circuit court</h3>
               <p>
@@ -158,7 +158,7 @@ export default async function HomePage() {
 
             <div className="value-card">
               <div className="value-icon">
-                <Heart size={32} />
+                <Heart size={32} aria-hidden="true" />
               </div>
               <h3>Solidarité</h3>
               <p>
@@ -206,7 +206,7 @@ export default async function HomePage() {
 
           <div className="cta-center">
             <Link href="/nos-abonnements" className="btn btn-primary btn-lg">
-              <ArrowRight size={20} />
+              <ArrowRight size={20} aria-hidden="true" />
               Je découvre les abonnements
             </Link>
           </div>
@@ -226,7 +226,7 @@ export default async function HomePage() {
               {producers.slice(0, 3).map(producer => (
                 <div key={producer.id} className="producer-preview-card">
                   <div className="producer-preview-icon">
-                    <Leaf size={24} />
+                    <Leaf size={24} aria-hidden="true" />
                   </div>
                   <h3>{producer.name}</h3>
                   {producer.specialty && (
@@ -255,7 +255,7 @@ export default async function HomePage() {
           <div className="location-cards">
             <div className="location-card">
               <div className="location-icon">
-                <MapPin size={28} />
+                <MapPin size={28} aria-hidden="true" />
               </div>
               <h3>Point de retrait</h3>
               <p>
@@ -274,7 +274,7 @@ export default async function HomePage() {
             </div>
             <div className="location-card">
               <div className="location-icon">
-                <Clock size={28} />
+                <Clock size={28} aria-hidden="true" />
               </div>
               <h3>Horaires de distribution</h3>
               <p>
@@ -299,7 +299,7 @@ export default async function HomePage() {
               pour vos produits bio et locaux.
             </p>
             <Link href="/devenir-producteur" className="btn btn-primary">
-              <Leaf size={20} />
+              <Leaf size={20} aria-hidden="true" />
               Candidater
             </Link>
           </div>

@@ -132,7 +132,7 @@ export default function BecomeProducerPage() {
         <div className="container">
           <div className="success-card">
             <div className="success-icon">
-              <CheckCircle size={64} />
+              <CheckCircle size={64} aria-hidden="true" />
             </div>
             <h1>Candidature envoyée !</h1>
             <p className="success-message">
@@ -189,7 +189,7 @@ export default function BecomeProducerPage() {
           <div className="benefits-grid">
             <div className="benefit-card">
               <div className="benefit-icon">
-                <TrendingUp size={32} />
+                <TrendingUp size={32} aria-hidden="true" />
               </div>
               <h3>Débouchés garantis</h3>
               <p>
@@ -200,7 +200,7 @@ export default function BecomeProducerPage() {
 
             <div className="benefit-card">
               <div className="benefit-icon">
-                <Heart size={32} />
+                <Heart size={32} aria-hidden="true" />
               </div>
               <h3>Prix justes</h3>
               <p>
@@ -211,7 +211,7 @@ export default function BecomeProducerPage() {
 
             <div className="benefit-card">
               <div className="benefit-icon">
-                <MapPin size={32} />
+                <MapPin size={32} aria-hidden="true" />
               </div>
               <h3>Circuit ultra-court</h3>
               <p>
@@ -222,7 +222,7 @@ export default function BecomeProducerPage() {
 
             <div className="benefit-card">
               <div className="benefit-icon">
-                <Package size={32} />
+                <Package size={32} aria-hidden="true" />
               </div>
               <h3>Planification facilitée</h3>
               <p>
@@ -242,7 +242,7 @@ export default function BecomeProducerPage() {
           <div className="criteria-list">
             <div className="criteria-item">
               <div className="criteria-icon">
-                <Sprout size={24} />
+                <Sprout size={24} aria-hidden="true" />
               </div>
               <div className="criteria-content">
                 <h3>Agriculture biologique</h3>
@@ -255,7 +255,7 @@ export default function BecomeProducerPage() {
 
             <div className="criteria-item">
               <div className="criteria-icon">
-                <MapPin size={24} />
+                <MapPin size={24} aria-hidden="true" />
               </div>
               <div className="criteria-content">
                 <h3>Localisation</h3>
@@ -268,7 +268,7 @@ export default function BecomeProducerPage() {
 
             <div className="criteria-item">
               <div className="criteria-icon">
-                <Package size={24} />
+                <Package size={24} aria-hidden="true" />
               </div>
               <div className="criteria-content">
                 <h3>Production de saison</h3>
@@ -281,7 +281,7 @@ export default function BecomeProducerPage() {
 
             <div className="criteria-item">
               <div className="criteria-icon">
-                <Heart size={24} />
+                <Heart size={24} aria-hidden="true" />
               </div>
               <div className="criteria-content">
                 <h3>Engagement</h3>
@@ -300,7 +300,7 @@ export default function BecomeProducerPage() {
         <div className="container">
           <div className="testimonial-card">
             <div className="testimonial-icon">
-              <Sprout size={48} />
+              <Sprout size={48} aria-hidden="true" />
             </div>
             <blockquote>
               "Rejoindre Aux P'tits Pois a changé ma façon de travailler. Je sais exactement 
@@ -330,7 +330,7 @@ export default function BecomeProducerPage() {
             {/* Informations personnelles */}
             <div className="form-section-card">
               <h3>
-                <Mail size={20} />
+                <Mail size={20} aria-hidden="true" />
                 Vos coordonnées
               </h3>
 
@@ -407,7 +407,7 @@ export default function BecomeProducerPage() {
             {/* Exploitation */}
             <div className="form-section-card">
               <h3>
-                <Sprout size={20} />
+                <Sprout size={20} aria-hidden="true" />
                 Votre exploitation
               </h3>
 
@@ -502,7 +502,7 @@ export default function BecomeProducerPage() {
             {/* Production */}
             <div className="form-section-card">
               <h3>
-                <Package size={20} />
+                <Package size={20} aria-hidden="true" />
                 Votre production
               </h3>
 
@@ -553,7 +553,7 @@ export default function BecomeProducerPage() {
             {/* Message */}
             <div className="form-section-card">
               <h3>
-                <MessageSquare size={20} />
+                <MessageSquare size={20} aria-hidden="true" />
                 Parlez-nous de vous
               </h3>
 

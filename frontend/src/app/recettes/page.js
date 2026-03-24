@@ -49,7 +49,7 @@ export default function RecipesPage() {
                 <div className="container">
                     <form onSubmit={handleSearch} className="search-form">
                         <div className="search-input-wrapper">
-                            <Search size={20} />
+                            <Search size={20} aria-hidden="true" />
                             <input
                                 type="text"
                                 placeholder="Rechercher une recette (ex: soupe de légumes)..."
@@ -87,12 +87,12 @@ export default function RecipesPage() {
                 <div className="container">
                     {loading ? (
                         <div className="loading-state">
-                            <ChefHat size={48} />
+                            <ChefHat size={48} aria-hidden="true" />
                             <p>Recherche de recettes en cours...</p>
                         </div>
                     ) : recipes.length === 0 ? (
                         <div className="empty-state">
-                            <ChefHat size={64} />
+                            <ChefHat size={64} aria-hidden="true" />
                             <h3>Aucune recette trouvée</h3>
                             <p>Essayez avec d'autres termes de recherche</p>
                         </div>
@@ -110,13 +110,13 @@ export default function RecipesPage() {
                                             <div className="recipe-meta">
                                                 {recipe.readyInMinutes && (
                                                     <span className="meta-item">
-                                                        <Clock size={16} />
+                                                        <Clock size={16} aria-hidden="true" />
                                                         {recipe.readyInMinutes} min
                                                     </span>
                                                 )}
                                                 {recipe.servings && (
                                                     <span className="meta-item">
-                                                        <Users size={16} />
+                                                        <Users size={16} aria-hidden="true" />
                                                         {recipe.servings} pers.
                                                     </span>
                                                 )}

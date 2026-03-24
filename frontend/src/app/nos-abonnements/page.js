@@ -114,7 +114,7 @@ export default function SubscriptionsPage() {
       <section className="solidarity-info">
         <div className="container">
           <div className="solidarity-banner">
-            <Heart size={24} />
+            <Heart size={24} aria-hidden="true" />
             <div>
               <strong>AMAP Solidaire</strong>
               <p>
@@ -137,7 +137,7 @@ export default function SubscriptionsPage() {
                 className={`size-button ${selectedSize === 'SMALL' ? 'active' : ''}`}
                 onClick={() => setSelectedSize('SMALL')}
               >
-                <ShoppingBasket size={24} />
+                <ShoppingBasket size={24} aria-hidden="true" />
                 <div>
                   <strong>Petit Panier</strong>
                   <span>2 à 4 kg</span>
@@ -148,7 +148,7 @@ export default function SubscriptionsPage() {
                 className={`size-button ${selectedSize === 'LARGE' ? 'active' : ''}`}
                 onClick={() => setSelectedSize('LARGE')}
               >
-                <ShoppingBasket size={32} />
+                <ShoppingBasket size={32} aria-hidden="true" />
                 <div>
                   <strong>Grand Panier</strong>
                   <span>6 à 8 kg</span>
@@ -190,7 +190,7 @@ export default function SubscriptionsPage() {
                   </div>
                   <div className="price-item solidarity">
                     <span className="price-label">
-                      <Heart size={16} />
+                      <Heart size={16} aria-hidden="true" />
                       Tarif solidaire (20%)
                     </span>
                     <div className="price-value">
@@ -203,7 +203,7 @@ export default function SubscriptionsPage() {
                 <ul className="subscription-features">
                   {sub.features.map((feature, index) => (
                     <li key={index}>
-                      <Check size={20} />
+                      <Check size={20} aria-hidden="true" />
                       <span>{feature}</span>
                     </li>
                   ))}
@@ -234,13 +234,13 @@ export default function SubscriptionsPage() {
           
           <div className="info-grid">
             <div className="info-card">
-              <div className="info-card-icon"><Calendar size={28} /></div>
+              <div className="info-card-icon"><Calendar size={28} aria-hidden="true" /></div>
               <h3>Distribution</h3>
               <p>
                 Chaque <strong>mercredi</strong> de <strong>18h15 à 19h15</strong>
               </p>
               <p className="info-card-address">
-                <MapPin size={16} />
+                <MapPin size={16} aria-hidden="true" />
                 <span>
                   Paroisse Saint François de Sales de Clamart<br />
                   340 Avenue du Général de Gaulle<br />
@@ -250,7 +250,7 @@ export default function SubscriptionsPage() {
             </div>
 
             <div className="info-card">
-              <div className="info-card-icon"><ShoppingBasket size={28} /></div>
+              <div className="info-card-icon"><ShoppingBasket size={28} aria-hidden="true" /></div>
               <h3>Composition</h3>
               <p>
                 Vous composez vous-même votre panier parmi les légumes disponibles 
@@ -259,7 +259,7 @@ export default function SubscriptionsPage() {
             </div>
 
             <div className="info-card">
-              <div className="info-card-icon"><CreditCard size={28} /></div>
+              <div className="info-card-icon"><CreditCard size={28} aria-hidden="true" /></div>
               <h3>Paiement</h3>
               <p>
                 Paiement uniquement par <strong>chèque</strong>. Nous vous recontactons

@@ -152,7 +152,7 @@ export default function ContactPage() {
             <h2>Informations de contact</h2>
 
             <div className="info-card">
-              <div className="info-icon"><Mail size={24} /></div>
+              <div className="info-icon"><Mail size={24} aria-hidden="true" /></div>
               <div className="info-content">
                 <h3>Email</h3>
                 <a href="mailto:auxptitspois@gmail.com">auxptitspois@gmail.com</a>
@@ -160,7 +160,7 @@ export default function ContactPage() {
             </div>
 
             <div className="info-card">
-              <div className="info-icon"><MapPin size={24} /></div>
+              <div className="info-icon"><MapPin size={24} aria-hidden="true" /></div>
               <div className="info-content">
                 <h3>Adresse</h3>
                 <p>
@@ -172,7 +172,7 @@ export default function ContactPage() {
             </div>
 
             <div className="info-card">
-              <div className="info-icon"><Clock size={24} /></div>
+              <div className="info-icon"><Clock size={24} aria-hidden="true" /></div>
               <div className="info-content">
                 <h3>Horaires de distribution</h3>
                 <p>
@@ -183,7 +183,7 @@ export default function ContactPage() {
             </div>
 
             <div className="info-card">
-              <div className="info-icon"><Leaf size={24} /></div>
+              <div className="info-icon"><Leaf size={24} aria-hidden="true" /></div>
               <div className="info-content">
                 <h3>Suivez-nous</h3>
                 <div className="social-links">

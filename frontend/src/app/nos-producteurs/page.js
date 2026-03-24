@@ -76,7 +76,7 @@ function ProducersPage() {
         <div className="container">
           <div className="intro-card">
             <div className="intro-icon">
-              <Leaf size={48} />
+              <Leaf size={48} aria-hidden="true" />
             </div>
             <div className="intro-content">
               <h2>Des producteurs engagés</h2>
@@ -95,7 +95,7 @@ function ProducersPage() {
         <div className="container">
           {producers.length === 0 ? (
             <div className="empty-state">
-              <Sprout size={64} />
+              <Sprout size={64} aria-hidden="true" />
               <h3>Aucun producteur</h3>
               <p>La liste des producteurs sera bientôt disponible.</p>
             </div>
@@ -127,7 +127,7 @@ function ProducersPage() {
                     )}
                     {producer.isBio && (
                       <div className="bio-badge">
-                        <Leaf size={16} />
+                        <Leaf size={16} aria-hidden="true" />
                         <span>Bio</span>
                       </div>
                     )}
@@ -145,7 +145,7 @@ function ProducersPage() {
                     {/* Localisation */}
                     {(producer.city || producer.postalCode) && (
                       <div className="producer-location">
-                        <MapPin size={16} />
+                        <MapPin size={16} aria-hidden="true" />
                         <span>
                           {producer.city}
                           {producer.postalCode && ` (${producer.postalCode})`}
@@ -164,7 +164,7 @@ function ProducersPage() {
                     {producer.products && producer.products.length > 0 && (
                       <div className="producer-products">
                         <div className="products-label">
-                          <Package size={16} />
+                          <Package size={16} aria-hidden="true" />
                           <span>Productions :</span>
                         </div>
                         <div className="products-tags">
@@ -190,7 +190,7 @@ function ProducersPage() {
                           className="contact-link"
                           title="Envoyer un email"
                         >
-                          <Mail size={16} />
+                          <Mail size={16} aria-hidden="true" />
                           <span>Contact</span>
                         </a>
                       )}
@@ -200,7 +200,7 @@ function ProducersPage() {
                           className="contact-link"
                           title="Appeler"
                         >
-                          <Phone size={16} />
+                          <Phone size={16} aria-hidden="true" />
                           <span>{producer.phone}</span>
                         </a>
                       )}
@@ -212,7 +212,7 @@ function ProducersPage() {
                           className="contact-link"
                           title="Visiter le site web"
                         >
-                          <ExternalLink size={16} />
+                          <ExternalLink size={16} aria-hidden="true" />
                           <span>Site web</span>
                         </a>
                       )}
@@ -231,7 +231,7 @@ function ProducersPage() {
         <div className="container">
           <div className="cta-card">
             <div className="cta-icon">
-              <Sprout size={48} />
+              <Sprout size={48} aria-hidden="true" />
             </div>
             <div className="cta-content">
               <h2>Vous êtes producteur local ?</h2>

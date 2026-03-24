@@ -171,7 +171,7 @@ function SubscriptionRequestPage() {
         <div className="container">
           <div className="success-card">
             <div className="success-icon">
-              <CheckCircle size={64} />
+              <CheckCircle size={64} aria-hidden="true" />
             </div>
             <h1>Demande envoyée avec succès !</h1>
             <p className="success-message">
@@ -229,7 +229,7 @@ function SubscriptionRequestPage() {
               {/* Type d'abonnement */}
               <div className="form-section">
                 <h2>
-                  <ShoppingBasket size={24} />
+                  <ShoppingBasket size={24} aria-hidden="true" />
                   Votre abonnement
                 </h2>
 
@@ -284,7 +284,7 @@ function SubscriptionRequestPage() {
               {user && (
                 <div className="form-section user-info-section">
                   <h2>
-                    <CheckCircle size={24} />
+                    <CheckCircle size={24} aria-hidden="true" />
                     Vos informations
                   </h2>
                   <div className="user-info-display">
@@ -302,7 +302,7 @@ function SubscriptionRequestPage() {
               {/* Message */}
               <div className="form-section">
                 <h2>
-                  <MessageSquare size={24} />
+                  <MessageSquare size={24} aria-hidden="true" />
                   Message (optionnel)
                 </h2>
 
@@ -370,7 +370,7 @@ function SubscriptionRequestPage() {
               {formData.pricingType === 'SOLIDARITY' && (
                 <div className="summary-item solidarity">
                   <span className="summary-label">
-                    <Heart size={16} />
+                    <Heart size={16} aria-hidden="true" />
                     Tarif solidaire
                   </span>
                   <span className="summary-value price">{currentSubscription.priceSolidarity}€</span>

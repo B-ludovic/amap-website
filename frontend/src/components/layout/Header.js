@@ -148,7 +148,7 @@ function Header() {
                   Bonjour {user.firstName}
                 </Link>
                 <button onClick={handleLogout} className="btn btn-outline btn-sm" aria-label="Se déconnecter">
-                  <LogOut size={18} />
+                  <LogOut size={18} aria-hidden="true" />
                 </button>
               </>
             ) : (
@@ -221,54 +221,54 @@ function Header() {
                   <div className="mobile-admin-section">
                     <div className="mobile-admin-title">Administration</div>
                     <Link href="/admin" className="mobile-nav-link" onClick={closeMenu}>
-                      <LayoutDashboard size={18} />
+                      <LayoutDashboard size={18} aria-hidden="true" />
                       Dashboard
                     </Link>
                     <Link href="/admin/utilisateurs" className="mobile-nav-link" onClick={closeMenu}>
-                      <Users size={18} />
+                      <Users size={18} aria-hidden="true" />
                       Utilisateurs
                     </Link>
                     <Link href="/admin/demandes-abonnements" className="mobile-nav-link" onClick={closeMenu}>
-                      <UserPlus size={18} />
+                      <UserPlus size={18} aria-hidden="true" />
                       Demandes abonnements
                       {notifs.requests > 0 && <span className="mobile-nav-badge" aria-label={`${notifs.requests} demande(s) en attente`}>{notifs.requests}</span>}
                     </Link>
                     <Link href="/admin/abonnements" className="mobile-nav-link" onClick={closeMenu}>
-                      <CreditCard size={18} />
+                      <CreditCard size={18} aria-hidden="true" />
                       Abonnements
                     </Link>
                     <Link href="/admin/demandes-producteurs" className="mobile-nav-link" onClick={closeMenu}>
-                      <Sprout size={18} />
+                      <Sprout size={18} aria-hidden="true" />
                       Demandes producteurs
                       {notifs.producers > 0 && <span className="mobile-nav-badge" aria-label={`${notifs.producers} demande(s) producteur en attente`}>{notifs.producers}</span>}
                     </Link>
                     <Link href="/admin/producteurs" className="mobile-nav-link" onClick={closeMenu}>
-                      <Tractor size={18} />
+                      <Tractor size={18} aria-hidden="true" />
                       Producteurs
                     </Link>
                     <Link href="/admin/produits" className="mobile-nav-link" onClick={closeMenu}>
-                      <Package size={18} />
+                      <Package size={18} aria-hidden="true" />
                       Produits
                     </Link>
                     <Link href="/admin/panier-hebdomadaire" className="mobile-nav-link" onClick={closeMenu}>
-                      <ShoppingBasket size={18} />
+                      <ShoppingBasket size={18} aria-hidden="true" />
                       Panier hebdomadaire
                     </Link>
                     <Link href="/admin/distribution" className="mobile-nav-link" onClick={closeMenu}>
-                      <Calendar size={18} />
+                      <Calendar size={18} aria-hidden="true" />
                       Distribution
                     </Link>
                     <Link href="/admin/permanences" className="mobile-nav-link" onClick={closeMenu}>
-                      <UserCog size={18} />
+                      <UserCog size={18} aria-hidden="true" />
                       Permanences
                     </Link>
                     <Link href="/admin/communication" className="mobile-nav-link" onClick={closeMenu}>
-                      <Mail size={18} />
+                      <Mail size={18} aria-hidden="true" />
                       Communication
                       {notifs.messages > 0 && <span className="mobile-nav-badge" aria-label={`${notifs.messages} message(s) non lu(s)`}>{notifs.messages}</span>}
                     </Link>
                     <Link href="/admin/parametres" className="mobile-nav-link" onClick={closeMenu}>
-                      <Settings size={18} />
+                      <Settings size={18} aria-hidden="true" />
                       Paramètres
                     </Link>
                     <div className="mobile-nav-divider"></div>
@@ -278,7 +278,7 @@ function Header() {
                   Mon Compte
                 </Link>
                 <button onClick={() => { closeMenu(); handleLogout(); }} className="btn btn-outline">
-                  <LogOut size={18} />
+                  <LogOut size={18} aria-hidden="true" />
                   Se déconnecter
                 </button>
               </>

@@ -41,7 +41,7 @@ export default function RecipeDetailPage() {
       <div className="recipe-detail-page">
         <div className="container">
           <div className="loading-state">
-            <ChefHat size={48} />
+            <ChefHat size={48} aria-hidden="true" />
             <p>Chargement de la recette...</p>
           </div>
         </div>
@@ -54,7 +54,7 @@ export default function RecipeDetailPage() {
       <div className="recipe-detail-page">
         <div className="container">
           <div className="empty-state">
-            <ChefHat size={64} />
+            <ChefHat size={64} aria-hidden="true" />
             <h2>Recette introuvable</h2>
             <p>Cette recette n'existe pas ou n'est plus disponible</p>
             <Link href="/recettes" className="btn btn-primary">
@@ -83,7 +83,7 @@ export default function RecipeDetailPage() {
       <section className="recipe-hero">
         <div className="container">
           <button onClick={() => router.back()} className="back-button">
-            <ArrowLeft size={20} />
+            <ArrowLeft size={20} aria-hidden="true" />
             Retour
           </button>
 
@@ -92,7 +92,7 @@ export default function RecipeDetailPage() {
               <img src={recipe.image} alt={recipe.title} />
               {recipe.vegetarian && (
                 <div className="badge-vegetarian">
-                  <Leaf size={16} />
+                  <Leaf size={16} aria-hidden="true" />
                   Végétarien
                 </div>
               )}
@@ -104,7 +104,7 @@ export default function RecipeDetailPage() {
               <div className="recipe-meta-main">
                 {recipe.readyInMinutes && (
                   <div className="meta-card">
-                    <Clock size={24} />
+                    <Clock size={24} aria-hidden="true" />
                     <div>
                       <span className="meta-value">{recipe.readyInMinutes} min</span>
                       <span className="meta-label">Temps total</span>
@@ -114,7 +114,7 @@ export default function RecipeDetailPage() {
 
                 {recipe.servings && (
                   <div className="meta-card">
-                    <Users size={24} />
+                    <Users size={24} aria-hidden="true" />
                     <div>
                       <span className="meta-value">{recipe.servings}</span>
                       <span className="meta-label">Personnes</span>
@@ -124,7 +124,7 @@ export default function RecipeDetailPage() {
 
                 {recipe.pricePerServing && (
                   <div className="meta-card">
-                    <ChefHat size={24} />
+                    <ChefHat size={24} aria-hidden="true" />
                     <div>
                       <span className="meta-value">
                         {(recipe.pricePerServing / 100).toFixed(2)}€
@@ -181,13 +181,13 @@ export default function RecipeDetailPage() {
                   <div className="badges-list">
                     {recipe.vegetarian && (
                       <span className="diet-badge">
-                        <Leaf size={14} />
+                        <Leaf size={14} aria-hidden="true" />
                         Végétarien
                       </span>
                     )}
                     {recipe.vegan && (
                       <span className="diet-badge">
-                        <Leaf size={14} />
+                        <Leaf size={14} aria-hidden="true" />
                         Vegan
                       </span>
                     )}

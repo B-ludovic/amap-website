@@ -66,7 +66,7 @@ export default function MentionsLegalesPage() {
 
         <section id="cookies" className="legal-section">
           <h2 className="legal-section-title-icon">
-            <Cookie size={28} />
+            <Cookie size={28} aria-hidden="true" />
             Politique de cookies
           </h2>
           
@@ -104,7 +104,7 @@ export default function MentionsLegalesPage() {
             onClick={handleOpenCookiePanel}
             className="btn btn-primary btn-cookies"
           >
-            <Settings size={20} />
+            <Settings size={20} aria-hidden="true" />
             Gérer mes cookies
           </button>
 
