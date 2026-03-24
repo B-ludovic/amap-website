@@ -37,7 +37,7 @@ Ce projet est un site complet permettant de gérer une AMAP de A à Z :
 - **CSS natif** - Styling avec variables CSS et responsive design
 - **Tiptap** - Éditeur rich-text (gras, italique, titres, listes, séparateur)
 - **isomorphic-dompurify** - Sanitisation XSS du contenu HTML externe
-- **Tarteaucitron.js** - Gestion des cookies conforme RGPD
+- **Orejime** - Gestion des cookies conforme RGPD
 
 ### Backend
 - **Node.js + Express** - Serveur API REST
@@ -185,6 +185,7 @@ BREVO_SMTP_KEY=...         # clé SMTP Brevo
 **Sur Vercel (frontend) :**
 ```
 NEXT_PUBLIC_API_URL=https://api.auxptitspois.fr
+NEXT_PUBLIC_GA_ID=...          # ID Google Analytics (ex: G-XXXXXXXXXX)
 ```
 
 > Sur Render en version gratuite, le backend se met en veille après 15 min d'inactivité. Première requête un peu lente, c'est normal.
@@ -221,7 +222,7 @@ NEXT_PUBLIC_API_URL=https://api.auxptitspois.fr
 - Design responsive (desktop, tablet, mobile) avec thèmes saisonniers dynamiques
 - Authentification JWT + bcrypt, protection des routes par rôle (MEMBER, VOLUNTEER, ADMIN)
 - Rate limiting global, headers sécurisés (Helmet.js), sanitisation XSS (DOMPurify)
-- Gestion des cookies conforme RGPD (Tarteaucitron.js)
+- Gestion des cookies conforme RGPD (Orejime)
 - Purge automatique des données : comptes supprimés (90j), inscriptions non vérifiées (30j)
 
 ## 📊 Base de données
@@ -257,12 +258,13 @@ Les couleurs et styles sont centralisés dans `frontend/src/styles/variables.css
 - `npx prisma studio` - Interface graphique pour la DB
 - `npx prisma migrate dev` - Crée une nouvelle migration
 - `node scripts/create-admin.js` - Crée le premier compte admin en production
+- `node prisma/migrate-theme-colors.js` - Met à jour les couleurs de thème en base (WCAG AA)
 
 ### Frontend
 - `npm run dev` - Lance Next.js en développement
 - `npm run build` - Build de production
 - `npm start` - Serveur de production
-- `npm run postinstall` - Copie les fichiers Tarteaucitron (automatique après npm install)
+- `npm run postinstall` - Copie les fichiers Orejime dans public/ (automatique après npm install)
 
 ## 🐛 Débogage
 
