@@ -202,3 +202,44 @@
 .btn-full {
   width: 100%;
 }
+
+/* Consentement RGPD */
+.checkbox-group {
+  display: flex;
+  flex-direction: row !important; /* Force l'affichage horizontal, annule les règles du formulaire parent */
+  align-items: flex-start;
+  gap: 12px; /* Espace fixe au cas où la variable ne passe pas */
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  background-color: var(--background-color);
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: var(--border-radius-md);
+  margin-top: var(--spacing-xl);
+  width: 100%;
+}
+
+.checkbox-group input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0; /* Empêche la case de s'écraser */
+  margin: 0;
+  margin-top: 3px; /* Aligne visuellement la case avec la première ligne de texte */
+  cursor: pointer;
+  accent-color: var(--primary-color);
+}
+
+.checkbox-group label {
+  font-size: var(--font-size-sm, 14px);
+  line-height: 1.5;
+  color: var(--text-secondary);
+  cursor: pointer;
+  margin: 0 !important; /* Retire les marges par défaut des labels de formulaire */
+  text-align: left;
+  display: block; /* S'assure que le label prend l'espace restant */
+}
+
+.checkbox-group label a {
+  color: var(--primary-color);
+  text-decoration: underline;
+  font-weight: 500;
+}

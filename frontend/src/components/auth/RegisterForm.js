@@ -14,6 +14,7 @@ function RegisterForm({ onSubmit, loading }) {
     street: '',
     postalCode: '',
     city: '',
+    rgpdConsent: false,
   });
 
   const [errors, setErrors] = useState({});
@@ -21,10 +22,10 @@ function RegisterForm({ onSubmit, loading }) {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
     setFormData({
       ...formData,
-      [name]: value,
+      [name]: type === 'checkbox' ? checked : value,
     });
     // Effacer l'erreur du champ modifié
     if (errors[name]) {
@@ -84,6 +85,10 @@ function RegisterForm({ onSubmit, loading }) {
       newErrors.city = 'Ville requise';
     }
 
+    if (!formData.rgpdConsent) {
+      newErrors.rgpdConsent = 'Vous devez accepter la politique de confidentialité';
+    }
+
     return newErrors;
   };
 
@@ -97,7 +102,7 @@ function RegisterForm({ onSubmit, loading }) {
     }
 
     // Concaténer l'adresse et enlever les champs séparés
-    const { confirmPassword, street, postalCode, city, ...rest } = formData;
+    const { confirmPassword, street, postalCode, city, rgpdConsent, ...rest } = formData;
     onSubmit({ ...rest, address: `${street}, ${postalCode} ${city}` });
   };
 
@@ -321,6 +326,26 @@ function RegisterForm({ onSubmit, loading }) {
           <span className="form-error">{errors.confirmPassword}</span>
         )}
       </div>
+
+      <div className="checkbox-group">
+        <input
+          type="checkbox"
+          id="rgpdConsent"
+          name="rgpdConsent"
+          checked={formData.rgpdConsent}
+          onChange={handleChange}
+          disabled={loading}
+        />
+        <label htmlFor="rgpdConsent">
+          En créant mon compte, j&apos;accepte que l&apos;association Aux P&apos;tits Pois collecte et traite mes données
+          personnelles pour la gestion de mon abonnement, l&apos;organisation des distributions et les communications
+          de l&apos;AMAP. Pour en savoir plus sur la gestion de vos données et vos droits, consultez nos{' '}
+          <a href="/mentions-legales" target="_blank" rel="noopener noreferrer">Mentions Légales</a>.
+        </label>
+      </div>
+      {errors.rgpdConsent && (
+        <span className="form-error">{errors.rgpdConsent}</span>
+      )}
 
       <button
         type="submit"
