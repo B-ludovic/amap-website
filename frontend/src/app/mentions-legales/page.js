@@ -1,6 +1,6 @@
 'use client';
 
-import { Cookie, ShieldCheck, BarChart3, CreditCard, Settings } from 'lucide-react';
+import { Cookie, Settings } from 'lucide-react';
 import '../../styles/public/legal.css'
 
 export default function MentionsLegalesPage() {
@@ -44,8 +44,8 @@ export default function MentionsLegalesPage() {
         </section>
 
         <section id="cookies" className="legal-section">
-          <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Cookie size={28} style={{ color: 'var(--primary-color)' }} />
+          <h2 className="legal-section-title-icon">
+            <Cookie size={28} />
             Politique de cookies
           </h2>
           
@@ -84,10 +84,9 @@ export default function MentionsLegalesPage() {
             Vous pouvez à tout moment modifier vos préférences en cliquant sur le bouton ci-dessous :
           </p>
           
-          <button 
+          <button
             onClick={handleOpenCookiePanel}
             className="btn btn-primary btn-cookies"
-            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}
           >
             <Settings size={20} />
             Gérer mes cookies

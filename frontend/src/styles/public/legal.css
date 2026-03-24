@@ -98,6 +98,22 @@
 /* Bouton cookies */
 .btn-cookies {
   margin-top: var(--spacing-lg);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+/* Titre de section avec icône */
+.legal-section-title-icon {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.legal-section-title-icon svg {
+  color: var(--primary-color);
+  flex-shrink: 0;
 }
 
 /* Section cookies spécifique */
