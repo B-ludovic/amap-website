@@ -1,3 +1,4 @@
+import DOMPurify from 'isomorphic-dompurify';
 import { prisma } from '../config/database.js';
 import { asyncHandler } from '../middlewares/error.middleware.js';
 import emailService from '../services/email.service.js';
@@ -104,7 +105,7 @@ const createNewsletter = asyncHandler(async (req, res) => {
     const newsletter = await prisma.newsletter.create({
         data: {
             subject,
-            content,
+            content: DOMPurify.sanitize(content),
             type: type || 'GENERAL',
             target: target || 'ALL',
             createdBy
@@ -146,7 +147,7 @@ const updateNewsletter = asyncHandler(async (req, res) => {
         where: { id },
         data: {
             subject,
-            content,
+            content: content ? DOMPurify.sanitize(content) : undefined,
             type,
             target
         },
