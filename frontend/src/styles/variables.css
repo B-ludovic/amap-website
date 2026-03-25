@@ -112,6 +112,7 @@
 
 [data-theme="spring"] {
   --primary-color: #a7f3d0;
+  --primary-hover: #065f46;
   --secondary-color: #fcd34d;
   --accent-color: #a85508;
   --background-color: #fef3f9;
@@ -122,6 +123,7 @@
 
 [data-theme="summer"] {
   --primary-color: #fef08a;
+  --primary-hover: #78350f;
   --secondary-color: #fde047;
   --accent-color: #a85508;
   --background-color: #fffbeb;
@@ -132,6 +134,7 @@
 
 [data-theme="autumn"] {
   --primary-color: #fdba74;
+  --primary-hover: #7c2d12;
   --secondary-color: #fb923c;
   --accent-color: #b91c1c;
   --background-color: #fff7ed;
@@ -142,6 +145,7 @@
 
 [data-theme="winter"] {
   --primary-color: #a5b4fc;
+  --primary-hover: #3730a3;
   --secondary-color: #818cf8;
   --accent-color: #4338ca;
   --background-color: #eef2ff;
