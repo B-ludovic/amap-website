@@ -8,8 +8,6 @@ import {
   updateProduct,
   deleteProduct,
   getAllProducts,
-  getAllOrders,
-  updateOrderStatus,
   getStats,
   getAllUsers,
   changeUserRole,
@@ -48,10 +46,6 @@ router.get('/products', getAllProducts);
 router.post('/products', createProduct);
 router.put('/products/:id', updateProduct);
 router.delete('/products/:id', deleteProduct);
-
-// GESTION DES COMMANDES
-router.get('/orders', getAllOrders);
-router.put('/orders/:id/status', updateOrderStatus);
 
 // GESTION DES UTILISATEURS
 router.get('/users', getAllUsers);

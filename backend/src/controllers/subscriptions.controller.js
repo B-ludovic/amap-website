@@ -453,7 +453,7 @@ const cancelSubscription = asyncHandler(async (req, res) => {
     }
   });
 
-  // TODO: Envoyer email d'annulation
+  await emailService.sendSubscriptionCancellation(cancelled, cancelled.user);
 
   await logAudit(req, 'CANCEL_SUBSCRIPTION', 'IMPORTANT', { type: 'SUBSCRIPTION', id, label: subscription.subscriptionNumber });
 

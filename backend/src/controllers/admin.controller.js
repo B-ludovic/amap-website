@@ -456,119 +456,6 @@ const deleteBasketType = asyncHandler(async (req, res) => {
 });
 
 
-
-
-
-// RÉCUPÉRER TOUTES LES COMMANDES
-const getAllOrders = asyncHandler(async (req, res) => {
-  const { status, page = 1, limit = 20 } = req.query;
-  const parsedPage = Math.max(parseInt(page) || 1, 1);
-  const parsedLimit = Math.min(parseInt(limit) || 20, 100);
-
-  const skip = (parsedPage - 1) * parsedLimit;
-
-  const where = status ? { status } : {};
-
-  const [orders, total] = await Promise.all([
-    prisma.order.findMany({
-      where,
-      skip,
-      take: parsedLimit,
-      include: {
-        user: {
-          select: {
-            id: true,
-            email: true,
-            firstName: true,
-            lastName: true,
-            phone: true
-          }
-        },
-        orderItems: {
-          include: {
-            basketAvailability: {
-              include: {
-                basketType: true
-              }
-            }
-          }
-        },
-        pickupLocation: true,
-        payments: true
-      },
-      orderBy: {
-        createdAt: 'desc'
-      }
-    }),
-    prisma.order.count({ where })
-  ]);
-
-  res.json({
-    success: true,
-    data: {
-      orders,
-      pagination: {
-        total,
-        page: parsedPage,
-        limit: parsedLimit,
-        totalPages: Math.ceil(total / parsedLimit)
-      }
-    }
-  });
-});
-
-// CHANGER LE STATUT D'UNE COMMANDE 
-const updateOrderStatus = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const { status } = req.body;
-
-  const validStatuses = ['PENDING', 'PAID', 'PREPARING', 'READY', 'COMPLETED', 'CANCELLED', 'REFUNDED'];
-
-  if (!status || !validStatuses.includes(status)) {
-    throw new HttpBadRequestError(`Statut invalide. Valeurs autorisées : ${validStatuses.join(', ')}`);
-  }
-
-  const order = await prisma.order.findUnique({
-    where: { id }
-  });
-
-  if (!order) {
-    throw new HttpNotFoundError('Commande introuvable');
-  }
-
-  const updatedOrder = await prisma.order.update({
-    where: { id },
-    data: { status },
-    include: {
-      user: {
-        select: {
-          email: true,
-          firstName: true
-        }
-      },
-      orderItems: {
-        include: {
-          basketAvailability: {
-            include: {
-              basketType: true
-            }
-          }
-        }
-      }
-    }
-  });
-
-  // TODO: Envoyer un email selon le statut
-  // Si READY -> email "votre commande est prête"
-  // Si COMPLETED -> email "merci pour votre commande"
-
-  res.json({
-    success: true,
-    message: 'Statut de la commande mis à jour',
-    data: { order: updatedOrder }
-  });
-});
-
 // GESTION DES UTILISATEURS //
 
 // RÉCUPÉRER UN UTILISATEUR PAR EMAIL
@@ -1186,8 +1073,6 @@ export {
   updateProduct,
   deleteProduct,
   getAllProducts,
-  getAllOrders,
-  updateOrderStatus,
   getAllUsers,
   changeUserRole,
   deleteUser,
