@@ -207,6 +207,9 @@ NEXT_PUBLIC_GA_ID=...          # ID Google Analytics (ex: G-XXXXXXXXXX)
 - Fermetures collectives de l'AMAP avec newsletter automatique
 - Génération de contrats PDF pré-remplis (Puppeteer + Handlebars)
 - Création des paniers hebdomadaires avec calcul automatique
+- Notification email automatique aux abonnés actifs à la publication du panier (envoi groupé par batch)
+- Export CSV de la liste de distribution (compatible Excel, encodage UTF-8 BOM)
+- Gestion des candidatures producteurs avec emails d'acceptation/refus
 - Gestion des produits, permanences, points de retrait
 - Tableau de bord avec statistiques
 - Envoi de newsletters (rich-text Tiptap, envoi groupé, programmation, brouillons)
@@ -214,8 +217,11 @@ NEXT_PUBLIC_GA_ID=...          # ID Google Analytics (ex: G-XXXXXXXXXX)
 - Système de thèmes saisonniers (Printemps, Été, Automne, Hiver)
 
 ### Recettes & Cuisine
-- Intégration API TheMealDB avec traduction automatique en français
+- Intégration API TheMealDB avec traduction automatique en français (google-translate-api-x)
+- Dictionnaire de faux amis FR→EN pour les légumes courants (courgette→zucchini, etc.)
+- Priorité aux recettes françaises dans tous les résultats (search et suggestions panier)
 - Recherche par nom ou par ingrédients
+- Pilules légumes saisonnières cliquables (Printemps / Été / Automne / Hiver) avec icônes SVG OpenMoji
 - Pages dédiées avec liste et détail des recettes
 
 ### Design & Sécurité
@@ -224,6 +230,8 @@ NEXT_PUBLIC_GA_ID=...          # ID Google Analytics (ex: G-XXXXXXXXXX)
 - Rate limiting global, headers sécurisés (Helmet.js), sanitisation XSS (DOMPurify)
 - Gestion des cookies conforme RGPD (Orejime)
 - Purge automatique des données : comptes supprimés (90j), inscriptions non vérifiées (30j)
+- SEO : sitemap, robots.txt (noindex admin + blocage bots IA), schema FAQPage JSON-LD, lazy loading images
+- Emails transactionnels complets : permanences, désistements, abonnements, paniers, candidatures producteurs
 
 ## 📊 Base de données
 
@@ -284,7 +292,8 @@ Ce projet est développé pour une AMAP locale. Tous droits réservés.
 
 ## Crédits
 
-- **Icônes** : [Flaticon](https://www.flaticon.com)
+- **Icônes légumes** : [OpenMoji](https://openmoji.org) — licence [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
+- **Icônes UI** : [Lucide React](https://lucide.dev)
 
 ---
 
