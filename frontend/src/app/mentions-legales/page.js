@@ -118,18 +118,48 @@ export default function MentionsLegalesPage() {
         </section>
 
         <section className="legal-section">
+          <h2>Services tiers</h2>
+          <p>
+            Ce site fait appel à des services externes pour certaines fonctionnalités :
+          </p>
+          <ul className="legal-list">
+            <li>
+              <strong>TheMealDB</strong> (<a href="https://www.themealdb.com" target="_blank" rel="noopener noreferrer">themealdb.com</a>) —
+              Base de données de recettes de cuisine. Les recherches d'ingrédients sont transmises à ce service.
+              Aucune donnée personnelle n'est envoyée.
+            </li>
+            <li>
+              <strong>Google Translate</strong> — Utilisé côté serveur pour traduire automatiquement
+              les noms de recettes et d'ingrédients en français. Les termes de recherche peuvent transiter
+              par les serveurs de Google. Aucune donnée personnelle n'est transmise.
+            </li>
+            <li>
+              <strong>Brevo (anciennement Sendinblue)</strong> — Utilisé pour l'envoi des emails transactionnels
+              (confirmation d'abonnement, notifications, etc.). Votre adresse email est transmise à ce service
+              dans le cadre de l'exécution du contrat.
+            </li>
+          </ul>
+        </section>
+
+        <section className="legal-section">
           <h2>Propriété intellectuelle</h2>
           <p>
-            L'ensemble du contenu de ce site (textes, images, logos) est la propriété de l'association Aux P'tits Pois 
+            L'ensemble du contenu de ce site (textes, images, logos) est la propriété de l'association Aux P'tits Pois
             et est protégé par les lois sur la propriété intellectuelle.
+          </p>
+          <p>
+            Les icônes de légumes utilisées sur ce site sont issues du projet{' '}
+            <a href="https://openmoji.org" target="_blank" rel="noopener noreferrer">OpenMoji</a>,
+            publiées sous licence{' '}
+            <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener noreferrer">CC BY-SA 4.0</a>.
           </p>
         </section>
 
         <section className="legal-section">
           <h2>Données personnelles</h2>
           <p>
-            Les informations collectées sur ce site sont destinées uniquement à la gestion de votre abonnement et des distributions. 
-            Elles ne sont jamais transmises à des tiers.
+            Les informations collectées sur ce site sont destinées uniquement à la gestion de votre abonnement et des distributions.
+            En dehors des services tiers mentionnés ci-dessus (Brevo pour les emails), elles ne sont jamais transmises à des tiers.
           </p>
           <p>
             Conformément au RGPD, vous disposez d'un droit d'accès, de rectification et de suppression de vos données.
