@@ -30,6 +30,14 @@ export const ProductSchema = z.object({
 
 export const UpdateProductSchema = ProductSchema.partial();
 
+export const SubscriptionRequestSchema = z.object({
+  type:        z.enum(['ANNUAL', 'DISCOVERY'], { message: 'Type d\'abonnement invalide' }),
+  basketSize:  z.enum(['SMALL', 'LARGE'], { message: 'Taille de panier invalide' }),
+  pricingType: z.enum(['NORMAL', 'SOLIDARITY'], { message: 'Type de tarification invalide' }),
+  paymentType: z.enum(['1', '2', '4'], { message: 'Modalité de paiement invalide' }),
+  message:     z.string().max(1000, 'Message : 1000 caractères maximum').optional(),
+});
+
 export const BasketTypeSchema = z.object({
   name:        z.string().min(1, 'Nom requis').max(200),
   description: z.string().min(1, 'Description requise').max(2000),

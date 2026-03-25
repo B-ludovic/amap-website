@@ -2,8 +2,6 @@ import { prisma } from '../config/database.js';
 import { asyncHandler } from '../middlewares/error.middleware.js';
 import emailService from '../services/email.service.js';
 import contractService from '../services/contract.service.js';
-import bcrypt from 'bcryptjs';
-import crypto from 'crypto';
 import {
   HttpNotFoundError,
   HttpBadRequestError,
@@ -11,6 +9,7 @@ import {
   httpStatusCodes
 } from '../utils/httpErrors.js';
 import { logAudit } from '../services/audit.service.js';
+import { SubscriptionRequestSchema } from '../utils/validation.schemas.js';
 
 // SOUMETTRE UNE DEMANDE D'ABONNEMENT (UTILISATEUR CONNECTÉ)
 export const submitRequest = asyncHandler(async (req, res) => {
@@ -32,29 +31,8 @@ export const submitRequest = asyncHandler(async (req, res) => {
   }
 
   // Validation
-  if (!type || !basketSize || !pricingType) {
-    throw new HttpBadRequestError('Tous les champs obligatoires doivent être remplis');
-  }
-
-  if (!['ANNUAL', 'DISCOVERY'].includes(type)) {
-    throw new HttpBadRequestError('Type d\'abonnement invalide');
-  }
-
-  if (!['SMALL', 'LARGE'].includes(basketSize)) {
-    throw new HttpBadRequestError('Taille de panier invalide');
-  }
-
-  if (!['NORMAL', 'SOLIDARITY'].includes(pricingType)) {
-    throw new HttpBadRequestError('Type de tarification invalide');
-  }
-
-  if (!paymentType || !['1', '2', '4'].includes(paymentType)) {
-    throw new HttpBadRequestError('Modalité de paiement invalide ou non renseignée');
-  }
-
-  if (message && message.length > 1000) {
-    throw new HttpBadRequestError('Message : 1000 caractères maximum.');
-  }
+  const parsed = SubscriptionRequestSchema.safeParse({ type, basketSize, pricingType, paymentType, message });
+  if (!parsed.success) throw new HttpBadRequestError(parsed.error.errors[0].message);
 
   // Vérifier qu'il n'a pas déjà une demande en attente
   const existingRequest = await prisma.subscriptionRequest.findFirst({
