@@ -253,8 +253,8 @@ export default function SubscriptionsPage() {
               <div className="info-card-icon"><ShoppingBasket size={28} aria-hidden="true" /></div>
               <h3>Composition</h3>
               <p>
-                Vous composez vous-même votre panier parmi les légumes disponibles 
-                selon votre abonnement
+                Le panier est préparé chaque semaine par le producteur selon les légumes
+                de saison disponibles. Sa composition est publiée avant chaque distribution.
               </p>
             </div>
 
