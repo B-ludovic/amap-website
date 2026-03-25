@@ -742,6 +742,60 @@ class EmailService {
       return { success: false, error: error.message };
     }
   }
+
+  /* Permanence : Confirmation de désistement (adhérent) */
+  async sendShiftWithdrawal(shift, user) {
+    try {
+      const date = new Date(shift.distributionDate).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+      await transporter.sendMail({
+        from: EMAIL_FROM,
+        to: user.email,
+        subject: 'Désinscription confirmée - Aux P\'tits Pois',
+        html: `
+          <!DOCTYPE html>
+          <html lang="fr">
+          <head>
+            <meta charset="utf-8">
+            <style>
+              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+              .header { background: linear-gradient(135deg, #6b9d5a 0%, #5a8a4a 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+              .content { background: #f9f7f4; padding: 30px; border-radius: 0 0 8px 8px; }
+              .info-box { background: white; border: 1px solid #e2e8f0; padding: 20px; border-radius: 6px; margin: 20px 0; }
+              ${footerCSS}
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                ${logoImg}
+                <h1>Désinscription confirmée</h1>
+              </div>
+              <div class="content">
+                <p>Bonjour ${user.firstName},</p>
+                <p>Votre désinscription de la permanence a bien été enregistrée.</p>
+                <div class="info-box">
+                  <h3 style="margin-top: 0;">Permanence concernée :</h3>
+                  <p><strong>Date :</strong> ${date}</p>
+                </div>
+                <p>Si vous souhaitez vous inscrire à une autre permanence, rendez-vous sur <a href="${process.env.FRONTEND_URL}/permanences">votre espace membre</a>.</p>
+                <p>À bientôt,<br>L'équipe Aux P'tits Pois</p>
+              </div>
+              <div class="footer">
+                <p><strong>Aux P'tits Pois - AMAP Solidaire</strong><br>14, rue du Château, 45300 Yèvre-la-Ville</p>
+                <p>Cet email a été envoyé à ${user.email}.<br>
+                <a href="${process.env.FRONTEND_URL}/compte">Accédez à votre espace membre</a>.</p>
+              </div>
+            </div>
+          </body>
+          </html>
+        `,
+      });
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
 }
 
 export default new EmailService();

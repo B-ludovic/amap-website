@@ -325,7 +325,11 @@ const leaveShift = asyncHandler(async (req, res) => {
     data: { status: 'CANCELLED' }
   });
 
-  // TODO: Envoyer email d'annulation
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { firstName: true, email: true }
+  });
+  await emailService.sendShiftWithdrawal(shift, user);
 
   res.json({
     success: true,
