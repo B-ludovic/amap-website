@@ -5,20 +5,14 @@ import {
   HttpBadRequestError
 } from '../utils/httpErrors.js';
 
-// LISTE D'ÉMARGEMENT
-const getDistributionList = asyncHandler(async (req, res) => {
-  const { weeklyBasketId } = req.params;
-  const { search } = req.query;
-
+// REQUÊTE PARTAGÉE
+async function fetchDistributionData(weeklyBasketId) {
   const weeklyBasket = await prisma.weeklyBasket.findUnique({
     where: { id: weeklyBasketId }
   });
 
-  if (!weeklyBasket) {
-    throw new HttpNotFoundError('Panier hebdomadaire introuvable');
-  }
+  if (!weeklyBasket) throw new HttpNotFoundError('Panier hebdomadaire introuvable');
 
-  // Récupérer tous les abonnements actifs (utilisateurs non supprimés)
   const activeSubscriptions = await prisma.subscription.findMany({
     where: {
       status: 'ACTIVE',
@@ -47,14 +41,19 @@ const getDistributionList = asyncHandler(async (req, res) => {
         }
       }
     },
-    orderBy: {
-      user: {
-        lastName: 'asc'
-      }
-    }
+    orderBy: { user: { lastName: 'asc' } }
   });
 
-  // Filtrer par recherche si besoin
+  return { weeklyBasket, activeSubscriptions };
+}
+
+// LISTE D'ÉMARGEMENT
+const getDistributionList = asyncHandler(async (req, res) => {
+  const { weeklyBasketId } = req.params;
+  const { search } = req.query;
+
+  const { weeklyBasket, activeSubscriptions } = await fetchDistributionData(weeklyBasketId);
+
   let filteredList = activeSubscriptions;
 
   if (search) {
@@ -66,10 +65,8 @@ const getDistributionList = asyncHandler(async (req, res) => {
     );
   }
 
-  // Formater pour l'affichage
   const distributionList = filteredList.map(sub => {
     const pickup = sub.pickups[0] || null;
-    
     return {
       subscriptionId: sub.id,
       subscriptionNumber: sub.subscriptionNumber,
@@ -169,7 +166,7 @@ const getDistributionStats = asyncHandler(async (req, res) => {
     throw new HttpNotFoundError('Panier hebdomadaire introuvable');
   }
 
-  const [totalExpected, totalPickedUp, byBasketSize] = await Promise.all([
+  const [totalExpected, totalPickedUp] = await Promise.all([
     prisma.subscription.count({
       where: {
         status: 'ACTIVE',
@@ -183,11 +180,6 @@ const getDistributionStats = asyncHandler(async (req, res) => {
         wasPickedUp: true
       }
     }),
-    prisma.weeklyPickup.groupBy({
-      by: ['subscription'],
-      where: { weeklyBasketId, wasPickedUp: true },
-      _count: true
-    })
   ]);
 
   res.json({
@@ -205,17 +197,36 @@ const getDistributionStats = asyncHandler(async (req, res) => {
 const exportDistributionList = asyncHandler(async (req, res) => {
   const { weeklyBasketId } = req.params;
 
-  // Récupérer la liste complète
-  const result = await getDistributionList(req, res);
-  
-  // TODO: Générer un CSV
-  // Pour l'instant, on renvoie juste le JSON
+  const { weeklyBasket, activeSubscriptions } = await fetchDistributionData(weeklyBasketId);
 
-  res.json({
-    success: true,
-    message: 'Export disponible (TODO: générer CSV)',
-    data: result.data
+  const escape = (val) => `"${String(val ?? '').replace(/"/g, '""')}"`;
+
+  const header = ['N° abonnement', 'Nom', 'Prénom', 'Email', 'Téléphone', 'Panier', 'Récupéré', 'Heure de récupération', 'Notes'];
+
+  const rows = activeSubscriptions.map(sub => {
+    const pickup = sub.pickups[0] || null;
+    const basket = sub.basketSize === 'SMALL' ? 'Petit' : 'Grand';
+    const pickedUp = pickup?.wasPickedUp ? 'Oui' : 'Non';
+    const pickedUpAt = pickup?.pickedUpAt ? new Date(pickup.pickedUpAt).toLocaleString('fr-FR') : '';
+    return [
+      sub.subscriptionNumber,
+      sub.user.lastName,
+      sub.user.firstName,
+      sub.user.email,
+      sub.user.phone || '',
+      basket,
+      pickedUp,
+      pickedUpAt,
+      pickup?.notes || ''
+    ].map(escape).join(',');
   });
+
+  const csv = [header.map(escape).join(','), ...rows].join('\r\n');
+  const filename = `distribution_${weeklyBasket.distributionDate.toISOString().slice(0, 10)}.csv`;
+
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+  res.send('\uFEFF' + csv);
 });
 
 export {
