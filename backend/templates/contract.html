@@ -28,8 +28,6 @@
       background-color: #ffffff;
     }
 
-    /* ... [Ton CSS précédent reste inchangé jusqu'aux signatures] ... */
-
     .header {
       display: flex;
       justify-content: space-between;
@@ -296,12 +294,11 @@
     </div>
     <div class="header-right">
       {{#if logoBase64}}
-      <img src="{{logoBase64}}" alt="Logo Aux P'tits Pois" class="logo" />
+        <img src="{{logoBase64}}" alt="Logo Aux P'tits Pois" class="logo" />
       {{else}}
-      <div
-        style="border: 1px solid #6b9d5a; width: 2.5cm; height: 2.5cm; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #6b9d5a; font-weight: bold; font-size: 8pt;">
-        Logo<br>AMAP
-      </div>
+        <div style="border: 1px solid #6b9d5a; width: 2.5cm; height: 2.5cm; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #6b9d5a; font-weight: bold; font-size: 8pt;">
+          Logo<br>AMAP
+        </div>
       {{/if}}
     </div>
   </div>
@@ -489,8 +486,7 @@
 
       <tr>
         <td>
-          <span class="checkbox {{#if isPayment2}}checked{{/if}}"></span> 2 chèques débités à 2 mois d'intervalle max, à
-          partir de début février 2026
+          <span class="checkbox {{#if isPayment2}}checked{{/if}}"></span> 2 chèques débités à 2 mois d'intervalle max, à partir de début février 2026
         </td>
         <td style="text-align: center;">2 chèques de {{halfSmallPrice}}€</td>
         <td style="text-align: center;">2 chèques de {{halfLargePrice}}€</td>
@@ -498,8 +494,7 @@
 
       <tr>
         <td>
-          <span class="checkbox {{#if isPayment4}}checked{{/if}}"></span> 4 chèques débités à 2 mois d'intervalle max, à
-          partir de début février 2026
+          <span class="checkbox {{#if isPayment4}}checked{{/if}}"></span> 4 chèques débités à 2 mois d'intervalle max, à partir de début février 2026
         </td>
         <td style="text-align: center;">{{{quarterPaymentSmallText}}}</td>
         <td style="text-align: center;">{{{quarterPaymentLargeText}}}</td>
@@ -564,12 +559,7 @@
   </div>
 
   <div class="rgpd-footer">
-    <strong>Mentions Légales & RGPD :</strong> Les informations recueillies sur ce contrat sont enregistrées dans un
-    fichier informatisé par l'association Aux P'tits Pois pour la gestion des adhésions, l'organisation des
-    distributions et la communication de l'AMAP. Elles sont conservées pendant toute la durée de votre abonnement.
-    Conformément à la loi « Informatique et Libertés » et au RGPD, vous disposez d'un droit d'accès, de rectification,
-    de portabilité et d'effacement de vos données. Pour exercer ce droit, veuillez contacter l'association à l'adresse :
-    auxptitspois@gmail.com.
+    <strong>Mentions Légales & RGPD :</strong> Les informations recueillies sur ce contrat sont enregistrées dans un fichier informatisé par l'association Aux P'tits Pois pour la gestion des adhésions, l'organisation des distributions et la communication de l'AMAP. Elles sont conservées pendant toute la durée de votre abonnement. Conformément à la loi « Informatique et Libertés » et au RGPD, vous disposez d'un droit d'accès, de rectification, de portabilité et d'effacement de vos données. Pour exercer ce droit, veuillez contacter l'association à l'adresse : auxptitspois@gmail.com.
   </div>
 
 </body>
