@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Package, MapPin, ShoppingBasket, User, Mail, Phone, Shield, CheckCircle, Trash2, Download } from 'lucide-react';
+import { Package, MapPin, ShoppingBasket, User, Mail, Phone, Shield, CheckCircle, Trash2, Download, Pencil, LogOut, MailCheck } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useModal } from '../../contexts/ModalContext';
 import { auth as authApi } from '../../lib/api';
@@ -92,6 +92,7 @@ function ComptePage() {
         <div className="compte-header">
           <h1 className="page-title">Mon Compte</h1>
           <button onClick={handleLogout} className="btn btn-outline">
+            <LogOut size={16} aria-hidden="true" />
             Se déconnecter
           </button>
         </div>
@@ -147,6 +148,7 @@ function ComptePage() {
             </div>
             <div className="compte-card-footer">
               <Link href="/compte/edit" className="btn btn-secondary">
+                <Pencil size={16} aria-hidden="true" />
                 Modifier mes informations
               </Link>
               {!user.emailVerified && (
@@ -160,6 +162,7 @@ function ComptePage() {
                     onClick={handleResendConfirmation}
                     disabled={resendStatus === 'sending'}
                   >
+                    <MailCheck size={16} aria-hidden="true" />
                     {resendStatus === 'sending' ? 'Envoi...' : 'Vérifier mon compte'}
                   </button>
                 )

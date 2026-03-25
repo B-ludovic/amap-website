@@ -102,7 +102,7 @@ a {
   transition: color var(--transition-fast);
 }
 
-a:hover {
+a:not(.btn):hover {
   color: var(--secondary-color);
 }
 
@@ -143,9 +143,12 @@ button {
   padding: var(--spacing-sm) var(--spacing-lg);
   font-weight: var(--font-weight-medium);
   border-radius: var(--border-radius-md);
-  border: none;
+  border: 2px solid transparent;
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: background-color var(--transition-fast),
+              border-color var(--transition-fast),
+              transform var(--transition-fast),
+              box-shadow var(--transition-fast);
   text-decoration: none;
 }
 
@@ -169,7 +172,8 @@ button {
 }
 
 .btn-secondary:hover {
-  background-color: var(--primary-color);
+  background-color: var(--primary-hover);
+  border-color: var(--primary-hover);
   color: var(--white);
   transform: translateY(-1px);
   box-shadow: var(--shadow-md);
@@ -194,6 +198,20 @@ button {
 .btn-lg {
   padding: var(--spacing-md) var(--spacing-xl);
   font-size: var(--font-size-lg);
+}
+
+.btn-danger {
+  background-color: #dc2626;
+  color: var(--white);
+  border-color: #dc2626;
+}
+
+.btn-danger:hover {
+  background-color: #b91c1c;
+  border-color: #b91c1c;
+  color: var(--white);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
 }
 
 .btn:disabled {
