@@ -181,7 +181,11 @@ const updateInquiryStatus = asyncHandler(async (req, res) => {
     }
   });
 
-  // TODO: Envoyer email au producteur selon le statut
+  if (status === 'ACCEPTED') {
+    await emailService.sendProducerInquiryAccepted(inquiry);
+  } else if (status === 'REJECTED') {
+    await emailService.sendProducerInquiryRejected(inquiry);
+  }
 
   res.json({
     success: true,

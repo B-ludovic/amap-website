@@ -743,6 +743,110 @@ class EmailService {
     }
   }
 
+  /* Candidature producteur : Acceptée */
+  async sendProducerInquiryAccepted(inquiry) {
+    try {
+      await transporter.sendMail({
+        from: EMAIL_FROM,
+        to: inquiry.email,
+        subject: 'Votre candidature a été acceptée - Aux P\'tits Pois',
+        html: `
+          <!DOCTYPE html>
+          <html lang="fr">
+          <head>
+            <meta charset="utf-8">
+            <style>
+              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+              .header { background: linear-gradient(135deg, #6b9d5a 0%, #5a8a4a 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+              .content { background: #f9f7f4; padding: 30px; border-radius: 0 0 8px 8px; }
+              .info-box { background: white; border: 1px solid #e2e8f0; padding: 20px; border-radius: 6px; margin: 20px 0; }
+              ${footerCSS}
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                ${logoImg}
+                <h1>Candidature acceptée !</h1>
+              </div>
+              <div class="content">
+                <p>Bonjour ${inquiry.firstName},</p>
+                <p>Nous avons le plaisir de vous informer que la candidature de <strong>${inquiry.farmName}</strong> a été <strong>acceptée</strong> par l'AMAP Aux P'tits Pois.</p>
+                <div class="info-box">
+                  <h3 style="margin-top: 0;">Prochaines étapes :</h3>
+                  <ol style="margin: 0; padding-left: 20px;">
+                    <li>Nous vous contacterons prochainement pour organiser une rencontre</li>
+                    <li>Nous définirons ensemble les modalités du partenariat</li>
+                    <li>Votre exploitation sera présentée à nos adhérents</li>
+                  </ol>
+                </div>
+                <p>Pour toute question, contactez-nous à <a href="mailto:auxptitspois@gmail.com">auxptitspois@gmail.com</a>.</p>
+                <p>À très bientôt,<br>L'équipe Aux P'tits Pois</p>
+              </div>
+              <div class="footer">
+                <p><strong>Aux P'tits Pois - AMAP Solidaire</strong><br>14, rue du Château, 45300 Yèvre-la-Ville</p>
+                <p>Cet email a été envoyé à ${inquiry.email} suite à votre candidature.</p>
+              </div>
+            </div>
+          </body>
+          </html>
+        `,
+      });
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  /* Candidature producteur : Rejetée */
+  async sendProducerInquiryRejected(inquiry) {
+    try {
+      await transporter.sendMail({
+        from: EMAIL_FROM,
+        to: inquiry.email,
+        subject: 'Votre candidature - Aux P\'tits Pois',
+        html: `
+          <!DOCTYPE html>
+          <html lang="fr">
+          <head>
+            <meta charset="utf-8">
+            <style>
+              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+              .header { background: linear-gradient(135deg, #6b9d5a 0%, #5a8a4a 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+              .content { background: #f9f7f4; padding: 30px; border-radius: 0 0 8px 8px; }
+              ${footerCSS}
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                ${logoImg}
+                <h1>Réponse à votre candidature</h1>
+              </div>
+              <div class="content">
+                <p>Bonjour ${inquiry.firstName},</p>
+                <p>Nous avons bien étudié la candidature de <strong>${inquiry.farmName}</strong> et nous vous remercions de l'intérêt que vous portez à notre AMAP.</p>
+                <p>Après examen, nous ne sommes malheureusement pas en mesure de donner suite à votre candidature pour le moment.</p>
+                <p>Pour toute question, n'hésitez pas à nous contacter à <a href="mailto:auxptitspois@gmail.com">auxptitspois@gmail.com</a>.</p>
+                <p>Cordialement,<br>L'équipe Aux P'tits Pois</p>
+              </div>
+              <div class="footer">
+                <p><strong>Aux P'tits Pois - AMAP Solidaire</strong><br>14, rue du Château, 45300 Yèvre-la-Ville</p>
+                <p>Cet email a été envoyé à ${inquiry.email} suite à votre candidature.</p>
+              </div>
+            </div>
+          </body>
+          </html>
+        `,
+      });
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+
   /* Panier hebdomadaire : Notification aux abonnés actifs (avec batching) */
   async sendWeeklyBasketNotification(basket, recipients) {
     try {
