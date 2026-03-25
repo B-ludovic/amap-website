@@ -1,5 +1,6 @@
 import { prisma } from '../config/database.js';
 import { asyncHandler } from '../middlewares/error.middleware.js';
+import emailService from '../services/email.service.js';
 import {
   HttpNotFoundError,
   HttpBadRequestError,
@@ -229,7 +230,15 @@ const publishWeeklyBasket = asyncHandler(async (req, res) => {
     include: itemsInclude
   });
 
-  // TODO: Envoyer newsletter aux abonnés actifs
+  // Notifier les abonnés actifs
+  const activeSubscribers = await prisma.subscription.findMany({
+    where: { status: 'ACTIVE' },
+    include: {
+      user: { select: { firstName: true, email: true } }
+    }
+  });
+  const recipients = activeSubscribers.map(s => s.user);
+  emailService.sendWeeklyBasketNotification(published, recipients);
 
   res.json({
     success: true,

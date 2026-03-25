@@ -743,6 +743,95 @@ class EmailService {
     }
   }
 
+  /* Panier hebdomadaire : Notification aux abonnés actifs (avec batching) */
+  async sendWeeklyBasketNotification(basket, recipients) {
+    try {
+      const results = { sent: 0, failed: 0, errors: [] };
+      const batchSize = 50;
+
+      const distDate = new Date(basket.distributionDate).toLocaleDateString('fr-FR', {
+        weekday: 'long', day: 'numeric', month: 'long'
+      });
+
+      const productsHtml = basket.items.map(item => {
+        const name = item.product?.name || item.customProductName || 'Produit';
+        return `<li style="margin-bottom: 8px;">🥦 ${name}</li>`;
+      }).join('');
+
+      for (let i = 0; i < recipients.length; i += batchSize) {
+        const batch = recipients.slice(i, i + batchSize);
+
+        for (const recipient of batch) {
+          try {
+            await transporter.sendMail({
+              from: EMAIL_FROM,
+              to: recipient.email,
+              subject: `Votre panier de la semaine - ${distDate}`,
+              html: `
+                <!DOCTYPE html>
+                <html lang="fr">
+                  <head>
+                    <meta charset="utf-8">
+                    <style>
+                      body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+                      .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                      .header { background: linear-gradient(135deg, #6b9d5a 0%, #5a8a4a 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+                      .content { background: #f9f7f4; padding: 30px; border-radius: 0 0 8px 8px; }
+                      .basket-box { background: white; border: 2px dashed #6b9d5a; padding: 25px; border-radius: 8px; margin: 25px 0; }
+                      .basket-title { color: #5a8a4a; margin-top: 0; text-align: center; font-size: 1.2rem; }
+                      .product-list { list-style: none; padding: 0; margin: 20px 0 0 0; font-size: 1.1rem; }
+                      ${footerCSS}
+                    </style>
+                  </head>
+                  <body>
+                    <div class="container">
+                      <div class="header">
+                        ${logoImg}
+                        <h1>Au menu cette semaine !</h1>
+                      </div>
+                      <div class="content">
+                        <p>Bonjour ${recipient.firstName},</p>
+                        <p>Le panier de la semaine est prêt ! Voici ce que nos producteurs ont récolté pour votre distribution du <strong>${distDate}</strong> :</p>
+                        <div class="basket-box">
+                          <h3 class="basket-title">Contenu du panier</h3>
+                          <ul class="product-list">
+                            ${productsHtml}
+                          </ul>
+                        </div>
+                        <p style="font-size: 0.9rem; color: #666; font-style: italic; text-align: center;">
+                          (Le contenu peut légèrement varier en fonction des aléas de dernière minute lors de la récolte).
+                        </p>
+                        <p>N'oubliez pas vos sacs et cabas pour récupérer vos légumes !</p>
+                        <p>À mercredi,<br>L'équipe Aux P'tits Pois</p>
+                      </div>
+                      <div class="footer">
+                        <p><strong>Aux P'tits Pois - AMAP Solidaire</strong><br>14, rue du Château, 45300 Yèvre-la-Ville</p>
+                        <p>Cet email a été envoyé à ${recipient.email} car vous avez un abonnement actif.<br>
+                        <a href="${process.env.FRONTEND_URL}/compte">Accédez à votre espace membre</a>.</p>
+                      </div>
+                    </div>
+                  </body>
+                </html>
+              `,
+            });
+            results.sent++;
+          } catch (emailError) {
+            results.failed++;
+            results.errors.push({ email: recipient.email, error: emailError.message });
+          }
+        }
+
+        if (i + batchSize < recipients.length) await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+
+      if (process.env.NODE_ENV !== 'production') console.log(`[DEV] Notifs paniers envoyées : ${results.sent} succès, ${results.failed} échecs`);
+      return { success: true, results };
+    } catch (error) {
+      console.error('Erreur envoi notifs panier:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
   /* Permanence : Confirmation de désistement (adhérent) */
   async sendShiftWithdrawal(shift, user) {
     try {
