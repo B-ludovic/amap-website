@@ -89,7 +89,7 @@ export default function RecipeDetailPage() {
 
           <div className="recipe-hero-content">
             <div className="recipe-hero-image">
-              <img src={recipe.image} alt={recipe.title} />
+              <img src={recipe.image} alt={recipe.title} loading="lazy" />
               {recipe.vegetarian && (
                 <div className="badge-vegetarian">
                   <Leaf size={16} aria-hidden="true" />

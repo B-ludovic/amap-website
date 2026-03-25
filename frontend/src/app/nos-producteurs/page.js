@@ -117,12 +117,13 @@ function ProducersPage() {
                   {/* Image placeholder */}
                   <div className="producer-image">
                     {producer.image ? (
-                      <img src={producer.image} alt={producer.name} />
+                      <img src={producer.image} alt={producer.name} loading="lazy" />
                     ) : (
-                      <img 
-                        src={placeholderImage} 
+                      <img
+                        src={placeholderImage}
                         alt={producer.name}
                         className="placeholder-image"
+                        loading="lazy"
                       />
                     )}
                     {producer.isBio && (

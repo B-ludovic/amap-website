@@ -298,7 +298,7 @@ export default function WeeklyBasketPublicPage() {
               {recipes.slice(0, 3).map((recipe) => (
                 <Link key={recipe.id} href={`/recettes/${recipe.id}`} className="recipe-card">
                   <div className="recipe-image">
-                    <img src={recipe.image} alt={recipe.title} />
+                    <img src={recipe.image} alt={recipe.title} loading="lazy" />
                   </div>
                   <div className="recipe-content">
                     <h3>{recipe.title}</h3>

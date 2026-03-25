@@ -35,6 +35,26 @@ export default function robots() {
         allow: '/',
         disallow: DISALLOW,
       },
+      {
+        userAgent: 'CCBot',
+        allow: '/',
+        disallow: DISALLOW,
+      },
+      {
+        userAgent: 'Bytespider',
+        allow: '/',
+        disallow: DISALLOW,
+      },
+      {
+        userAgent: 'FacebookBot',
+        allow: '/',
+        disallow: DISALLOW,
+      },
+      {
+        userAgent: 'Applebot-Extended',
+        allow: '/',
+        disallow: DISALLOW,
+      },
     ],
     sitemap: 'https://auxptitspois.fr/sitemap.xml',
     host: 'https://auxptitspois.fr',
