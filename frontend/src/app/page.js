@@ -1,6 +1,5 @@
 import { ShoppingBasket, Users, Heart, Leaf, LeafyGreen, Apple, Egg, Wheat, ArrowRight, MapPin, Clock } from 'lucide-react';
 import Link from 'next/link';
-import Image from 'next/image';
 import '../styles/public/home.css';
 
 const categoryIcon = (category) => {
@@ -180,8 +179,8 @@ export default async function HomePage() {
               <div className="step-number">1</div>
               <h3>Je choisis mon abonnement</h3>
               <p>
-                Abonnement annuel ou découverte (3 mois), avec un petit ou grand panier 
-                selon vos besoins.
+                Abonnement annuel, avec un petit ou grand panier selon vos besoins.
+                L'abonnement découverte (3 mois) sera bientôt disponible.
               </p>
             </div>
 
