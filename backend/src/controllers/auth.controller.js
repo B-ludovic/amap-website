@@ -227,15 +227,15 @@ const resendConfirmationEmail = asyncHandler(async (req, res) => {
     }
 
     // Cooldown : 5 minutes entre chaque renvoi
+    // emailVerifyTokenExpiry = createdAt + 24h
+    // Le token a moins de 5 min si expiry > now + (24h - 5min)
     const COOLDOWN_MS = 5 * 60 * 1000;
-    if (user.emailVerifyTokenExpiry) {
-        const tokenAge = new Date(Date.now() + 24 * 60 * 60 * 1000) - user.emailVerifyTokenExpiry;
-        if (tokenAge < COOLDOWN_MS) {
-            return res.json({
-                success: true,
-                message: 'Si un compte non confirmé existe avec cet email, un nouveau lien a été envoyé.',
-            });
-        }
+    const DAY_MS = 24 * 60 * 60 * 1000;
+    if (user.emailVerifyTokenExpiry && user.emailVerifyTokenExpiry.getTime() > Date.now() + (DAY_MS - COOLDOWN_MS)) {
+        return res.json({
+            success: true,
+            message: 'Si un compte non confirmé existe avec cet email, un nouveau lien a été envoyé.',
+        });
     }
 
     // Générer un nouveau token
