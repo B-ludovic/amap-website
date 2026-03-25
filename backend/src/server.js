@@ -35,7 +35,20 @@ const PORT = process.env.PORT || 4000;
 // === MIDDLEWARES ===
 
 // Sécurité avec helmet (protège contre certaines attaques)
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", 'data:', 'https:'],
+      connectSrc: ["'self'"],
+      fontSrc: ["'self'"],
+      objectSrc: ["'none'"],
+      frameSrc: ["'none'"],
+    },
+  },
+}));
 
 // CORS - autorise le frontend à appeler l'API
 // Déploiement : frontend sur Vercel (auxptitspois.fr), backend sur Render

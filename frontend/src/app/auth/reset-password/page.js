@@ -42,6 +42,10 @@ function ResetPasswordPage() {
       showError('Erreur', 'Le mot de passe doit contenir au moins 12 caractères.');
       return;
     }
+    if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password) || !/[\W_]/.test(password)) {
+      showError('Erreur', 'Doit contenir une majuscule, une minuscule, un chiffre et un caractère spécial.');
+      return;
+    }
 
     setLoading(true);
 
@@ -123,7 +127,7 @@ function ResetPasswordPage() {
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
               </div>
-              <p className="form-hint">Minimum 12 caractères</p>
+              <p className="form-hint">Minimum 12 caractères, avec majuscule, minuscule, chiffre et caractère spécial</p>
             </div>
 
             <div className="form-group">

@@ -6,7 +6,7 @@ import {
   HttpConflictError,
   httpStatusCodes
 } from '../utils/httpErrors.js';
-import { ProducerSchema, ProductSchema, BasketTypeSchema, BlogPostSchema } from '../utils/validation.schemas.js';
+import { ProducerSchema, UpdateProducerSchema, ProductSchema, UpdateProductSchema, BasketTypeSchema, BlogPostSchema } from '../utils/validation.schemas.js';
 import { logAudit } from '../services/audit.service.js';
 import { normalizeTitleCase } from '../utils/normalize.js';
 
@@ -51,10 +51,12 @@ const createProducer = asyncHandler(async (req, res) => {
   });
 });
 
-// MODIFIER UN PRODUCTEUR 
+// MODIFIER UN PRODUCTEUR
 const updateProducer = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { name, description, email, phone, specialty, image, isActive } = req.body;
+  const parsed = UpdateProducerSchema.safeParse(req.body);
+  if (!parsed.success) throw new HttpBadRequestError(parsed.error.errors[0].message);
+  const { name, description, email, phone, specialty, image, isActive } = parsed.data;
 
   const producer = await prisma.producer.findUnique({
     where: { id }
@@ -200,7 +202,9 @@ const createProduct = asyncHandler(async (req, res) => {
 // MODIFIER UN PRODUIT
 const updateProduct = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { name: rawName, producerId, category, description, isExample } = req.body;
+  const parsed = UpdateProductSchema.safeParse(req.body);
+  if (!parsed.success) throw new HttpBadRequestError(parsed.error.errors[0].message);
+  const { name: rawName, producerId, category, description, isExample } = parsed.data;
   const name = rawName ? rawName.trim().charAt(0).toUpperCase() + rawName.trim().slice(1) : undefined;
 
   const product = await prisma.product.findUnique({
@@ -1011,6 +1015,9 @@ const globalSearch = asyncHandler(async (req, res) => {
   if (!q || q.trim().length < 2) {
     return res.json({ success: true, data: { users: [], subscriptions: [], messages: [], newsletters: [] } });
   }
+  if (q.trim().length > 100) {
+    throw new HttpBadRequestError('La recherche ne peut pas dépasser 100 caractères.');
+  }
 
   const term = q.trim();
   const mode = 'insensitive';
@@ -1143,7 +1150,7 @@ const getAuditLogs = asyncHandler(async (req, res) => {
 
   const where = {
     ...(severity && { severity }),
-    ...(action  && { action }),
+    ...(action && { action }),
   };
 
   const [logs, total] = await Promise.all([

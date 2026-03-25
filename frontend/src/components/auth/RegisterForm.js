@@ -57,6 +57,8 @@ function RegisterForm({ onSubmit, loading }) {
       newErrors.password = 'Mot de passe requis';
     } else if (formData.password.length < 12) {
       newErrors.password = 'Le mot de passe doit contenir au moins 12 caractères';
+    } else if (!/[A-Z]/.test(formData.password) || !/[a-z]/.test(formData.password) || !/[0-9]/.test(formData.password) || !/[\W_]/.test(formData.password)) {
+      newErrors.password = 'Doit contenir une majuscule, une minuscule, un chiffre et un caractère spécial';
     }
 
     if (!formData.confirmPassword) {
@@ -325,7 +327,7 @@ function RegisterForm({ onSubmit, loading }) {
         {errors.password ? (
           <span id="reg-password-error" className="form-error">{errors.password}</span>
         ) : (
-          <p id="reg-password-hint" className="form-hint">Minimum 12 caractères</p>
+          <p id="reg-password-hint" className="form-hint">Minimum 12 caractères, avec majuscule, minuscule, chiffre et caractère spécial</p>
         )}
       </div>
 

@@ -12,6 +12,7 @@ import {
   httpStatusCodes,
 } from '../utils/httpErrors.js';
 import { normalizeFirstName, normalizeLastName, normalizeTitleCase } from '../utils/normalize.js';
+import { PasswordSchema } from '../utils/validation.schemas.js';
 
 // Token JWT
 const generateToken = (userId, tokenVersion) => {
@@ -41,9 +42,8 @@ const register = asyncHandler(async (req, res) => {
         throw new HttpBadRequestError('Tous les champs sont requis.');
     }
 
-    if (password.length < 12) {
-        throw new HttpBadRequestError('Le mot de passe doit contenir au moins 12 caractères.');
-    }
+    const pwdCheck = PasswordSchema.safeParse(password);
+    if (!pwdCheck.success) throw new HttpBadRequestError(pwdCheck.error.errors[0].message);
 
     // Verifier si l'utilisateur existe deja
     const existingUser = await prisma.user.findUnique({ where: { email } });
@@ -226,6 +226,18 @@ const resendConfirmationEmail = asyncHandler(async (req, res) => {
         });
     }
 
+    // Cooldown : 5 minutes entre chaque renvoi
+    const COOLDOWN_MS = 5 * 60 * 1000;
+    if (user.emailVerifyTokenExpiry) {
+        const tokenAge = new Date(Date.now() + 24 * 60 * 60 * 1000) - user.emailVerifyTokenExpiry;
+        if (tokenAge < COOLDOWN_MS) {
+            return res.json({
+                success: true,
+                message: 'Si un compte non confirmé existe avec cet email, un nouveau lien a été envoyé.',
+            });
+        }
+    }
+
     // Générer un nouveau token
     const emailVerifyToken = crypto.randomBytes(32).toString('hex');
     const emailVerifyTokenHash = crypto.createHash('sha256').update(emailVerifyToken).digest('hex');
@@ -301,9 +313,8 @@ const resetPassword = asyncHandler(async (req, res) => {
         throw new HttpBadRequestError('Nouveau mot de passe est requis.');
     }
 
-    if (password.length < 12) {
-        throw new HttpBadRequestError('Le mot de passe doit contenir au moins 12 caractères.');
-    }
+    const pwdCheck = PasswordSchema.safeParse(password);
+    if (!pwdCheck.success) throw new HttpBadRequestError(pwdCheck.error.errors[0].message);
 
     // Hasher le token reçu pour le comparer
     const tokenHash = crypto.createHash('sha256').update(token).digest('hex');

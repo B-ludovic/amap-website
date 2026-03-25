@@ -1,5 +1,12 @@
 import { z } from 'zod';
 
+export const PasswordSchema = z.string()
+  .min(12, 'Le mot de passe doit contenir au moins 12 caractères')
+  .regex(/[A-Z]/, 'Doit contenir au moins une majuscule')
+  .regex(/[a-z]/, 'Doit contenir au moins une minuscule')
+  .regex(/[0-9]/, 'Doit contenir au moins un chiffre')
+  .regex(/[\W_]/, 'Doit contenir au moins un caractère spécial');
+
 export const ProducerSchema = z.object({
   name:        z.string().min(1, 'Nom requis').max(200, 'Nom : 200 caractères maximum'),
   description: z.string().min(1, 'Description requise').max(5000, 'Description : 5000 caractères maximum'),
@@ -9,6 +16,10 @@ export const ProducerSchema = z.object({
   image:       z.string().max(500).optional(),
 });
 
+export const UpdateProducerSchema = ProducerSchema.partial().extend({
+  isActive: z.boolean().optional(),
+});
+
 export const ProductSchema = z.object({
   name:        z.string().min(1, 'Nom requis').max(200),
   producerId:  z.string().min(1, 'Producteur requis'),
@@ -16,6 +27,8 @@ export const ProductSchema = z.object({
   description: z.string().max(1000).optional(),
   isExample:   z.boolean().optional(),
 });
+
+export const UpdateProductSchema = ProductSchema.partial();
 
 export const BasketTypeSchema = z.object({
   name:        z.string().min(1, 'Nom requis').max(200),
