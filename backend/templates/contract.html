@@ -28,6 +28,8 @@
       background-color: #ffffff;
     }
 
+    /* ... [Ton CSS précédent reste inchangé jusqu'aux signatures] ... */
+
     .header {
       display: flex;
       justify-content: space-between;
@@ -269,12 +271,23 @@
       color: #999;
       font-style: italic;
     }
+
+    /* === NOUVEAU CSS POUR LE BLOC RGPD === */
+    .rgpd-footer {
+      margin-top: 1.5cm;
+      padding-top: 0.5cm;
+      border-top: 1px solid #cbd5e1;
+      font-size: 8pt;
+      color: #64748b;
+      line-height: 1.4;
+      text-align: justify;
+      page-break-inside: avoid;
+    }
   </style>
 </head>
 
 <body>
 
-  <!-- PAGE 1 -->
   <div class="header">
     <div class="header-left">
       <div class="season-title">Saison 2026</div>
@@ -283,11 +296,12 @@
     </div>
     <div class="header-right">
       {{#if logoBase64}}
-        <img src="{{logoBase64}}" alt="Logo Aux P'tits Pois" class="logo" />
+      <img src="{{logoBase64}}" alt="Logo Aux P'tits Pois" class="logo" />
       {{else}}
-        <div style="border: 1px solid #6b9d5a; width: 2.5cm; height: 2.5cm; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #6b9d5a; font-weight: bold; font-size: 8pt;">
-          Logo<br>AMAP
-        </div>
+      <div
+        style="border: 1px solid #6b9d5a; width: 2.5cm; height: 2.5cm; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #6b9d5a; font-weight: bold; font-size: 8pt;">
+        Logo<br>AMAP
+      </div>
       {{/if}}
     </div>
   </div>
@@ -298,7 +312,7 @@
 
   <div class="amap-info">
     <div class="amap-name">LES TROIS PARCELLES</div>
-    <div>14, rue du Chateau 45300 Yère-la-ville</div>
+    <div>14, rue du Château 45300 Yèvre-la-Ville</div>
     <div>Representée par Simon RONCERAY</div>
     <div>tel: 06 30 41 28 67</div>
     <div>Email: lestroisparcelles@gmail.com</div>
@@ -398,7 +412,6 @@
     </div>
   </div>
 
-  <!-- PAGE 2 -->
   <div class="page-break"></div>
 
   <h2 class="modalites-title">Modalités du partage de la récolte</h2>
@@ -447,7 +460,6 @@
 
   <div class="table-section">
     <table>
-      <!-- Ligne 1 : Cochez la taille -->
       <tr>
         <th colspan="2" style="width: 37.5%;">Cochez la taille du panier</th>
         <th style="width: 31.25%; text-align: center;">
@@ -458,14 +470,12 @@
         </th>
       </tr>
 
-      <!-- Ligne 2 : Nombre de paniers -->
       <tr>
         <td colspan="2"><strong>Nombre de paniers</strong></td>
         <td style="text-align: center; background: #f0f0f0;">{{numberOfWeeks}}</td>
         <td style="text-align: center; background: #f0f0f0;">{{numberOfWeeks}}</td>
       </tr>
 
-      <!-- Lignes 3-5 : Modalités de paiement -->
       <tr>
         <td rowspan="3" style="vertical-align: middle; width: 12.5%; text-align: center;">
           <strong>Par<br>chèque :<br>cochez les<br>modalités<br>de<br>règlement</strong>
@@ -479,7 +489,8 @@
 
       <tr>
         <td>
-          <span class="checkbox {{#if isPayment2}}checked{{/if}}"></span> 2 chèques débités à 2 mois d'intervalle max, à partir de début février 2026
+          <span class="checkbox {{#if isPayment2}}checked{{/if}}"></span> 2 chèques débités à 2 mois d'intervalle max, à
+          partir de début février 2026
         </td>
         <td style="text-align: center;">2 chèques de {{halfSmallPrice}}€</td>
         <td style="text-align: center;">2 chèques de {{halfLargePrice}}€</td>
@@ -487,7 +498,8 @@
 
       <tr>
         <td>
-          <span class="checkbox {{#if isPayment4}}checked{{/if}}"></span> 4 chèques débités à 2 mois d'intervalle max, à partir de début février 2026
+          <span class="checkbox {{#if isPayment4}}checked{{/if}}"></span> 4 chèques débités à 2 mois d'intervalle max, à
+          partir de début février 2026
         </td>
         <td style="text-align: center;">{{{quarterPaymentSmallText}}}</td>
         <td style="text-align: center;">{{{quarterPaymentLargeText}}}</td>
@@ -501,7 +513,6 @@
     </p>
     {{/if}}
 
-    <!-- Tableau contrat partagé -->
     <table style="margin-top: 0.8cm;">
       <tr>
         <td rowspan="2" style="width: 12.5%; vertical-align: middle; text-align: center;">
@@ -545,11 +556,20 @@
         <div style="height: 2cm; margin-top: 1cm;"></div>
         <div class="farmer-signature">
           <strong>Aux P'tits Pois</strong><br>
-          14, rue du Chateau 45300 Yère-la-ville<br>
+          14, rue du Château 45300 Yèvre-la-Ville<br>
           auxptitspois@gmail.com
         </div>
       </div>
     </div>
+  </div>
+
+  <div class="rgpd-footer">
+    <strong>Mentions Légales & RGPD :</strong> Les informations recueillies sur ce contrat sont enregistrées dans un
+    fichier informatisé par l'association Aux P'tits Pois pour la gestion des adhésions, l'organisation des
+    distributions et la communication de l'AMAP. Elles sont conservées pendant toute la durée de votre abonnement.
+    Conformément à la loi « Informatique et Libertés » et au RGPD, vous disposez d'un droit d'accès, de rectification,
+    de portabilité et d'effacement de vos données. Pour exercer ce droit, veuillez contacter l'association à l'adresse :
+    auxptitspois@gmail.com.
   </div>
 
 </body>
