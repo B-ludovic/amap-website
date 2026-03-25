@@ -25,10 +25,16 @@ const transporter = nodemailer.createTransport({
 
 const EMAIL_FROM = process.env.EMAIL_FROM || 'Aux P\'tits Pois <noreply@auxptitspois.fr>';
 
+/* TEMPLATE CSS COMMUN POUR LE FOOTER RGPD */
+const footerCSS = `
+  .footer { text-align: center; margin-top: 30px; color: #9ca3af; font-size: 12px; line-height: 1.5; padding: 0 20px; }
+  .footer a { color: #6b9d5a; text-decoration: none; }
+  .footer a:hover { text-decoration: underline; }
+`;
+
 class EmailService {
 
   /* Envoie un email de bienvenue après inscription */
-
   async sendWelcomeEmail(user) {
     try {
       await transporter.sendMail({
@@ -46,7 +52,7 @@ class EmailService {
                 .header { background: linear-gradient(135deg, #6b9d5a 0%, #5a8a4a 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
                 .content { background: #f9f7f4; padding: 30px; border-radius: 0 0 8px 8px; }
                 .button { display: inline-block; background: #6b9d5a; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; margin: 20px 0; }
-                .footer { text-align: center; margin-top: 30px; color: #6b7280; font-size: 14px; }
+                ${footerCSS}
               </style>
             </head>
             <body>
@@ -57,36 +63,30 @@ class EmailService {
                 </div>
                 <div class="content">
                   <p>Bonjour ${user.firstName},</p>
-
                   <p>Merci d'avoir créé votre compte sur Aux P'tits Pois, votre AMAP locale pour des produits frais, bio et de saison.</p>
-
                   <p>Votre compte est maintenant actif et vous pouvez :</p>
                   <ul>
                     <li>Consulter le panier de la semaine</li>
                     <li>Faire une demande d'abonnement</li>
                     <li>Découvrir nos producteurs locaux</li>
                   </ul>
-
                   <div style="text-align: center;">
-                    <a href="${process.env.FRONTEND_URL}/nos-abonnements" class="button">
-                      Découvrir nos abonnements
-                    </a>
+                    <a href="${process.env.FRONTEND_URL}/nos-abonnements" class="button">Découvrir nos abonnements</a>
                   </div>
-
                   <p>Si vous avez des questions, n'hésitez pas à nous contacter à <a href="mailto:auxptitspois@gmail.com">auxptitspois@gmail.com</a>.</p>
-
                   <p>À très bientôt,<br>L'équipe Aux P'tits Pois</p>
                 </div>
                 <div class="footer">
-                  <p>Aux P'tits Pois - AMAP Solidaire<br>
-                  Distribution : Mercredi 18h15-19h15</p>
+                  <p><strong>Aux P'tits Pois - AMAP Solidaire</strong><br>14, rue du Château, 45300 Yèvre-la-Ville</p>
+                  <p>Cet email a été envoyé à ${user.email} car vous êtes inscrit(e) sur notre plateforme.<br>
+                  Conformément au RGPD, vous disposez d'un droit d'accès, de modification et de suppression de vos données. 
+                  Pour exercer vos droits, <a href="${process.env.FRONTEND_URL}/compte">accédez à votre espace membre</a>.</p>
                 </div>
               </div>
             </body>
           </html>
         `,
       });
-
       if (process.env.NODE_ENV !== 'production') console.log('[DEV] Email bienvenue envoyé');
       return { success: true };
     } catch (error) {
@@ -96,11 +96,9 @@ class EmailService {
   }
 
   /* Envoie un email de vérification d'adresse email */
-
   async sendEmailVerification(user, verifyToken) {
     try {
       const verifyUrl = `${process.env.FRONTEND_URL}/auth/confirm-email/${verifyToken}`;
-
       await transporter.sendMail({
         from: EMAIL_FROM,
         to: user.email,
@@ -117,7 +115,7 @@ class EmailService {
                 .content { background: #f9f7f4; padding: 30px; border-radius: 0 0 8px 8px; }
                 .button { display: inline-block; background: #6b9d5a; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; margin: 20px 0; }
                 .warning { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0; border-radius: 4px; }
-                .footer { text-align: center; margin-top: 30px; color: #6b7280; font-size: 14px; }
+                ${footerCSS}
               </style>
             </head>
             <body>
@@ -132,9 +130,7 @@ class EmailService {
                   <div style="text-align: center;">
                     <a href="${verifyUrl}" class="button">Confirmer mon email</a>
                   </div>
-                  <div class="warning">
-                    <strong>Attention :</strong> Ce lien est valable pendant 24 heures.
-                  </div>
+                  <div class="warning"><strong>Attention :</strong> Ce lien est valable pendant 24 heures.</div>
                   <p>Si vous n'avez pas créé de compte, ignorez simplement cet email.</p>
                   <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
                     Si le bouton ne fonctionne pas, copiez ce lien dans votre navigateur :<br>
@@ -143,14 +139,15 @@ class EmailService {
                   <p>L'équipe Aux P'tits Pois</p>
                 </div>
                 <div class="footer">
-                  <p>Aux P'tits Pois - AMAP Solidaire</p>
+                  <p><strong>Aux P'tits Pois - AMAP Solidaire</strong><br>14, rue du Château, 45300 Yèvre-la-Ville</p>
+                  <p>Cet email a été envoyé à ${user.email} dans le cadre de votre inscription.<br>
+                  Pour gérer vos données personnelles, <a href="${process.env.FRONTEND_URL}/compte">accédez à votre espace membre</a>.</p>
                 </div>
               </div>
             </body>
           </html>
         `,
       });
-
       if (process.env.NODE_ENV !== 'production') console.log('[DEV] Email vérification envoyé');
       return { success: true };
     } catch (error) {
@@ -160,11 +157,9 @@ class EmailService {
   }
 
   /* Envoie un email de récupération de mot de passe */
-
   async sendPasswordResetEmail(user, resetToken) {
     try {
       const resetUrl = `${process.env.FRONTEND_URL}/auth/reset-password?token=${resetToken}`;
-
       await transporter.sendMail({
         from: EMAIL_FROM,
         to: user.email,
@@ -181,7 +176,7 @@ class EmailService {
                 .content { background: #f9f7f4; padding: 30px; border-radius: 0 0 8px 8px; }
                 .button { display: inline-block; background: #c85a3f; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; margin: 20px 0; }
                 .warning { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0; border-radius: 4px; }
-                .footer { text-align: center; margin-top: 30px; color: #6b7280; font-size: 14px; }
+                ${footerCSS}
               </style>
             </head>
             <body>
@@ -192,39 +187,24 @@ class EmailService {
                 </div>
                 <div class="content">
                   <p>Bonjour ${user.firstName},</p>
-
                   <p>Vous avez demandé à réinitialiser votre mot de passe pour votre compte Aux P'tits Pois.</p>
-
                   <p>Cliquez sur le bouton ci-dessous pour créer un nouveau mot de passe :</p>
-
                   <div style="text-align: center;">
-                    <a href="${resetUrl}" class="button">
-                      Réinitialiser mon mot de passe
-                    </a>
+                    <a href="${resetUrl}" class="button">Réinitialiser mon mot de passe</a>
                   </div>
-
-                  <div class="warning">
-                    <strong>Attention :</strong> Ce lien est valable pendant 1 heure seulement.
-                  </div>
-
-                  <p>Si vous n'avez pas demandé cette réinitialisation, ignorez simplement cet email. Votre mot de passe actuel reste inchangé.</p>
-
-                  <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
-                    Si le bouton ne fonctionne pas, copiez et collez ce lien dans votre navigateur :<br>
-                    <a href="${resetUrl}" style="color: #3b82f6; word-break: break-all;">${resetUrl}</a>
-                  </p>
-
+                  <div class="warning"><strong>Attention :</strong> Ce lien est valable pendant 1 heure seulement.</div>
+                  <p>Si vous n'avez pas demandé cette réinitialisation, ignorez simplement cet email.</p>
                   <p>L'équipe Aux P'tits Pois</p>
                 </div>
                 <div class="footer">
-                  <p>Aux P'tits Pois - AMAP Solidaire</p>
+                  <p><strong>Aux P'tits Pois - AMAP Solidaire</strong><br>14, rue du Château, 45300 Yèvre-la-Ville</p>
+                  <p>Cet email a été envoyé à ${user.email} suite à une demande sur notre site.</p>
                 </div>
               </div>
             </body>
           </html>
         `,
       });
-
       if (process.env.NODE_ENV !== 'production') console.log('[DEV] Email reset password envoyé');
       return { success: true };
     } catch (error) {
@@ -234,7 +214,6 @@ class EmailService {
   }
 
   /* Envoie un email de confirmation de demande d'abonnement */
-
   async sendSubscriptionRequestConfirmation(request) {
     try {
       await transporter.sendMail({
@@ -252,7 +231,7 @@ class EmailService {
                 .header { background: linear-gradient(135deg, #6b9d5a 0%, #5a8a4a 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
                 .content { background: #f9f7f4; padding: 30px; border-radius: 0 0 8px 8px; }
                 .info-box { background: white; border: 1px solid #e2e8f0; padding: 20px; border-radius: 6px; margin: 20px 0; }
-                .footer { text-align: center; margin-top: 30px; color: #6b7280; font-size: 14px; }
+                ${footerCSS}
               </style>
             </head>
             <body>
@@ -263,39 +242,33 @@ class EmailService {
                 </div>
                 <div class="content">
                   <p>Bonjour ${request.firstName},</p>
-
                   <p>Nous avons bien reçu votre demande d'abonnement à Aux P'tits Pois.</p>
-
                   <div class="info-box">
                     <h3 style="margin-top: 0;">Récapitulatif de votre demande :</h3>
                     <p><strong>Type :</strong> ${request.type === 'ANNUAL' ? 'Abonnement Annuel' : 'Abonnement Découverte (3 mois)'}</p>
                     <p><strong>Panier :</strong> ${request.basketSize === 'SMALL' ? 'Petit panier (2-4 kg)' : 'Grand panier (6-8 kg)'}</p>
                     <p><strong>Tarification :</strong> ${request.pricingType === 'NORMAL' ? 'Tarif normal' : 'Tarif solidaire'}</p>
                   </div>
-
                   <h3>Prochaines étapes :</h3>
                   <ol>
                     <li>Nous étudions votre demande (sous 48h)</li>
                     <li>Nous vous contactons pour valider les informations</li>
-                    <li>Vous effectuez le paiement (chèque, virement ou espèces)</li>
+                    <li>Vous effectuez le paiement</li>
                     <li>Votre abonnement est activé</li>
-                    <li>Vous recevez votre premier panier le mercredi suivant !</li>
                   </ol>
-
-                  <p>Si vous avez des questions, n'hésitez pas à nous contacter à <a href="mailto:auxptitspois@gmail.com">auxptitspois@gmail.com</a>.</p>
-
                   <p>À très bientôt,<br>L'équipe Aux P'tits Pois</p>
                 </div>
                 <div class="footer">
-                  <p>Aux P'tits Pois - AMAP Solidaire<br>
-                  Distribution : Mercredi 18h15-19h15</p>
+                  <p><strong>Aux P'tits Pois - AMAP Solidaire</strong><br>14, rue du Château, 45300 Yèvre-la-Ville</p>
+                  <p>Cet email a été envoyé à ${request.email}.<br>
+                  Conformément au RGPD, vous disposez d'un droit d'accès et de modification de vos données. 
+                  <a href="${process.env.FRONTEND_URL}/compte">Accédez à votre espace membre</a>.</p>
                 </div>
               </div>
             </body>
           </html>
         `,
       });
-
       if (process.env.NODE_ENV !== 'production') console.log('[DEV] Email confirmation demande envoyé');
       return { success: true };
     } catch (error) {
@@ -305,7 +278,6 @@ class EmailService {
   }
 
   /* Envoie un email de confirmation de demande producteur */
-
   async sendProducerInquiryConfirmation(inquiry) {
     try {
       await transporter.sendMail({
@@ -322,7 +294,7 @@ class EmailService {
                 .container { max-width: 600px; margin: 0 auto; padding: 20px; }
                 .header { background: linear-gradient(135deg, #5a8a4a 0%, #6b9d5a 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
                 .content { background: #f9f7f4; padding: 30px; border-radius: 0 0 8px 8px; }
-                .footer { text-align: center; margin-top: 30px; color: #6b7280; font-size: 14px; }
+                ${footerCSS}
               </style>
             </head>
             <body>
@@ -333,43 +305,25 @@ class EmailService {
                 </div>
                 <div class="content">
                   <p>Bonjour ${inquiry.firstName},</p>
-
-                  <p>Merci pour votre intérêt à rejoindre le réseau de producteurs d'Aux P'tits Pois.</p>
-
-                  <p>Nous avons bien reçu votre candidature pour <strong>${inquiry.farmName}</strong> et nous vous recontacterons très prochainement pour échanger sur votre projet.</p>
-
-                  <h3>Prochaines étapes :</h3>
-                  <ol>
-                    <li>Nous étudions votre candidature (sous 48h)</li>
-                    <li>Échange téléphonique pour mieux vous connaître</li>
-                    <li>Visite de votre exploitation si possible</li>
-                    <li>Validation et intégration au réseau</li>
-                    <li>Première livraison !</li>
-                  </ol>
-
-                  <p>Si vous avez des questions, n'hésitez pas à nous contacter à <a href="mailto:auxptitspois@gmail.com">auxptitspois@gmail.com</a>.</p>
-
+                  <p>Nous avons bien reçu votre candidature pour <strong>${inquiry.farmName}</strong> et nous vous recontacterons très prochainement.</p>
                   <p>À très bientôt,<br>L'équipe Aux P'tits Pois</p>
                 </div>
                 <div class="footer">
-                  <p>Aux P'tits Pois - AMAP Solidaire</p>
+                  <p><strong>Aux P'tits Pois - AMAP Solidaire</strong><br>14, rue du Château, 45300 Yèvre-la-Ville</p>
+                  <p>Cet email a été envoyé à ${inquiry.email}.</p>
                 </div>
               </div>
             </body>
           </html>
         `,
       });
-
-      if (process.env.NODE_ENV !== 'production') console.log('[DEV] Email confirmation producteur envoyé');
       return { success: true };
     } catch (error) {
-      console.error('Erreur envoi email confirmation producteur:', error);
       return { success: false, error: error.message };
     }
   }
 
   /* Envoie un message de contact à l'adresse de l'AMAP */
-
   async sendContactMessage({ name, email, subject, message }) {
     try {
       await transporter.sendMail({
@@ -389,7 +343,7 @@ class EmailService {
                 .content { background: #f9f7f4; padding: 30px; border-radius: 0 0 8px 8px; }
                 .info-box { background: white; border: 1px solid #e2e8f0; padding: 20px; border-radius: 6px; margin: 20px 0; }
                 .message-box { background: white; border-left: 4px solid #6b9d5a; padding: 20px; border-radius: 0 6px 6px 0; margin: 20px 0; white-space: pre-wrap; }
-                .footer { text-align: center; margin-top: 30px; color: #6b7280; font-size: 14px; }
+                ${footerCSS}
               </style>
             </head>
             <body>
@@ -406,39 +360,27 @@ class EmailService {
                   </div>
                   <p><strong>Message :</strong></p>
                   <div class="message-box">${DOMPurify.sanitize(message, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] })}</div>
-                  <p style="color: #6b7280; font-size: 14px;">
-                    Répondez directement à cet email pour contacter ${name}.
-                  </p>
                 </div>
                 <div class="footer">
-                  <p>Aux P'tits Pois - Formulaire de contact</p>
+                  <p>Ceci est un email automatique généré via le formulaire de contact du site.</p>
                 </div>
               </div>
             </body>
           </html>
         `,
       });
-
-      if (process.env.NODE_ENV !== 'production') console.log('[DEV] Email contact envoyé');
       return { success: true };
     } catch (error) {
-      console.error('Erreur envoi email contact:', error);
       return { success: false, error: error.message };
     }
   }
 
   /* Envoie une newsletter */
-
   async sendNewsletter(newsletter, recipients) {
     try {
-      const results = {
-        sent: 0,
-        failed: 0,
-        errors: []
-      };
-
-      // Envoi en batch (max 50 emails à la fois)
+      const results = { sent: 0, failed: 0, errors: [] };
       const batchSize = 50;
+
       for (let i = 0; i < recipients.length; i += batchSize) {
         const batch = recipients.slice(i, i + batchSize);
 
@@ -467,7 +409,9 @@ class EmailService {
                       .content p { margin: 0 0 16px; }
                       .footer { background: #f9faf7; border-top: 1px solid #e8ede4; padding: 28px 40px; text-align: center; }
                       .footer p { margin: 0 0 8px; color: #6b7c6b; font-size: 13px; line-height: 1.6; }
-                      .footer .unsub { font-size: 11px; color: #9aaa9a; margin-top: 16px; }
+                      .footer a { color: #5a8a4a; text-decoration: none; }
+                      .footer a:hover { text-decoration: underline; }
+                      .footer .unsub { font-size: 12px; color: #9aaa9a; margin-top: 16px; }
                     </style>
                   </head>
                   <body>
@@ -483,9 +427,12 @@ class EmailService {
                           ${DOMPurify.sanitize(newsletter.content.replace(/\n/g, '<br>'))}
                         </div>
                         <div class="footer">
-                          <p><strong>Aux P'tits Pois — AMAP Solidaire</strong></p>
-                          <p>Distribution chaque mercredi de 18h15 à 19h15</p>
-                          <p class="unsub">Vous recevez cet email car vous êtes adhérent à l'AMAP Aux P'tits Pois.</p>
+                          <p><strong>Aux P'tits Pois — AMAP Solidaire</strong><br>14, rue du Château, 45300 Yèvre-la-Ville</p>
+                          <p class="unsub">
+                            Vous recevez cet email car vous êtes inscrit(e) sur notre liste de diffusion.<br>
+                            <a href="${process.env.FRONTEND_URL}/compte">Gérer mes préférences</a> | 
+                            <a href="${process.env.FRONTEND_URL}/compte">Me désabonner</a>
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -499,23 +446,15 @@ class EmailService {
             results.errors.push({ email: recipient.email, error: emailError.message });
           }
         }
-
-        // Pause entre les batches pour éviter rate limiting
-        if (i + batchSize < recipients.length) {
-          await new Promise(resolve => setTimeout(resolve, 1000));
-        }
+        if (i + batchSize < recipients.length) await new Promise(resolve => setTimeout(resolve, 1000));
       }
-
-      if (process.env.NODE_ENV !== 'production') console.log(`[DEV] Newsletter envoyée : ${results.sent} succès, ${results.failed} échecs`);
       return { success: true, results };
     } catch (error) {
-      console.error('Erreur envoi newsletter:', error);
       return { success: false, error: error.message };
     }
   }
 
   /* Envoie un email de confirmation d'abonnement créé */
-
   async sendSubscriptionConfirmation(subscription, user) {
     try {
       await transporter.sendMail({
@@ -534,7 +473,7 @@ class EmailService {
                 .content { background: #f9f7f4; padding: 30px; border-radius: 0 0 8px 8px; }
                 .info-box { background: white; border: 1px solid #e2e8f0; padding: 20px; border-radius: 6px; margin: 20px 0; }
                 .highlight { background: #f0fdf4; padding: 15px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #6b9d5a; }
-                .footer { text-align: center; margin-top: 30px; color: #6b7280; font-size: 14px; }
+                ${footerCSS}
               </style>
             </head>
             <body>
@@ -545,65 +484,41 @@ class EmailService {
                 </div>
                 <div class="content">
                   <p>Bonjour ${user.firstName},</p>
-
                   <p>Félicitations ! Votre abonnement Aux P'tits Pois est maintenant <strong>activé</strong>.</p>
-
                   <div class="info-box">
                     <h3 style="margin-top: 0;">Votre abonnement :</h3>
                     <p><strong>N° :</strong> ${subscription.subscriptionNumber}</p>
                     <p><strong>Type :</strong> ${subscription.type === 'ANNUAL' ? 'Abonnement Annuel' : 'Abonnement Découverte'}</p>
                     <p><strong>Panier :</strong> ${subscription.basketSize === 'SMALL' ? 'Petit panier (2-4 kg)' : 'Grand panier (6-8 kg)'}</p>
-                    <p><strong>Début :</strong> ${new Date(subscription.startDate).toLocaleDateString('fr-FR')}</p>
                   </div>
-
                   <div class="highlight">
                     <h3 style="margin-top: 0;">Retrait de votre panier</h3>
                     <p style="margin: 0;"><strong>Chaque mercredi de 18h15 à 19h15</strong><br>
                     ${subscription.pickupLocation.name}<br>
-                    ${subscription.pickupLocation.address}<br>
-                    ${subscription.pickupLocation.postalCode} ${subscription.pickupLocation.city}</p>
+                    ${subscription.pickupLocation.address}</p>
                   </div>
-
-                  <h3>Comment ça marche ?</h3>
-                  <ol>
-                    <li>Chaque semaine, nous publions la composition du panier</li>
-                    <li>Vous composez votre panier selon votre formule</li>
-                    <li>Vous venez le récupérer le mercredi</li>
-                  </ol>
-
-                  <p>Rendez-vous dès mercredi prochain pour votre premier panier !</p>
-
-                  <p>Si vous avez des questions, contactez-nous à <a href="mailto:auxptitspois@gmail.com">auxptitspois@gmail.com</a>.</p>
-
                   <p>À très bientôt,<br>L'équipe Aux P'tits Pois</p>
                 </div>
                 <div class="footer">
-                  <p>Aux P'tits Pois - AMAP Solidaire</p>
+                  <p><strong>Aux P'tits Pois - AMAP Solidaire</strong><br>14, rue du Château, 45300 Yèvre-la-Ville</p>
+                  <p>Cet email a été envoyé à ${user.email} suite à l'activation de votre contrat.<br>
+                  <a href="${process.env.FRONTEND_URL}/compte">Accédez à votre espace membre</a>.</p>
                 </div>
               </div>
             </body>
           </html>
         `,
       });
-
-      if (process.env.NODE_ENV !== 'production') console.log('[DEV] Email confirmation abonnement envoyé');
       return { success: true };
     } catch (error) {
-      console.error('Erreur envoi email confirmation abonnement:', error);
       return { success: false, error: error.message };
     }
   }
 
-  /* Envoie un rappel de renouvellement 30 jours avant la fin de l'abonnement */
-
+  /* Envoie un rappel de renouvellement */
   async sendRenewalReminderEmail(subscription, user) {
     try {
-      const endDate = new Date(subscription.endDate).toLocaleDateString('fr-FR', {
-        day: 'numeric', month: 'long', year: 'numeric'
-      });
       const type = subscription.type === 'ANNUAL' ? 'Annuel' : 'Découverte';
-      const basket = subscription.basketSize === 'SMALL' ? 'Petit panier (2-4 kg)' : 'Grand panier (6-8 kg)';
-
       await transporter.sendMail({
         from: EMAIL_FROM,
         to: user.email,
@@ -614,16 +529,14 @@ class EmailService {
           <head>
             <meta charset="utf-8">
             <style>
-              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
               .container { max-width: 600px; margin: 0 auto; padding: 20px; }
               .header { background: linear-gradient(135deg, #d97706 0%, #b45309 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
-              .header h1 { margin: 0; font-size: 1.4rem; }
               .content { background: #f9f7f4; padding: 30px; border-radius: 0 0 8px 8px; }
               .info-box { background: white; border: 1px solid #e2e8f0; padding: 20px; border-radius: 6px; margin: 20px 0; }
-              .info-box p { margin: 6px 0; }
               .warning { background: #fffbeb; border-left: 4px solid #d97706; padding: 14px 18px; border-radius: 4px; margin: 20px 0; }
               .button { display: inline-block; background: #6b9d5a; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; margin: 20px 0; }
-              .footer { text-align: center; margin-top: 30px; color: #6b7280; font-size: 13px; }
+              ${footerCSS}
             </style>
           </head>
           <body>
@@ -634,52 +547,40 @@ class EmailService {
               </div>
               <div class="content">
                 <p>Bonjour ${user.firstName},</p>
-                <p>Votre abonnement Aux P'tits Pois arrive à échéance dans <strong>30 jours</strong>. Pensez à le renouveler pour continuer à bénéficier de vos paniers hebdomadaires !</p>
-
+                <p>Votre abonnement Aux P'tits Pois arrive à échéance dans <strong>30 jours</strong>.</p>
                 <div class="info-box">
                   <h3 style="margin-top:0;">Votre abonnement actuel</h3>
                   <p><strong>N° :</strong> ${subscription.subscriptionNumber}</p>
                   <p><strong>Type :</strong> ${type}</p>
-                  <p><strong>Panier :</strong> ${basket}</p>
-                  <p><strong>Date de fin :</strong> ${endDate}</p>
                 </div>
-
                 <div class="warning">
                   Sans renouvellement, votre abonnement sera automatiquement clôturé à l'échéance et vous ne recevrez plus de paniers.
                 </div>
-
-                <p>Pour renouveler, contactez-nous directement ou faites une nouvelle demande en ligne :</p>
-
                 <div style="text-align:center;">
                   <a href="${process.env.FRONTEND_URL}/nos-abonnements" class="button">Renouveler mon abonnement</a>
                 </div>
-
-                <p>Si vous avez des questions, contactez-nous à <a href="mailto:auxptitspois@gmail.com">auxptitspois@gmail.com</a>.</p>
                 <p>À bientôt,<br>L'équipe Aux P'tits Pois</p>
               </div>
               <div class="footer">
-                <p>Aux P'tits Pois - AMAP Solidaire</p>
-                <p style="font-size:12px;">Vous recevez cet email car vous êtes abonné(e) à l'AMAP.</p>
+                <p><strong>Aux P'tits Pois - AMAP Solidaire</strong><br>14, rue du Château, 45300 Yèvre-la-Ville</p>
+                <p>Cet email a été envoyé à ${user.email}.<br>
+                <a href="${process.env.FRONTEND_URL}/compte">Accédez à votre espace membre</a>.</p>
               </div>
             </div>
           </body>
           </html>
         `,
       });
-
-      if (process.env.NODE_ENV !== 'production') console.log(`[DEV] Rappel renouvellement envoyé à ${user.email}`);
       return { success: true };
     } catch (error) {
-      console.error('Erreur envoi rappel renouvellement:', error);
       return { success: false, error: error.message };
     }
   }
+
+  /* Permanence : Confirmation */
   async sendShiftConfirmation(shift, user) {
     try {
-      const date = new Date(shift.date).toLocaleDateString('fr-FR', {
-        weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
-      });
-
+      const date = new Date(shift.distributionDate).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
       await transporter.sendMail({
         from: EMAIL_FROM,
         to: user.email,
@@ -690,12 +591,12 @@ class EmailService {
           <head>
             <meta charset="utf-8">
             <style>
-              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
               .container { max-width: 600px; margin: 0 auto; padding: 20px; }
               .header { background: linear-gradient(135deg, #6b9d5a 0%, #5a8a4a 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
               .content { background: #f9f7f4; padding: 30px; border-radius: 0 0 8px 8px; }
               .info-box { background: white; border: 1px solid #e2e8f0; padding: 20px; border-radius: 6px; margin: 20px 0; }
-              .footer { text-align: center; margin-top: 30px; color: #6b7280; font-size: 14px; }
+              ${footerCSS}
             </style>
           </head>
           <body>
@@ -706,45 +607,35 @@ class EmailService {
               </div>
               <div class="content">
                 <p>Bonjour ${user.firstName},</p>
-
                 <p>Votre inscription à la permanence est <strong>confirmée</strong>.</p>
-
                 <div class="info-box">
                   <h3 style="margin-top: 0;">Détails de la permanence :</h3>
                   <p><strong>Date :</strong> ${date}</p>
                   ${shift.startTime ? `<p><strong>Horaire :</strong> ${shift.startTime}${shift.endTime ? ` - ${shift.endTime}` : ''}</p>` : ''}
-                  ${shift.location ? `<p><strong>Lieu :</strong> ${shift.location}</p>` : ''}
                 </div>
-
                 <p>Merci pour votre engagement dans l'AMAP !</p>
-
-                <p>Pour toute question, contactez-nous à <a href="mailto:auxptitspois@gmail.com">auxptitspois@gmail.com</a>.</p>
-
                 <p>À bientôt,<br>L'équipe Aux P'tits Pois</p>
               </div>
               <div class="footer">
-                <p>Aux P'tits Pois - AMAP Solidaire</p>
+                <p><strong>Aux P'tits Pois - AMAP Solidaire</strong><br>14, rue du Château, 45300 Yèvre-la-Ville</p>
+                <p>Cet email a été envoyé à ${user.email}.<br>
+                <a href="${process.env.FRONTEND_URL}/compte">Accédez à votre espace membre</a>.</p>
               </div>
             </div>
           </body>
           </html>
         `,
       });
-
-      if (process.env.NODE_ENV !== 'production') console.log(`[DEV] Email confirmation permanence envoyé à ${user.email}`);
       return { success: true };
     } catch (error) {
-      console.error('Erreur envoi email confirmation permanence:', error);
       return { success: false, error: error.message };
     }
   }
 
+  /* Permanence : Annulation */
   async sendShiftCancellation(shift, user) {
     try {
-      const date = new Date(shift.date).toLocaleDateString('fr-FR', {
-        weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
-      });
-
+      const date = new Date(shift.distributionDate).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
       await transporter.sendMail({
         from: EMAIL_FROM,
         to: user.email,
@@ -755,12 +646,12 @@ class EmailService {
           <head>
             <meta charset="utf-8">
             <style>
-              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
               .container { max-width: 600px; margin: 0 auto; padding: 20px; }
               .header { background: linear-gradient(135deg, #6b9d5a 0%, #5a8a4a 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
               .content { background: #f9f7f4; padding: 30px; border-radius: 0 0 8px 8px; }
               .info-box { background: white; border: 1px solid #e2e8f0; padding: 20px; border-radius: 6px; margin: 20px 0; }
-              .footer { text-align: center; margin-top: 30px; color: #6b7280; font-size: 14px; }
+              ${footerCSS}
             </style>
           </head>
           <body>
@@ -771,42 +662,34 @@ class EmailService {
               </div>
               <div class="content">
                 <p>Bonjour ${user.firstName},</p>
-
                 <p>Nous vous informons que la permanence à laquelle vous étiez inscrit(e) a été <strong>annulée</strong>.</p>
-
                 <div class="info-box">
                   <h3 style="margin-top: 0;">Permanence concernée :</h3>
                   <p><strong>Date :</strong> ${date}</p>
-                  ${shift.startTime ? `<p><strong>Horaire :</strong> ${shift.startTime}${shift.endTime ? ` - ${shift.endTime}` : ''}</p>` : ''}
-                  ${shift.location ? `<p><strong>Lieu :</strong> ${shift.location}</p>` : ''}
                 </div>
-
-                <p>Pour toute question, contactez-nous à <a href="mailto:auxptitspois@gmail.com">auxptitspois@gmail.com</a>.</p>
-
                 <p>À bientôt,<br>L'équipe Aux P'tits Pois</p>
               </div>
               <div class="footer">
-                <p>Aux P'tits Pois - AMAP Solidaire</p>
+                <p><strong>Aux P'tits Pois - AMAP Solidaire</strong><br>14, rue du Château, 45300 Yèvre-la-Ville</p>
+                <p>Cet email a été envoyé à ${user.email}.<br>
+                <a href="${process.env.FRONTEND_URL}/compte">Accédez à votre espace membre</a>.</p>
               </div>
             </div>
           </body>
           </html>
         `,
       });
-
-      if (process.env.NODE_ENV !== 'production') console.log(`[DEV] Email annulation permanence envoyé à ${user.email}`);
       return { success: true };
     } catch (error) {
-      console.error('Erreur envoi email annulation permanence:', error);
       return { success: false, error: error.message };
     }
   }
 
+  /* Abonnement : Annulation */
   async sendSubscriptionCancellation(subscription, user) {
     try {
       const type = subscription.type === 'ANNUAL' ? 'Annuel' : 'Découverte';
       const basket = subscription.basketSize === 'SMALL' ? 'Petit panier (2-4 kg)' : 'Grand panier (6-8 kg)';
-
       await transporter.sendMail({
         from: EMAIL_FROM,
         to: user.email,
@@ -817,12 +700,12 @@ class EmailService {
           <head>
             <meta charset="utf-8">
             <style>
-              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
               .container { max-width: 600px; margin: 0 auto; padding: 20px; }
               .header { background: linear-gradient(135deg, #6b9d5a 0%, #5a8a4a 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
               .content { background: #f9f7f4; padding: 30px; border-radius: 0 0 8px 8px; }
               .info-box { background: white; border: 1px solid #e2e8f0; padding: 20px; border-radius: 6px; margin: 20px 0; }
-              .footer { text-align: center; margin-top: 30px; color: #6b7280; font-size: 14px; }
+              ${footerCSS}
             </style>
           </head>
           <body>
@@ -833,33 +716,29 @@ class EmailService {
               </div>
               <div class="content">
                 <p>Bonjour ${user.firstName},</p>
-
                 <p>Nous vous informons que votre abonnement Aux P'tits Pois a été <strong>annulé</strong>.</p>
-
                 <div class="info-box">
                   <h3 style="margin-top: 0;">Abonnement concerné :</h3>
                   <p><strong>N° :</strong> ${subscription.subscriptionNumber}</p>
                   <p><strong>Type :</strong> ${type}</p>
                   <p><strong>Panier :</strong> ${basket}</p>
                 </div>
-
                 <p>Si vous avez des questions ou souhaitez vous réabonner, contactez-nous à <a href="mailto:auxptitspois@gmail.com">auxptitspois@gmail.com</a>.</p>
-
                 <p>À bientôt,<br>L'équipe Aux P'tits Pois</p>
               </div>
               <div class="footer">
-                <p>Aux P'tits Pois - AMAP Solidaire</p>
+                <p><strong>Aux P'tits Pois - AMAP Solidaire</strong><br>14, rue du Château, 45300 Yèvre-la-Ville</p>
+                <p>Cet email a été envoyé à ${user.email}.<br>
+                Conformément au RGPD, vous disposez d'un droit d'accès, de modification et de suppression de vos données personnelles. 
+                Pour exercer vos droits, <a href="${process.env.FRONTEND_URL}/compte">accédez à votre espace membre</a>.</p>
               </div>
             </div>
           </body>
           </html>
         `,
       });
-
-      if (process.env.NODE_ENV !== 'production') console.log(`[DEV] Email annulation abonnement envoyé à ${user.email}`);
       return { success: true };
     } catch (error) {
-      console.error('Erreur envoi email annulation abonnement:', error);
       return { success: false, error: error.message };
     }
   }
