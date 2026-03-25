@@ -1,5 +1,6 @@
 import { prisma } from '../config/database.js';
 import { asyncHandler } from '../middlewares/error.middleware.js';
+import emailService from '../services/email.service.js';
 import {
     HttpNotFoundError,
     HttpBadRequestError,
@@ -201,16 +202,25 @@ const deleteShift = asyncHandler(async (req, res) => {
 
   const shift = await prisma.shift.findUnique({
     where: { id },
-    include: { volunteers: true }
+    include: {
+      volunteers: {
+        include: {
+          user: { select: { firstName: true, email: true } }
+        }
+      }
+    }
   });
 
   if (!shift) {
     throw new HttpNotFoundError('Permanence introuvable');
   }
 
-  // TODO: Envoyer email aux bénévoles inscrits
-
   await prisma.shift.delete({ where: { id } });
+
+  // Notifier les bénévoles inscrits
+  for (const volunteer of shift.volunteers) {
+    await emailService.sendShiftCancellation(shift, volunteer.user);
+  }
 
   res.json({
     success: true,
@@ -275,7 +285,7 @@ const joinShift = asyncHandler(async (req, res) => {
     }
   });
 
-  // TODO: Envoyer email de confirmation
+  await emailService.sendShiftConfirmation(shift, volunteer.user);
 
   res.status(httpStatusCodes.CREATED).json({
     success: true,

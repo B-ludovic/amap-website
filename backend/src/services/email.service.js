@@ -674,6 +674,134 @@ class EmailService {
       return { success: false, error: error.message };
     }
   }
+  async sendShiftConfirmation(shift, user) {
+    try {
+      const date = new Date(shift.date).toLocaleDateString('fr-FR', {
+        weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+      });
+
+      await transporter.sendMail({
+        from: EMAIL_FROM,
+        to: user.email,
+        subject: 'Confirmation d\'inscription à une permanence - Aux P\'tits Pois',
+        html: `
+          <!DOCTYPE html>
+          <html lang="fr">
+          <head>
+            <meta charset="utf-8">
+            <style>
+              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+              .header { background: linear-gradient(135deg, #6b9d5a 0%, #5a8a4a 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+              .content { background: #f9f7f4; padding: 30px; border-radius: 0 0 8px 8px; }
+              .info-box { background: white; border: 1px solid #e2e8f0; padding: 20px; border-radius: 6px; margin: 20px 0; }
+              .footer { text-align: center; margin-top: 30px; color: #6b7280; font-size: 14px; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                ${logoImg}
+                <h1>Inscription confirmée !</h1>
+              </div>
+              <div class="content">
+                <p>Bonjour ${user.firstName},</p>
+
+                <p>Votre inscription à la permanence est <strong>confirmée</strong>.</p>
+
+                <div class="info-box">
+                  <h3 style="margin-top: 0;">Détails de la permanence :</h3>
+                  <p><strong>Date :</strong> ${date}</p>
+                  ${shift.startTime ? `<p><strong>Horaire :</strong> ${shift.startTime}${shift.endTime ? ` - ${shift.endTime}` : ''}</p>` : ''}
+                  ${shift.location ? `<p><strong>Lieu :</strong> ${shift.location}</p>` : ''}
+                </div>
+
+                <p>Merci pour votre engagement dans l'AMAP !</p>
+
+                <p>Pour toute question, contactez-nous à <a href="mailto:auxptitspois@gmail.com">auxptitspois@gmail.com</a>.</p>
+
+                <p>À bientôt,<br>L'équipe Aux P'tits Pois</p>
+              </div>
+              <div class="footer">
+                <p>Aux P'tits Pois - AMAP Solidaire</p>
+              </div>
+            </div>
+          </body>
+          </html>
+        `,
+      });
+
+      if (process.env.NODE_ENV !== 'production') console.log(`[DEV] Email confirmation permanence envoyé à ${user.email}`);
+      return { success: true };
+    } catch (error) {
+      console.error('Erreur envoi email confirmation permanence:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  async sendShiftCancellation(shift, user) {
+    try {
+      const date = new Date(shift.date).toLocaleDateString('fr-FR', {
+        weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+      });
+
+      await transporter.sendMail({
+        from: EMAIL_FROM,
+        to: user.email,
+        subject: 'Permanence annulée - Aux P\'tits Pois',
+        html: `
+          <!DOCTYPE html>
+          <html lang="fr">
+          <head>
+            <meta charset="utf-8">
+            <style>
+              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+              .header { background: linear-gradient(135deg, #6b9d5a 0%, #5a8a4a 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+              .content { background: #f9f7f4; padding: 30px; border-radius: 0 0 8px 8px; }
+              .info-box { background: white; border: 1px solid #e2e8f0; padding: 20px; border-radius: 6px; margin: 20px 0; }
+              .footer { text-align: center; margin-top: 30px; color: #6b7280; font-size: 14px; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                ${logoImg}
+                <h1>Permanence annulée</h1>
+              </div>
+              <div class="content">
+                <p>Bonjour ${user.firstName},</p>
+
+                <p>Nous vous informons que la permanence à laquelle vous étiez inscrit(e) a été <strong>annulée</strong>.</p>
+
+                <div class="info-box">
+                  <h3 style="margin-top: 0;">Permanence concernée :</h3>
+                  <p><strong>Date :</strong> ${date}</p>
+                  ${shift.startTime ? `<p><strong>Horaire :</strong> ${shift.startTime}${shift.endTime ? ` - ${shift.endTime}` : ''}</p>` : ''}
+                  ${shift.location ? `<p><strong>Lieu :</strong> ${shift.location}</p>` : ''}
+                </div>
+
+                <p>Pour toute question, contactez-nous à <a href="mailto:auxptitspois@gmail.com">auxptitspois@gmail.com</a>.</p>
+
+                <p>À bientôt,<br>L'équipe Aux P'tits Pois</p>
+              </div>
+              <div class="footer">
+                <p>Aux P'tits Pois - AMAP Solidaire</p>
+              </div>
+            </div>
+          </body>
+          </html>
+        `,
+      });
+
+      if (process.env.NODE_ENV !== 'production') console.log(`[DEV] Email annulation permanence envoyé à ${user.email}`);
+      return { success: true };
+    } catch (error) {
+      console.error('Erreur envoi email annulation permanence:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
   async sendSubscriptionCancellation(subscription, user) {
     try {
       const type = subscription.type === 'ANNUAL' ? 'Annuel' : 'Découverte';
