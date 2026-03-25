@@ -4,7 +4,7 @@ import { HttpBadRequestError, httpStatusCodes } from '../utils/httpErrors.js';
 
 export const searchRecipes = async (req, res, next) => {
   try {
-    const { query } = req.query;
+    const { query, queryEn } = req.query;
 
     if (!query) {
       return res.status(httpStatusCodes.BAD_REQUEST).json({
@@ -13,7 +13,7 @@ export const searchRecipes = async (req, res, next) => {
       });
     }
 
-    const recipes = await recipeService.searchRecipes(query);
+    const recipes = await recipeService.searchRecipes(query, 12, queryEn || null);
 
     res.json({
       success: true,
@@ -48,7 +48,7 @@ export const getRecipeById = async (req, res, next) => {
 
 export const findRecipesByIngredients = async (req, res, next) => {
   try {
-    const { ingredients, number } = req.query;
+    const { ingredients, number, queryEn } = req.query;
 
     if (!ingredients) {
       return res.status(httpStatusCodes.BAD_REQUEST).json({
@@ -60,7 +60,8 @@ export const findRecipesByIngredients = async (req, res, next) => {
     const ingredientsList = ingredients.split(',').map(i => i.trim());
     const recipes = await recipeService.findByIngredients(
       ingredientsList,
-      number ? parseInt(number) : 6
+      number ? parseInt(number) : 6,
+      queryEn || null
     );
 
     res.json({

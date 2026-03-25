@@ -820,16 +820,16 @@ const api = {
 
   // Recettes
   recipes: {
-    search: async (query) => {
-      return fetchAPI(`/recipes/search?query=${encodeURIComponent(query)}`, {
-        requiresAuth: false,
-      });
+    search: async (query, queryEn = null) => {
+      const params = new URLSearchParams({ query });
+      if (queryEn) params.set('queryEn', queryEn);
+      return fetchAPI(`/recipes/search?${params}`, { requiresAuth: false });
     },
 
-    findByIngredients: async (ingredients) => {
-      return fetchAPI(`/recipes/ingredients?ingredients=${encodeURIComponent(ingredients)}`, {
-        requiresAuth: false,
-      });
+    findByIngredients: async (ingredients, queryEn = null) => {
+      const params = new URLSearchParams({ ingredients });
+      if (queryEn) params.set('queryEn', queryEn);
+      return fetchAPI(`/recipes/ingredients?${params}`, { requiresAuth: false });
     },
 
     getById: async (id) => {
