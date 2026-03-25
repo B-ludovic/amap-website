@@ -150,13 +150,13 @@ class RecipeService {
 
     // Recherche de recettes avec traduction
 
-    async searchRecipes(query, number = 12) {
+    async searchRecipes(query, number = 12, preTranslatedEn = null) {
         try {
             // Normaliser la requête (enlever les pluriels)
             const normalizedQuery = this.normalizeSearchTerm(query);
 
-            // Traduire la requête normalisée en anglais pour TheMealDB
-            const englishQuery = await this.translateIngredient(normalizedQuery);
+            // Traduire la requête normalisée en anglais pour TheMealDB (ou utiliser la valeur pré-traduite)
+            const englishQuery = preTranslatedEn ?? await this.translateIngredient(normalizedQuery);
 
             const urls = [
                 `${THEMEALDB_BASE_URL}/search.php?s=${encodeURIComponent(englishQuery)}`
@@ -271,12 +271,12 @@ class RecipeService {
 
     // Chercher des recettes par ingrédient principal (recettes françaises en priorité)
 
-    async findByIngredients(ingredients, number = 6) {
+    async findByIngredients(ingredients, number = 6, preTranslatedEn = null) {
         try {
             const mainIngredient = ingredients[0];
 
-            // Traduire l'ingrédient en anglais pour TheMealDB (normalisation + dictionnaire + Google Translate)
-            const englishIngredient = await this.translateIngredient(mainIngredient);
+            // Traduire l'ingrédient en anglais pour TheMealDB (ou utiliser la valeur pré-traduite)
+            const englishIngredient = preTranslatedEn ?? await this.translateIngredient(mainIngredient);
 
             // Double requête en parallèle : par ingrédient ET recettes françaises
             const [ingredientResponse, frenchResponse] = await Promise.all([
