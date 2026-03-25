@@ -87,7 +87,7 @@ class RecipeService {
         try {
             // Normaliser la requête (enlever les pluriels)
             const normalizedQuery = this.normalizeSearchTerm(query);
-            
+
             // Traduire la requête normalisée en anglais pour TheMealDB
             let englishQuery = normalizedQuery;
             try {
@@ -117,7 +117,6 @@ class RecipeService {
                 }
             }
             // Si aucun résultat, essayer en supprimant progressivement le début du mot
-            // Ex: "hamburger" → "amburger" → "mburger" → "burger" → résultat trouvé
             if (mealsMap.size === 0) {
                 for (let i = 1; i < englishQuery.length - 3; i++) {
                     const suffix = englishQuery.slice(i);
@@ -136,8 +135,15 @@ class RecipeService {
                 return [];
             }
 
+            // Priorité aux recettes françaises
+            const sortedMeals = [...mealsMap.values()].sort((a, b) => {
+                if (a.strArea === 'French' && b.strArea !== 'French') return -1;
+                if (a.strArea !== 'French' && b.strArea === 'French') return 1;
+                return 0;
+            });
+
             const recipes = await Promise.all(
-                [...mealsMap.values()].slice(0, number).map(async (meal) => {
+                sortedMeals.slice(0, number).map(async (meal) => {
                     const translatedTitle = await this.translateToFrench(meal.strMeal);
 
                     return {
@@ -202,15 +208,15 @@ class RecipeService {
         }
     }
 
-    // Chercher des recettes par ingrédient principal
+    // Chercher des recettes par ingrédient principal (recettes françaises en priorité)
 
     async findByIngredients(ingredients, number = 6) {
         try {
             const mainIngredient = ingredients[0];
-            
+
             // Normaliser l'ingrédient (enlever les pluriels)
             const normalizedIngredient = this.normalizeSearchTerm(mainIngredient);
-            
+
             // Traduire l'ingrédient normalisé en anglais pour TheMealDB
             let englishIngredient = normalizedIngredient;
             try {
@@ -220,22 +226,39 @@ class RecipeService {
                 console.error('Erreur traduction ingredient:', error);
             }
 
-            const response = await fetch(
-                `${THEMEALDB_BASE_URL}/filter.php?i=${encodeURIComponent(englishIngredient)}`
-            );
+            // Double requête en parallèle : par ingrédient ET recettes françaises
+            const [ingredientResponse, frenchResponse] = await Promise.all([
+                fetch(`${THEMEALDB_BASE_URL}/filter.php?i=${encodeURIComponent(englishIngredient)}`),
+                fetch(`${THEMEALDB_BASE_URL}/filter.php?a=French`)
+            ]);
 
-            if (!response.ok) {
-                throw new Error(`TheMealDB API error: ${response.status}`);
+            if (!ingredientResponse.ok) {
+                throw new Error(`TheMealDB API error: ${ingredientResponse.status}`);
             }
 
-            const data = await response.json();
+            const ingredientData = await ingredientResponse.json();
+            const ingredientMeals = ingredientData.meals || [];
 
-            if (!data.meals) {
+            if (ingredientMeals.length === 0) {
                 return [];
             }
 
+            // Construire le set des IDs français
+            const frenchIds = new Set();
+            if (frenchResponse.ok) {
+                const frenchData = await frenchResponse.json();
+                for (const meal of (frenchData.meals || [])) {
+                    frenchIds.add(meal.idMeal);
+                }
+            }
+
+            // Recettes françaises avec cet ingrédient en premier, puis les autres
+            const frenchMatches = ingredientMeals.filter(m => frenchIds.has(m.idMeal));
+            const otherMatches = ingredientMeals.filter(m => !frenchIds.has(m.idMeal));
+            const prioritized = [...frenchMatches, ...otherMatches].slice(0, number);
+
             const recipes = await Promise.all(
-                data.meals.slice(0, number).map(async (meal) => {
+                prioritized.map(async (meal) => {
                     const translatedTitle = await this.translateToFrench(meal.strMeal);
 
                     return {
