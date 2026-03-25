@@ -2,25 +2,92 @@ import translate from 'google-translate-api-x';
 
 const THEMEALDB_BASE_URL = 'https://www.themealdb.com/api/json/v1/1';
 
+// Dictionnaire de secours pour les faux amis courants (légumes, fruits, etc.)
+const TRANSLATION_OVERRIDES = {
+    'lentille': 'lentil',
+    'courgette': 'zucchini',
+    'aubergine': 'eggplant',
+    'chou': 'cabbage',
+    'chou-fleur': 'cauliflower',
+    'champignon': 'mushroom',
+    'poireau': 'leek',
+    'navet': 'turnip',
+    'panais': 'parsnip',
+    'betterave': 'beetroot',
+    'haricot': 'bean',
+    'petit pois': 'pea',
+    'poivron': 'bell pepper',
+    'oignon': 'onion',
+    'ail': 'garlic',
+    'echalote': 'shallot',
+    'épinard': 'spinach',
+    'bette': 'chard',
+    'radis': 'radish',
+    'concombre': 'cucumber',
+    'potiron': 'pumpkin',
+    'courge': 'squash',
+    'fenouil': 'fennel',
+    'artichaut': 'artichoke',
+    'asperge': 'asparagus',
+    'endive': 'endive',
+    'maïs': 'corn',
+};
+
 class RecipeService {
 
     // Normaliser un terme de recherche (enlever les pluriels, nettoyer)
     normalizeSearchTerm(term) {
         if (!term) return term;
-        
+
         let normalized = term.trim().toLowerCase();
-        
+
         // Enlever le 's' final pour le pluriel français (courgettes -> courgette)
         if (normalized.endsWith('s') && normalized.length > 3) {
             normalized = normalized.slice(0, -1);
         }
-        
+
         // Enlever 'x' final pour certains pluriels (poireaux -> poireau)
         if (normalized.endsWith('x') && normalized.length > 3) {
             normalized = normalized.slice(0, -1);
         }
-        
+
         return normalized;
+    }
+
+    // Normaliser un terme anglais après traduction (enlever les pluriels anglais)
+    normalizeEnglishTerm(term) {
+        if (!term) return term;
+        let normalized = term.trim().toLowerCase();
+        // Enlever le 's' final (lentils -> lentil, carrots -> carrot)
+        if (normalized.endsWith('s') && normalized.length > 3) {
+            normalized = normalized.slice(0, -1);
+        }
+        return normalized;
+    }
+
+    // Traduire un terme français en anglais avec dictionnaire de secours
+    async translateIngredient(frenchTerm) {
+        const normalized = this.normalizeSearchTerm(frenchTerm);
+
+        // Vérifier le dictionnaire de secours en premier
+        if (TRANSLATION_OVERRIDES[normalized]) {
+            if (process.env.NODE_ENV !== 'production') {
+                console.log(`[Recettes] Dictionnaire: "${frenchTerm}" → "${TRANSLATION_OVERRIDES[normalized]}"`);
+            }
+            return TRANSLATION_OVERRIDES[normalized];
+        }
+
+        try {
+            const result = await translate(normalized, { to: 'en' });
+            const translated = this.normalizeEnglishTerm(result.text);
+            if (process.env.NODE_ENV !== 'production') {
+                console.log(`[Recettes] Traduction: "${frenchTerm}" → "${translated}"`);
+            }
+            return translated;
+        } catch (error) {
+            console.error('Erreur traduction ingredient:', error);
+            return normalized;
+        }
     }
 
     // Traduire un texte en français
@@ -89,13 +156,7 @@ class RecipeService {
             const normalizedQuery = this.normalizeSearchTerm(query);
 
             // Traduire la requête normalisée en anglais pour TheMealDB
-            let englishQuery = normalizedQuery;
-            try {
-                const result = await translate(normalizedQuery, { to: 'en' });
-                englishQuery = result.text;
-            } catch (error) {
-                console.error('Erreur traduction query:', error);
-            }
+            const englishQuery = await this.translateIngredient(normalizedQuery);
 
             const urls = [
                 `${THEMEALDB_BASE_URL}/search.php?s=${encodeURIComponent(englishQuery)}`
@@ -214,17 +275,8 @@ class RecipeService {
         try {
             const mainIngredient = ingredients[0];
 
-            // Normaliser l'ingrédient (enlever les pluriels)
-            const normalizedIngredient = this.normalizeSearchTerm(mainIngredient);
-
-            // Traduire l'ingrédient normalisé en anglais pour TheMealDB
-            let englishIngredient = normalizedIngredient;
-            try {
-                const result = await translate(normalizedIngredient, { to: 'en' });
-                englishIngredient = result.text;
-            } catch (error) {
-                console.error('Erreur traduction ingredient:', error);
-            }
+            // Traduire l'ingrédient en anglais pour TheMealDB (normalisation + dictionnaire + Google Translate)
+            const englishIngredient = await this.translateIngredient(mainIngredient);
 
             // Double requête en parallèle : par ingrédient ET recettes françaises
             const [ingredientResponse, frenchResponse] = await Promise.all([
