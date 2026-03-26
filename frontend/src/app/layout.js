@@ -73,8 +73,9 @@ export const metadata = {
 
 const organizationJsonLd = {
   '@context': 'https://schema.org',
-  '@type': 'LocalBusiness',
+  '@type': ['Organization', 'LocalBusiness'],
   name: "Aux P'tits Pois",
+  alternateName: "AMAP Aux P'tits Pois",
   description: 'AMAP solidaire proposant des paniers de légumes bio et locaux auprès de producteurs partenaires.',
   url: 'https://auxptitspois.fr',
   '@id': 'https://auxptitspois.fr/#organization',
@@ -86,17 +87,21 @@ const organizationJsonLd = {
     postalCode: '92140',
     addressCountry: 'FR',
   },
+  geo: {
+    '@type': 'GeoCoordinates',
+    latitude: 48.7998,
+    longitude: 2.2677,
+  },
   openingHoursSpecification: {
     '@type': 'OpeningHoursSpecification',
     dayOfWeek: 'Wednesday',
     opens: '18:15',
     closes: '19:15',
   },
-  areaServed: {
-    '@type': 'GeoCircle',
-    geoMidpoint: { '@type': 'GeoCoordinates' },
-    geoRadius: '30000',
-  },
+  sameAs: [
+    'https://hautsdeseine.secours-catholique.org/notre-actualite/lamap-aux-ptits-pois-de-clamart',
+    'https://www.wedemain.fr/sauver-la-planete/initiatives-ecologiques-locales/initiatives-et-innovations-ecologiques-en-ile-de-france/aux-ptits-pois-une-association-solidaire-pour-manger-mieux-1135361',
+  ],
   inLanguage: 'fr',
 };
 
