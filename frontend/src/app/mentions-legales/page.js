@@ -156,6 +156,24 @@ export default function MentionsLegalesPage() {
         </section>
 
         <section className="legal-section">
+          <h2>Responsabilité</h2>
+          <p>
+            L'association Aux P'tits Pois s'efforce de maintenir les informations publiées sur ce site
+            à jour et exactes, mais ne peut garantir leur exhaustivité ou leur absence d'erreur.
+            Elle se réserve le droit de modifier ou corriger le contenu à tout moment et sans préavis.
+          </p>
+          <p>
+            Ce site contient des liens vers des services tiers (recettes, articles de presse).
+            L'association n'est pas responsable du contenu de ces sites externes et ne peut garantir
+            leur disponibilité permanente.
+          </p>
+          <p>
+            La disponibilité du site peut être interrompue à tout moment pour des raisons de maintenance
+            ou d'hébergement, sans que cela engage la responsabilité de l'association.
+          </p>
+        </section>
+
+        <section className="legal-section">
           <h2>Données personnelles</h2>
           <p>
             Les informations collectées sur ce site sont destinées uniquement à la gestion de votre abonnement et des distributions.
