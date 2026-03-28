@@ -14,10 +14,16 @@ export function AuthProvider({ children }) {
   }, []);
 
   const loadUser = async () => {
+    // Si aucune session connue, on ne fait pas la requête (évite un 401 en console)
+    if (!localStorage.getItem('auth_known')) {
+      setLoading(false);
+      return;
+    }
     try {
       const data = await authApi.me();
       setUser(data.data.user);
     } catch {
+      localStorage.removeItem('auth_known');
       setUser(null);
     } finally {
       setLoading(false);
@@ -25,6 +31,7 @@ export function AuthProvider({ children }) {
   };
 
   const login = (userData) => {
+    localStorage.setItem('auth_known', '1');
     setUser(userData);
   };
 
@@ -34,6 +41,7 @@ export function AuthProvider({ children }) {
     } catch {
       // Ignorer les erreurs réseau
     } finally {
+      localStorage.removeItem('auth_known');
       setUser(null);
     }
   };
