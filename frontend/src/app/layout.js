@@ -1,3 +1,4 @@
+import { headers } from 'next/headers';
 import CookieConsent from '../components/CookieConsent';
 import Header from '../components/layout/Header';
 import ConditionalFooter from '../components/layout/ConditionalFooter';
@@ -77,7 +78,10 @@ const organizationJsonLd = {
   inLanguage: 'fr',
 };
 
-function RootLayout({ children }) {
+async function RootLayout({ children }) {
+  const headersList = await headers();
+  const nonce = headersList.get('x-nonce') ?? '';
+
   return (
     <html lang="fr">
       <body>
@@ -89,7 +93,7 @@ function RootLayout({ children }) {
             {children}
           </main>
           <ConditionalFooter />
-          <CookieConsent />
+          <CookieConsent nonce={nonce} />
         </Providers>
       </body>
     </html>

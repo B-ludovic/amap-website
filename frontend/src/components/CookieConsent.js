@@ -4,7 +4,7 @@ import Script from 'next/script';
 
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
 
-export default function CookieConsent() {
+export default function CookieConsent({ nonce }) {
   const config = {
     privacyPolicyUrl: '/mentions-legales#cookies',
     purposes: [
@@ -23,13 +23,15 @@ export default function CookieConsent() {
       <Script
         id="orejime-config"
         strategy="beforeInteractive"
+        nonce={nonce}
         dangerouslySetInnerHTML={{ __html: `window.orejimeConfig = ${JSON.stringify(config).replace(/</g, '\\u003c').replace(/>/g, '\\u003e').replace(/&/g, '\\u0026')};` }}
       />
-      <Script src="/orejime/orejime-standard-fr.js" strategy="afterInteractive" />
+      <Script src="/orejime/orejime-standard-fr.js" strategy="afterInteractive" nonce={nonce} />
       {GA_ID && (
         <Script
           id="ga-template"
           strategy="afterInteractive"
+          nonce={nonce}
           dangerouslySetInnerHTML={{
             __html: `
               var t = document.createElement('template');
