@@ -57,12 +57,13 @@ Ce projet est un site complet permettant de gérer une AMAP de A à Z :
 amap-website/
 ├── frontend/          # Application Next.js
 │   ├── src/
-│   │   ├── app/      # Pages et routes
+│   │   ├── app/         # Pages et routes
 │   │   ├── components/  # Composants réutilisables
-│   │   ├── contexts/    # Contextes React (Auth, Modal, etc.)
-│   │   ├── lib/         # Utilitaires et API client
+│   │   ├── contexts/    # Contextes React (Auth, Modal, Theme, etc.)
+│   │   ├── lib/         # Utilitaires (api.js, logger.js)
+│   │   ├── middleware.js # CSP nonce, HSTS, COOP, X-Frame-Options
 │   │   └── styles/      # Fichiers CSS
-│   └── public/       # Assets statiques
+│   └── public/          # Assets statiques
 │
 └── backend/          # API Express
     ├── src/
@@ -138,7 +139,7 @@ Terminal 1 - Backend :
 ```bash
 cd backend
 npm run dev
-# API disponible sur http://localhost:4000
+# API disponible sur http://localhost:3001
 ```
 
 Terminal 2 - Frontend :
@@ -228,9 +229,13 @@ NEXT_PUBLIC_GA_ID=...          # ID Google Analytics (ex: G-XXXXXXXXXX)
 - Design responsive (desktop, tablet, mobile) avec thèmes saisonniers dynamiques
 - Authentification JWT + bcrypt, protection des routes par rôle (MEMBER, VOLUNTEER, ADMIN)
 - Rate limiting global, headers sécurisés (Helmet.js), sanitisation XSS (DOMPurify)
+- **CSP nonce-based** via middleware Next.js (`script-src 'nonce' 'strict-dynamic' 'unsafe-eval'`)
+- **HSTS** (`max-age=31536000; includeSubDomains; preload`), **COOP** (`same-origin`), **X-Frame-Options** (`DENY`)
+- JSON-LD sécurisé : échappement `<`, `>`, `&` dans les scripts structurés
+- Visiteurs anonymes : pas de requête `/auth/me` (flag `localStorage`) → zéro 401 en console
 - Gestion des cookies conforme RGPD (Orejime)
 - Purge automatique des données : comptes supprimés (90j), inscriptions non vérifiées (30j)
-- SEO : sitemap, robots.txt (noindex admin + blocage bots IA), schema FAQPage JSON-LD, lazy loading images
+- SEO : sitemap, robots.txt (noindex admin + blocage bots IA), `generateMetadata` dynamique sur les recettes, JSON-LD Organization + FAQPage + ItemList producteurs, lazy loading images
 - Emails transactionnels complets : permanences, désistements, abonnements, paniers, candidatures producteurs
 
 ## 📊 Base de données
