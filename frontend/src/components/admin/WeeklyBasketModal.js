@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { X, Plus, Trash2, ShoppingBasket, RefreshCw } from 'lucide-react';
 import { useModal } from '../../contexts/ModalContext';
 import api from '../../lib/api';
@@ -33,6 +34,8 @@ const getISOWeekAndYear = (dateStr) => {
 };
 
 export default function WeeklyBasketModal({ basket, lastBasket, onClose }) {
+  const containerRef = useRef(null);
+  useFocusTrap(containerRef);
   const { showSuccess, showError } = useModal();
   const [loading, setLoading] = useState(false);
   const [products, setProducts] = useState([]);
@@ -229,7 +232,7 @@ export default function WeeklyBasketModal({ basket, lastBasket, onClose }) {
 
   return (
     <div className="modal-overlay" onClick={() => onClose(false)}>
-      <div className="modal-container modal-large" role="dialog" aria-modal="true" aria-labelledby="modal-title-basket" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-container modal-large" ref={containerRef} role="dialog" aria-modal="true" aria-labelledby="modal-title-basket" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2 id="modal-title-basket">{basket ? 'Modifier le panier' : 'Créer un panier hebdomadaire'}</h2>
           <button

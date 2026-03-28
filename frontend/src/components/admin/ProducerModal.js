@@ -1,11 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { X } from 'lucide-react';
 import { useModal } from '../../contexts/ModalContext';
 import api from '../../lib/api';
 
 export default function ProducerModal({ producer, onClose }) {
+  const containerRef = useRef(null);
+  useFocusTrap(containerRef);
   const { showSuccess, showError } = useModal();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -99,7 +102,7 @@ export default function ProducerModal({ producer, onClose }) {
 
   return (
     <div className="modal-overlay" onClick={() => onClose(false)}>
-      <div className="modal-container modal-lg" role="dialog" aria-modal="true" aria-labelledby="modal-title-producer" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-container modal-lg" ref={containerRef} role="dialog" aria-modal="true" aria-labelledby="modal-title-producer" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="modal-header">
           <h2 id="modal-title-producer" className="modal-title">

@@ -1,11 +1,14 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { X, Download, FileText, AlertCircle, Loader } from 'lucide-react';
 import api from '../../lib/api';
 import '../../styles/admin/components.css';
 
 export default function ContractModal({ subscription, onClose }) {
+  const containerRef = useRef(null);
+  useFocusTrap(containerRef);
   const [blobUrl, setBlobUrl] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -49,7 +52,7 @@ export default function ContractModal({ subscription, onClose }) {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal modal-xl" role="dialog" aria-modal="true" aria-labelledby="modal-title-contract" onClick={(e) => e.stopPropagation()}>
+      <div className="modal modal-xl" ref={containerRef} role="dialog" aria-modal="true" aria-labelledby="modal-title-contract" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <div className="contract-modal-header-title">
             <FileText size={20} />

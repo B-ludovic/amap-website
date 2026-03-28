@@ -1,12 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { X, User, Mail, Phone, MapPin, Package, MessageSquare, Check, X as XIcon, FileText, Sprout } from 'lucide-react';
 import { useModal } from '../../contexts/ModalContext';
 import api from '../../lib/api';
 import '../../styles/admin/components.css';
 
 export default function ProducerInquiryModal({ inquiry, onClose }) {
+  const containerRef = useRef(null);
+  useFocusTrap(containerRef);
   const [adminNotes, setAdminNotes] = useState(inquiry.adminNotes || '');
   const [loading, setLoading] = useState(false);
   
@@ -66,7 +69,7 @@ export default function ProducerInquiryModal({ inquiry, onClose }) {
 
   return (
     <div className="modal-overlay" onClick={() => onClose(false)}>
-      <div className="modal modal-lg" role="dialog" aria-modal="true" aria-labelledby="modal-title-inquiry" onClick={(e) => e.stopPropagation()}>
+      <div className="modal modal-lg" ref={containerRef} role="dialog" aria-modal="true" aria-labelledby="modal-title-inquiry" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2 id="modal-title-inquiry">Demande de producteur</h2>
           <button className="modal-close" onClick={() => onClose(false)}>

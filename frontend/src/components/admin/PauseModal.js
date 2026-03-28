@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { X, PauseCircle, AlertTriangle } from 'lucide-react';
 import { useModal } from '../../contexts/ModalContext';
 
@@ -23,6 +24,8 @@ function todayISO() {
 }
 
 export default function PauseModal({ subscription, onClose }) {
+  const containerRef = useRef(null);
+  useFocusTrap(containerRef);
   const { showConfirm } = useModal();
   const [startDate, setStartDate] = useState(todayISO());
   const [durationWeeks, setDurationWeeks] = useState(1);
@@ -69,7 +72,7 @@ export default function PauseModal({ subscription, onClose }) {
 
   return (
     <div className="modal-overlay" onClick={() => onClose(false)}>
-      <div className="modal-container" role="dialog" aria-modal="true" aria-labelledby="modal-title-pause" onClick={e => e.stopPropagation()}>
+      <div className="modal-container" ref={containerRef} role="dialog" aria-modal="true" aria-labelledby="modal-title-pause" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <div className="modal-title-group">
             <PauseCircle size={20} />

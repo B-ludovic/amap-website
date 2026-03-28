@@ -1,12 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { X, User, Mail, Phone, ShoppingBasket, MessageSquare, Check, X as XIcon, FileText, Download } from 'lucide-react';
 import { useModal } from '../../contexts/ModalContext';
 import api from '../../lib/api';
 import '../../styles/admin/components.css';
 
 export default function SubscriptionRequestModal({ request, onClose }) {
+  const containerRef = useRef(null);
+  useFocusTrap(containerRef);
   const [adminNotes, setAdminNotes] = useState(request.adminNotes || '');
   const [loading, setLoading] = useState(false);
   const [downloadingContract, setDownloadingContract] = useState(false);
@@ -83,7 +86,7 @@ export default function SubscriptionRequestModal({ request, onClose }) {
 
   return (
     <div className="modal-overlay" onClick={() => onClose(false)}>
-      <div className="modal modal-lg" role="dialog" aria-modal="true" aria-labelledby="modal-title-sub-request" onClick={(e) => e.stopPropagation()}>
+      <div className="modal modal-lg" ref={containerRef} role="dialog" aria-modal="true" aria-labelledby="modal-title-sub-request" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2 id="modal-title-sub-request">Demande d'abonnement</h2>
           <button className="modal-close" onClick={() => onClose(false)}>

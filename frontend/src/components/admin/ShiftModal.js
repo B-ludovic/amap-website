@@ -1,11 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { X, UserPlus, Trash2 } from 'lucide-react';
 import { useModal } from '../../contexts/ModalContext';
 import api from '../../lib/api';
 
 export default function ShiftModal({ shift, onClose }) {
+  const containerRef = useRef(null);
+  useFocusTrap(containerRef);
   const { showSuccess, showError } = useModal();
   const [loading, setLoading] = useState(false);
   const [users, setUsers] = useState([]);
@@ -158,7 +161,7 @@ export default function ShiftModal({ shift, onClose }) {
 
   return (
     <div className="modal-overlay" onClick={() => onClose(false)}>
-      <div className="modal-container" role="dialog" aria-modal="true" aria-labelledby="modal-title-shift" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-container" ref={containerRef} role="dialog" aria-modal="true" aria-labelledby="modal-title-shift" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2 id="modal-title-shift">{shift ? 'Modifier la permanence' : 'Créer une permanence'}</h2>
           <button

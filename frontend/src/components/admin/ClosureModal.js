@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { X, DoorClosed, AlertTriangle, Mail } from 'lucide-react';
 import api from '../../lib/api';
 import { useModal } from '../../contexts/ModalContext';
@@ -22,6 +23,8 @@ function formatDateFR(dateStr) {
 }
 
 export default function ClosureModal({ daysUsed, daysRemaining, onClose }) {
+  const containerRef = useRef(null);
+  useFocusTrap(containerRef);
   const { showConfirm } = useModal();
   const [startDate, setStartDate] = useState(todayISO());
   const [endDate, setEndDate] = useState(addDays(todayISO(), 7));
@@ -64,7 +67,7 @@ export default function ClosureModal({ daysUsed, daysRemaining, onClose }) {
 
   return (
     <div className="modal-overlay" onClick={() => onClose(false)}>
-      <div className="modal-container" role="dialog" aria-modal="true" aria-labelledby="modal-title-closure" onClick={e => e.stopPropagation()}>
+      <div className="modal-container" ref={containerRef} role="dialog" aria-modal="true" aria-labelledby="modal-title-closure" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <div className="modal-title-group">
             <DoorClosed size={20} />

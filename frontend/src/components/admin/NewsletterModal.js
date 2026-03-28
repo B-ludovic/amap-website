@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
@@ -44,6 +45,8 @@ function Toolbar({ editor }) {
 }
 
 export default function NewsletterModal({ newsletter, onClose }) {
+  const containerRef = useRef(null);
+  useFocusTrap(containerRef);
   const [formData, setFormData] = useState({
     subject: '',
     type: 'GENERAL',
@@ -154,7 +157,7 @@ export default function NewsletterModal({ newsletter, onClose }) {
 
   return (
     <div className="modal-overlay" onClick={() => onClose(false)}>
-      <div className="modal-container modal-large" role="dialog" aria-modal="true" aria-labelledby="modal-title-newsletter" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-container modal-large" ref={containerRef} role="dialog" aria-modal="true" aria-labelledby="modal-title-newsletter" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2 id="modal-title-newsletter">{isEdit ? 'Modifier la newsletter' : 'Nouvelle newsletter'}</h2>
           <button className="modal-close" onClick={() => onClose(false)}>

@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { X, User, CreditCard, Calendar, MapPin, Package, CheckCircle, PauseCircle, PlayCircle, XCircle } from 'lucide-react';
 import { useModal } from '../../contexts/ModalContext';
 import api from '../../lib/api';
@@ -8,6 +9,8 @@ import PauseModal from './PauseModal';
 import '../../styles/admin/components.css';
 
 export default function SubscriptionDetailModal({ subscription, onClose, onUpdate }) {
+  const containerRef = useRef(null);
+  useFocusTrap(containerRef);
   const { showConfirm, showSuccess, showError } = useModal();
   const [isPauseModalOpen, setIsPauseModalOpen] = useState(false);
 
@@ -100,7 +103,7 @@ export default function SubscriptionDetailModal({ subscription, onClose, onUpdat
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal modal-lg" role="dialog" aria-modal="true" aria-labelledby="modal-title-subscription-detail" onClick={(e) => e.stopPropagation()}>
+      <div className="modal modal-lg" ref={containerRef} role="dialog" aria-modal="true" aria-labelledby="modal-title-subscription-detail" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <div>
             <h2 id="modal-title-subscription-detail">Détails de l'abonnement</h2>
