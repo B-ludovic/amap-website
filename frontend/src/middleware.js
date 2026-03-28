@@ -6,6 +6,8 @@ export function middleware(request) {
   const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.auxptitspois.fr';
   const apiOrigin = new URL(rawApiUrl).origin;
 
+  const isProd = process.env.NODE_ENV === 'production';
+
   const csp = [
     "default-src 'self'",
     `script-src 'nonce-${nonce}' 'strict-dynamic' 'unsafe-eval'`,
@@ -17,7 +19,7 @@ export function middleware(request) {
     "base-uri 'self'",
     "form-action 'self'",
     "frame-ancestors 'none'",
-    "upgrade-insecure-requests",
+    ...(isProd ? ["upgrade-insecure-requests"] : []),
   ].join('; ');
 
   const requestHeaders = new Headers(request.headers);

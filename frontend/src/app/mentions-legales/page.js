@@ -25,7 +25,9 @@ export default function MentionsLegalesPage() {
           </p>
           <p>
             <strong>Directrice de la publication :</strong> Kerina DAVIGNY<br />
-            <strong>Conception et développement :</strong> Ludovic BATAILLE
+            <strong>Conception et développement :</strong>{' '}
+            <a href="https://www.lecomptoirducode.fr/fr" target="_blank" rel="noopener noreferrer">Le Comptoir du Code</a>{' '}
+            (société en cours d'immatriculation)
           </p>
           <h2>Partenaire Agricole</h2>
           <p>
