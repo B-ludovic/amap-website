@@ -229,8 +229,10 @@ export default function AdminDistributionPage() {
       {/* Barre de recherche */}
       <div className="toolbar">
         <div className="search-bar">
-          <Search size={20} />
+          <label htmlFor="search-distribution" className="sr-only">Rechercher un adhérent</label>
+          <Search size={20} aria-hidden="true" />
           <input
+            id="search-distribution"
             type="text"
             placeholder="Rechercher un adhérent..."
             value={searchTerm}

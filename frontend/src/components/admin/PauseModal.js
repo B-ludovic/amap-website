@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { X, PauseCircle, AlertTriangle } from 'lucide-react';
 import { useModal } from '../../contexts/ModalContext';
 
@@ -61,13 +61,19 @@ export default function PauseModal({ subscription, onClose }) {
     );
   }
 
+  useEffect(() => {
+    const handleEscape = (e) => { if (e.key === 'Escape') onClose(false); };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [onClose]);
+
   return (
     <div className="modal-overlay" onClick={() => onClose(false)}>
-      <div className="modal-container" onClick={e => e.stopPropagation()}>
+      <div className="modal-container" role="dialog" aria-modal="true" aria-labelledby="modal-title-pause" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <div className="modal-title-group">
             <PauseCircle size={20} />
-            <h2 className="modal-title">Mettre en pause l&apos;abonnement</h2>
+            <h2 id="modal-title-pause" className="modal-title">Mettre en pause l&apos;abonnement</h2>
           </div>
           <button className="modal-close" onClick={() => onClose(false)}>
             <X size={20} />

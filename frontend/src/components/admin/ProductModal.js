@@ -80,12 +80,18 @@ export default function ProductModal({ product, producers, onClose }) {
     }
   };
 
+  useEffect(() => {
+    const handleEscape = (e) => { if (e.key === 'Escape') onClose(false); };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [onClose]);
+
   return (
     <div className="modal-overlay" onClick={() => onClose(false)}>
-      <div className="modal-container modal-lg" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-container modal-lg" role="dialog" aria-modal="true" aria-labelledby="modal-title-product" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="modal-header">
-          <h2 className="modal-title">
+          <h2 id="modal-title-product" className="modal-title">
             {product ? 'Modifier le produit' : 'Ajouter un produit'}
           </h2>
           <button

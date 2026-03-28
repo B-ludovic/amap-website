@@ -150,11 +150,17 @@ export default function ShiftModal({ shift, onClose }) {
     }
   };
 
+  useEffect(() => {
+    const handleEscape = (e) => { if (e.key === 'Escape') onClose(false); };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [onClose]);
+
   return (
     <div className="modal-overlay" onClick={() => onClose(false)}>
-      <div className="modal-container" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-container" role="dialog" aria-modal="true" aria-labelledby="modal-title-shift" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>{shift ? 'Modifier la permanence' : 'Créer une permanence'}</h2>
+          <h2 id="modal-title-shift">{shift ? 'Modifier la permanence' : 'Créer une permanence'}</h2>
           <button
             className="modal-close"
             onClick={() => onClose(false)}

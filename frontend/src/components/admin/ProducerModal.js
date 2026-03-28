@@ -91,12 +91,18 @@ export default function ProducerModal({ producer, onClose }) {
     }
   };
 
+  useEffect(() => {
+    const handleEscape = (e) => { if (e.key === 'Escape') onClose(false); };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [onClose]);
+
   return (
     <div className="modal-overlay" onClick={() => onClose(false)}>
-      <div className="modal-container modal-lg" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-container modal-lg" role="dialog" aria-modal="true" aria-labelledby="modal-title-producer" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="modal-header">
-          <h2 className="modal-title">
+          <h2 id="modal-title-producer" className="modal-title">
             {producer ? 'Modifier le producteur' : 'Ajouter un producteur'}
           </h2>
           <button

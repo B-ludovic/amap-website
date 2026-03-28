@@ -111,8 +111,10 @@ export default function AdminProductsPage() {
         {/* Barre de recherche et filtres */}
         <div className="admin-toolbar">
           <div className="admin-search">
-            <Search size={20} />
+            <label htmlFor="search-produits" className="sr-only">Rechercher un produit</label>
+            <Search size={20} aria-hidden="true" />
             <input
+              id="search-produits"
               type="text"
               placeholder="Rechercher un produit..."
               value={searchTerm}

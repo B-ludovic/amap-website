@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, User, Mail, Phone, ShoppingBasket, MessageSquare, Check, X as XIcon, FileText, Download } from 'lucide-react';
 import { useModal } from '../../contexts/ModalContext';
 import api from '../../lib/api';
@@ -75,11 +75,17 @@ export default function SubscriptionRequestModal({ request, onClose }) {
     });
   };
 
+  useEffect(() => {
+    const handleEscape = (e) => { if (e.key === 'Escape') onClose(false); };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [onClose]);
+
   return (
     <div className="modal-overlay" onClick={() => onClose(false)}>
-      <div className="modal modal-lg" onClick={(e) => e.stopPropagation()}>
+      <div className="modal modal-lg" role="dialog" aria-modal="true" aria-labelledby="modal-title-sub-request" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>Demande d'abonnement</h2>
+          <h2 id="modal-title-sub-request">Demande d'abonnement</h2>
           <button className="modal-close" onClick={() => onClose(false)}>
             <X size={24} />
           </button>

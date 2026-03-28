@@ -33,6 +33,12 @@ export default function ContractModal({ subscription, onClose }) {
     };
   }, [subscription.id]);
 
+  useEffect(() => {
+    const handleEscape = (e) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [onClose]);
+
   const handleDownload = () => {
     if (!blobUrl) return;
     const a = document.createElement('a');
@@ -43,12 +49,12 @@ export default function ContractModal({ subscription, onClose }) {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal modal-xl" onClick={(e) => e.stopPropagation()}>
+      <div className="modal modal-xl" role="dialog" aria-modal="true" aria-labelledby="modal-title-contract" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <div className="contract-modal-header-title">
             <FileText size={20} />
             <div>
-              <h2>Contrat d'abonnement</h2>
+              <h2 id="modal-title-contract">Contrat d'abonnement</h2>
               <p className="modal-subtitle">{subscription.subscriptionNumber}</p>
             </div>
           </div>

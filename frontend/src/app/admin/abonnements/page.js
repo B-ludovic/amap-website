@@ -184,8 +184,10 @@ export default function AdminSubscriptionsPage() {
       {/* Filtres et recherche */}
       <div className="toolbar">
         <div className="search-bar">
-          <Search size={20} />
+          <label htmlFor="search-abonnements" className="sr-only">Rechercher un adhérent</label>
+          <Search size={20} aria-hidden="true" />
           <input
+            id="search-abonnements"
             type="text"
             placeholder="Rechercher un adhérent..."
             value={searchTerm}

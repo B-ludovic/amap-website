@@ -58,11 +58,17 @@ export default function ProducerInquiryModal({ inquiry, onClose }) {
     });
   };
 
+  useEffect(() => {
+    const handleEscape = (e) => { if (e.key === 'Escape') onClose(false); };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [onClose]);
+
   return (
     <div className="modal-overlay" onClick={() => onClose(false)}>
-      <div className="modal modal-lg" onClick={(e) => e.stopPropagation()}>
+      <div className="modal modal-lg" role="dialog" aria-modal="true" aria-labelledby="modal-title-inquiry" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>Demande de producteur</h2>
+          <h2 id="modal-title-inquiry">Demande de producteur</h2>
           <button className="modal-close" onClick={() => onClose(false)}>
             <X size={24} />
           </button>

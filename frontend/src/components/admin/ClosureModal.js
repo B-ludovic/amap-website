@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, DoorClosed, AlertTriangle, Mail } from 'lucide-react';
 import api from '../../lib/api';
 import { useModal } from '../../contexts/ModalContext';
@@ -56,13 +56,19 @@ export default function ClosureModal({ daysUsed, daysRemaining, onClose }) {
     );
   }
 
+  useEffect(() => {
+    const handleEscape = (e) => { if (e.key === 'Escape') onClose(false); };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [onClose]);
+
   return (
     <div className="modal-overlay" onClick={() => onClose(false)}>
-      <div className="modal-container" onClick={e => e.stopPropagation()}>
+      <div className="modal-container" role="dialog" aria-modal="true" aria-labelledby="modal-title-closure" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <div className="modal-title-group">
             <DoorClosed size={20} />
-            <h2 className="modal-title">Créer une fermeture AMAP</h2>
+            <h2 id="modal-title-closure" className="modal-title">Créer une fermeture AMAP</h2>
           </div>
           <button className="modal-close" onClick={() => onClose(false)}>
             <X size={20} />

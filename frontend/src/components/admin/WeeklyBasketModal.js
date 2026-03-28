@@ -221,11 +221,17 @@ export default function WeeklyBasketModal({ basket, lastBasket, onClose }) {
     day: 'numeric', month: 'long', year: 'numeric'
   });
 
+  useEffect(() => {
+    const handleEscape = (e) => { if (e.key === 'Escape') onClose(false); };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [onClose]);
+
   return (
     <div className="modal-overlay" onClick={() => onClose(false)}>
-      <div className="modal-container modal-large" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-container modal-large" role="dialog" aria-modal="true" aria-labelledby="modal-title-basket" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>{basket ? 'Modifier le panier' : 'Créer un panier hebdomadaire'}</h2>
+          <h2 id="modal-title-basket">{basket ? 'Modifier le panier' : 'Créer un panier hebdomadaire'}</h2>
           <button
             className="modal-close"
             onClick={() => onClose(false)}

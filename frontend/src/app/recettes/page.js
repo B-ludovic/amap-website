@@ -49,8 +49,10 @@ export default function RecipesPage() {
                 <div className="container">
                     <form onSubmit={handleSearch} className="search-form">
                         <div className="search-input-wrapper">
+                            <label htmlFor="search-recettes" className="sr-only">Rechercher une recette</label>
                             <Search size={20} aria-hidden="true" />
                             <input
+                                id="search-recettes"
                                 type="text"
                                 placeholder="Rechercher une recette (ex: soupe de légumes)..."
                                 value={query}

@@ -359,6 +359,7 @@
 .summary-payment-select:focus {
   outline: none;
   border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(107, 157, 90, 0.1);
 }
 
 .summary-payment-detail {

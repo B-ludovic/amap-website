@@ -175,6 +175,12 @@
 }
 
 .admin-filter-select:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+  border-radius: var(--border-radius-sm);
+}
+
+.admin-filter-select:focus {
   color: var(--accent-color);
 }
 

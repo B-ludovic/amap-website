@@ -105,8 +105,10 @@ export default function AdminProducersPage() {
         {/* Barre de recherche */}
         <div className="admin-toolbar">
           <div className="admin-search">
-            <Search size={20} />
+            <label htmlFor="search-producteurs" className="sr-only">Rechercher un producteur</label>
+            <Search size={20} aria-hidden="true" />
             <input
+              id="search-producteurs"
               type="text"
               placeholder="Rechercher un producteur..."
               value={searchTerm}

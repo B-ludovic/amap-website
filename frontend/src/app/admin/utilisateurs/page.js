@@ -161,8 +161,10 @@ export default function AdminUsersPage() {
         {/* Barre de recherche et filtres */}
         <div className="admin-toolbar">
           <div className="admin-search">
-            <Search size={20} />
+            <label htmlFor="search-utilisateurs" className="sr-only">Rechercher un utilisateur</label>
+            <Search size={20} aria-hidden="true" />
             <input
+              id="search-utilisateurs"
               type="text"
               placeholder="Rechercher un utilisateur..."
               value={searchTerm}

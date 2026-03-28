@@ -146,11 +146,17 @@ export default function NewsletterModal({ newsletter, onClose }) {
     { value: 'TEST', label: 'Test (moi uniquement)' }
   ];
 
+  useEffect(() => {
+    const handleEscape = (e) => { if (e.key === 'Escape') onClose(false); };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [onClose]);
+
   return (
     <div className="modal-overlay" onClick={() => onClose(false)}>
-      <div className="modal-container modal-large" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-container modal-large" role="dialog" aria-modal="true" aria-labelledby="modal-title-newsletter" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>{isEdit ? 'Modifier la newsletter' : 'Nouvelle newsletter'}</h2>
+          <h2 id="modal-title-newsletter">{isEdit ? 'Modifier la newsletter' : 'Nouvelle newsletter'}</h2>
           <button className="modal-close" onClick={() => onClose(false)}>
             <X size={24} />
           </button>

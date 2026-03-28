@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, User, CreditCard, Calendar, MapPin, Package, CheckCircle, PauseCircle, PlayCircle, XCircle } from 'lucide-react';
 import { useModal } from '../../contexts/ModalContext';
 import api from '../../lib/api';
@@ -92,12 +92,18 @@ export default function SubscriptionDetailModal({ subscription, onClose, onUpdat
     return <span className={`badge badge-${info.color}`}>{info.label}</span>;
   };
 
+  useEffect(() => {
+    const handleEscape = (e) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [onClose]);
+
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal modal-lg" onClick={(e) => e.stopPropagation()}>
+      <div className="modal modal-lg" role="dialog" aria-modal="true" aria-labelledby="modal-title-subscription-detail" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <div>
-            <h2>Détails de l'abonnement</h2>
+            <h2 id="modal-title-subscription-detail">Détails de l'abonnement</h2>
             <p className="modal-subtitle">{subscription.subscriptionNumber}</p>
           </div>
           <button className="modal-close" onClick={onClose}>

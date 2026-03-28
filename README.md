@@ -1,4 +1,4 @@
-# 🌱 Aux P'tits Pois - Site AMAP
+# 🫛 Aux P'tits Pois - Site AMAP
 
 Plateforme web moderne pour la gestion d'une AMAP (Association pour le Maintien d'une Agriculture Paysanne).
 
