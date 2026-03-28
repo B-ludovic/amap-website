@@ -2,6 +2,15 @@ import { ShoppingBasket, Users, Heart, Leaf, LeafyGreen, Apple, Egg, Wheat, Arro
 import Link from 'next/link';
 import '../styles/public/home.css';
 
+export const metadata = {
+  title: "Aux P'tits Pois - AMAP locale à Clamart",
+  description: "Abonnez-vous à notre AMAP et recevez chaque semaine des légumes bio et locaux de producteurs partenaires à moins de 30 km de Clamart. Tarif solidaire disponible.",
+  openGraph: {
+    title: "Aux P'tits Pois - AMAP locale à Clamart",
+    description: "Légumes bio et locaux livrés chaque semaine. Rejoignez notre AMAP solidaire à Clamart.",
+  },
+};
+
 const categoryIcon = (category) => {
   switch (category) {
     case 'FRUITS':    return Apple;

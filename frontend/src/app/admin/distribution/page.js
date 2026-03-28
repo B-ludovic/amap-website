@@ -25,7 +25,7 @@ export default function AdminDistributionPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   
-  const { showSuccess, showError, showWarning } = useModal();
+  const { showSuccess, showError } = useModal();
 
   useEffect(() => {
     fetchCurrentBasket();
@@ -129,10 +129,29 @@ export default function AdminDistributionPage() {
     }
   };
 
-  const handleExport = async () => {
+  const handleExport = () => {
     try {
-      // TODO: Implémenter l'export CSV
-      showWarning('Info', 'Export en cours de développement');
+      const rows = [
+        ['Nom', 'Prénom', 'Email', 'Taille panier', 'Retiré', 'Heure retrait', 'Note'],
+        ...distributionList.map(item => [
+          item.user?.lastName ?? '',
+          item.user?.firstName ?? '',
+          item.user?.email ?? '',
+          getBasketSizeLabel(item.subscription?.basketSize),
+          item.pickup?.wasPickedUp ? 'Oui' : 'Non',
+          item.pickup?.pickedUpAt ? new Date(item.pickup.pickedUpAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '',
+          item.pickup?.notes ?? '',
+        ]),
+      ];
+
+      const csv = rows.map(row => row.map(v => `"${String(v).replace(/"/g, '""')}"`).join(';')).join('\n');
+      const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `distribution-semaine-${currentBasket?.weekNumber ?? ''}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
     } catch (error) {
       showError('Erreur', 'Erreur lors de l\'export');
     }

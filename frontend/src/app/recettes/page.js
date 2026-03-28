@@ -110,18 +110,14 @@ export default function RecipesPage() {
                                         <div className="recipe-content">
                                             <h3>{recipe.title}</h3>
                                             <div className="recipe-meta">
-                                                {recipe.readyInMinutes && (
-                                                    <span className="meta-item">
+                                                <span className="meta-item">
                                                         <Clock size={16} aria-hidden="true" />
-                                                        {recipe.readyInMinutes} min
+                                                        env. 30 min
                                                     </span>
-                                                )}
-                                                {recipe.servings && (
                                                     <span className="meta-item">
                                                         <Users size={16} aria-hidden="true" />
-                                                        {recipe.servings} pers.
+                                                        2 pers.
                                                     </span>
-                                                )}
                                             </div>
                                         </div>
                                     </Link>

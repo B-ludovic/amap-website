@@ -651,8 +651,8 @@ const api = {
         credentials: 'include',
       });
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Erreur lors de la génération du contrat');
+        const error = await response.json().catch(() => ({}));
+        throw new Error(error.error?.message || error.message || 'Erreur lors de la génération du contrat');
       }
       const blob = await response.blob();
       return URL.createObjectURL(blob);
@@ -719,8 +719,8 @@ const api = {
       });
 
       if (!response.ok) {
-        const error = await response.json().catch(() => ({ message: 'Erreur lors de la génération du contrat' }));
-        throw new Error(error.message || 'Erreur lors de la génération du contrat');
+        const error = await response.json().catch(() => ({}));
+        throw new Error(error.error?.message || error.message || 'Erreur lors de la génération du contrat');
       }
 
       // Récupérer le blob PDF avec le type MIME correct

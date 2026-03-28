@@ -382,11 +382,11 @@ export default function WeeklyBasketPublicPage() {
                       <div className="recipe-meta">
                         <span className="meta-item">
                           <Clock size={16} aria-hidden="true" />
-                          {recipe.readyInMinutes} min
+                          env. 30 min
                         </span>
                         <span className="meta-item">
                           <Users size={16} aria-hidden="true" />
-                          {recipe.servings} pers.
+                          2 pers.
                         </span>
                       </div>
                     </div>

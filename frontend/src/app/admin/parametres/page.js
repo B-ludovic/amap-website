@@ -161,16 +161,8 @@ export default function AdminParametresPage() {
         }
     };
 
-    const handleSaveGeneral = async () => {
-        setSaving(true);
-        try {
-            // TODO: API pour sauvegarder les infos générales
-            showSuccess('Informations sauvegardées', 'Les informations ont été mises à jour.');
-        } catch (error) {
-            showError('Erreur', error.message);
-        } finally {
-            setSaving(false);
-        }
+    const handleSaveGeneral = () => {
+        showError('Non disponible', 'La sauvegarde des informations générales n\'est pas encore prise en charge par le serveur.');
     };
 
     const handleThemeChange = (field, value) => {
