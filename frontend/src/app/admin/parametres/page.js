@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import api from "../../../lib/api";
+import logger from "../../../lib/logger";
 import { useModal } from "../../../contexts/ModalContext";
 import { useTheme } from "../../../contexts/ThemeContext";
 import "../../../styles/admin/parametres.css";
@@ -99,7 +100,7 @@ export default function AdminParametresPage() {
                 setExampleStats(examplesRes.data.examples);
                 setTotalStats(examplesRes.data.totals);
             } catch (error) {
-                console.log('Pas de stats exemples disponibles');
+                logger.log('Pas de stats exemples disponibles');
                 setExampleStats({ total: 0, producers: 0, products: 0, pickupLocations: 0 });
                 setTotalStats({ total: 0, producers: 0, products: 0, pickupLocations: 0 });
             }
@@ -117,11 +118,11 @@ export default function AdminParametresPage() {
                     });
                 }
             } catch (error) {
-                console.log('Pas de thème actif, utilisation du thème par défaut');
+                logger.log('Pas de thème actif, utilisation du thème par défaut');
             }
 
         } catch (error) {
-            console.error('Erreur lors du chargement:', error);
+            logger.error('Erreur lors du chargement:', error);
         } finally {
             setLoading(false);
         }

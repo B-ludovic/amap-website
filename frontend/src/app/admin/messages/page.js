@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import api from "../../../lib/api";
+import logger from "../../../lib/logger";
 import { useAuth } from "../../../contexts/AuthContext";
 import "../../../styles/admin/components.css";
 import "../../../styles/admin/dashboard.css";
@@ -36,7 +37,7 @@ export default function AdminMessagesPage() {
       const data = await api.contactMessages.getAll(filter !== 'ALL' ? { status: filter } : {});
       setMessages(data.data.messages);
     } catch (error) {
-      console.error('Erreur chargement messages:', error);
+      logger.error('Erreur chargement messages:', error);
     } finally {
       setLoading(false);
     }
@@ -53,7 +54,7 @@ export default function AdminMessagesPage() {
       }
       window.dispatchEvent(new CustomEvent('contact-unread-changed'));
     } catch (error) {
-      console.error('Erreur mise à jour statut:', error);
+      logger.error('Erreur mise à jour statut:', error);
     }
   };
 
@@ -66,7 +67,7 @@ export default function AdminMessagesPage() {
       setSelectedMessage(null);
       window.dispatchEvent(new CustomEvent('contact-unread-changed'));
     } catch (error) {
-      console.error('Erreur suppression:', error);
+      logger.error('Erreur suppression:', error);
     }
   };
 

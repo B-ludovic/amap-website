@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import api from "../../../lib/api";
+import logger from "../../../lib/logger";
 import { useModal } from "../../../contexts/ModalContext";
 import SubscriptionDetailModal from "../../../components/admin/SubscriptionDetailModal";
 import ContractModal from "../../../components/admin/ContractModal";
@@ -55,7 +56,7 @@ export default function AdminSubscriptionsPage() {
       const response = await api.subscriptions.getStats();
       setStats(response.data);
     } catch (error) {
-      console.error('Erreur stats:', error);
+      logger.error('Erreur stats:', error);
     }
   };
 

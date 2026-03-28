@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { Clock, ChefHat, ArrowLeft, Users, Leaf } from 'lucide-react';
 import { useModal } from '../../../contexts/ModalContext';
 import api from '../../../lib/api';
+import logger from '../../../lib/logger';
 import Link from 'next/link';
 import DOMPurify from 'isomorphic-dompurify';
 import '../../../styles/public/recipes-detail.css';
@@ -29,7 +30,7 @@ export default function RecipeDetailPage() {
             setRecipe(response.data);
         } catch (error) {
             showModal('Erreur', 'Une erreur est survenue lors du chargement de la recette.');
-            console.error(error);
+            logger.error(error);
             router.push('/recettes');
         } finally {
             setLoading(false);

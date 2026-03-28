@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import api from "../../../lib/api";
+import logger from "../../../lib/logger";
 import { useModal } from "../../../contexts/ModalContext";
 import NewsletterModal from "../../../components/admin/NewsletterModal";
 import "../../../styles/admin/components.css";
@@ -62,7 +63,7 @@ export default function AdminCommunicationPage() {
       const response = await api.newsletters.getStats();
       setStats(response.data);
     } catch (error) {
-      console.error('Erreur stats:', error);
+      logger.error('Erreur stats:', error);
     }
   };
 

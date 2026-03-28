@@ -5,6 +5,7 @@ import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { X } from 'lucide-react';
 import { useModal } from '../../contexts/ModalContext';
 import api from '../../lib/api';
+import logger from '../../lib/logger';
 
 export default function ProducerModal({ producer, onClose }) {
   const containerRef = useRef(null);
@@ -87,7 +88,7 @@ export default function ProducerModal({ producer, onClose }) {
       }
       onClose(true); // true = refresh la liste
     } catch (error) {
-      console.error('Erreur création producteur:', error);
+      logger.error('Erreur création producteur:', error);
       showError('Erreur', error?.message || error?.toString() || 'Une erreur est survenue');
     } finally {
       setLoading(false);

@@ -5,6 +5,7 @@ import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { X, Plus, Trash2, ShoppingBasket, RefreshCw } from 'lucide-react';
 import { useModal } from '../../contexts/ModalContext';
 import api from '../../lib/api';
+import logger from '../../lib/logger';
 
 // Prochain jour de distribution fixe (mercredi = 3)
 const DISTRIBUTION_DAY = 3;
@@ -89,7 +90,7 @@ export default function WeeklyBasketModal({ basket, lastBasket, onClose }) {
       const response = await api.admin.products.getAll();
       setProducts(response.data || []);
     } catch (error) {
-      console.error('Erreur produits:', error);
+      logger.error('Erreur produits:', error);
     }
   };
 

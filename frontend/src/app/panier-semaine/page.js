@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { ShoppingBasket, Calendar, Leaf, LeafyGreen, Apple, Egg, Wheat, Clock, Users, Search, Lightbulb, MapPin } from 'lucide-react';
 import { useModal } from '../../contexts/ModalContext';
 import api from '../../lib/api';
+import logger from '../../lib/logger';
 import Link from 'next/link';
 import Image from 'next/image';
 import { SEASONAL_VEGETABLES, SEASON_LABELS, getCurrentSeason } from '../../constants/recipes';
@@ -60,7 +61,7 @@ export default function WeeklyBasketPublicPage() {
       const response = await api.recipes.getSuggestions(basket.id);
       setRecipes(response.data || []);
     } catch (error) {
-      console.error('Erreur suggestions:', error);
+      logger.error('Erreur suggestions:', error);
       setRecipes([]);
     } finally {
       setLoadingRecipes(false);
@@ -79,7 +80,7 @@ export default function WeeklyBasketPublicPage() {
       }
       setRecipes(response.data || []);
     } catch (error) {
-      console.error('Erreur recherche:', error);
+      logger.error('Erreur recherche:', error);
       showError('Erreur', 'Erreur lors de la recherche de recettes');
     } finally {
       setLoadingRecipes(false);

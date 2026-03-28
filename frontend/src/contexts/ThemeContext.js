@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState } from 'react';
 import api from '../lib/api';
+import logger from '../lib/logger';
 
 const ThemeContext = createContext();
 
@@ -21,7 +22,7 @@ export function ThemeProvider({ children }) {
         applyTheme(response.data.theme);
       }
     } catch (error) {
-      console.log('Pas de thème personnalisé, utilisation du thème par défaut');
+      logger.log('Pas de thème personnalisé, utilisation du thème par défaut');
     } finally {
       setLoading(false);
     }

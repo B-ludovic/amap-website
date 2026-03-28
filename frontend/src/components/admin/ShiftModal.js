@@ -5,6 +5,7 @@ import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { X, UserPlus, Trash2 } from 'lucide-react';
 import { useModal } from '../../contexts/ModalContext';
 import api from '../../lib/api';
+import logger from '../../lib/logger';
 
 export default function ShiftModal({ shift, onClose }) {
   const containerRef = useRef(null);
@@ -56,7 +57,7 @@ export default function ShiftModal({ shift, onClose }) {
       const usersData = Array.isArray(response.data) ? response.data : (response.data?.users || []);
       setUsers(usersData);
     } catch (error) {
-      console.error('Erreur chargement utilisateurs:', error);
+      logger.error('Erreur chargement utilisateurs:', error);
       setUsers([]);
     }
   };

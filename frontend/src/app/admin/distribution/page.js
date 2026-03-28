@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import api from "../../../lib/api";
+import logger from "../../../lib/logger";
 import { useModal } from "../../../contexts/ModalContext";
 import "../../../styles/admin/components.css";
 import "../../../styles/admin/dashboard.css";
@@ -45,7 +46,7 @@ export default function AdminDistributionPage() {
         setCurrentBasket(null);
       }
     } catch (error) {
-      console.error('Erreur:', error);
+      logger.error('Erreur:', error);
       setCurrentBasket(null);
     }
   };

@@ -6,6 +6,7 @@ import { ShoppingBasket, MessageSquare, CheckCircle, Heart, LogIn } from 'lucide
 import { useModal } from '../../contexts/ModalContext';
 import { useAuth } from '../../contexts/AuthContext';
 import api from '../../lib/api';
+import logger from '../../lib/logger';
 import '../../styles/public/subscription-request.css';
 
 
@@ -73,7 +74,7 @@ function SubscriptionRequestPage() {
           sessionStorage.removeItem('pendingSubscriptionRequest');
           showSuccess('Données récupérées', 'Vous pouvez maintenant finaliser votre demande');
         } catch (error) {
-          console.error('Erreur récupération données:', error);
+          logger.error('Erreur récupération données:', error);
         }
       }
     }

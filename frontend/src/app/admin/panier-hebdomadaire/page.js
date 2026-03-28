@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import api from "../../../lib/api";
+import logger from "../../../lib/logger";
 import { useModal } from "../../../contexts/ModalContext";
 import WeeklyBasketModal from "../../../components/admin/WeeklyBasketModal";
 import "../../../styles/admin/components.css";
@@ -57,7 +58,7 @@ export default function AdminWeeklyBasketPage() {
       const response = await api.weeklyBaskets.getCurrent();
       setCurrentBasket(response.data);
     } catch (error) {
-      console.error('Erreur current basket:', error);
+      logger.error('Erreur current basket:', error);
     }
   };
 

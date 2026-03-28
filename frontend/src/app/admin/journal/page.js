@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { ShieldCheck, ShieldAlert } from 'lucide-react';
 import { useAuth } from '../../../contexts/AuthContext';
 import api from '../../../lib/api';
+import logger from '../../../lib/logger';
 import '../../../styles/admin/components.css';
 import '../../../styles/admin/dashboard.css';
 import '../../../styles/admin/layout.css';
@@ -56,7 +57,7 @@ export default function AdminJournalPage() {
       setLogs(data.data.logs);
       setPagination(data.data.pagination);
     } catch (error) {
-      console.error('Erreur chargement journal:', error);
+      logger.error('Erreur chargement journal:', error);
     } finally {
       setLoading(false);
     }

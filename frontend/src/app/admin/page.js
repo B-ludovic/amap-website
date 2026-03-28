@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '../../contexts/AuthContext';
 import api from '../../lib/api';
+import logger from '../../lib/logger';
 import { LayoutDashboard, Users, ShoppingCart, Package, TrendingUp, XCircle, Bell } from 'lucide-react';
 import '../../styles/admin/dashboard.css';
 import { useModal } from '../../contexts/ModalContext';
@@ -24,7 +25,7 @@ export default function AdminDashboard() {
         setStats(response.data);
         setError(null);
       } catch (error) {
-        console.error('Erreur lors du chargement des statistiques:', error);
+        logger.error('Erreur lors du chargement des statistiques:', error);
         setError(error.message);
         showError('Erreur', 'Impossible de charger les statistiques.');
       } finally {
