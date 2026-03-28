@@ -132,7 +132,7 @@ export default function AdminDashboard() {
         <div className="admin-section">
           <h2 className="admin-section-title">Activités récentes</h2>
           {stats?.recentActivities && stats.recentActivities.length > 0 ? (
-            <div className="admin-table-container">
+            <div className="admin-table-container admin-table-container--cards">
               <table className="admin-table">
                 <thead>
                   <tr>
@@ -145,20 +145,20 @@ export default function AdminDashboard() {
                 </thead>
                 <tbody>
                   {stats.recentActivities.map((activity) => (
-                    <tr 
+                    <tr
                       key={activity.id}
                       onClick={() => router.push(`/admin/abonnements`)}
                       className="admin-table-row-clickable"
                     >
-                      <td>{activity.user?.firstName} {activity.user?.lastName}</td>
-                      <td>{activity.type === 'ANNUAL' ? 'Annuel' : 'Découverte'}</td>
-                      <td>{activity.basketSize === 'SMALL' ? 'Petit' : 'Grand'}</td>
-                      <td>
-                        <span className={`admin-status-badge admin-status-${activity.status.toLowerCase()}`}>
+                      <td data-label="Client"><span className="td-content">{activity.user?.firstName} {activity.user?.lastName}</span></td>
+                      <td data-label="Type"><span className="td-content">{activity.type === 'ANNUAL' ? 'Annuel' : 'Découverte'}</span></td>
+                      <td data-label="Taille"><span className="td-content">{activity.basketSize === 'SMALL' ? 'Petit' : 'Grand'}</span></td>
+                      <td data-label="Statut">
+                        <span className={`td-content admin-status-badge admin-status-${activity.status.toLowerCase()}`}>
                           {activity.status}
                         </span>
                       </td>
-                      <td>{new Date(activity.createdAt).toLocaleDateString('fr-FR')}</td>
+                      <td data-label="Date"><span className="td-content">{new Date(activity.createdAt).toLocaleDateString('fr-FR')}</span></td>
                     </tr>
                   ))}
                 </tbody>

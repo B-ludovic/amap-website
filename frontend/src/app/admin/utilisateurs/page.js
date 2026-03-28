@@ -197,7 +197,7 @@ export default function AdminUsersPage() {
         {/* Tableau Desktop */}
         {filteredUsers.length > 0 ? (
           <>
-            <div className="admin-table-container admin-table-desktop">
+            <div className="admin-table-container admin-table-desktop admin-table-container--cards">
               <table className="admin-table">
                 <thead>
                   <tr>
@@ -213,7 +213,7 @@ export default function AdminUsersPage() {
                 <tbody>
                   {filteredUsers.map((user) => (
                     <tr key={user.id}>
-                      <td>
+                      <td data-label="Nom">
                         <div className="admin-table-name">
                           {user.firstName} {user.lastName}
                           {user.emailVerified && (
@@ -221,23 +221,23 @@ export default function AdminUsersPage() {
                           )}
                         </div>
                       </td>
-                      <td>{user.email}</td>
-                      <td>{user.phone || '-'}</td>
-                      <td>
+                      <td data-label="Email">{user.email}</td>
+                      <td data-label="Téléphone">{user.phone || '-'}</td>
+                      <td data-label="Rôle">
                         <div className="user-role-badge">
                           {getRoleIcon(user.role)}
                           <span>{getRoleLabel(user.role)}</span>
                         </div>
                       </td>
-                      <td>
+                      <td data-label="Commandes">
                         <span className="admin-order-count">
                           {user._count?.pickups || 0}
                         </span>
                       </td>
-                      <td>
+                      <td data-label="Inscription">
                         {new Date(user.createdAt).toLocaleDateString('fr-FR')}
                       </td>
-                      <td>
+                      <td data-label="Actions">
                         <div className="admin-table-actions">
                           <button
                             onClick={() => handleChangeRole(user)}

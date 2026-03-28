@@ -134,7 +134,22 @@
 
 .admin-table {
   width: 100%;
+  min-width: 700px;
   border-collapse: collapse;
+}
+
+/* Override pour le tableau dans .admin-section (dashboard) */
+.admin-section .admin-table-container {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.admin-section .admin-table {
+  min-width: 700px;
+}
+
+.admin-section .admin-table td {
+  white-space: nowrap;
 }
 
 .admin-table thead {
@@ -155,6 +170,7 @@
   padding: var(--spacing-md) var(--spacing-lg);
   border-top: 1px solid var(--border-color);
   color: var(--text-primary);
+  white-space: nowrap;
 }
 
 .admin-table tbody tr {
@@ -213,5 +229,81 @@
 
   .admin-stat-value {
     font-size: var(--font-size-xl);
+  }
+}
+
+/* Verrou anti-débordement : toute la chaîne de conteneurs */
+.admin-main,
+.admin-content,
+.admin-page,
+.admin-page-content,
+.admin-section {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Transformation table → cartes sous 1060px */
+@media (max-width: 1060px) {
+  .admin-table-container--cards {
+    overflow-x: visible;
+    overflow-y: visible;
+  }
+
+  .admin-table-container--cards table,
+  .admin-table-container--cards table tbody {
+    display: block;
+    width: 100%;
+    min-width: 0 !important;
+  }
+
+  .admin-table-container--cards table thead {
+    display: none;
+  }
+
+  .admin-table-container--cards table tr {
+    display: block;
+    background: var(--white);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-md);
+    margin-bottom: var(--spacing-lg);
+    padding: 0;
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
+
+  .admin-table-container--cards table tr:hover {
+    box-shadow: var(--shadow-md);
+  }
+
+  .admin-table-container--cards table td {
+    display: grid !important;
+    grid-template-columns: auto 1fr !important;
+    gap: 1rem !important;
+    align-items: center !important;
+    padding: var(--spacing-md) !important;
+    border-bottom: 1px solid var(--border-color);
+    white-space: normal !important;
+  }
+
+  .admin-table-container--cards table td:last-child {
+    border-bottom: none;
+  }
+
+  .admin-table-container--cards table td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+  }
+
+  .admin-table-container--cards table td .td-content {
+    display: flex !important;
+    justify-content: flex-end !important;
+    align-items: center;
+    text-align: right;
+    width: 100%;
+    min-width: 0;
+    word-break: break-word;
   }
 }

@@ -111,7 +111,8 @@
   background: white;
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-md);
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
   margin-bottom: var(--spacing-xl);
 }
 
@@ -164,6 +165,7 @@
   padding: var(--spacing-md) var(--spacing-lg);
   font-size: 0.95rem;
   vertical-align: middle;
+  white-space: nowrap;
 }
 
 /* Status Toggle Button */

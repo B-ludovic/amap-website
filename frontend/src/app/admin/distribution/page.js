@@ -251,7 +251,7 @@ export default function AdminDistributionPage() {
           <p>Aucun abonnement actif pour cette semaine</p>
         </div>
       ) : (
-        <div className="distribution-table-container">
+        <div className="distribution-table-container admin-table-container--cards">
           <table className="distribution-table">
             <thead>
               <tr>
@@ -266,13 +266,13 @@ export default function AdminDistributionPage() {
             <tbody>
               {distributionList.map((item) => {
                 const isPickedUp = item.pickup?.wasPickedUp || false;
-                
+
                 return (
                   <tr
                     key={item.subscriptionId}
                     className={isPickedUp ? 'row-picked-up' : 'row-pending'}
                   >
-                    <td>
+                    <td data-label="Statut">
                       <button
                         className={`status-toggle ${isPickedUp ? 'status-picked' : 'status-pending'}`}
                         onClick={() => handleTogglePickup(item)}
@@ -286,7 +286,7 @@ export default function AdminDistributionPage() {
                       </button>
                     </td>
 
-                    <td>
+                    <td data-label="Adhérent">
                       <div className="subscriber-info">
                         <div className="subscriber-name">
                           {item.user.firstName} {item.user.lastName}
@@ -297,13 +297,13 @@ export default function AdminDistributionPage() {
                       </div>
                     </td>
 
-                    <td>
+                    <td data-label="Panier">
                       <span className={`basket-badge basket-${item.basketSize.toLowerCase()}`}>
                         {getBasketSizeLabel(item.basketSize)}
                       </span>
                     </td>
 
-                    <td>
+                    <td data-label="Contact">
                       <div className="contact-info">
                         <div className="contact-email">{item.user.email}</div>
                         {item.user.phone && (
@@ -312,7 +312,7 @@ export default function AdminDistributionPage() {
                       </div>
                     </td>
 
-                    <td>
+                    <td data-label="Notes">
                       {item.pickup?.notes ? (
                         <div className="pickup-notes">
                           <span>{item.pickup.notes}</span>
@@ -322,7 +322,7 @@ export default function AdminDistributionPage() {
                       )}
                     </td>
 
-                    <td>
+                    <td data-label="Actions">
                       <button
                         className="btn btn-sm btn-secondary"
                         onClick={() => handleAddNote(item)}

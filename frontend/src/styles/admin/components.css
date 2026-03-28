@@ -278,12 +278,14 @@
 .admin-table-container {
   background-color: var(--white);
   border-radius: var(--border-radius-lg);
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
   box-shadow: var(--shadow-sm);
 }
 
 .admin-table {
   width: 100%;
+  min-width: 700px;
   border-collapse: collapse;
 }
 
@@ -311,6 +313,7 @@
   border-top: 1px solid var(--border-color);
   font-size: var(--font-size-base);
   color: var(--text-primary);
+  white-space: nowrap;
 }
 
 .admin-table tbody tr {

@@ -140,6 +140,7 @@
 /* Main content */
 .admin-main {
   flex: 1;
+  min-width: 0;
   margin-left: 280px;
   display: flex;
   flex-direction: column;
@@ -371,6 +372,8 @@
 .admin-content {
   flex: 1;
   padding: var(--spacing-2xl);
+  min-width: 0;
+  overflow-x: hidden;
 }
 
 /* Loading */
@@ -382,7 +385,32 @@
 }
 
 /* Responsive */
-@media (max-width: 1024px) {
+
+/* Tablette paysage : sidebar réduite, toujours visible */
+@media (min-width: 769px) and (max-width: 1200px) {
+  .admin-sidebar {
+    width: 200px;
+  }
+
+  .admin-main {
+    margin-left: 200px;
+  }
+
+  .admin-logo-text {
+    font-size: var(--font-size-base);
+  }
+
+  .admin-header-search {
+    max-width: 220px;
+  }
+
+  .admin-header-content {
+    gap: var(--spacing-md);
+  }
+}
+
+/* Mobile : sidebar cachée, burger du header public prend le relai */
+@media (max-width: 768px) {
   .admin-sidebar {
     transform: translateX(-100%);
     transition: transform var(--transition-base);
@@ -394,10 +422,6 @@
 
   .admin-main {
     margin-left: 0;
-  }
-
-  .admin-header-search {
-    max-width: 300px;
   }
 }
 
