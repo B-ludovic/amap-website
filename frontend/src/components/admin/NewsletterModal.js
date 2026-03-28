@@ -8,6 +8,7 @@ import Placeholder from '@tiptap/extension-placeholder';
 import { X, Mail, Users, Clock, Bold, Italic, List, ListOrdered, Heading2, Heading3, Minus } from 'lucide-react';
 import { useModal } from '../../contexts/ModalContext';
 import api from '../../lib/api';
+import '../../styles/admin/tiptap.css';
 import '../../styles/admin/components.css';
 import '../../styles/admin/tiptap.css';
 

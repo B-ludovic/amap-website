@@ -10,35 +10,7 @@ import '../styles/globals.css';
 import '../styles/components/modal.css';
 import '../styles/components/header.css';
 import '../styles/components/footer.css';
-import '../styles/public/auth.css';
 import '../styles/public/compte.css';
-import '../styles/public/home.css';
-import '../styles/public/subscriptions.css';
-import '../styles/public/subscription-request.css';
-import '../styles/public/weekly-basket.css';
-import '../styles/public/become-producer.css';
-import '../styles/public/producers.css';
-import '../styles/public/recipe.css';
-import '../styles/public/recipes.css';
-import '../styles/public/recipes-detail.css';
-import '../styles/public/legal.css';
-import '../styles/public/faq.css';
-import '../styles/public/contact.css';
-import '../styles/admin/dashboard.css';
-import '../styles/admin/layout.css';
-import '../styles/admin/components.css';
-import '../styles/admin/parametres.css';
-import '../styles/admin/messages.css';
-import '../styles/admin/communication.css';
-import '../styles/admin/permanences.css';
-import '../styles/admin/request.css';
-import '../styles/admin/requests.css';
-import '../styles/admin/subscription.css';
-import '../styles/admin/fermetures.css';
-import '../styles/admin/journal.css';
-import '../styles/admin/weekly-basket.css';
-import '../styles/admin/distribution.css';
-import '../styles/admin/tiptap.css';
 
 
 export const metadata = {
