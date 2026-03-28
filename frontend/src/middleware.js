@@ -3,15 +3,16 @@ import { NextResponse } from 'next/server';
 export function middleware(request) {
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64');
 
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.auxptitspois.fr';
+  const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.auxptitspois.fr';
+  const apiOrigin = new URL(rawApiUrl).origin;
 
   const csp = [
     "default-src 'self'",
-    `script-src 'nonce-${nonce}' 'strict-dynamic'`,
+    `script-src 'nonce-${nonce}' 'strict-dynamic' 'unsafe-eval'`,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob: https:",
     "font-src 'self' data:",
-    `connect-src 'self' ${apiUrl} https://www.google-analytics.com https://stats.g.doubleclick.net https://region1.google-analytics.com`,
+    `connect-src 'self' ${apiOrigin} https://www.google-analytics.com https://stats.g.doubleclick.net https://region1.google-analytics.com`,
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",

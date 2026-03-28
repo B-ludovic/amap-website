@@ -1,3 +1,5 @@
+import '../../styles/public/auth.css';
+
 export const metadata = {
   robots: {
     index: false,

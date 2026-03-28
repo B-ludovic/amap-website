@@ -22,7 +22,7 @@ export default function CookieConsent({ nonce }) {
     <>
       <Script
         id="orejime-config"
-        strategy="beforeInteractive"
+        strategy="afterInteractive"
         nonce={nonce}
         dangerouslySetInnerHTML={{ __html: `window.orejimeConfig = ${JSON.stringify(config).replace(/</g, '\\u003c').replace(/>/g, '\\u003e').replace(/&/g, '\\u0026')};` }}
       />

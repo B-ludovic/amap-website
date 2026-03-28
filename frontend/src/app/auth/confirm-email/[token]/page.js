@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { CheckCircle, XCircle, Loader } from 'lucide-react';
 import { auth as authApi } from '../../../../lib/api';
-import '../../../../styles/public/auth.css';
 
 export default function ConfirmEmailPage() {
   const { token } = useParams();
