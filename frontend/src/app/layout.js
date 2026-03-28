@@ -1,6 +1,6 @@
 import CookieConsent from '../components/CookieConsent';
 import Header from '../components/layout/Header';
-import Footer from '../components/layout/Footer';
+import ConditionalFooter from '../components/layout/ConditionalFooter';
 import Providers from '../components/Providers';
 import JsonLd from '../components/JsonLd';
 import '../../public/orejime/orejime-standard.css';
@@ -116,7 +116,7 @@ function RootLayout({ children }) {
           <main className="main-content" id="main-content">
             {children}
           </main>
-          <Footer />
+          <ConditionalFooter />
           <CookieConsent />
         </Providers>
       </body>

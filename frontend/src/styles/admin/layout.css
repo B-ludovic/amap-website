@@ -24,7 +24,7 @@
 
 /* Header sidebar */
 .admin-sidebar-header {
-  padding: var(--spacing-xl);
+  padding: 21px var(--spacing-xl);
   border-bottom: 1px solid var(--border-color);
 }
 
