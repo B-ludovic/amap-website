@@ -183,7 +183,7 @@
   align-items: center;
   gap: var(--spacing-sm);
   background-color: rgba(239, 68, 68, 0.1);
-  color: #dc2626;
+  color: #9b1c1c;
   padding: var(--spacing-sm) var(--spacing-lg);
   border-radius: var(--border-radius-full);
   font-weight: 600;
