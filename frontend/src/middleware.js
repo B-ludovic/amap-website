@@ -28,6 +28,7 @@ export function middleware(request) {
   });
   response.headers.set('Content-Security-Policy', csp);
   response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+  response.headers.set('Cross-Origin-Opener-Policy', 'same-origin');
 
   return response;
 }
