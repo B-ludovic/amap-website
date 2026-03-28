@@ -324,6 +324,12 @@
   }
 }
 
+@media (max-width: 900px) {
+  .messages-container {
+    grid-template-columns: 240px 1fr;
+  }
+}
+
 @media (max-width: 768px) {
   .admin-messages-page {
     height: auto;
@@ -331,9 +337,24 @@
 
   .messages-container {
     grid-template-columns: 1fr;
+    min-width: 0;
   }
 
   .messages-list {
-    max-height: 400px;
+    max-height: 50vh;
+  }
+
+  .message-detail-header,
+  .message-detail-content,
+  .message-detail-actions {
+    padding: var(--spacing-lg);
+  }
+
+  .message-detail-actions {
+    flex-wrap: wrap;
+  }
+
+  .message-detail-actions .btn {
+    flex: 1;
   }
 }

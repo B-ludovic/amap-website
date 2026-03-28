@@ -73,6 +73,12 @@
   background-color: rgba(251, 146, 60, 0.05);
 }
 
+.admin-nav-item svg {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+}
+
 .admin-nav-item-active {
   color: var(--accent-color);
   background-color: rgba(251, 146, 60, 0.1);

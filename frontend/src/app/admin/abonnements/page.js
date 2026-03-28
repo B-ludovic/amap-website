@@ -241,7 +241,7 @@ export default function AdminSubscriptionsPage() {
           <p>Aucun abonnement ne correspond à vos critères</p>
         </div>
       ) : (
-        <div className="subscriptions-table-container">
+        <div className="subscriptions-table-container admin-table-container--cards">
           <table className="subscriptions-table">
             <thead>
               <tr>
@@ -258,75 +258,91 @@ export default function AdminSubscriptionsPage() {
             <tbody>
               {filteredSubscriptions.map((sub) => (
                 <tr key={sub.id}>
-                  <td>
-                    <button
-                      className="subscription-number subscription-number-link"
-                      onClick={() => handleViewContract(sub)}
-                      title="Voir le contrat"
-                    >
-                      {sub.subscriptionNumber}
-                    </button>
-                  </td>
-
-                  <td>
-                    <div className="subscriber-info">
-                      <div className="subscriber-name">
-                        {sub.user.firstName} {sub.user.lastName}
-                      </div>
-                      <div className="subscriber-email">
-                        {sub.user.email}
-                      </div>
-                    </div>
-                  </td>
-
-                  <td>
-                    <div className="subscription-badges">
-                      {getTypeBadge(sub.type)}
-                      {sub.pricingType === 'SOLIDARITY' && (
-                        <span className="badge badge-warning">Solidaire</span>
-                      )}
-                    </div>
-                  </td>
-
-                  <td>
-                    <div className="subscription-badges">
-                      {getBasketSizeBadge(sub.basketSize)}
-                    </div>
-                  </td>
-
-                  <td>
-                    <div className="subscription-dates">
-                      <div className="date-item">
-                        <span className="date-label">Début:</span>
-                        <span className="date-value">{formatDate(sub.startDate)}</span>
-                      </div>
-                      <div className="date-item">
-                        <span className="date-label">Fin:</span>
-                        <span className="date-value">{formatDate(sub.endDate)}</span>
-                      </div>
-                    </div>
-                  </td>
-
-                  <td>
-                    {getStatusBadge(sub.status)}
-                  </td>
-
-                  <td>
-                    <div className="pickups-count">
-                      {sub.pickupsRemaining ?? 0}
-                    </div>
-                  </td>
-
-                  <td>
-                    <div className="table-actions">
+                  <td data-label="N° Abonnement">
+                    <span className="td-content">
                       <button
-                        className="btn btn-icon"
-                        onClick={() => handleViewDetail(sub.id)}
-                        title="Voir détails"
+                        className="subscription-number subscription-number-link"
+                        onClick={() => handleViewContract(sub)}
+                        title="Voir le contrat"
                       >
-                        <Eye size={18} />
+                        {sub.subscriptionNumber}
                       </button>
-                    </div>
+                    </span>
+                  </td>
+
+                  <td data-label="Adhérent">
+                    <span className="td-content">
+                      <div className="subscriber-info">
+                        <div className="subscriber-name">
+                          {sub.user.firstName} {sub.user.lastName}
+                        </div>
+                        <div className="subscriber-email">
+                          {sub.user.email}
+                        </div>
+                      </div>
+                    </span>
+                  </td>
+
+                  <td data-label="Type">
+                    <span className="td-content">
+                      <div className="subscription-badges">
+                        {getTypeBadge(sub.type)}
+                        {sub.pricingType === 'SOLIDARITY' && (
+                          <span className="badge badge-warning">Solidaire</span>
+                        )}
+                      </div>
+                    </span>
+                  </td>
+
+                  <td data-label="Panier">
+                    <span className="td-content">
+                      <div className="subscription-badges">
+                        {getBasketSizeBadge(sub.basketSize)}
+                      </div>
+                    </span>
+                  </td>
+
+                  <td data-label="Période">
+                    <span className="td-content">
+                      <div className="subscription-dates">
+                        <div className="date-item">
+                          <span className="date-label">Début:</span>
+                          <span className="date-value">{formatDate(sub.startDate)}</span>
+                        </div>
+                        <div className="date-item">
+                          <span className="date-label">Fin:</span>
+                          <span className="date-value">{formatDate(sub.endDate)}</span>
+                        </div>
+                      </div>
+                    </span>
+                  </td>
+
+                  <td data-label="Statut">
+                    <span className="td-content">
+                      {getStatusBadge(sub.status)}
+                    </span>
+                  </td>
+
+                  <td data-label="Retraits restants">
+                    <span className="td-content">
+                      <div className="pickups-count">
+                        {sub.pickupsRemaining ?? 0}
+                      </div>
+                    </span>
+                  </td>
+
+                  <td data-label="Actions">
+                    <span className="td-content">
+                      <div className="table-actions">
+                        <button
+                          className="btn btn-icon"
+                          onClick={() => handleViewDetail(sub.id)}
+                          title="Voir détails"
+                        >
+                          <Eye size={18} />
+                        </button>
+                      </div>
+                    </span>
                   </td>
                 </tr>
               ))}

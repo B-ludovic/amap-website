@@ -946,7 +946,8 @@
 .admin-card,
 .admin-user-card {
   background-color: var(--white);
-  border-radius: var(--border-radius-lg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
   box-shadow: var(--shadow-sm);
   overflow: hidden;
   transition: box-shadow var(--transition-fast);
@@ -960,7 +961,8 @@
 .admin-card-header,
 .admin-user-card-header {
   padding: var(--spacing-lg);
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
+  background: var(--background-color);
+  border-bottom: 1px solid var(--border-color);
   display: flex;
   justify-content: space-between;
   align-items: flex-start;

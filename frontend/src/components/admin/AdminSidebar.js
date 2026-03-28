@@ -16,6 +16,7 @@ import {
   ChevronDown,
   UserCog,
   Mail,
+  Megaphone,
   UserPlus,
   CreditCard,
   Sprout,
@@ -138,7 +139,7 @@ export default function AdminSidebar({ currentPath }) {
     },
     {
       title: 'Communication',
-      icon: Mail,
+      icon: Megaphone,
       path: '/admin/communication'
     },
     {

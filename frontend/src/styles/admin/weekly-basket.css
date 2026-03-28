@@ -136,8 +136,8 @@
 /* Basket Card */
 .basket-card {
   background: var(--white);
-  border: 2px solid var(--border-color);
-  border-radius: var(--border-radius-lg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
   overflow: hidden;
   transition: all 0.3s ease;
   display: flex;
@@ -146,9 +146,8 @@
 }
 
 .basket-card:hover {
-  box-shadow: var(--shadow-lg);
-  border-color: var(--primary-color);
-  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
 }
 
 /* Basket Card Header */
@@ -157,22 +156,21 @@
   justify-content: space-between;
   align-items: flex-start;
   padding: var(--spacing-lg);
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
-  color: var(--white);
+  background: var(--background-color);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .basket-info h3 {
   margin: 0 0 var(--spacing-xs) 0;
   font-size: 1.25rem;
   font-weight: 600;
-  color: var(--white);
+  color: var(--text-primary);
 }
 
 .basket-date {
   margin: 0;
   font-size: 0.9rem;
-  opacity: 0.95;
-  color: var(--white);
+  color: var(--text-secondary);
 }
 
 .badge {
