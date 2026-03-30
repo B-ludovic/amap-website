@@ -14,9 +14,17 @@
 .legal-page h1 {
   font-size: var(--font-size-3xl);
   font-weight: var(--font-weight-bold);
-  margin: 0 0 var(--spacing-3xl) 0;
+  margin: 0 0 var(--spacing-md) 0;
   color: var(--text-primary);
   text-align: center;
+}
+
+.legal-update-date {
+  text-align: center;
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  font-style: italic;
+  margin: 0 0 var(--spacing-3xl) 0;
 }
 
 /* Sections */

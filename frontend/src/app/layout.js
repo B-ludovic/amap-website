@@ -35,6 +35,10 @@ export const metadata = {
     description: 'Commandez vos paniers de produits locaux et bio auprès de nos producteurs partenaires.',
     images: ['https://auxptitspois.fr/images/og-image.png'],
   },
+  metadataBase: new URL('https://auxptitspois.fr'),
+  alternates: {
+    canonical: '/',
+  },
   robots: {
     index: true,
     follow: true,

@@ -14,6 +14,7 @@ export default function MentionsLegalesPage() {
     <div className="legal-page">
       <div className="container">
         <h1>Mentions Légales</h1>
+        <p className="legal-update-date">Dernière mise à jour : 30 mars 2026</p>
         
         <section className="legal-section">
           <h2>Éditeur du site</h2>
@@ -27,7 +28,6 @@ export default function MentionsLegalesPage() {
             <strong>Directrice de la publication :</strong> Kerina DAVIGNY<br />
             <strong>Conception et développement :</strong>{' '}
             <a href="https://www.lecomptoirducode.fr/fr" target="_blank" rel="noopener noreferrer">Le Comptoir du Code</a>{' '}
-            (société en cours d'immatriculation)
           </p>
           <h2>Partenaire Agricole</h2>
           <p>
