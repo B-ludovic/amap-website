@@ -27,7 +27,7 @@ export default function MentionsLegalesPage() {
           <p>
             <strong>Directrice de la publication :</strong> Kerina DAVIGNY<br />
             <strong>Conception et développement :</strong>{' '}
-            <a href="https://www.lecomptoirducode.fr/fr" target="_blank" rel="noopener noreferrer">Le Comptoir du Code</a>{' '}
+            <a href="https://www.lechoppeducode.com" target="_blank" rel="noopener noreferrer">L'Echoppe du Code</a>
           </p>
           <h2>Partenaire Agricole</h2>
           <p>
