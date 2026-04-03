@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Sprout, MapPin, Mail, MessageSquare, CheckCircle, Package, Heart, TrendingUp } from 'lucide-react';
+import { Sprout, MapPin, Mail, MessageSquare, CheckCircle, Package, Heart, TrendingUp, PiggyBank, ClipboardCheck } from 'lucide-react';
 import { useModal } from '../../contexts/ModalContext';
 import api from '../../lib/api';
 import '../../styles/public/become-producer.css';
@@ -228,6 +228,26 @@ export default function BecomeProducerPage() {
               <p>
                 Commandes prévisibles qui vous permettent d'optimiser vos cultures 
                 et votre gestion.
+              </p>
+            </div>
+
+            <div className="benefit-card">
+              <div className="benefit-icon">
+                <PiggyBank size={32} aria-hidden="true" />
+              </div>
+              <h3>Trésorerie sécurisée</h3>
+              <p>
+                Les adhérents s'engagent financièrement à l'avance sur une saison complète. Vous bénéficiez ainsi d'une visibilité et d'un apport de trésorerie précieux.
+              </p>
+            </div>
+
+            <div className="benefit-card">
+              <div className="benefit-icon">
+                <ClipboardCheck size={32} aria-hidden="true" />
+              </div>
+              <h3>Gestion allégée</h3>
+              <p>
+                Notre équipe de bénévoles gère les abonnements, les paiements et la communication. Vous pouvez vous concentrer pleinement sur votre cœur de métier.
               </p>
             </div>
           </div>
