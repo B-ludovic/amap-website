@@ -202,11 +202,11 @@ export default function FaqPage() {
         <aside className="faq-aside">
           <div>
             <div className="eyebrow faq-aside-label">Sur cette page</div>
-            <nav className="faq-summary">
+            <nav className="toc faq-summary">
               {categories.map((category) => (
-                <a className="faq-summary-link" href={`#${category.id}`} key={category.id}>
+                <a className="toc-link" href={`#${category.id}`} key={category.id}>
                   <span>{category.title}</span>
-                  <span className="faq-summary-count">{category.items.length}</span>
+                  <span className="toc-count">{category.items.length}</span>
                 </a>
               ))}
             </nav>

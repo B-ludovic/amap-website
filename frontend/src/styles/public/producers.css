@@ -217,39 +217,11 @@
   background-color: var(--surface-page);
 }
 
-/* Fiche technique : libellé à gauche, valeur à droite */
+/* Fiche technique : le gabarit vient de .def-list, seule la colonne change */
 
 .farm-specs {
-  display: grid;
-  gap: 0;
-  border-top: var(--border-width) solid var(--border-card);
-  margin: 0;
-}
-
-.farm-spec {
-  display: grid;
-  grid-template-columns: 130px 1fr;
-  gap: 20px;
-  padding: 13px 0;
-}
-
-.farm-spec:not(:last-child) {
-  border-bottom: var(--border-width) solid var(--border-card);
-}
-
-.farm-spec-label {
-  font-family: var(--font-mono);
-  font-size: var(--label-size);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--text-light);
-  padding-top: 2px;
-}
-
-.farm-spec-value {
-  font-size: 14.5px;
-  color: var(--text-primary);
-  margin: 0;
+  --def-col: 130px;
+  --def-gap: 20px;
 }
 
 .farm-spec-mono {
@@ -449,7 +421,7 @@
     font-size: 30px;
   }
 
-  .farm-spec {
+  .farm-specs .def-row {
     grid-template-columns: 1fr;
     gap: 6px;
   }

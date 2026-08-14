@@ -231,29 +231,29 @@ function ProducersPage() {
                     </div>
                   )}
 
-                  <dl className="farm-specs">
+                  <dl className="def-list farm-specs">
                     {producer.farmDetail && (
-                      <div className="farm-spec">
-                        <dt className="farm-spec-label">
+                      <div className="def-row">
+                        <dt className="def-label">
                           {producer.farmDetailLabel || 'Exploitation'}
                         </dt>
-                        <dd className="farm-spec-value">{producer.farmDetail}</dd>
+                        <dd className="def-value">{producer.farmDetail}</dd>
                       </div>
                     )}
 
                     {producer.partnerSince && (
-                      <div className="farm-spec">
-                        <dt className="farm-spec-label">Partenaire depuis</dt>
-                        <dd className="farm-spec-value farm-spec-mono">
+                      <div className="def-row">
+                        <dt className="def-label">Partenaire depuis</dt>
+                        <dd className="def-value farm-spec-mono">
                           {producer.partnerSince}
                         </dd>
                       </div>
                     )}
 
                     {(producer.email || producer.phone) && (
-                      <div className="farm-spec">
-                        <dt className="farm-spec-label">Contact</dt>
-                        <dd className="farm-spec-value farm-contact">
+                      <div className="def-row">
+                        <dt className="def-label">Contact</dt>
+                        <dd className="def-value farm-contact">
                           {producer.email && (
                             <a
                               href={`mailto:${producer.email}`}
