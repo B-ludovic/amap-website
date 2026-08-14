@@ -86,7 +86,8 @@ body {
 .main-content:has(.landing),
 .main-content:has(.login-page),
 .main-content:has(.producer-page),
-.main-content:has(.subscriptions-page) {
+.main-content:has(.subscriptions-page),
+.main-content:has(.account-page) {
   padding: 0;
   min-height: 0;
 }

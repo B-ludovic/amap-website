@@ -31,25 +31,8 @@
   margin-bottom: 32px;
 }
 
-.live-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background-color: var(--leaf);
-  animation: pulseLive 1.8s ease-in-out infinite;
-  flex-shrink: 0;
-}
-
-@keyframes pulseLive {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.45; transform: scale(0.86); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .live-dot {
-    animation: none;
-  }
-}
+/* .live-dot et son animation vivent dans components/da.css : le motif sert
+   aussi à l'espace adhérent. */
 
 .live-label {
   font-family: var(--font-mono);

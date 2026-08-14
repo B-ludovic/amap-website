@@ -1,238 +1,861 @@
-/* Page Mon Compte - Aux P'tits Pois */
+/* Mon compte — report au pixel de la maquette mon-compte.dc.html.
+   Les motifs partagés (.eyebrow, .live-dot, .btn) viennent de da.css et
+   globals.css ; tout ce qui suit est propre à l'espace adhérent. */
 
-.compte-page {
-  padding: var(--spacing-2xl) 0;
-}
-
-/* Email non vérifié */
-.btn-warning {
-  background: #f59e0b;
-  color: white;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
-}
-
-.compte-card-footer .btn,
-.compte-card-footer button {
-  flex: 1;
-}
-
-.btn-warning:hover {
-  background: #d97706;
-  color: white;
-}
-
-.compte-verified-sent {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  color: var(--success-color, #16a34a);
-  font-size: 0.9rem;
-  font-weight: 500;
-}
-
-/* Header */
-.compte-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--spacing-2xl);
-}
-
-/* Grille */
-.compte-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--spacing-xl);
-}
-
-/* Cards */
-.compte-card {
-  background-color: var(--white);
-  border-radius: var(--border-radius-lg);
-  box-shadow: var(--shadow-md);
-  overflow: hidden;
-}
-
-.compte-card-header {
-  padding: var(--spacing-lg);
-  border-bottom: var(--border-width) solid var(--border-color);
-}
-
-.compte-card-title {
-  font-size: var(--font-size-xl);
+.account-page {
+  background-color: var(--surface-page);
   color: var(--text-primary);
+}
+
+/* Label capitales monospace de la page : la maquette resserre la chasse à
+   0.12em ici, contre 0.14em pour les sur-titres de section (.eyebrow). */
+.account-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: var(--font-weight-normal);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-light);
+  margin-bottom: 8px;
+}
+
+/* ---------- En-tête ---------- */
+
+.account-head {
+  padding-top: 64px;
+  padding-bottom: 40px;
+  border-bottom: var(--border-width) solid var(--border-section);
+}
+
+.account-head .eyebrow {
+  margin-bottom: 16px;
+}
+
+.account-title {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-style: italic;
+  font-size: 52px;
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+  margin: 0 0 36px;
+}
+
+.account-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  border-top: var(--border-width) solid var(--border-card);
+  padding-top: 22px;
+}
+
+.account-stat {
+  padding: 0 24px;
+  border-left: var(--border-width) solid var(--border-card);
+}
+
+.account-stat:first-child {
+  padding: 0 24px 0 0;
+  border-left: none;
+}
+
+.account-stat:last-child {
+  padding-right: 0;
+}
+
+.account-stat-value {
+  font-family: var(--font-mono);
+  font-size: 19px;
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+}
+
+.account-stat-value.is-spent {
+  color: var(--text-light);
+}
+
+/* Badge d'état d'abonnement */
+.account-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px;
+  border-radius: var(--border-radius-sm);
+  background-color: var(--badge-live-bg);
+  border: var(--border-width) solid var(--badge-live-border);
+}
+
+.account-badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--badge-live-fg);
+}
+
+.account-badge-text {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--badge-live-fg);
+}
+
+.account-badge.is-soon {
+  background-color: var(--badge-soon-bg);
+  border-color: var(--badge-soon-border);
+}
+
+.account-badge.is-soon .account-badge-dot {
+  background-color: var(--badge-soon-fg);
+}
+
+.account-badge.is-soon .account-badge-text {
+  color: var(--badge-soon-fg);
+}
+
+.account-badge.is-off {
+  background-color: var(--badge-off-bg);
+  border-color: var(--badge-off-border);
+}
+
+.account-badge.is-off .account-badge-dot {
+  background-color: var(--badge-off-fg);
+}
+
+.account-badge.is-off .account-badge-text {
+  color: var(--badge-off-fg);
+}
+
+/* ---------- Bandeaux de vérification d'email ---------- */
+
+.account-notice-band {
+  padding-top: 28px;
+}
+
+.account-notice {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 24px;
+  align-items: center;
+  padding: 20px 24px;
+  background-color: var(--notice-bg);
+  border: var(--border-width) solid var(--notice-border);
+  border-radius: var(--border-radius-md);
+}
+
+.account-notice .account-label {
+  color: var(--notice-strong);
+  white-space: nowrap;
+  margin-bottom: 0;
+}
+
+.account-notice-text {
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--notice-text);
   margin: 0;
 }
 
-.compte-card-body {
-  padding: var(--spacing-lg);
+.account-notice-btn {
+  height: 42px;
+  padding: 0 18px;
+  background-color: var(--notice-strong);
+  color: var(--field-bg);
+  border: none;
+  border-radius: var(--border-radius-md);
+  font-size: 14px;
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color var(--transition-fast);
 }
 
-.compte-card-footer {
-  padding: var(--spacing-lg);
-  border-top: var(--border-width) solid var(--border-color);
+.account-notice-btn:hover:not(:disabled) {
+  background-color: var(--notice-strong-hover);
+}
+
+.account-notice-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.account-notice-ok {
   display: flex;
   align-items: center;
-  gap: var(--spacing-md);
-  flex-wrap: wrap;
+  gap: 16px;
+  padding: 18px 24px;
+  background-color: var(--badge-live-bg);
+  border: var(--border-width) solid var(--badge-live-border);
+  border-radius: var(--border-radius-md);
 }
 
-/* Informations */
-.compte-info-group {
+.account-notice-ok-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--badge-live-fg);
+  flex-shrink: 0;
+}
+
+.account-notice-ok-text {
+  font-size: 14.5px;
+  color: var(--badge-live-strong);
+}
+
+/* ---------- Corps de page : deux colonnes ---------- */
+
+.account-main {
+  padding-top: 56px;
+  padding-bottom: 96px;
+  display: grid;
+  grid-template-columns: 1.35fr 0.65fr;
+  gap: 32px;
+  align-items: start;
+}
+
+.account-col {
+  display: grid;
+  gap: 32px;
+}
+
+.account-aside {
+  display: grid;
+  gap: 24px;
+}
+
+/* ---------- Carte générique ---------- */
+
+.account-card {
+  border: var(--border-width) solid var(--border-card);
+  border-radius: var(--border-radius-md);
+  background-color: var(--surface-page);
+  overflow: hidden;
+}
+
+.account-card-head {
   display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-md) 0;
-  border-bottom: var(--border-width) solid var(--border-color);
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 22px 28px;
+  border-bottom: var(--border-width) solid var(--border-card);
+  background-color: var(--surface-sand);
 }
 
-.compte-info-group:last-child {
+.account-card-title {
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-normal);
+  font-size: 20px;
+  line-height: 1.2;
+  letter-spacing: 0;
+  margin: 0;
+}
+
+.account-card-note {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-light);
+  white-space: nowrap;
+}
+
+/* Les cartes de la colonne étroite respirent un cran de moins */
+.account-aside .account-card-head {
+  padding: 20px 24px;
+}
+
+.account-aside .account-card-title {
+  font-size: 19px;
+}
+
+/* Pastille « publié » */
+.account-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.account-live-text {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+/* ---------- Carte « panier de la semaine » ---------- */
+
+.account-basket-body {
+  padding: 28px;
+  display: grid;
+  grid-template-columns: 1fr 232px;
+  gap: 32px;
+  align-items: start;
+}
+
+.account-items {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0;
+  border-top: var(--border-width) solid var(--border-card);
+}
+
+.account-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 20px 11px 0;
+  border-bottom: var(--border-width) solid var(--border-card);
+}
+
+.account-item:nth-child(even) {
+  padding: 11px 0 11px 20px;
+  border-left: var(--border-width) solid var(--border-card);
+}
+
+/* La dernière rangée ne porte pas de filet bas : la carte le fournit déjà */
+.account-item.is-last-row {
   border-bottom: none;
 }
 
-.compte-info-icon {
-  color: var(--accent-color);
-  flex-shrink: 0;
-}
-
-.compte-info-label {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  font-size: var(--font-size-sm);
-  color: var(--text-secondary);
-  font-weight: var(--font-weight-medium);
-}
-
-.compte-info-value {
-  font-size: var(--font-size-base);
+.account-item-name {
+  font-size: 14.5px;
   color: var(--text-primary);
-  margin-left: calc(20px + var(--spacing-sm));
 }
 
-.compte-info-group .badge {
-  align-self: flex-start;
-  margin-left: calc(20px + var(--spacing-sm));
+/* La mention de droite ne se replie jamais : le rythme des lignes à 11px
+   de la maquette suppose une seule ligne par produit. */
+.account-item-meta {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  color: var(--text-light);
+  text-align: right;
+  white-space: nowrap;
 }
 
-/* Actions rapides */
-.compte-actions {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
-}
-
-.compte-action-link {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  padding: var(--spacing-md);
+.account-basket-note {
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--text-secondary);
+  margin: 20px 0 0;
+  padding: 14px 16px;
+  background-color: var(--surface-sand);
   border-radius: var(--border-radius-md);
-  background-color: var(--background-color);
-  transition: all var(--transition-fast);
-  text-decoration: none;
 }
 
-.compte-action-link:hover {
-  background-color: var(--primary-color);
-  transform: translateX(4px);
+.account-pickup {
+  border: var(--border-width) solid var(--border-card);
+  border-radius: var(--border-radius-md);
+  overflow: hidden;
 }
 
-.compte-action-link:hover .compte-action-title,
-.compte-action-link:hover .compte-action-description {
-  color: var(--white);
+.account-pickup-img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  display: block;
 }
 
-.compte-action-icon {
-  font-size: var(--font-size-3xl);
-  flex-shrink: 0;
+.account-pickup-body {
+  padding: 16px;
 }
 
-.compte-action-content {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
-}
-
-.compte-action-title {
-  font-size: var(--font-size-base);
-  font-weight: var(--font-weight-semibold);
+.account-pickup-when {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-weight: var(--font-weight-medium);
   color: var(--text-primary);
-  transition: color var(--transition-fast);
+  line-height: 1.4;
 }
 
-.compte-action-description {
-  font-size: var(--font-size-sm);
+.account-pickup-where {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--text-light);
+  margin-top: 10px;
+}
+
+/* ---------- Carte « mon abonnement » ---------- */
+
+.account-sub-body {
+  padding: 28px;
+}
+
+.account-sub-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  border-top: var(--border-width) solid var(--border-card);
+  border-bottom: var(--border-width) solid var(--border-card);
+  padding: 20px 0;
+  margin-bottom: 26px;
+}
+
+.account-sub-stat {
+  padding: 0 24px;
+  border-left: var(--border-width) solid var(--border-card);
+}
+
+.account-sub-stat:first-child {
+  padding: 0 24px 0 0;
+  border-left: none;
+}
+
+.account-sub-stat:last-child {
+  padding-right: 0;
+}
+
+.account-sub-formula {
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-normal);
+  font-size: 19px;
+  line-height: 1.25;
+  letter-spacing: 0;
+}
+
+.account-sub-amount {
+  font-family: var(--font-mono);
+  font-size: 22px;
+  font-weight: var(--font-weight-medium);
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+
+.account-sub-hint {
+  font-size: 13px;
+  color: var(--text-light);
+  margin-top: 5px;
+}
+
+/* Avancement de la saison */
+.account-progress {
+  margin-bottom: 26px;
+}
+
+.account-progress-head,
+.account-progress-foot {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.account-progress-head {
+  margin-bottom: 10px;
+}
+
+.account-progress-head .account-label {
+  margin-bottom: 0;
+}
+
+.account-progress-count {
+  font-family: var(--font-mono);
+  font-size: 12px;
   color: var(--text-secondary);
-  transition: color var(--transition-fast);
 }
 
-/* Responsive */
-
-/* Tablette et Ecrans intermédiaires (max-width: 1024px) */
-@media (max-width: 1024px) {
-  .compte-page {
-    /* Réduction du rembourrage vertical pour les tablettes */
-    padding: var(--spacing-xl) 0;
-  }
-
-  /* La grille principale reste en 2 colonnes, mais l'espace est réduit */
-  .compte-grid {
-    gap: var(--spacing-lg);
-  }
-
-  .compte-header {
-    /* Réduction de l'espace sous le header */
-    margin-bottom: var(--spacing-xl);
-  }
-
-  /* Cartes d'actions rapides (si elles utilisent une grille/flexbox qui supporte) */
-  .compte-action-link {
-    padding: var(--spacing-sm);
-  }
+.account-progress-track {
+  height: 6px;
+  background-color: var(--track-bg);
+  border-radius: var(--border-radius-sm);
+  overflow: hidden;
 }
 
-/* Mobile (max-width: 768px) */
-@media (max-width: 768px) {
-  /* La grille principale passe à une seule colonne (empilement vertical) */
-  .compte-grid {
-    grid-template-columns: 1fr;
-    gap: var(--spacing-lg); /* Réduction de l'espace entre les cartes empilées */
-  }
-
-  /* Le header s'aligne verticalement si nécessaire (boutons) */
-  .compte-header {
-    flex-direction: column;
-    align-items: flex-start; /* Aligne le contenu à gauche */
-    gap: var(--spacing-md);
-    margin-bottom: var(--spacing-lg);
-  }
-
-  /* Ajustement du rembourrage des cartes pour le mobile */
-  .compte-card-header,
-  .compte-card-body,
-  .compte-card-footer {
-    padding: var(--spacing-md);
-  }
-  
-  /* Titre de la carte plus petit */
-  .compte-card-title {
-      font-size: var(--font-size-lg);
-  }
-
-  /* Les liens d'action rapide s'étirent et les icônes/textes sont ajustés */
-  .compte-action-link {
-    padding: var(--spacing-md);
-  }
+.account-progress-fill {
+  height: 100%;
+  background-color: var(--terracotta);
 }
 
-/* Suppression du compte */
-.btn-delete-account {
+.account-progress-foot {
+  margin-top: 8px;
+}
+
+.account-progress-date {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-light);
+}
+
+/* Lignes label / valeur */
+.account-rows {
+  display: grid;
+  gap: 0;
+  border-top: var(--border-width) solid var(--border-card);
+}
+
+.account-row {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 24px;
+  padding: 16px 0;
+  border-bottom: var(--border-width) solid var(--border-card);
+}
+
+.account-row:last-child {
+  border-bottom: none;
+}
+
+.account-row .account-label {
+  margin-bottom: 0;
+  padding-top: 3px;
+}
+
+.account-row-value {
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--text-primary);
+}
+
+.account-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 26px;
+  flex-wrap: wrap;
+}
+
+/* Boutons de la page : 46px, un cran sous la hauteur globale de .btn */
+.account-btn {
+  height: 46px;
+  padding: 0 20px;
+  font-size: 14.5px;
+}
+
+.account-btn-block {
+  width: 100%;
+}
+
+/* État vide : aucun abonnement en cours */
+.account-empty {
+  padding: 28px;
+}
+
+.account-empty-text {
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  margin: 0 0 20px;
+  max-width: 42em;
+}
+
+/* ---------- Carte « mes informations » ---------- */
+
+.account-info-body {
+  padding: 8px 24px 22px;
+}
+
+.account-info-row {
+  padding: 16px 0;
+  border-bottom: var(--border-width) solid var(--border-card);
+}
+
+.account-info-row:last-of-type {
+  padding: 16px 0 4px;
+  border-bottom: none;
+}
+
+.account-info-row .account-label {
+  margin-bottom: 6px;
+}
+
+.account-info-row:last-of-type .account-label {
+  margin-bottom: 8px;
+}
+
+.account-info-value {
+  font-size: 15px;
+  color: var(--text-primary);
+}
+
+.account-info-value.is-mono {
+  font-family: var(--font-mono);
+  font-size: 13.5px;
+  word-break: break-all;
+}
+
+.account-info-value.is-address {
+  font-size: 14.5px;
+  line-height: 1.55;
+}
+
+.account-role {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 5px 9px;
+  border-radius: var(--border-radius-sm);
+  background-color: var(--badge-soon-bg);
+  color: var(--badge-soon-fg);
+}
+
+.account-info-body .account-btn {
+  margin-top: 20px;
+}
+
+/* ---------- Carte « mes données » ---------- */
+
+.account-data-body {
+  padding: 22px 24px;
+}
+
+.account-data-text {
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: var(--text-secondary);
+  margin: 0 0 18px;
+}
+
+.account-data-actions {
+  display: grid;
+  gap: 10px;
+}
+
+.account-btn-danger-ghost {
+  height: 46px;
+  background-color: transparent;
+  color: var(--error-text);
+  border: var(--border-width) solid var(--error-bg-border);
+  border-radius: var(--border-radius-md);
+  font-family: var(--font-body);
+  font-size: 14.5px;
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition: background-color var(--transition-fast),
+              border-color var(--transition-fast);
+}
+
+.account-btn-danger-ghost:hover {
+  background-color: var(--error-bg);
+  border-color: var(--error-text);
+}
+
+.account-danger-panel {
+  padding: 18px;
+  background-color: var(--error-bg);
+  border: var(--border-width) solid var(--error-bg-border);
+  border-radius: var(--border-radius-md);
+}
+
+.account-danger-text {
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--error-strong);
+  margin: 0 0 16px;
+}
+
+.account-danger-actions {
+  display: grid;
+  gap: 8px;
+}
+
+.account-btn-danger-solid,
+.account-btn-danger-cancel {
+  height: 44px;
+  border-radius: var(--border-radius-md);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+
+.account-btn-danger-solid {
+  background-color: var(--error-text);
+  color: var(--field-bg);
+  border: none;
+}
+
+.account-btn-danger-solid:hover:not(:disabled) {
+  background-color: var(--error-text-hover);
+}
+
+.account-btn-danger-solid:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.account-btn-danger-cancel {
+  background-color: transparent;
+  color: var(--error-strong);
+  border: var(--border-width) solid var(--error-bg-border);
+}
+
+.account-btn-danger-cancel:hover {
+  background-color: var(--error-bg-soft);
+}
+
+/* ---------- Carte d'aide, fond forêt ---------- */
+
+.account-help {
+  border: var(--border-width) solid var(--border-card);
+  border-radius: var(--border-radius-md);
+  background-color: var(--surface-forest);
+  color: var(--on-forest);
+  padding: 24px;
+}
+
+.account-help .account-label {
+  color: var(--on-forest-muted);
+  margin-bottom: 14px;
+}
+
+.account-help-text {
+  font-size: 14.5px;
+  line-height: 1.65;
+  color: var(--on-forest);
+  margin: 0 0 18px;
+}
+
+.account-help-mail {
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
-  margin-left: auto;
+  justify-content: center;
+  height: 46px;
+  color: var(--on-forest);
+  border: var(--border-width) solid var(--on-forest-border);
+  border-radius: var(--border-radius-md);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  transition: background-color var(--transition-fast),
+              border-color var(--transition-fast);
+}
+
+.account-help-mail:hover {
+  background-color: rgba(239, 234, 224, 0.08);
+  border-color: var(--on-forest);
+  color: var(--on-forest);
+}
+
+/* ---------- Chargement ---------- */
+
+.account-loading {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  letter-spacing: 0.06em;
+  color: var(--text-light);
+  padding: 40px 0;
+}
+
+/* ---------- Adaptations ---------- */
+
+@media (max-width: 1100px) {
+  .account-main {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .account-basket-body {
+    grid-template-columns: 1fr 200px;
+    gap: 24px;
+  }
+}
+
+@media (max-width: 900px) {
+  .account-head {
+    padding-top: 48px;
+  }
+
+  .account-title {
+    font-size: 40px;
+  }
+
+  .account-stats,
+  .account-sub-stats {
+    grid-template-columns: repeat(2, 1fr);
+    row-gap: 22px;
+  }
+
+  .account-stat,
+  .account-sub-stat,
+  .account-stat:first-child,
+  .account-sub-stat:first-child {
+    padding: 0 20px;
+    border-left: var(--border-width) solid var(--border-card);
+  }
+
+  .account-stat:nth-child(odd),
+  .account-sub-stat:nth-child(odd) {
+    padding-left: 0;
+    border-left: none;
+  }
+
+  .account-notice {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .account-basket-body {
+    grid-template-columns: 1fr;
+  }
+
+  .account-pickup {
+    max-width: 320px;
+  }
+
+  .account-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 620px) {
+  .account-title {
+    font-size: 34px;
+  }
+
+  .account-stats {
+    grid-template-columns: 1fr;
+    row-gap: 18px;
+  }
+
+  .account-stat,
+  .account-stat:first-child {
+    padding: 0;
+    border-left: none;
+  }
+
+  .account-items {
+    grid-template-columns: 1fr;
+  }
+
+  /* Sur une colonne, seule la toute dernière ligne perd son filet bas :
+     le marquage de rangée calculé pour la grille à deux colonnes ne vaut plus. */
+  .account-item,
+  .account-item:nth-child(even),
+  .account-item.is-last-row:not(:last-child) {
+    padding: 11px 0;
+    border-left: none;
+    border-bottom: var(--border-width) solid var(--border-card);
+  }
+
+  .account-item:last-child {
+    border-bottom: none;
+  }
+
+  .account-card-head,
+  .account-aside .account-card-head {
+    padding: 18px 20px;
+  }
+
+  .account-basket-body,
+  .account-sub-body,
+  .account-empty {
+    padding: 20px;
+  }
+
+  .account-info-body {
+    padding: 4px 20px 20px;
+  }
+
+  .account-data-body {
+    padding: 20px;
+  }
+
+  .account-actions .account-btn {
+    width: 100%;
+  }
 }

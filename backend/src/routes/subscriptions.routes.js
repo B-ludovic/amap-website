@@ -24,12 +24,13 @@ router.post('/request', submitSubscriptionRequest);
 
 // Routes adhérents
 router.get('/me', authMiddleware, getMySubscription);
+// Contrat PDF : le contrôleur vérifie que l'appelant est admin ou propriétaire
+router.get('/:id/contract', authMiddleware, generateContractFromSubscription);
 
 // Routes admin
 router.get('/', authMiddleware, adminOnly, getAllSubscriptions);
 router.get('/stats', authMiddleware, adminOnly, getSubscriptionStats);
 router.get('/requests', authMiddleware, adminOnly, getSubscriptionRequests);
-router.get('/:id/contract', authMiddleware, adminOnly, generateContractFromSubscription);
 router.get('/:id', authMiddleware, adminOnly, getSubscriptionById);
 router.post('/', authMiddleware, adminOnly, createSubscription);
 router.put('/:id', authMiddleware, adminOnly, updateSubscription);

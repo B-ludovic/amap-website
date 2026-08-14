@@ -44,6 +44,7 @@
   /* ---------- BADGES PRODUITS ---------- */
   --badge-live-bg: #EAF0DE;
   --badge-live-fg: #4E6B2A;
+  --badge-live-strong: #3E5722;  /* texte long posé sur le fond vert clair */
   --badge-soon-bg: #F8EBD6;
   --badge-soon-fg: #8F5F37;
   --badge-off-bg: #F0EBE2;
@@ -131,11 +132,26 @@
   --field-placeholder: #B3B0A4;
   --field-focus-ring: rgba(200, 90, 50, 0.15);
   --error-text: #B23A22;
+  --error-text-hover: #98301B;
   --error-border: #D9A08E;
   --error-bg: #FBEDE9;
   --error-bg-border: #EDC7BC;
+  --error-bg-soft: #FDF5F2;       /* survol des boutons d'annulation en zone rouge */
   --error-strong: #8E2E1A;
   --badge-live-border: #CBDBB0;
+  --badge-soon-border: #E7D3B4;
+  --badge-off-border: var(--border-card);
+
+  /* ---------- BANDEAU D'AVERTISSEMENT ---------- */
+  /* Ambre sourd : email non vérifié, action à confirmer. */
+  --notice-bg: #FBF2E2;
+  --notice-border: #EBD6AE;
+  --notice-strong: #8F6420;
+  --notice-strong-hover: #7A5417;
+  --notice-text: #6B4E16;
+
+  /* Rail de progression (saison écoulée) */
+  --track-bg: #EDE6DA;
 
   /* ---------- OMBRES ---------- */
   /* Une seule ombre dans la maquette, sur la carte flottante du hero. */

@@ -9,7 +9,8 @@
 .landing,
 .producer-page,
 .subscriptions-page,
-.login-page {
+.login-page,
+.account-page {
   line-height: normal;
 }
 
@@ -24,6 +25,28 @@
 
 .eyebrow-on-forest {
   color: var(--on-forest-muted);
+}
+
+/* Pastille « en direct » : le seul élément animé de la DA. Sert à signaler
+   la distribution en cours sur la landing et le panier publié côté adhérent. */
+.live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: var(--leaf);
+  animation: pulseLive 1.8s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+@keyframes pulseLive {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(0.86); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live-dot {
+    animation: none;
+  }
 }
 
 /* Titre de section : Fraunces 300, chasse resserrée */

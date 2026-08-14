@@ -13,7 +13,6 @@ import '../styles/components/da.css';
 import '../styles/components/modal.css';
 import '../styles/components/header.css';
 import '../styles/components/footer.css';
-import '../styles/public/compte.css';
 
 const fraunces = Fraunces({
   subsets: ['latin'],

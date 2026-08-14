@@ -7,6 +7,7 @@ import {
   HttpNotFoundError,
   HttpBadRequestError,
   HttpConflictError,
+  HttpForbiddenError,
   httpStatusCodes
 } from '../utils/httpErrors.js';
 import { logAudit } from '../services/audit.service.js';
@@ -570,10 +571,11 @@ const getMySubscription = asyncHandler(async (req, res) => {
         },
         take: 5
       },
+      // Toutes les pauses de la saison, passées comprises : l'espace adhérent
+      // affiche le solde de semaines restantes, qui serait faux si les pauses
+      // déjà écoulées étaient filtrées.
       pauses: {
-        where: {
-          endDate: { gte: new Date() }
-        }
+        orderBy: { startDate: 'asc' }
       }
     }
   });
@@ -642,7 +644,7 @@ const getSubscriptionStats = asyncHandler(async (req, res) => {
   });
 });
 
-// GÉNÉRER LE CONTRAT PDF D'UN ABONNEMENT (ADMIN)
+// GÉNÉRER LE CONTRAT PDF D'UN ABONNEMENT (ADMIN, OU L'ADHÉRENT SUR LE SIEN)
 const generateContractFromSubscription = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
@@ -666,6 +668,11 @@ const generateContractFromSubscription = asyncHandler(async (req, res) => {
 
   if (!subscription) {
     throw new HttpNotFoundError('Abonnement introuvable');
+  }
+
+  // Un adhérent ne peut télécharger que son propre contrat
+  if (req.user.role !== 'ADMIN' && subscription.userId !== req.user.id) {
+    throw new HttpForbiddenError('Accès refusé à ce contrat');
   }
 
   // 2. Retrouver la demande associée pour récupérer le paymentType
