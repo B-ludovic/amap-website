@@ -1,341 +1,254 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { useFocusTrap } from '../../hooks/useFocusTrap';
-import { X, UserPlus, Trash2 } from 'lucide-react';
-import { useModal } from '../../contexts/ModalContext';
+import { useCallback, useEffect, useState } from 'react';
 import api from '../../lib/api';
+import { useModal } from '../../contexts/ModalContext';
+import AdminModal from './AdminModal';
 import logger from '../../lib/logger';
 
+function pad(number) {
+  return String(number).padStart(2, '0');
+}
+
+/* Le champ date parle en « AAAA-MM-JJ » local : on écrit la date à la main
+   plutôt que par toISOString, qui bascule d'un jour en soirée parisienne. */
+function toInputValue(value) {
+  const date = value instanceof Date ? value : new Date(value);
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
 export default function ShiftModal({ shift, onClose }) {
-  const containerRef = useRef(null);
-  useFocusTrap(containerRef);
-  const { showSuccess, showError } = useModal();
-  const [loading, setLoading] = useState(false);
+  const { showError } = useModal();
+  const isEdit = Boolean(shift);
+
   const [users, setUsers] = useState([]);
-  const [selectedVolunteers, setSelectedVolunteers] = useState([]);
+  const [crew, setCrew] = useState(
+    shift?.volunteers?.map(volunteer => ({
+      userId: volunteer.user.id,
+      role: volunteer.role ?? null,
+      status: volunteer.status
+    })) ?? []
+  );
   const [formData, setFormData] = useState({
-    distributionDate: '',
-    startTime: '18:15',
-    endTime: '19:15',
-    volunteersNeeded: 2,
-    notes: '',
+    distributionDate: shift ? toInputValue(shift.distributionDate) : '',
+    startTime: shift?.startTime ?? '18:15',
+    endTime: shift?.endTime ?? '19:15',
+    volunteersNeeded: shift?.volunteersNeeded ?? 2,
+    notes: shift?.notes ?? ''
   });
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    fetchUsers();
-    
-    if (shift) {
-      // Formater la date pour l'input date (YYYY-MM-DD)
-      const date = new Date(shift.distributionDate);
-      const formattedDate = date.toISOString().split('T')[0];
-      
-      setFormData({
-        distributionDate: formattedDate,
-        startTime: shift.startTime || '18:15',
-        endTime: shift.endTime || '19:15',
-        volunteersNeeded: shift.volunteersNeeded || 2,
-        notes: shift.notes || '',
-      });
-
-      // Charger les bénévoles assignés
-      if (shift.volunteers && shift.volunteers.length > 0) {
-        setSelectedVolunteers(shift.volunteers.map(v => ({
-          userId: v.user.id,
-          userName: `${v.user.firstName} ${v.user.lastName}`,
-          status: v.status
-        })));
-      }
-    }
-  }, [shift]);
-
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       const response = await api.admin.users.getAll();
-      // S'assurer que users est un tableau
-      const usersData = Array.isArray(response.data) ? response.data : (response.data?.users || []);
-      setUsers(usersData);
+      const list = Array.isArray(response.data) ? response.data : (response.data?.users ?? []);
+      setUsers([...list].sort((a, b) => a.lastName.localeCompare(b.lastName, 'fr')));
     } catch (error) {
       logger.error('Erreur chargement utilisateurs:', error);
       setUsers([]);
     }
-  };
+  }, []);
 
-  const handleAddVolunteer = () => {
-    setSelectedVolunteers(prev => [...prev, { userId: '', userName: '', status: 'CONFIRMED' }]);
-  };
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
 
-  const handleVolunteerChange = (index, userId) => {
-    const user = users.find(u => u.id === userId);
-    setSelectedVolunteers(prev => {
-      const updated = [...prev];
-      updated[index] = {
-        userId,
-        userName: user ? `${user.firstName} ${user.lastName}` : '',
-        status: 'CONFIRMED'
-      };
-      return updated;
-    });
-  };
-
-  const handleRemoveVolunteer = (index) => {
-    setSelectedVolunteers(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
-    }
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+    setFormData(current => ({ ...current, [name]: value }));
+    if (errors[name]) setErrors(current => ({ ...current, [name]: '' }));
   };
 
   const validate = () => {
-    const newErrors = {};
+    const found = {};
+    const needed = Number(formData.volunteersNeeded);
 
-    if (!formData.distributionDate) {
-      newErrors.distributionDate = 'La date est requise';
+    if (!formData.distributionDate) found.distributionDate = 'Date requise';
+    if (!formData.startTime) found.startTime = 'Heure de début requise';
+    if (!formData.endTime) found.endTime = 'Heure de fin requise';
+    if (formData.startTime && formData.endTime && formData.endTime <= formData.startTime) {
+      found.endTime = 'L\'heure de fin doit suivre celle de début';
+    }
+    if (!Number.isInteger(needed) || needed < 1 || needed > 10) {
+      found.volunteersNeeded = 'Entre 1 et 10 bénévoles';
     }
 
-    if (!formData.startTime) {
-      newErrors.startTime = 'L\'heure de début est requise';
-    }
-
-    if (!formData.endTime) {
-      newErrors.endTime = 'L\'heure de fin est requise';
-    }
-
-    if (formData.volunteersNeeded < 1 || formData.volunteersNeeded > 10) {
-      newErrors.volunteersNeeded = 'Le nombre de bénévoles doit être entre 1 et 10';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    setErrors(found);
+    return Object.keys(found).length === 0;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    if (!validate()) return;
 
-    if (!validate()) {
-      return;
-    }
+    /* Les lignes vides — un menu ouvert puis abandonné — ne partent pas au
+       serveur. Le rôle et l'état des inscriptions existantes sont renvoyés
+       tels quels : le contrôleur ne touche qu'aux entrées ajoutées ou
+       retirées. */
+    const payload = {
+      ...formData,
+      volunteersNeeded: Number(formData.volunteersNeeded),
+      notes: formData.notes.trim() || null,
+      volunteers: crew.filter(member => member.userId)
+    };
 
     setLoading(true);
-
     try {
-      const dataToSend = {
-        ...formData,
-        volunteersNeeded: parseInt(formData.volunteersNeeded),
-        volunteers: selectedVolunteers
-          .filter(v => v.userId)
-          .map(v => ({
-            userId: v.userId,
-            status: v.status
-          }))
-      };
-
-      if (shift) {
-        await api.shifts.update(shift.id, dataToSend);
-        showSuccess('Permanence modifiée avec succès');
+      if (isEdit) {
+        await api.shifts.update(shift.id, payload);
       } else {
-        await api.shifts.create(dataToSend);
-        showSuccess('Permanence créée avec succès');
+        await api.shifts.create(payload);
       }
-
-      onClose(true);
+      onClose(true, isEdit ? 'La permanence a été modifiée.' : 'La permanence a été créée.');
     } catch (error) {
-      showError(error.message || 'Une erreur est survenue');
-    } finally {
+      showError('Erreur', error.message || 'Une erreur est survenue.');
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    const handleEscape = (e) => { if (e.key === 'Escape') onClose(false); };
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
-  }, [onClose]);
+  const takenIds = new Set(crew.map(member => member.userId).filter(Boolean));
 
   return (
-    <div className="modal-overlay" onClick={() => onClose(false)}>
-      <div className="modal-container" ref={containerRef} role="dialog" aria-modal="true" aria-labelledby="modal-title-shift" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2 id="modal-title-shift">{shift ? 'Modifier la permanence' : 'Créer une permanence'}</h2>
-          <button
-            className="modal-close"
-            onClick={() => onClose(false)}
-            type="button"
-          >
-            <X size={24} />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit}>
-          <div className="modal-body">
-            {/* Date de distribution */}
-            <div className="form-group">
-              <label htmlFor="distributionDate">
-                Date de distribution <span className="required">*</span>
-              </label>
+    <AdminModal
+      title={isEdit ? 'Modifier la permanence' : 'Créer une permanence'}
+      width="680px"
+      onClose={() => onClose(false)}
+    >
+      <form onSubmit={handleSubmit}>
+        <div className="admin-form">
+          <div className="admin-form-row" style={{ '--admin-form-cols': 3 }}>
+            <div className="admin-form-field">
+              <label htmlFor="sh-date" className="admin-field-label">Date de distribution *</label>
               <input
-                type="date"
-                id="distributionDate"
+                id="sh-date"
                 name="distributionDate"
+                type="date"
+                className="admin-input admin-input-mono"
                 value={formData.distributionDate}
                 onChange={handleChange}
-                className={errors.distributionDate ? 'error' : ''}
               />
-              {errors.distributionDate && (
-                <span className="error-message">{errors.distributionDate}</span>
-              )}
+              {errors.distributionDate && <span className="admin-form-error">{errors.distributionDate}</span>}
             </div>
-
-            {/* Horaires */}
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="startTime">
-                  Heure de début <span className="required">*</span>
-                </label>
-                <input
-                  type="time"
-                  id="startTime"
-                  name="startTime"
-                  value={formData.startTime}
-                  onChange={handleChange}
-                  className={errors.startTime ? 'error' : ''}
-                />
-                {errors.startTime && (
-                  <span className="error-message">{errors.startTime}</span>
-                )}
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="endTime">
-                  Heure de fin <span className="required">*</span>
-                </label>
-                <input
-                  type="time"
-                  id="endTime"
-                  name="endTime"
-                  value={formData.endTime}
-                  onChange={handleChange}
-                  className={errors.endTime ? 'error' : ''}
-                />
-                {errors.endTime && (
-                  <span className="error-message">{errors.endTime}</span>
-                )}
-              </div>
-            </div>
-
-            {/* Nombre de bénévoles */}
-            <div className="form-group">
-              <label htmlFor="volunteersNeeded">
-                Nombre de bénévoles nécessaires <span className="required">*</span>
-              </label>
+            <div className="admin-form-field">
+              <label htmlFor="sh-start" className="admin-field-label">Début *</label>
               <input
-                type="number"
-                id="volunteersNeeded"
-                name="volunteersNeeded"
-                min="1"
-                max="10"
-                value={formData.volunteersNeeded}
+                id="sh-start"
+                name="startTime"
+                type="time"
+                className="admin-input admin-input-mono"
+                value={formData.startTime}
                 onChange={handleChange}
-                className={errors.volunteersNeeded ? 'error' : ''}
               />
-              {errors.volunteersNeeded && (
-                <span className="error-message">{errors.volunteersNeeded}</span>
-              )}
+              {errors.startTime && <span className="admin-form-error">{errors.startTime}</span>}
+            </div>
+            <div className="admin-form-field">
+              <label htmlFor="sh-end" className="admin-field-label">Fin *</label>
+              <input
+                id="sh-end"
+                name="endTime"
+                type="time"
+                className="admin-input admin-input-mono"
+                value={formData.endTime}
+                onChange={handleChange}
+              />
+              {errors.endTime && <span className="admin-form-error">{errors.endTime}</span>}
+            </div>
+          </div>
+
+          <div className="admin-form-field" style={{ maxWidth: '220px' }}>
+            <label htmlFor="sh-needed" className="admin-field-label">Bénévoles nécessaires *</label>
+            <input
+              id="sh-needed"
+              name="volunteersNeeded"
+              type="number"
+              min="1"
+              max="10"
+              className="admin-input admin-input-mono"
+              value={formData.volunteersNeeded}
+              onChange={handleChange}
+            />
+            {errors.volunteersNeeded && <span className="admin-form-error">{errors.volunteersNeeded}</span>}
+          </div>
+
+          <div className="admin-form-field">
+            <label htmlFor="sh-notes" className="admin-field-label">Consignes (optionnel)</label>
+            <textarea
+              id="sh-notes"
+              name="notes"
+              rows={3}
+              className="admin-textarea"
+              placeholder="Clés du local, matériel à sortir, particularité du jour…"
+              value={formData.notes}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div>
+            <div className="admin-crew-head">
+              <span className="admin-field-label">Équipe assignée</span>
+              <button
+                type="button"
+                className="admin-btn-link"
+                onClick={() => setCrew(current => [...current, { userId: '', role: null, status: 'CONFIRMED' }])}
+              >
+                Ajouter un bénévole
+              </button>
             </div>
 
-            {/* Notes */}
-            <div className="form-group">
-              <label htmlFor="notes">Notes (optionnel)</label>
-              <textarea
-                id="notes"
-                name="notes"
-                rows="4"
-                value={formData.notes}
-                onChange={handleChange}
-                placeholder="Instructions particulières, consignes..."
-              />
-            </div>
-
-            {/* Bénévoles assignés */}
-            <div className="form-group">
-              <div className="shift-volunteers-header">
-                <label>Bénévoles assignés</label>
-                <button
-                  type="button"
-                  className="btn btn-secondary btn-sm"
-                  onClick={handleAddVolunteer}
-                >
-                  <UserPlus size={16} />
-                  Ajouter un bénévole
-                </button>
+            {crew.length === 0 ? (
+              <p className="admin-crew-empty">
+                Personne d&apos;assigné — les adhérents peuvent s&apos;inscrire eux-mêmes.
+              </p>
+            ) : (
+              <div className="admin-crew-editor">
+                {crew.map((member, index) => (
+                  <div key={index} className="admin-crew-row">
+                    <select
+                      className="admin-select-full"
+                      value={member.userId}
+                      aria-label={`Bénévole ${index + 1}`}
+                      onChange={(event) => {
+                        const userId = event.target.value;
+                        setCrew(current => current.map((item, position) => (
+                          position === index ? { ...item, userId } : item
+                        )));
+                      }}
+                    >
+                      <option value="">Choisir un membre…</option>
+                      {users.map(user => (
+                        <option
+                          key={user.id}
+                          value={user.id}
+                          disabled={user.id !== member.userId && takenIds.has(user.id)}
+                        >
+                          {user.lastName} {user.firstName} — {user.email}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      className="admin-btn-link admin-btn-link-delete"
+                      onClick={() => setCrew(current => current.filter((_, position) => position !== index))}
+                    >
+                      Retirer
+                    </button>
+                  </div>
+                ))}
               </div>
-
-              {selectedVolunteers.length === 0 ? (
-                <div className="shift-volunteers-empty">
-                  <p>Aucun bénévole assigné</p>
-                </div>
-              ) : (
-                <div className="shift-volunteers-list">
-                  {selectedVolunteers.map((volunteer, index) => (
-                    <div key={index} className="shift-volunteer-row">
-                      <select
-                        value={volunteer.userId}
-                        onChange={(e) => handleVolunteerChange(index, e.target.value)}
-                        required
-                      >
-                        <option value="">Sélectionner un membre</option>
-                        {users.map(user => (
-                          <option 
-                            key={user.id} 
-                            value={user.id}
-                            disabled={selectedVolunteers.some((v, i) => i !== index && v.userId === user.id)}
-                          >
-                            {user.firstName} {user.lastName} ({user.email})
-                          </option>
-                        ))}
-                      </select>
-                      <button
-                        type="button"
-                        className="btn btn-icon"
-                        onClick={() => handleRemoveVolunteer(index)}
-                        title="Retirer"
-                      >
-                        <Trash2 size={18} color="var(--error-color-dark)" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+            )}
           </div>
+        </div>
 
-          <div className="modal-footer">
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={() => onClose(false)}
-              disabled={loading}
-            >
-              Annuler
-            </button>
-            <button
-              type="submit"
-              className="btn btn-primary"
-              disabled={loading}
-            >
-              {loading ? 'Enregistrement...' : shift ? 'Modifier' : 'Créer'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        <div className="admin-modal-actions">
+          <button type="submit" className="admin-btn-primary" disabled={loading}>
+            {loading ? 'Enregistrement…' : isEdit ? 'Enregistrer' : 'Créer la permanence'}
+          </button>
+          <button type="button" className="admin-btn-ghost" onClick={() => onClose(false)} disabled={loading}>
+            Annuler
+          </button>
+        </div>
+      </form>
+    </AdminModal>
   );
 }

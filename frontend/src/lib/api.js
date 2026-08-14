@@ -455,6 +455,14 @@ const api = {
       });
     },
 
+    setVolunteerStatus: async (shiftId, userId, data) => {
+      return fetchAPI(`/shifts/${shiftId}/volunteers/${userId}`, {
+        method: 'PUT',
+        body: data,
+        requiresAuth: true,
+      });
+    },
+
     duplicate: async (id, data) => {
       return fetchAPI(`/shifts/${id}/duplicate`, {
         method: 'POST',

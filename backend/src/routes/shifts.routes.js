@@ -7,7 +7,7 @@ import {
   deleteShift,
   joinShift,
   leaveShift,
-  markVolunteerAbsent,
+  updateVolunteerStatus,
   getMyShifts,
   duplicateShift
 } from '../controllers/shifts.controller.js';
@@ -30,6 +30,6 @@ router.post('/', authMiddleware, adminOnly, createShift);
 router.post('/:id/duplicate', authMiddleware, adminOnly, duplicateShift);
 router.put('/:id', authMiddleware, adminOnly, updateShift);
 router.delete('/:id', authMiddleware, adminOnly, deleteShift);
-router.put('/:shiftId/volunteer/:volunteerId/absent', authMiddleware, adminOnly, markVolunteerAbsent);
+router.put('/:shiftId/volunteers/:userId', authMiddleware, adminOnly, updateVolunteerStatus);
 
 export default router;

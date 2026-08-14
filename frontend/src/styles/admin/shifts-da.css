@@ -1,0 +1,184 @@
+/* Permanences — vue absente de la maquette (« built: false »), composée dans
+   le vocabulaire de la DA : bande .admin-row-card en trois colonnes, l'effectif
+   en tête, la date au centre, les actions à droite. */
+
+.admin-shifts-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.admin-shifts-toolbar .admin-pills {
+  --admin-pills-mb: 0;
+}
+
+.admin-shifts-band {
+  --notice-pad: 16px 18px;
+  margin-bottom: 20px;
+}
+
+.admin-shifts-list {
+  display: grid;
+  gap: 14px;
+}
+
+.admin-shift {
+  --admin-row-cols: auto 1fr auto;
+  align-items: start;
+}
+
+/* EFFECTIF
+   « 2/2 » en tête de bande. La couleur dit l'état d'un coup d'œil : vert quand
+   la permanence est pourvue, laiton quand il manque du monde, rouge quand
+   personne ne s'est inscrit. */
+.admin-shift-count {
+  font-family: var(--font-mono);
+  font-size: 22px;
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+  color: var(--badge-soon-fg);
+}
+
+.admin-shift-count-full {
+  color: var(--badge-live-fg);
+}
+
+.admin-shift-count-empty {
+  color: var(--error-text);
+}
+
+.admin-shift-count-past {
+  color: var(--text-light);
+}
+
+.admin-shift-date {
+  margin-bottom: 6px;
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-normal);
+  font-size: 19px;
+}
+
+.admin-shift-meta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.admin-shift-hours {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-light);
+}
+
+/* ÉQUIPE
+   Une pastille par bénévole. Celles qui ne comptent plus — désistement,
+   absence — restent visibles mais barrées : l'information disparaîtrait
+   autrement de la mémoire de l'AMAP. */
+.admin-shift-crew {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.admin-crew-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 10px;
+  border: 1px solid var(--border-card);
+  border-radius: var(--border-radius-sm);
+  background-color: var(--surface-sand);
+  font-size: 12.5px;
+  color: var(--text-primary);
+}
+
+.admin-crew-chip-off {
+  color: var(--text-light);
+  text-decoration: line-through;
+}
+
+.admin-crew-role {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: var(--label-tracking);
+  text-transform: uppercase;
+  color: var(--text-light);
+}
+
+/* Pointage de présence : n'a de sens qu'après coup, donc uniquement sur les
+   permanences passées. */
+.admin-crew-mark {
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: var(--label-tracking);
+  text-transform: uppercase;
+  color: var(--terracotta);
+  transition: color 150ms;
+}
+
+.admin-crew-mark:hover {
+  color: var(--terracotta-dark);
+}
+
+.admin-shift-notes {
+  margin-top: 12px;
+}
+
+.admin-shift-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-top: 4px;
+}
+
+/* MODALE
+   Le bloc d'équipe se compose ligne par ligne : un menu de membre, un bouton
+   pour retirer la ligne. */
+
+.admin-crew-editor {
+  display: grid;
+  gap: 8px;
+}
+
+.admin-crew-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.admin-crew-empty {
+  padding: 18px;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--border-radius-md);
+  text-align: center;
+  font-size: 13.5px;
+  color: var(--text-light);
+}
+
+.admin-crew-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 10px;
+}
+
+.admin-crew-head .admin-field-label {
+  margin-bottom: 0;
+}
+
+@media (max-width: 1100px) {
+  .admin-shift {
+    --admin-row-cols: 1fr;
+  }
+}

@@ -1,249 +1,262 @@
 'use client';
 
-import { useEffect, useState } from "react";
-import api from "../../../lib/api";
-import { useModal } from "../../../contexts/ModalContext";
-import ShiftModal from "../../../components/admin/ShiftModal";
-import "../../../styles/admin/components.css";
-import "../../../styles/admin/dashboard.css";
-import "../../../styles/admin/layout.css";
-import "../../../styles/admin/permanences.css";
-import {
-    Calendar,
-    Users,
-    Clock,
-    Plus,
-    Edit2,
-    Trash2,
-    Copy
-} from "lucide-react";
+import { useCallback, useEffect, useState } from 'react';
+import api from '../../../lib/api';
+import { useModal } from '../../../contexts/ModalContext';
+import ShiftModal from '../../../components/admin/ShiftModal';
+import ShiftDuplicateModal from '../../../components/admin/ShiftDuplicateModal';
+import { longDate, plural } from '../../../lib/format';
+import '../../../styles/admin/shifts-da.css';
+
+const FILTERS = [
+  { key: 'upcoming', label: 'À venir', params: { upcoming: 'true' } },
+  { key: 'past', label: 'Passées', params: { past: 'true' } },
+  { key: 'all', label: 'Toutes', params: {} }
+];
+
+/* La liste sert aussi de registre : un désistement ou une absence reste
+   visible, il ne compte simplement plus dans l'effectif. */
+const CREW_STATES = {
+  CONFIRMED: { label: null, off: false },
+  CANCELLED: { label: 'désisté', off: true },
+  ABSENT: { label: 'absent', off: true }
+};
+
+function capitalize(text) {
+  return `${text.charAt(0).toUpperCase()}${text.slice(1)}`;
+}
+
+function isPast(shift) {
+  return new Date(shift.distributionDate) < new Date();
+}
 
 export default function AdminPermanencesPage() {
-    const [shifts, setShifts] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedShift, setSelectedShift] = useState(null);
-    const [filter, setFilter] = useState('upcoming');
+  const { showConfirm, showSuccess, showError } = useModal();
 
-    const { showSuccess, showError } = useModal();
+  const [shifts, setShifts] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState('upcoming');
+  const [editing, setEditing] = useState(null);
+  const [duplicating, setDuplicating] = useState(null);
 
-    useEffect(() => {
-        fetchShifts();
-    }, [filter]);
-
-    const fetchShifts = async () => {
+  const fetchShifts = useCallback(async (key) => {
+    setLoading(true);
     try {
-      setLoading(true);
-      const params = {};
-      
-      if (filter === 'upcoming') {
-        params.upcoming = 'true';
-      } else if (filter === 'past') {
-        params.past = 'true';
-      }
-      
-      const response = await api.shifts.getAll(params);
+      const definition = FILTERS.find(item => item.key === key) ?? FILTERS[0];
+      const response = await api.shifts.getAll(definition.params);
+
       setShifts(response.data);
+      setTotal(response.meta?.total ?? response.data.length);
     } catch (error) {
-      showError('Erreur', 'Erreur lors du chargement des permanences');
+      showError('Erreur', 'Impossible de charger les permanences.');
     } finally {
       setLoading(false);
     }
-  };
+  }, [showError]);
 
-  const handleCreate = () => {
-    setSelectedShift(null);
-    setIsModalOpen(true);
-  };
+  useEffect(() => {
+    fetchShifts(filter);
+  }, [filter, fetchShifts]);
 
-  const handleEdit = (shift) => {
-    setSelectedShift(shift);
-    setIsModalOpen(true);
-  };
-
-  const handleDelete = async (shiftId) => {
-    if (!confirm('Êtes-vous sûr de vouloir supprimer cette permanence ?')) {
-      return;
-    }
-
-    try {
-      await api.shifts.delete(shiftId);
-      showSuccess('Succès', 'Permanence supprimée avec succès');
-      fetchShifts();
-    } catch (error) {
-      showError('Erreur', error.response?.data?.message || 'Erreur lors de la suppression');
-    }
-  };
-
-  const handleDuplicate = async (shift) => {
-    const newDate = prompt('Date de la nouvelle permanence (YYYY-MM-DD) :');
-    
-    if (!newDate) return;
-
-    try {
-      await api.shifts.duplicate(shift.id, { newDate });
-      showSuccess('Succès', 'Permanence dupliquée avec succès');
-      fetchShifts();
-    } catch (error) {
-      showError('Erreur', error.response?.data?.message || 'Erreur lors de la duplication');
-    }
-  };
-
-  const handleModalClose = (shouldRefresh) => {
-    setIsModalOpen(false);
-    setSelectedShift(null);
+  const closeModal = (shouldRefresh, message) => {
+    setEditing(null);
+    setDuplicating(null);
     if (shouldRefresh) {
-      fetchShifts();
+      showSuccess('Permanence enregistrée', message ?? 'La permanence a été enregistrée.');
+      fetchShifts(filter);
     }
   };
 
-  const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('fr-FR', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
+  const handleDelete = (shift) => {
+    const crew = shift.volunteers.filter(volunteer => volunteer.status === 'CONFIRMED').length;
+
+    showConfirm(
+      'Supprimer la permanence',
+      crew > 0
+        ? `Supprimer la permanence du ${longDate(shift.distributionDate)} ? Un email d'annulation partira aux ${crew} ${plural(crew, 'bénévole inscrit', 'bénévoles inscrits')}.`
+        : `Supprimer la permanence du ${longDate(shift.distributionDate)} ? Personne n'y est inscrit.`,
+      async () => {
+        try {
+          await api.shifts.delete(shift.id);
+          showSuccess('Permanence supprimée', 'La permanence a été retirée du calendrier.');
+          fetchShifts(filter);
+        } catch (error) {
+          showError('Erreur', error.message);
+        }
+      }
+    );
   };
 
-  const getStatusBadge = (shift) => {
-    if (shift.isFull) {
-      return <span className="badge badge-success">Complet</span>;
+  /* Pointage après coup : seule une permanence passée se pointe, et le geste
+     est réversible — le serveur accepte les trois états. */
+  const markCrew = async (shift, volunteer, status) => {
+    try {
+      await api.shifts.setVolunteerStatus(shift.id, volunteer.user.id, { status });
+      fetchShifts(filter);
+    } catch (error) {
+      showError('Erreur', error.message);
     }
-    if (shift.confirmedCount === 0) {
-      return <span className="badge badge-error">Aucun bénévole</span>;
-    }
-    return <span className="badge badge-warning">Places disponibles</span>;
   };
 
-  if (loading) {
-    return <div className="loading-state">Chargement...</div>;
-  }
+  /* Le bandeau d'alerte ne s'affiche que sur le filtre « À venir » : c'est la
+     seule liste dont on tient l'intégralité sous les yeux, donc la seule où le
+     compte des permanences incomplètes est exact. */
+  const understaffed = filter === 'upcoming' ? shifts.filter(shift => !shift.isFull).length : 0;
 
   return (
-    <div className="admin-page">
-      <div className="page-header">
+    <div className="admin-shifts">
+      <div className="admin-page-head">
         <div>
-          <h1>Gestion des permanences</h1>
-          <p className="page-subtitle">Organisez les distributions hebdomadaires</p>
+          <h1 className="admin-title">Permanences</h1>
+          <p className="admin-title-lead">
+            Les bénévoles de chaque distribution — inscription libre des adhérents, complétée à la main si besoin.
+          </p>
         </div>
-        <button className="btn btn-primary" onClick={handleCreate}>
-          <Plus size={20} />
+        <button type="button" className="admin-btn-primary" onClick={() => setEditing({ id: null })}>
           Créer une permanence
         </button>
       </div>
 
-      <div className="toolbar">
-        <div className="toolbar-filters">
-          <button
-            className={`btn ${filter === 'upcoming' ? 'btn-primary' : 'btn-secondary'}`}
-            onClick={() => setFilter('upcoming')}
-          >
-            À venir
-          </button>
-          <button
-            className={`btn ${filter === 'past' ? 'btn-primary' : 'btn-secondary'}`}
-            onClick={() => setFilter('past')}
-          >
-            Passées
-          </button>
-          <button
-            className={`btn ${filter === 'all' ? 'btn-primary' : 'btn-secondary'}`}
-            onClick={() => setFilter('all')}
-          >
-            Toutes
-          </button>
-        </div>
-      </div>
-
-      {shifts.length === 0 ? (
-        <div className="empty-state">
-          <Calendar size={48} />
-          <h3>Aucune permanence</h3>
-          <p>Commencez par créer votre première permanence</p>
-          <button className="btn btn-primary" onClick={handleCreate}>
-            <Plus size={20} />
-            Créer une permanence
-          </button>
-        </div>
-      ) : (
-        <div className="shifts-grid">
-          {shifts.map((shift) => (
-            <div key={shift.id} className="shift-card">
-              <div className="shift-card-header">
-                <div className="shift-date">
-                  <Calendar size={20} />
-                  <span>{formatDate(shift.distributionDate)}</span>
-                </div>
-                {getStatusBadge(shift)}
-              </div>
-
-              <div className="shift-card-body">
-                <div className="shift-info">
-                  <Clock size={18} />
-                  <span>{shift.startTime} - {shift.endTime}</span>
-                </div>
-
-                <div className="shift-volunteers">
-                  <Users size={18} />
-                  <span>
-                    {shift.confirmedCount} / {shift.volunteersNeeded} bénévoles
-                  </span>
-                </div>
-
-                {shift.volunteers.length > 0 && (
-                  <div className="shift-volunteers-list">
-                    {shift.volunteers
-                      .filter(v => v.status === 'CONFIRMED')
-                      .map((volunteer) => (
-                        <div key={volunteer.id} className="volunteer-badge">
-                          {volunteer.user.firstName} {volunteer.user.lastName}
-                          {volunteer.role && <span className="volunteer-role">• {volunteer.role}</span>}
-                        </div>
-                      ))}
-                  </div>
-                )}
-
-                {shift.notes && (
-                  <div className="shift-notes">
-                    <p>{shift.notes}</p>
-                  </div>
-                )}
-              </div>
-
-              <div className="shift-card-actions">
-                <button
-                  className="btn btn-icon"
-                  onClick={() => handleEdit(shift)}
-                  title="Modifier"
-                >
-                  <Edit2 size={18} />
-                </button>
-                <button
-                  className="btn btn-icon btn-warning"
-                  onClick={() => handleDuplicate(shift)}
-                  title="Dupliquer"
-                >
-                  <Copy size={18} />
-                </button>
-                <button
-                  className="btn btn-icon btn-danger"
-                  onClick={() => handleDelete(shift.id)}
-                  title="Supprimer"
-                >
-                  <Trash2 size={18} />
-                </button>
-              </div>
-            </div>
-          ))}
+      {understaffed > 0 && (
+        <div className="notice-band admin-shifts-band">
+          <span className="notice-band-dot" />
+          <span className="notice-band-text">
+            {understaffed} {plural(understaffed, 'permanence à venir cherche', 'permanences à venir cherchent')} encore des bénévoles.
+          </span>
         </div>
       )}
 
-      {isModalOpen && (
-        <ShiftModal
-          shift={selectedShift}
-          onClose={handleModalClose}
-        />
+      <div className="admin-shifts-toolbar">
+        <div className="admin-pills">
+          {FILTERS.map(item => (
+            <button
+              key={item.key}
+              type="button"
+              className={`admin-pill ${filter === item.key ? 'admin-pill-active' : ''}`}
+              onClick={() => setFilter(item.key)}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+        <span className="admin-toolbar-count">
+          {shifts.length < total
+            ? `${shifts.length} affichées sur ${total}`
+            : `${total} ${plural(total, 'permanence', 'permanences')}`}
+        </span>
+      </div>
+
+      {loading ? (
+        <p className="admin-empty">Chargement…</p>
+      ) : shifts.length === 0 ? (
+        <div className="admin-empty-card">
+          <p className="admin-empty-card-title">Aucune permanence</p>
+          <p className="admin-empty-card-note">Rien à afficher avec ce filtre.</p>
+        </div>
+      ) : (
+        <div className="admin-shifts-list">
+          {shifts.map((shift) => {
+            const past = isPast(shift);
+            const countTone = past
+              ? 'admin-shift-count-past'
+              : shift.isFull
+                ? 'admin-shift-count-full'
+                : shift.confirmedCount === 0
+                  ? 'admin-shift-count-empty'
+                  : '';
+
+            return (
+              <article key={shift.id} className="admin-row-card admin-shift">
+                <div className={`admin-shift-count ${countTone}`}>
+                  {shift.confirmedCount}/{shift.volunteersNeeded}
+                </div>
+
+                <div>
+                  <div className="admin-shift-date">{capitalize(longDate(shift.distributionDate))}</div>
+
+                  <div className="admin-shift-meta">
+                    {past ? (
+                      <span className="admin-badge">Passée</span>
+                    ) : shift.isFull ? (
+                      <span className="admin-badge admin-badge-green">Complète</span>
+                    ) : shift.confirmedCount === 0 ? (
+                      <span className="admin-badge admin-badge-red">Aucun bénévole</span>
+                    ) : (
+                      <span className="admin-badge admin-badge-amber">Places libres</span>
+                    )}
+                    <span className="admin-shift-hours">{shift.startTime} – {shift.endTime}</span>
+                  </div>
+
+                  {shift.volunteers.length > 0 && (
+                    <div className="admin-shift-crew">
+                      {shift.volunteers.map((volunteer) => {
+                        const state = CREW_STATES[volunteer.status] ?? { label: volunteer.status, off: true };
+
+                        return (
+                          <span
+                            key={volunteer.id}
+                            className={`admin-crew-chip ${state.off ? 'admin-crew-chip-off' : ''}`}
+                          >
+                            {volunteer.user.firstName} {volunteer.user.lastName}
+                            {volunteer.role && <span className="admin-crew-role">{volunteer.role}</span>}
+                            {state.label && <span className="admin-crew-role">{state.label}</span>}
+                            {past && volunteer.status === 'CONFIRMED' && (
+                              <button
+                                type="button"
+                                className="admin-crew-mark"
+                                onClick={() => markCrew(shift, volunteer, 'ABSENT')}
+                              >
+                                absent
+                              </button>
+                            )}
+                            {past && volunteer.status === 'ABSENT' && (
+                              <button
+                                type="button"
+                                className="admin-crew-mark"
+                                onClick={() => markCrew(shift, volunteer, 'CONFIRMED')}
+                              >
+                                présent
+                              </button>
+                            )}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {shift.notes && (
+                    <p className="admin-quote admin-quote-compact admin-shift-notes">{shift.notes}</p>
+                  )}
+                </div>
+
+                <div className="admin-shift-actions">
+                  <button type="button" className="admin-btn-link" onClick={() => setEditing(shift)}>
+                    Modifier
+                  </button>
+                  <button type="button" className="admin-btn-link admin-btn-link-muted" onClick={() => setDuplicating(shift)}>
+                    Dupliquer
+                  </button>
+                  <button
+                    type="button"
+                    className="admin-btn-link admin-btn-link-delete"
+                    onClick={() => handleDelete(shift)}
+                  >
+                    Supprimer
+                  </button>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      )}
+
+      {editing && (
+        <ShiftModal shift={editing.id ? editing : null} onClose={closeModal} />
+      )}
+
+      {duplicating && (
+        <ShiftDuplicateModal shift={duplicating} onClose={closeModal} />
       )}
     </div>
   );

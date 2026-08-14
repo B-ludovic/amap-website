@@ -7,6 +7,22 @@ import {
     HttpConflictError,
     httpStatusCodes
 } from '../utils/httpErrors.js';
+import { findClosureCovering, describeClosure } from '../services/closure.service.js';
+
+const VOLUNTEER_STATUSES = ['CONFIRMED', 'CANCELLED', 'ABSENT'];
+
+/* Pas de distribution un jour de fermeture, donc pas de permanence : inscrire
+   des bénévoles ce jour-là leur promettrait un rendez-vous qui n'aura pas
+   lieu. Même règle que le tirage du panier hebdomadaire. */
+async function refuseIfClosed(date) {
+  const closure = await findClosureCovering(date);
+
+  if (closure) {
+    throw new HttpBadRequestError(
+      `L'AMAP est fermée ${describeClosure(closure)} : aucune distribution n'a lieu ce jour-là.`
+    );
+  }
+}
 
 // RÉCUPÉRER TOUTES LES PERMANENCES
 const getAllShifts = asyncHandler(async (req, res) => {
@@ -21,28 +37,33 @@ const getAllShifts = asyncHandler(async (req, res) => {
     where.distributionDate = { lt: now };
   }
 
-  const shifts = await prisma.shift.findMany({
-    where,
-    take: parseInt(limit),
-    include: {
-      volunteers: {
-        where: { user: { deletedAt: null } },
-        include: {
-          user: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              email: true
+  /* Le total accompagne la page : sans lui, une liste tronquée à `limit`
+     passerait pour la liste complète. */
+  const [total, shifts] = await Promise.all([
+    prisma.shift.count({ where }),
+    prisma.shift.findMany({
+      where,
+      take: parseInt(limit),
+      include: {
+        volunteers: {
+          where: { user: { deletedAt: null } },
+          include: {
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true
+              }
             }
           }
         }
+      },
+      orderBy: {
+        distributionDate: upcoming === 'true' ? 'asc' : 'desc'
       }
-    },
-    orderBy: {
-      distributionDate: upcoming === 'true' ? 'asc' : 'desc'
-    }
-  });
+    })
+  ]);
 
   // Ajouter info : complet ou non
   const shiftsWithStatus = shifts.map(shift => ({
@@ -53,7 +74,8 @@ const getAllShifts = asyncHandler(async (req, res) => {
 
   res.json({
     success: true,
-    data: shiftsWithStatus
+    data: shiftsWithStatus,
+    meta: { total, returned: shiftsWithStatus.length }
   });
 });
 
@@ -98,6 +120,8 @@ const createShift = asyncHandler(async (req, res) => {
   if (!distributionDate) {
     throw new HttpBadRequestError('Date de distribution requise');
   }
+
+  await refuseIfClosed(new Date(distributionDate));
 
   const shift = await prisma.shift.create({
     data: {
@@ -147,17 +171,31 @@ const updateShift = asyncHandler(async (req, res) => {
     throw new HttpNotFoundError('Permanence introuvable');
   }
 
-  // Si des bénévoles sont fournis, supprimer les anciens et créer les nouveaux
-  if (volunteers && Array.isArray(volunteers)) {
-    await prisma.shiftVolunteer.deleteMany({
-      where: { shiftId: id }
-    });
+  if (distributionDate) {
+    await refuseIfClosed(new Date(distributionDate));
+  }
 
-    if (volunteers.length > 0) {
+  /* Différence plutôt que table rase : on retire ceux qui ne sont plus dans la
+     liste, on ajoute les nouveaux, et on ne touche pas aux inscriptions qui
+     restent. Vider puis recréer effaçait le rôle et la date d'inscription des
+     bénévoles qui n'avaient pourtant pas bougé. */
+  if (Array.isArray(volunteers)) {
+    const wantedIds = new Set(volunteers.map(v => v.userId).filter(Boolean));
+    const current = await prisma.shiftVolunteer.findMany({ where: { shiftId: id } });
+    const currentIds = new Set(current.map(v => v.userId));
+
+    const removed = current.filter(v => !wantedIds.has(v.userId)).map(v => v.id);
+    if (removed.length > 0) {
+      await prisma.shiftVolunteer.deleteMany({ where: { id: { in: removed } } });
+    }
+
+    const added = volunteers.filter(v => v.userId && !currentIds.has(v.userId));
+    if (added.length > 0) {
       await prisma.shiftVolunteer.createMany({
-        data: volunteers.map(v => ({
+        data: added.map(v => ({
           shiftId: id,
           userId: v.userId,
+          role: v.role || null,
           status: v.status || 'CONFIRMED'
         }))
       });
@@ -337,16 +375,22 @@ const leaveShift = asyncHandler(async (req, res) => {
   });
 });
 
-// MARQUER UN BÉNÉVOLE ABSENT (ADMIN)
-const markVolunteerAbsent = asyncHandler(async (req, res) => {
-  const { shiftId, volunteerId } = req.params;
+/* CHANGER L'ÉTAT D'UN BÉNÉVOLE (ADMIN)
+   L'ancienne route ne savait que marquer une absence, sans retour possible :
+   un clic malheureux restait gravé. Elle prend maintenant l'état visé, ce qui
+   rend le geste réversible. Le paramètre d'URL est bien l'identifiant de
+   l'utilisateur, pas celui de la ligne d'inscription. */
+const updateVolunteerStatus = asyncHandler(async (req, res) => {
+  const { shiftId, userId } = req.params;
+  const { status = 'ABSENT' } = req.body;
+
+  if (!VOLUNTEER_STATUSES.includes(status)) {
+    throw new HttpBadRequestError(`État invalide : ${status}`);
+  }
 
   const volunteer = await prisma.shiftVolunteer.findUnique({
     where: {
-      shiftId_userId: {
-        shiftId,
-        userId: volunteerId
-      }
+      shiftId_userId: { shiftId, userId }
     }
   });
 
@@ -354,14 +398,15 @@ const markVolunteerAbsent = asyncHandler(async (req, res) => {
     throw new HttpNotFoundError('Bénévole introuvable');
   }
 
-  await prisma.shiftVolunteer.update({
+  const updated = await prisma.shiftVolunteer.update({
     where: { id: volunteer.id },
-    data: { status: 'ABSENT' }
+    data: { status }
   });
 
   res.json({
     success: true,
-    message: 'Statut mis à jour'
+    message: 'Statut mis à jour',
+    data: updated
   });
 });
 
@@ -415,6 +460,8 @@ const duplicateShift = asyncHandler(async (req, res) => {
     throw new HttpNotFoundError('Permanence introuvable');
   }
 
+  await refuseIfClosed(new Date(newDate));
+
   const duplicated = await prisma.shift.create({
     data: {
       distributionDate: new Date(newDate),
@@ -440,7 +487,7 @@ export {
   deleteShift,
   joinShift,
   leaveShift,
-  markVolunteerAbsent,
+  updateVolunteerStatus,
   getMyShifts,
   duplicateShift
 };

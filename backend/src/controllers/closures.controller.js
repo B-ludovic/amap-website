@@ -11,14 +11,7 @@ import {
   getYearBounds,
   sumClosureDays
 } from '../utils/closurePeriod.js';
-
-function formatDateFR(date) {
-  return new Date(date).toLocaleDateString('fr-FR', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric'
-  });
-}
+import { formatDateFR } from '../services/closure.service.js';
 
 function buildClosureEmailHtml(startDate, endDate, reason, isUpdate) {
   const start = formatDateFR(startDate);

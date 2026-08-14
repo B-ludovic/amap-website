@@ -9,7 +9,6 @@ import {
   pauseSubscription,
   resumeSubscription,
   getMySubscription,
-  submitSubscriptionRequest,
   getSubscriptionRequests,
   getSubscriptionStats,
   generateContractFromSubscription
@@ -18,9 +17,6 @@ import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { adminOnly } from '../middlewares/role.middleware.js';
 
 const router = express.Router();
-
-// Route publique - Demande d'abonnement (formulaire)
-router.post('/request', submitSubscriptionRequest);
 
 // Routes adhérents
 router.get('/me', authMiddleware, getMySubscription);

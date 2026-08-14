@@ -1,10 +1,9 @@
-import { prisma } from '../config/database.js';
 import {
   generateWeeklyBasket,
   getActiveSeason,
   getIsoWeekParts
 } from '../services/weeklyBasketGenerator.service.js';
-import { getUtcDayBounds } from '../utils/closurePeriod.js';
+import { findClosureCovering } from '../services/closure.service.js';
 
 const DISTRIBUTION_DAY = 3;
 const GENERATION_DAY = 4;
@@ -54,20 +53,6 @@ export function getNextDistributionDate(now = new Date()) {
 
   targetDate.setUTCDate(targetDate.getUTCDate() + daysUntilDistribution);
   return targetDate;
-}
-
-/* Une fermeture AMAP couvre-t-elle ce jour de distribution ? Les deux bornes
-   sont fermées, comme dans la newsletter envoyée aux adhérents : chevauchement
-   entre la période de fermeture et le jour civil de la distribution. */
-export async function findClosureCovering(distributionDate) {
-  const { start, end } = getUtcDayBounds(distributionDate);
-
-  return prisma.amapClosure.findFirst({
-    where: {
-      startDate: { lte: end },
-      endDate: { gte: start }
-    }
-  });
 }
 
 export async function generateNextWeeklyBasket(now = new Date()) {
