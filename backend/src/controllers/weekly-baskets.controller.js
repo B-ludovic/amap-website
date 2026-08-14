@@ -259,14 +259,37 @@ const duplicateWeeklyBasket = asyncHandler(async (req, res) => {
   });
 });
 
+/* Formules auxquelles une entrée appartient. Le tirage automatique les pose
+   lui-même ; une correction manuelle doit pouvoir en faire autant, sinon toute
+   entrée ajoutée à la main atterrirait dans les deux paniers par défaut. */
+const BASKET_SIZES = ['SMALL', 'LARGE'];
+
+const parseBasketSizes = (value) => {
+  if (value === undefined) return undefined;
+
+  const sizes = Array.isArray(value) ? value : [value];
+  const invalid = sizes.filter(size => !BASKET_SIZES.includes(size));
+
+  if (invalid.length > 0) {
+    throw new HttpBadRequestError(`Format de panier invalide : ${invalid.join(', ')}`);
+  }
+  if (sizes.length === 0) {
+    throw new HttpBadRequestError('Sélectionnez au moins un format de panier');
+  }
+
+  return sizes;
+};
+
 // AJOUTER UN PRODUIT AU PANIER
 const addProductToBasket = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { productId, customProductName } = req.body;
+  const { productId, customProductName, basketSizes } = req.body;
 
   if (!productId && !customProductName?.trim()) {
     throw new HttpBadRequestError('productId ou customProductName requis');
   }
+
+  const sizes = parseBasketSizes(basketSizes);
 
   const basket = await prisma.weeklyBasket.findUnique({ where: { id } });
 
@@ -285,7 +308,8 @@ const addProductToBasket = asyncHandler(async (req, res) => {
     data: {
       weeklyBasketId: id,
       productId: productId || null,
-      customProductName: customProductName?.trim() || null
+      customProductName: customProductName?.trim() || null,
+      ...(sizes && { basketSizes: sizes })
     },
     include: {
       product: { include: { producer: true } }
@@ -302,11 +326,13 @@ const addProductToBasket = asyncHandler(async (req, res) => {
 // MODIFIER UN ITEM DU PANIER (changer le produit ou le nom libre)
 const updateBasketProduct = asyncHandler(async (req, res) => {
   const { id, itemId } = req.params;
-  const { productId, customProductName } = req.body;
+  const { productId, customProductName, basketSizes } = req.body;
 
   if (!productId && !customProductName?.trim()) {
     throw new HttpBadRequestError('productId ou customProductName requis');
   }
+
+  const sizes = parseBasketSizes(basketSizes);
 
   const item = await prisma.weeklyBasketItem.findFirst({
     where: { id: itemId, weeklyBasketId: id }
@@ -320,7 +346,8 @@ const updateBasketProduct = asyncHandler(async (req, res) => {
     where: { id: itemId },
     data: {
       productId: productId || null,
-      customProductName: customProductName?.trim() || null
+      customProductName: customProductName?.trim() || null,
+      ...(sizes && { basketSizes: sizes })
     },
     include: {
       product: { include: { producer: true } }

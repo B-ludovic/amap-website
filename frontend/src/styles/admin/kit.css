@@ -60,6 +60,13 @@
   margin-bottom: 26px;
 }
 
+/* L'action de tête ne se comprime jamais : c'est le texte d'introduction qui
+   cède la place, sinon un libellé un peu long passe à la ligne dans le bouton. */
+.admin-page-head > button {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
 /* CARTES */
 
 .admin-panel {
