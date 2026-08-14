@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300;1,9..144,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #FAF7F2; }
+  a { color: #C85A32; text-decoration: none; }
+  a:hover { color: #A8451F; }
+  input, button { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
+  input::placeholder { color: #B3B0A4; }
+  input:focus-visible { outline: none; border-color: #C85A32 !important; box-shadow: 0 0 0 3px rgba(200,90,50,0.15); }
+  ::selection { background: #F1D9CB; }
+</style>
+</helmet>
+
+<div style="font-family:'Plus Jakarta Sans',system-ui,sans-serif;color:#1F2421;background:#FAF7F2;min-height:100vh;-webkit-font-smoothing:antialiased">
+
+  <header style="position:sticky;top:0;z-index:50;background:rgba(250,247,242,0.94);border-bottom:1px solid #E7DFD3">
+    <div style="max-width:1240px;margin:0 auto;padding:0 40px;height:76px;display:flex;align-items:center;gap:40px">
+      <a href="mock.dc.html" style="display:flex;align-items:center;gap:10px;color:#1F2421;flex-shrink:0">
+        <img src="assets/logo.png" alt="Aux P'tits Pois" width="42" height="42" style="display:block" />
+        <span style="font-family:Fraunces,serif;font-weight:400;font-size:20px;letter-spacing:-0.01em;white-space:nowrap">Aux P'tits Pois</span>
+      </a>
+      <nav style="display:flex;align-items:center;gap:28px;margin-left:8px">
+        <a href="mock.dc.html" style="font-size:14.5px;font-weight:500;color:#4A5148;padding:6px 0;border-bottom:2px solid transparent" style-hover="color:#1F2421;border-bottom-color:#E3DCD0">Accueil</a>
+        <a href="panier-semaine.dc.html" style="font-size:14.5px;font-weight:500;color:#4A5148;padding:6px 0;border-bottom:2px solid transparent" style-hover="color:#1F2421;border-bottom-color:#E3DCD0">Panier de la semaine</a>
+        <a href="abonnements.dc.html" style="font-size:14.5px;font-weight:500;color:#4A5148;padding:6px 0;border-bottom:2px solid transparent" style-hover="color:#1F2421;border-bottom-color:#E3DCD0">Nos abonnements</a>
+        <a href="producteurs.dc.html" style="font-size:14.5px;font-weight:500;color:#4A5148;padding:6px 0;border-bottom:2px solid transparent" style-hover="color:#1F2421;border-bottom-color:#E3DCD0">Nos producteurs</a>
+        <a href="devenir-producteur.dc.html" style="font-size:14.5px;font-weight:500;color:#4A5148;padding:6px 0;border-bottom:2px solid transparent" style-hover="color:#1F2421;border-bottom-color:#E3DCD0">Devenir producteur</a>
+      </nav>
+      <div style="display:flex;align-items:center;gap:20px;margin-left:auto;flex-shrink:0">
+        <a href="connexion.dc.html" style="font-size:14.5px;font-weight:500;color:#4A5148">Connexion</a>
+        <a href="abonnements.dc.html" style="display:inline-flex;align-items:center;height:40px;padding:0 20px;background:#C85A32;color:#FAF7F2;border-radius:4px;font-size:14.5px;font-weight:600" style-hover="background:#A8451F">Adhérer</a>
+      </div>
+    </div>
+  </header>
+
+  <section id="faq" style="max-width:1240px;margin:0 auto;padding:72px 40px 48px;border-bottom:1px solid #E7DFD3">
+    <div style="font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:#8A8B80;margin-bottom:18px">Questions fréquentes</div>
+    <h1 style="font-family:Fraunces,serif;font-weight:300;font-style:italic;font-size:56px;line-height:1.04;letter-spacing:-0.025em;margin:0 0 22px;max-width:24em;text-wrap:balance">Ce qu'on nous demande le plus souvent.</h1>
+    <p style="font-size:17px;line-height:1.7;color:#4A5148;margin:0 0 34px;max-width:38em;text-wrap:pretty">Dix réponses écrites par les bénévoles de l'AMAP. Si la vôtre n'y est pas, écrivez-nous : on répond sous 48 heures et la question finit souvent ici.</p>
+    <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+      <input type="text" placeholder="Chercher dans la FAQ — pause, chèque, bio…" value="{{ query }}" onChange="{{ onQuery }}" style="width:400px;height:52px;padding:0 16px;font-size:15px;color:#1F2421;background:#FDFBF7;border:1px solid #E3DCD0;border-radius:4px" />
+      <span style="font-family:'Geist Mono',monospace;font-size:11.5px;color:#8A8B80">{{ resultLabel }}</span>
+      <sc-if value="{{ isFiltered }}" hint-placeholder-val="{{ false }}">
+        <button type="button" onClick="{{ onClear }}" style="background:none;border:none;padding:0;cursor:pointer;font-family:'Geist Mono',monospace;font-size:10.5px;letter-spacing:0.1em;text-transform:uppercase;color:#C85A32">Effacer</button>
+      </sc-if>
+    </div>
+  </section>
+
+  <section style="max-width:1240px;margin:0 auto;padding:56px 40px 88px;display:grid;grid-template-columns:280px 1fr;gap:72px;align-items:start">
+
+    <aside style="position:sticky;top:104px;display:grid;gap:20px;align-content:start">
+      <div>
+        <div style="font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:#8A8B80;margin-bottom:16px">Sur cette page</div>
+        <div style="display:grid;gap:0;border-top:1px solid #E3DCD0">
+          <a href="#abonnement" style="display:flex;align-items:baseline;justify-content:space-between;gap:14px;padding:13px 0;border-bottom:1px solid #E3DCD0;font-size:14.5px;color:#4A5148" style-hover="color:#1F2421">
+            <span>L'abonnement</span>
+            <span style="font-family:'Geist Mono',monospace;font-size:11.5px;color:#8A8B80">4</span>
+          </a>
+          <a href="#panier" style="display:flex;align-items:baseline;justify-content:space-between;gap:14px;padding:13px 0;border-bottom:1px solid #E3DCD0;font-size:14.5px;color:#4A5148" style-hover="color:#1F2421">
+            <span>Le contenu du panier</span>
+            <span style="font-family:'Geist Mono',monospace;font-size:11.5px;color:#8A8B80">3</span>
+          </a>
+          <a href="#paiement" style="display:flex;align-items:baseline;justify-content:space-between;gap:14px;padding:13px 0;border-bottom:1px solid #E3DCD0;font-size:14.5px;color:#4A5148" style-hover="color:#1F2421">
+            <span>Paiement</span>
+            <span style="font-family:'Geist Mono',monospace;font-size:11.5px;color:#8A8B80">1</span>
+          </a>
+          <a href="#compte" style="display:flex;align-items:baseline;justify-content:space-between;gap:14px;padding:13px 0;font-size:14.5px;color:#4A5148" style-hover="color:#1F2421">
+            <span>Mon compte</span>
+            <span style="font-family:'Geist Mono',monospace;font-size:11.5px;color:#8A8B80">2</span>
+          </a>
+        </div>
+      </div>
+      <button type="button" onClick="{{ onToggleAll }}" style="height:46px;background:transparent;color:#1F2421;border:1px solid #C9BFAF;border-radius:4px;font-size:14px;font-weight:600;cursor:pointer" style-hover="background:#F3EDE3;border-color:#1F2421">{{ toggleAllLabel }}</button>
+      <div style="border:1px solid #E3DCD0;border-radius:4px;background:#2D3A29;color:#EFEAE0;padding:22px">
+        <div style="font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:#A6B39C;margin-bottom:12px">Sans réponse ?</div>
+        <p style="font-size:14px;line-height:1.65;margin:0 0 16px;color:#EFEAE0">Écrivez au collectif. Un bénévole vous répond sous 48 heures.</p>
+        <a href="contact.dc.html" style="display:flex;align-items:center;justify-content:center;height:44px;background:#C85A32;color:#FAF7F2;border-radius:4px;font-size:14px;font-weight:600" style-hover="background:#A8451F">Nous contacter</a>
+      </div>
+    </aside>
+
+    <div>
+      <sc-for list="{{ categories }}" as="c" hint-placeholder-count="4">
+        <section id="{{ c.id }}" style="margin-bottom:56px">
+          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:20px;padding-bottom:16px;border-bottom:1px solid #1F2421;margin-bottom:4px">
+            <h2 style="font-family:Fraunces,serif;font-weight:300;font-size:30px;line-height:1.1;letter-spacing:-0.02em;margin:0">{{ c.title }}</h2>
+            <span style="font-family:'Geist Mono',monospace;font-size:11.5px;color:#8A8B80;white-space:nowrap">{{ c.count }}</span>
+          </div>
+          <div style="display:grid;gap:0">
+            <sc-for list="{{ c.items }}" as="it" hint-placeholder-count="3">
+              <span style="display:contents">
+                <sc-if value="{{ it.open }}" hint-placeholder-val="{{ false }}">
+                  <div style="border-bottom:1px solid #E3DCD0;background:#F3EDE3">
+                    <button type="button" onClick="{{ it.onToggle }}" style="width:100%;display:grid;grid-template-columns:1fr 28px;gap:20px;align-items:start;text-align:left;background:none;border:none;padding:22px 20px;cursor:pointer">
+                      <span style="font-family:Fraunces,serif;font-weight:400;font-size:19px;line-height:1.35;color:#1F2421">{{ it.q }}</span>
+                      <span style="font-family:'Geist Mono',monospace;font-size:18px;color:#C85A32;text-align:right;line-height:1.3">−</span>
+                    </button>
+                    <div style="padding:0 68px 26px 20px">
+                      <p style="font-size:15.5px;line-height:1.8;color:#4A5148;margin:0;text-wrap:pretty">{{ it.a }}</p>
+                    </div>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ it.closed }}" hint-placeholder-val="{{ true }}">
+                  <div style="border-bottom:1px solid #E3DCD0">
+                    <button type="button" onClick="{{ it.onToggle }}" style="width:100%;display:grid;grid-template-columns:1fr 28px;gap:20px;align-items:start;text-align:left;background:none;border:none;padding:22px 20px;cursor:pointer" style-hover="background:#F7F3EB">
+                      <span style="font-family:Fraunces,serif;font-weight:400;font-size:19px;line-height:1.35;color:#1F2421">{{ it.q }}</span>
+                      <span style="font-family:'Geist Mono',monospace;font-size:18px;color:#8A8B80;text-align:right;line-height:1.3">+</span>
+                    </button>
+                  </div>
+                </sc-if>
+              </span>
+            </sc-for>
+          </div>
+        </section>
+      </sc-for>
+
+      <sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ false }}">
+        <div style="border:1px solid #E3DCD0;border-radius:4px;background:#FAF7F2;padding:56px 24px;text-align:center">
+          <div style="font-family:Fraunces,serif;font-weight:400;font-size:21px;margin-bottom:10px">Aucune question ne correspond</div>
+          <p style="font-size:14.5px;line-height:1.65;color:#8A8B80;margin:0 auto 24px;max-width:32em">Posez-la directement, on l'ajoutera ici pour les suivants.</p>
+          <a href="contact.dc.html" style="display:inline-flex;align-items:center;height:48px;padding:0 24px;background:#C85A32;color:#FAF7F2;border-radius:4px;font-size:15px;font-weight:600" style-hover="background:#A8451F">Nous écrire</a>
+        </div>
+      </sc-if>
+
+      <div style="border:1px solid #E3DCD0;border-radius:4px;background:#FAF7F2;padding:36px 40px;display:grid;grid-template-columns:1fr auto;gap:36px;align-items:center">
+        <div>
+          <h2 style="font-family:Fraunces,serif;font-weight:300;font-style:italic;font-size:28px;line-height:1.15;letter-spacing:-0.02em;margin:0 0 10px">Vous ne trouvez pas votre réponse ?</h2>
+          <p style="font-size:15px;line-height:1.7;color:#4A5148;margin:0;max-width:34em">Le plus simple reste de venir nous voir un mercredi soir, pendant la distribution.</p>
+        </div>
+        <a href="contact.dc.html" style="display:inline-flex;align-items:center;height:52px;padding:0 26px;background:#C85A32;color:#FAF7F2;border-radius:4px;font-size:15.5px;font-weight:600;white-space:nowrap" style-hover="background:#A8451F">Contactez-nous</a>
+      </div>
+    </div>
+  </section>
+
+  <footer style="background:#F3EDE3;border-top:1px solid #E7DFD3">
+    <div style="max-width:1240px;margin:0 auto;padding:64px 40px 32px">
+      <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:48px">
+        <div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+            <img src="assets/logo.png" alt="" width="34" height="34" style="display:block" />
+            <span style="font-family:Fraunces,serif;font-weight:400;font-size:18px">Aux P'tits Pois</span>
+          </div>
+          <p style="font-size:14.5px;line-height:1.7;color:#4A5148;margin:0 0 18px;max-width:26em">Votre AMAP locale à Clamart. Des produits frais, bio et de saison, en circuit court.</p>
+          <a href="mailto:auxptitspois@gmail.com" style="font-family:'Geist Mono',monospace;font-size:12.5px;color:#8F5F37;border-bottom:1px solid #DDC9B8">auxptitspois@gmail.com</a>
+        </div>
+        <div>
+          <div style="font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:#8A8B80;margin-bottom:16px">Navigation</div>
+          <div style="display:grid;gap:10px">
+            <a href="mock.dc.html" style="font-size:14.5px;color:#4A5148" style-hover="color:#1F2421">Accueil</a>
+            <a href="abonnements.dc.html" style="font-size:14.5px;color:#4A5148" style-hover="color:#1F2421">Nos abonnements</a>
+            <a href="panier-semaine.dc.html" style="font-size:14.5px;color:#4A5148" style-hover="color:#1F2421">Panier de la semaine</a>
+            <a href="producteurs.dc.html" style="font-size:14.5px;color:#4A5148" style-hover="color:#1F2421">Nos producteurs</a>
+            <a href="devenir-producteur.dc.html" style="font-size:14.5px;color:#4A5148" style-hover="color:#1F2421">Devenir producteur</a>
+          </div>
+        </div>
+        <div>
+          <div style="font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:#8A8B80;margin-bottom:16px">Mon compte</div>
+          <div style="display:grid;gap:10px">
+            <a href="connexion.dc.html" style="font-size:14.5px;color:#4A5148" style-hover="color:#1F2421">Connexion</a>
+            <a href="inscription.dc.html" style="font-size:14.5px;color:#4A5148" style-hover="color:#1F2421">Inscription</a>
+            <a href="mon-compte.dc.html" style="font-size:14.5px;color:#4A5148" style-hover="color:#1F2421">Espace adhérent</a>
+          </div>
+        </div>
+        <div>
+          <div style="font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:#8A8B80;margin-bottom:16px">Informations</div>
+          <div style="display:grid;gap:10px">
+            <a href="contact.dc.html" style="font-size:14.5px;color:#4A5148" style-hover="color:#1F2421">Contact</a>
+            <a href="#faq" style="font-size:14.5px;color:#4A5148" style-hover="color:#1F2421">FAQ</a>
+            <a href="mentions-legales.dc.html" style="font-size:14.5px;color:#4A5148" style-hover="color:#1F2421">Mentions légales</a>
+            <a href="cookies.dc.html" style="font-size:14.5px;color:#4A5148" style-hover="color:#1F2421">Gestion des cookies</a>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:48px;padding-top:24px;border-top:1px solid #DDD3C4;display:flex;align-items:center;justify-content:space-between;gap:24px">
+        <span style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:0.06em;color:#8A8B80">© 2026 Aux P'tits Pois — Tous droits réservés</span>
+        <span style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:0.06em;color:#8A8B80">Clamart · Île-de-France</span>
+      </div>
+    </div>
+  </footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;expandedByDefault&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Comportement&quot;}}">
+const CATEGORIES = [
+  {
+    id: "abonnement", title: "L'abonnement",
+    items: [
+      { q: "Comment fonctionne un abonnement AMAP ?",
+        a: "En rejoignant Aux P'tits Pois, vous vous engagez sur une année à recevoir chaque semaine un panier de légumes frais et de saison, cultivés par nos producteurs locaux. Vous venez récupérer votre panier chaque mercredi de 18h15 à 19h15 au point de retrait. C'est un engagement mutuel : vous soutenez le producteur en avance, et il vous garantit des produits de qualité tout au long de l'année." },
+      { q: "Qu'est-ce que le tarif solidaire ?",
+        a: "Le tarif solidaire est une formule à prix réduit destinée aux personnes en situation de précarité financière (bénéficiaires de minima sociaux, étudiants boursiers, etc.). Il permet à tous d'accéder à des produits locaux et bio sans contrainte de budget. Ce tarif est basé sur la confiance — si vous pensez y avoir droit, n'hésitez pas à le sélectionner lors de votre demande d'abonnement." },
+      { q: "Combien de paniers vais-je recevoir par an ?",
+        a: "Vous recevrez 49 paniers par an. L'AMAP ferme 3 semaines dans l'année (congés, jours fériés, etc.), ce qui correspond à 52 semaines moins 3 semaines de fermeture. Vous serez prévenu à l'avance par email et newsletter lors de chaque période de fermeture." },
+      { q: "Puis-je mettre mon abonnement en pause ?",
+        a: "Oui, il est possible de mettre votre abonnement en pause jusqu'à 2 semaines par an, par exemple pour des vacances. La demande se fait auprès de l'équipe de l'AMAP, qui gère la pause depuis l'interface d'administration. Votre compteur de paniers restants est ajusté automatiquement." }
+    ]
+  },
+  {
+    id: "panier", title: "Le contenu du panier",
+    items: [
+      { q: "Les produits sont-ils toujours bio ?",
+        a: "Oui, tous nos producteurs partenaires pratiquent une agriculture biologique ou en conversion vers le bio. Les légumes sont cultivés sans pesticides ni engrais chimiques. Certains producteurs sont certifiés AB, d'autres s'inscrivent dans une démarche équivalente sans avoir encore la certification officielle." },
+      { q: "Le panier contient-il uniquement des légumes de saison ?",
+        a: "Absolument. Le principe fondateur de l'AMAP est de consommer local et de saison. Le contenu du panier change donc chaque semaine en fonction des récoltes. En hiver vous trouverez carottes, poireaux et courges ; au printemps radis, salades et asperges ; en été tomates, courgettes et haricots." },
+      { q: "Qui décide du contenu du panier ?",
+        a: "C'est le producteur qui décide du contenu du panier en fonction de ses récoltes de la semaine. L'AMAP publie chaque semaine la composition sur la page « Panier de la semaine » afin que vous puissiez anticiper vos recettes — vous y trouverez aussi des suggestions de recettes basées sur le panier en cours." }
+    ]
+  },
+  {
+    id: "paiement", title: "Paiement",
+    items: [
+      { q: "Quels moyens de paiement sont acceptés ?",
+        a: "Le paiement s'effectue uniquement par chèque. Lors de la validation de votre abonnement, vous remettez vos chèques directement à l'équipe de l'AMAP au point de retrait. Pour un abonnement annuel, vous pouvez régler en plusieurs chèques, généralement mensuels ou trimestriels. Les modalités exactes vous sont précisées à la validation de votre contrat." }
+    ]
+  },
+  {
+    id: "compte", title: "Mon compte",
+    items: [
+      { q: "J'ai oublié mon mot de passe, que faire ?",
+        a: "Sur la page de connexion, cliquez sur « Mot de passe oublié ? ». Saisissez votre adresse email et vous recevrez un lien de réinitialisation valable une heure. Si vous ne recevez pas l'email, pensez à vérifier vos spams. En cas de problème persistant, contactez-nous via la page Contact." },
+      { q: "Comment renouveler mon abonnement ?",
+        a: "Vous recevez automatiquement un email de rappel 30 jours avant la fin de votre abonnement. Pour renouveler, il suffit de faire une nouvelle demande d'abonnement en ligne via la page « Nos abonnements », ou de contacter l'équipe de l'AMAP par email. Votre historique et vos préférences sont conservés." }
+    ]
+  }
+];
+
+function norm(s) {
+  return s.toLowerCase()
+    .replace(/[àâä]/g, "a").replace(/[éèêë]/g, "e").replace(/[îï]/g, "i")
+    .replace(/[ôö]/g, "o").replace(/[ùûü]/g, "u").replace(/ç/g, "c");
+}
+
+class Component extends DCLogic {
+  state = { open: {}, query: "", allOpen: false };
+
+  renderVals() {
+    const s = this.state;
+    const q = norm(s.query.trim());
+
+    const cats = CATEGORIES.map(c => {
+      const items = c.items.filter(it => !q || norm(it.q).indexOf(q) > -1 || norm(it.a).indexOf(q) > -1);
+      return { c: c, items: items };
+    }).filter(g => g.items.length > 0);
+
+    const total = cats.reduce((n, g) => n + g.items.length, 0);
+    const all = CATEGORIES.reduce((n, c) => n + c.items.length, 0);
+
+    return {
+      query: s.query,
+      onQuery: (e) => this.setState({ query: e.target.value }),
+      onClear: () => this.setState({ query: "" }),
+      isFiltered: q.length > 0,
+      resultLabel: q
+        ? total + (total > 1 ? " réponses trouvées" : " réponse trouvée")
+        : all + " questions, 4 rubriques",
+
+      toggleAllLabel: s.allOpen ? "Tout replier" : "Tout déplier",
+      onToggleAll: () => {
+        const next = !s.allOpen;
+        const map = {};
+        if (next) CATEGORIES.forEach(c => c.items.forEach((it, i) => { map[c.id + "-" + i] = true; }));
+        this.setState({ allOpen: next, open: map });
+      },
+
+      categories: cats.map(g => ({
+        id: g.c.id,
+        title: g.c.title,
+        count: g.items.length + (g.items.length > 1 ? " questions" : " question"),
+        items: g.items.map(it => {
+          const key = g.c.id + "-" + g.c.items.indexOf(it);
+          const dflt = this.props.expandedByDefault ?? false;
+          const isOpen = q.length > 0 || (key in s.open ? !!s.open[key] : dflt);
+          return {
+            q: it.q, a: it.a,
+            open: isOpen, closed: !isOpen,
+            onToggle: () => this.setState(st => {
+              const map = Object.assign({}, st.open);
+              map[key] = !map[key];
+              return { open: map, allOpen: false };
+            })
+          };
+        })
+      })),
+      isEmpty: total === 0
+    };
+  }
+}
+</script>
+</body>
+</html>

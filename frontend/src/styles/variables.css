@@ -5,6 +5,7 @@
 :root {
   /* ---------- SURFACES ---------- */
   --surface-page: #FAF7F2;      /* crème, fond de page et cartes */
+  --surface-hover: #F7F3EB;     /* survol d'une ligne posée sur la crème */
   --surface-sand: #F3EDE3;      /* sable, sections alternées et pastilles */
   --surface-forest: #2D3A29;    /* vert forêt, section d'inversion */
   --on-forest: #EFEAE0;         /* texte sur fond forêt */

@@ -1,14 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { ChevronDown, Leaf, CreditCard, User, ShoppingBasket } from 'lucide-react';
+import { spellNumber } from '../../constants/numberWords';
 import '../../styles/public/faq.css';
 
 const FAQ_CATEGORIES = [
   {
     id: 'abonnement',
-    icon: <Leaf size={22} aria-hidden="true" />,
     title: "L'abonnement",
     items: [
       {
@@ -31,7 +30,6 @@ const FAQ_CATEGORIES = [
   },
   {
     id: 'panier',
-    icon: <ShoppingBasket size={22} aria-hidden="true" />,
     title: "Le contenu du panier",
     items: [
       {
@@ -50,7 +48,6 @@ const FAQ_CATEGORIES = [
   },
   {
     id: 'paiement',
-    icon: <CreditCard size={22} aria-hidden="true" />,
     title: "Paiement",
     items: [
       {
@@ -61,7 +58,6 @@ const FAQ_CATEGORIES = [
   },
   {
     id: 'compte',
-    icon: <User size={22} aria-hidden="true" />,
     title: "Mon compte",
     items: [
       {
@@ -76,17 +72,72 @@ const FAQ_CATEGORIES = [
   },
 ];
 
+/* Chaque question reçoit une clé stable dès le départ : le filtre de recherche
+   redécoupe les listes, mais l'état ouvert/fermé doit survivre au filtrage. */
+const CATEGORIES = FAQ_CATEGORIES.map((category) => ({
+  ...category,
+  items: category.items.map((item, index) => ({ ...item, key: `${category.id}-${index}` })),
+}));
+
+const TOTAL_QUESTIONS = FAQ_CATEGORIES.reduce((n, c) => n + c.items.length, 0);
+
+/* Recherche insensible aux accents : « chèque » doit répondre à « cheque ».
+   NFD sépare la lettre de son accent, la plage U+0300–U+036F retire l'accent. */
+function normalize(value) {
+  return value
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+}
+
+function plural(count, singular, pluralForm) {
+  return `${count} ${count > 1 ? pluralForm : singular}`;
+}
+
 export default function FaqPage() {
   const [openItems, setOpenItems] = useState({});
+  const [allOpen, setAllOpen] = useState(false);
+  const [query, setQuery] = useState('');
 
-  function toggle(categoryId, index) {
-    const key = `${categoryId}-${index}`;
-    setOpenItems(prev => ({ ...prev, [key]: !prev[key] }));
-  }
+  const search = normalize(query.trim());
 
-  function isOpen(categoryId, index) {
-    return !!openItems[`${categoryId}-${index}`];
-  }
+  /* Les rubriques vides disparaissent pendant une recherche, sommaire compris. */
+  const categories = useMemo(() => {
+    if (!search) return CATEGORIES;
+    return CATEGORIES
+      .map((category) => ({
+        ...category,
+        items: category.items.filter(
+          (item) =>
+            normalize(item.question).includes(search) ||
+            normalize(item.answer).includes(search)
+        ),
+      }))
+      .filter((category) => category.items.length > 0);
+  }, [search]);
+
+  const found = categories.reduce((n, c) => n + c.items.length, 0);
+
+  const toggle = (key) => {
+    setOpenItems((prev) => ({ ...prev, [key]: !prev[key] }));
+    setAllOpen(false);
+  };
+
+  const toggleAll = () => {
+    const next = !allOpen;
+    const map = {};
+    if (next) {
+      CATEGORIES.forEach((category) => {
+        category.items.forEach((item) => { map[item.key] = true; });
+      });
+    }
+    setOpenItems(map);
+    setAllOpen(next);
+  };
+
+  /* Une recherche en cours ouvre les réponses trouvées : c'est le texte qui a
+     répondu, le cacher derrière un clic n'aurait pas de sens. */
+  const isOpen = (key) => Boolean(search) || Boolean(openItems[key]);
 
   const faqSchema = {
     '@context': 'https://schema.org',
@@ -103,66 +154,146 @@ export default function FaqPage() {
     )
   };
 
+  /* « Dix réponses » suit le nombre de questions réellement présentes. */
+  const countInWords = spellNumber(TOTAL_QUESTIONS, { feminine: true });
+
   return (
     <div className="faq-page">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
+
       {/* Hero */}
-      <div className="faq-hero">
-        <div className="faq-hero-content">
-          <h1 className="faq-hero-title">Questions fréquentes</h1>
-          <p className="faq-hero-subtitle">
-            Tout ce que vous devez savoir sur votre AMAP Aux P&apos;tits Pois
-          </p>
+      <section className="faq-hero">
+        <div className="eyebrow">Questions fréquentes</div>
+        <h1 className="faq-title">Ce qu&apos;on nous demande le plus souvent.</h1>
+        <p className="faq-lede">
+          {countInWords ? `${countInWords} réponses` : 'Des réponses'} écrites par les
+          bénévoles de l&apos;AMAP. Si la vôtre n&apos;y est pas, écrivez-nous : on répond
+          sous 48 heures et la question finit souvent ici.
+        </p>
+
+        <div className="faq-search">
+          <label className="sr-only" htmlFor="faq-query">Chercher dans la FAQ</label>
+          <input
+            type="text"
+            id="faq-query"
+            className="input faq-search-input"
+            placeholder="Chercher dans la FAQ — pause, chèque, bio…"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+          />
+          <span className="faq-search-count" aria-live="polite">
+            {search
+              ? plural(found, 'réponse trouvée', 'réponses trouvées')
+              : `${TOTAL_QUESTIONS} questions, ${FAQ_CATEGORIES.length} rubriques`}
+          </span>
+          {search && (
+            <button type="button" className="faq-search-clear" onClick={() => setQuery('')}>
+              Effacer
+            </button>
+          )}
         </div>
-      </div>
+      </section>
 
-      {/* Contenu */}
-      <div className="faq-container">
-        {FAQ_CATEGORIES.map(category => (
-          <section key={category.id} className="faq-section">
-            <div className="faq-section-header">
-              <span className="faq-section-icon">{category.icon}</span>
-              <h2 className="faq-section-title">{category.title}</h2>
-            </div>
+      {/* Sommaire + questions */}
+      <section className="faq-body">
+        <aside className="faq-aside">
+          <div>
+            <div className="eyebrow faq-aside-label">Sur cette page</div>
+            <nav className="faq-summary">
+              {categories.map((category) => (
+                <a className="faq-summary-link" href={`#${category.id}`} key={category.id}>
+                  <span>{category.title}</span>
+                  <span className="faq-summary-count">{category.items.length}</span>
+                </a>
+              ))}
+            </nav>
+          </div>
 
-            <div className="faq-list">
-              {category.items.map((item, index) => {
-                const open = isOpen(category.id, index);
-                return (
-                  <div key={index} className={`faq-item${open ? ' faq-item--open' : ''}`}>
-                    <button
-                      className="faq-question"
-                      onClick={() => toggle(category.id, index)}
-                      aria-expanded={open}
-                      aria-controls={`faq-answer-${category.id}-${index}`}
-                    >
-                      <span>{item.question}</span>
-                      <ChevronDown size={20} className="faq-chevron" aria-hidden="true" />
-                    </button>
-                    <div
-                      id={`faq-answer-${category.id}-${index}`}
-                      className="faq-answer"
-                    >
-                      <p>{item.answer}</p>
+          <button type="button" className="faq-toggle-all" onClick={toggleAll}>
+            {allOpen ? 'Tout replier' : 'Tout déplier'}
+          </button>
+
+          <div className="forest-card">
+            <div className="eyebrow">Sans réponse ?</div>
+            <p className="forest-card-text faq-forest-text">
+              Écrivez au collectif. Un bénévole vous répond sous 48 heures.
+            </p>
+            <Link href="/contact" className="forest-card-link forest-card-link-primary">
+              Nous contacter
+            </Link>
+          </div>
+        </aside>
+
+        <div className="faq-main">
+          {categories.map((category) => (
+            <section className="faq-group" id={category.id} key={category.id}>
+              <div className="faq-group-head">
+                <h2 className="faq-group-title">{category.title}</h2>
+                <span className="faq-group-count">
+                  {plural(category.items.length, 'question', 'questions')}
+                </span>
+              </div>
+
+              <div className="faq-list">
+                {category.items.map((item) => {
+                  const key = item.key;
+                  const open = isOpen(key);
+
+                  return (
+                    <div className={`faq-item${open ? ' faq-item-open' : ''}`} key={key}>
+                      <button
+                        type="button"
+                        className="faq-question"
+                        onClick={() => toggle(key)}
+                        aria-expanded={open}
+                        aria-controls={`faq-answer-${key}`}
+                      >
+                        <span className="faq-question-text">{item.question}</span>
+                        <span className="faq-question-sign" aria-hidden="true">
+                          {open ? '−' : '+'}
+                        </span>
+                      </button>
+                      {open && (
+                        <div className="faq-answer" id={`faq-answer-${key}`}>
+                          <p className="faq-answer-text">{item.answer}</p>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
-        ))}
+                  );
+                })}
+              </div>
+            </section>
+          ))}
 
-        {/* CTA */}
-        <div className="faq-cta">
-          <p>Vous ne trouvez pas la réponse à votre question ?</p>
-          <Link href="/contact" className="btn btn-primary">
-            Contactez-nous
-          </Link>
+          {found === 0 && (
+            <div className="faq-empty">
+              <div className="faq-empty-title">Aucune question ne correspond</div>
+              <p className="faq-empty-text">
+                Posez-la directement, on l&apos;ajoutera ici pour les suivants.
+              </p>
+              <Link href="/contact" className="btn btn-primary">
+                Nous écrire
+              </Link>
+            </div>
+          )}
+
+          <div className="faq-cta">
+            <div>
+              <h2 className="faq-cta-title">Vous ne trouvez pas votre réponse ?</h2>
+              <p className="faq-cta-text">
+                Le plus simple reste de venir nous voir un mercredi soir, pendant la
+                distribution.
+              </p>
+            </div>
+            <Link href="/contact" className="btn btn-primary btn-lg">
+              Contactez-nous
+            </Link>
+          </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 }

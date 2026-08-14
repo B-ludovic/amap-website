@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useModal } from '../../contexts/ModalContext';
 import api from '../../lib/api';
+import { spellNumber, spellNumberLower } from '../../constants/numberWords';
 import '../../styles/public/producers.css';
 
 /* Photos d'illustration, faute de clichés des fermes elles-mêmes : elles
@@ -13,13 +14,6 @@ const ILLUSTRATIONS = [
   '/placeholder/legumes-terre.webp',
   '/placeholder/legumes-jardin.webp',
   '/placeholder/legumes-ht.webp',
-];
-
-/* Le titre s'accorde au nombre de fermes réellement publiées. Au-delà de dix,
-   on retombe sur une formule qui ne compte pas. */
-const COUNT_WORDS = [
-  null, 'Une', 'Deux', 'Trois', 'Quatre', 'Cinq',
-  'Six', 'Sept', 'Huit', 'Neuf', 'Dix',
 ];
 
 const CERTIFICATIONS = {
@@ -36,11 +30,14 @@ function formatPhone(phone) {
   return digits.match(/.{2}/g).join(' ');
 }
 
+/* Le titre s'accorde au nombre de fermes réellement publiées. Au-delà de la
+   table des nombres, on retombe sur une formule qui ne compte pas. */
 function buildTitle(count) {
   if (count === 1) return 'Une ferme, un nom, un visage.';
-  const word = COUNT_WORDS[count];
-  if (!word) return 'Nos fermes, leurs noms, leurs visages.';
-  return `${word} fermes, ${word.toLowerCase()} noms, ${word.toLowerCase()} visages.`;
+  const word = spellNumber(count);
+  if (!word || count === 0) return 'Nos fermes, leurs noms, leurs visages.';
+  const lower = spellNumberLower(count);
+  return `${word} fermes, ${lower} noms, ${lower} visages.`;
 }
 
 function buildPlace(producer) {
