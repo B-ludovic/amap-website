@@ -1,8 +1,10 @@
-// On importe PrismaClient depuis le package Prisma
+import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@prisma/client';
 
-// On crée une seule instance de Prisma pour toute l'application
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+
 const prisma = new PrismaClient({
+  adapter,
   log: process.env.NODE_ENV === 'production' ? ['error'] : ['error', 'warn'],
 });
 
