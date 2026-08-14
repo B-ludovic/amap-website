@@ -54,6 +54,7 @@
   --badge-soon-fg: #8F5F37;
   --badge-off-bg: #F0EBE2;
   --badge-off-fg: #8A8B80;
+  --badge-fixed-bg: #E7E3D8;    /* réglage imposé : ni acquis ni éteint, verrouillé */
 
   /* Tuiles de fond des vignettes produit */
   --tile-1: #F3EDE3;

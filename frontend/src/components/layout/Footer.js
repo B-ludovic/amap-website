@@ -103,7 +103,7 @@ function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/mentions-legales#cookies" className="footer-link">
+                <Link href="/cookies" className="footer-link">
                   Gestion des cookies
                 </Link>
               </li>

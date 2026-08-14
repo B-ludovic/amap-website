@@ -29,6 +29,7 @@ import contactRoutes from './routes/contact.routes.js';
 import closuresRoutes from './routes/closures.routes.js';
 import { startRenewalReminderJob } from './jobs/renewalReminder.job.js';
 import { startDataRetentionJob } from './jobs/dataRetention.job.js';
+import { startWeeklyBasketGenerationJob } from './jobs/weeklyBasketGeneration.job.js';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -196,6 +197,7 @@ const startServer = async () => {
     await connectDB();
     startRenewalReminderJob();
     startDataRetentionJob();
+    startWeeklyBasketGenerationJob();
 
     app.listen(PORT, () => {
       console.log(`✅ Serveur backend démarré sur http://localhost:${PORT}`);

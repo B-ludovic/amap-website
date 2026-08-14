@@ -1,0 +1,440 @@
+/* Gestion des cookies — report au pixel de mocks/cookies.dc.html.
+   Deux cartes à interrupteur à gauche, état courant et renvois à droite.
+   Les tables reprennent le gabarit .def-list, augmenté d'une colonne de durée. */
+
+.cookies-page {
+  background-color: var(--surface-page);
+}
+
+/* ---------- Hero ---------- */
+
+.cookie-hero {
+  max-width: var(--container-max-width);
+  margin: 0 auto;
+  padding: 64px var(--container-padding) 44px;
+  border-bottom: var(--border-width) solid var(--border-section);
+}
+
+/* Fil d'Ariane : capitales monospace, un cran plus grandes que les sur-titres */
+.cookie-crumb {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+.cookie-crumb-link,
+.cookie-crumb-current,
+.cookie-crumb-sep {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.cookie-crumb-link {
+  color: var(--text-light);
+  transition: color var(--transition-fast);
+}
+
+.cookie-crumb-link:hover {
+  color: var(--text-primary);
+}
+
+.cookie-crumb-sep {
+  color: var(--border-strong);
+  letter-spacing: 0;
+}
+
+.cookie-crumb-current {
+  color: var(--text-primary);
+}
+
+.cookie-title {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-style: italic;
+  font-size: 52px;
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+  color: var(--text-primary);
+  margin: 0 0 20px;
+  max-width: 24em;
+}
+
+.cookie-lede {
+  font-size: 17px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  margin: 0;
+  max-width: 38em;
+  text-wrap: pretty;
+}
+
+/* ---------- Corps ---------- */
+
+.cookie-body {
+  max-width: var(--container-max-width);
+  margin: 0 auto;
+  padding: 48px var(--container-padding) 88px;
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 64px;
+  align-items: start;
+}
+
+.cookie-flash {
+  margin-bottom: 28px;
+}
+
+/* ---------- Cartes de réglage ---------- */
+
+.cookie-card {
+  border: var(--border-width) solid var(--border-card);
+  border-radius: var(--border-radius-md);
+  background-color: var(--surface-page);
+  overflow: hidden;
+}
+
+.cookie-card-first {
+  margin-bottom: 20px;
+}
+
+.cookie-card-head {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 24px;
+  align-items: center;
+  padding: 24px 28px;
+  border-bottom: var(--border-width) solid var(--border-card);
+  background-color: var(--surface-sand);
+}
+
+.cookie-card-title {
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-normal);
+  font-size: 21px;
+  letter-spacing: 0;
+  color: var(--text-primary);
+  margin: 0 0 6px;
+}
+
+.cookie-card-sub {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.cookie-card-state {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cookie-card-body {
+  padding: 8px 28px 22px;
+}
+
+/* ---------- Badges d'état ---------- */
+
+.cookie-badge {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 5px 9px;
+  border-radius: var(--border-radius-sm);
+  white-space: nowrap;
+}
+
+.cookie-badge-fixed {
+  background-color: var(--badge-fixed-bg);
+  color: var(--text-primary);
+}
+
+.cookie-badge-on {
+  background-color: var(--badge-live-bg);
+  color: var(--badge-live-fg);
+}
+
+.cookie-badge-off {
+  background-color: var(--badge-off-bg);
+  color: var(--badge-off-fg);
+}
+
+/* ---------- Interrupteur ----------
+   Seul élément de la DA à mémoire de position : la pastille glisse d'un bord à
+   l'autre, la piste passe du sable au terracotta. */
+.cookie-switch {
+  width: 46px;
+  height: 26px;
+  border: none;
+  border-radius: var(--border-radius-full);
+  background-color: var(--border-strong);
+  display: flex;
+  align-items: center;
+  padding: 3px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background-color var(--transition-base);
+}
+
+.cookie-switch-on {
+  background-color: var(--terracotta);
+}
+
+.cookie-switch-knob {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: var(--surface-page);
+  display: block;
+  margin-left: 0;
+  transition: margin-left var(--transition-base);
+}
+
+.cookie-switch-on .cookie-switch-knob {
+  margin-left: 20px;
+}
+
+/* Réglage imposé : la position est montrée, pas offerte */
+.cookie-switch-locked {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.cookie-switch-locked .cookie-switch-knob {
+  margin-left: 20px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cookie-switch,
+  .cookie-switch-knob {
+    transition: none;
+  }
+}
+
+/* ---------- Tables de cookies ----------
+   Nom du cookie, rôle, durée. La dernière ligne de chaque carte porte une note
+   sur deux colonnes, dont l'intitulé reprend le libellé capitales des tables. */
+.cookie-rows {
+  --def-gap: 20px;
+  --def-pad: 14px;
+  --def-rule: var(--border-soft);
+  --def-value-size: 14px;
+}
+
+.cookie-rows .def-row {
+  grid-template-columns: 170px 1fr 110px;
+  align-items: baseline;
+}
+
+.cookie-rows .def-row-wide {
+  grid-template-columns: 170px 1fr;
+}
+
+.cookie-rows .def-value {
+  color: var(--text-secondary);
+}
+
+.cookie-value-loose {
+  line-height: 1.7;
+}
+
+.cookie-name {
+  font-family: var(--font-mono);
+  font-size: 13.5px;
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+
+.cookie-span {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-light);
+  text-align: right;
+  margin: 0;
+}
+
+/* ---------- Boutons et mentions ---------- */
+
+.cookie-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 32px;
+}
+
+.cookie-actions .btn-cta {
+  padding: 0 24px;
+}
+
+.cookie-actions .btn-cta-primary {
+  padding: 0 26px;
+}
+
+.cookie-actions .btn-cta:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.cookie-note {
+  margin-top: 18px;
+  max-width: 44em;
+}
+
+.cookie-none {
+  margin-top: 24px;
+  max-width: 44em;
+}
+
+/* ---------- Colonne de droite ---------- */
+
+.cookie-aside {
+  display: grid;
+  gap: 20px;
+  align-content: start;
+  position: sticky;
+  top: 104px;
+}
+
+.cookie-status {
+  --split-gap: 16px;
+  --split-pad: 16px;
+  --split-rule: var(--border-soft);
+  --split-label-size: 14px;
+  --split-value-size: 12.5px;
+}
+
+.cookie-status .split-label {
+  color: var(--text-secondary);
+}
+
+/* La note qui suit porte son propre filet : la dernière ligne s'arrête net */
+.cookie-status .split-row:last-child {
+  padding-bottom: 0;
+}
+
+.cookie-status-on {
+  color: var(--badge-live-fg);
+}
+
+.cookie-status-off {
+  color: var(--text-light);
+}
+
+.cookie-status-pending {
+  color: var(--notice-strong);
+}
+
+.cookie-status-note {
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--text-light);
+  margin: 18px 0 0;
+  padding-top: 16px;
+  border-top: var(--border-width) solid var(--border-soft);
+}
+
+.cookie-links {
+  border: var(--border-width) solid var(--border-card);
+  border-radius: var(--border-radius-md);
+  background-color: var(--surface-page);
+  padding: 22px;
+}
+
+.cookie-links-label {
+  display: block;
+  letter-spacing: 0.12em;
+  margin-bottom: 12px;
+}
+
+.cookie-links-list {
+  display: grid;
+  gap: 10px;
+}
+
+.cookie-link {
+  font-size: 14px;
+  color: var(--text-secondary);
+  transition: color var(--transition-fast);
+}
+
+.cookie-link:hover {
+  color: var(--text-primary);
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 1100px) {
+  .cookie-body {
+    grid-template-columns: 1fr 300px;
+    gap: 40px;
+  }
+
+  .cookie-rows .def-row {
+    grid-template-columns: 150px 1fr 96px;
+  }
+
+  .cookie-rows .def-row-wide {
+    grid-template-columns: 150px 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  .cookie-hero {
+    padding-top: 56px;
+    padding-bottom: 36px;
+  }
+
+  .cookie-title {
+    font-size: 40px;
+  }
+
+  .cookie-body {
+    grid-template-columns: 1fr;
+    gap: 40px;
+    padding-top: 40px;
+  }
+
+  /* La colonne cesse de suivre le défilement et passe sous les réglages */
+  .cookie-aside {
+    position: static;
+    max-width: 420px;
+  }
+}
+
+@media (max-width: 560px) {
+  .cookie-title {
+    font-size: 34px;
+  }
+
+  .cookie-card-head {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 20px;
+  }
+
+  .cookie-card-body {
+    padding: 8px 20px 18px;
+  }
+
+  /* Nom, rôle puis durée s'empilent : la durée reprend le bord gauche */
+  .cookie-rows .def-row,
+  .cookie-rows .def-row-wide {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .cookie-span {
+    text-align: left;
+  }
+
+  .cookie-actions .btn-cta {
+    width: 100%;
+  }
+}

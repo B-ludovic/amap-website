@@ -11,6 +11,7 @@ export default function sitemap() {
     { url: '/faq', priority: 0.6, changeFrequency: 'monthly' },
     { url: '/contact', priority: 0.5, changeFrequency: 'yearly' },
     { url: '/mentions-legales', priority: 0.2, changeFrequency: 'yearly' },
+    { url: '/cookies', priority: 0.2, changeFrequency: 'yearly' },
   ];
 
   return routes.map(({ url, priority, changeFrequency }) => ({

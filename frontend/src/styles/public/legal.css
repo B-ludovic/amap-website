@@ -301,37 +301,13 @@
   font-size: 12.5px;
 }
 
-/* ---------- Durées de conservation ---------- */
+/* ---------- Durées de conservation ----------
+   Lignes à deux bouts (.split-list) : seul le filet d'ouverture est propre à
+   cette page, le reste tient dans les valeurs par défaut du gabarit. */
 
 .legal-durations {
-  display: grid;
-  gap: 0;
   border-top: var(--border-width) solid var(--border-card);
-  margin: 0 0 32px;
-}
-
-.legal-duration {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 24px;
-  padding: 13px 0;
-}
-
-.legal-duration:not(:last-child) {
-  border-bottom: var(--border-width) solid var(--border-card);
-}
-
-.legal-duration-label {
-  font-size: 14.5px;
-  color: var(--text-primary);
-}
-
-.legal-duration-value {
-  font-family: var(--font-mono);
-  font-size: 13px;
-  color: var(--text-light);
-  margin: 0;
+  margin-bottom: 32px;
 }
 
 /* ---------- Réglage des préférences ---------- */

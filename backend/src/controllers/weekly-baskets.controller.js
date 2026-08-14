@@ -2,9 +2,12 @@ import { prisma } from '../config/database.js';
 import { asyncHandler } from '../middlewares/error.middleware.js';
 import emailService from '../services/email.service.js';
 import {
+  generateWeeklyBasket,
+  getActiveSeason
+} from '../services/weeklyBasketGenerator.service.js';
+import {
   HttpNotFoundError,
   HttpBadRequestError,
-  HttpConflictError,
   httpStatusCodes
 } from '../utils/httpErrors.js';
 
@@ -22,37 +25,6 @@ const itemsInclude = {
     },
     orderBy: { id: 'asc' }
   }
-};
-
-const getSeasonFromDate = (date) => {
-  const month = date.getMonth() + 1;
-  if (month >= 3 && month <= 5) return 'SPRING';
-  if (month >= 6 && month <= 8) return 'SUMMER';
-  if (month >= 9 && month <= 11) return 'AUTUMN';
-  return 'WINTER';
-};
-
-const getActiveSeason = async (distributionDate) => {
-  const activeTheme = await prisma.themeConfig.findFirst({
-    where: { isActive: true },
-    select: { season: true },
-    orderBy: { updatedAt: 'desc' }
-  });
-
-  return activeTheme?.season || getSeasonFromDate(distributionDate);
-};
-
-const createSeasonalItems = async (season) => {
-  const products = await prisma.product.findMany({
-    where: {
-      isActive: true,
-      seasons: { has: season },
-      producer: { isActive: true }
-    },
-    select: { id: true, basketSizes: true }
-  });
-
-  return products.map(({ id, basketSizes }) => ({ productId: id, basketSizes }));
 };
 
 const filterItemsByBasketSize = (basket, basketSize) => {
@@ -135,39 +107,23 @@ const getCurrentWeeklyBasket = asyncHandler(async (req, res) => {
 
 // CRÉER UN PANIER HEBDOMADAIRE
 const createWeeklyBasket = asyncHandler(async (req, res) => {
-  const { weekNumber, year, distributionDate, notes } = req.body;
+  const { distributionDate, notes } = req.body;
 
-  if (!weekNumber || !year || !distributionDate) {
-    throw new HttpBadRequestError('Numéro de semaine, année et date de distribution requis');
-  }
-
-  const existing = await prisma.weeklyBasket.findUnique({
-    where: {
-      year_weekNumber: {
-        year: parseInt(year),
-        weekNumber: parseInt(weekNumber)
-      }
-    }
-  });
-
-  if (existing) {
-    throw new HttpConflictError('Un panier existe déjà pour cette semaine');
+  if (!distributionDate) {
+    throw new HttpBadRequestError('Date de distribution requise');
   }
 
   const parsedDistributionDate = new Date(distributionDate);
-  const season = await getActiveSeason(parsedDistributionDate);
-  const itemsData = await createSeasonalItems(season);
+  if (Number.isNaN(parsedDistributionDate.getTime())) {
+    throw new HttpBadRequestError('Date de distribution invalide');
+  }
 
-  const basket = await prisma.weeklyBasket.create({
-    data: {
-      weekNumber: parseInt(weekNumber),
-      year: parseInt(year),
-      distributionDate: parsedDistributionDate,
-      season,
-      notes,
-      items: { create: itemsData }
-    },
-    include: itemsInclude
+  const season = await getActiveSeason(parsedDistributionDate);
+  const basket = await generateWeeklyBasket({
+    distributionDate: parsedDistributionDate,
+    season,
+    notes,
+    isPublished: false
   });
 
   res.status(httpStatusCodes.CREATED).json({
@@ -271,10 +227,10 @@ const publishWeeklyBasket = asyncHandler(async (req, res) => {
 // DUPLIQUER UN PANIER HEBDOMADAIRE
 const duplicateWeeklyBasket = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { weekNumber, year, distributionDate } = req.body;
+  const { distributionDate } = req.body;
 
-  if (!weekNumber || !year || !distributionDate) {
-    throw new HttpBadRequestError('Numéro de semaine, année et date requis');
+  if (!distributionDate) {
+    throw new HttpBadRequestError('Date de distribution requise');
   }
 
   const original = await prisma.weeklyBasket.findUnique({ where: { id } });
@@ -283,33 +239,17 @@ const duplicateWeeklyBasket = asyncHandler(async (req, res) => {
     throw new HttpNotFoundError('Panier introuvable');
   }
 
-  const existing = await prisma.weeklyBasket.findUnique({
-    where: {
-      year_weekNumber: {
-        year: parseInt(year),
-        weekNumber: parseInt(weekNumber)
-      }
-    }
-  });
-
-  if (existing) {
-    throw new HttpConflictError('Un panier existe déjà pour cette semaine');
+  const parsedDistributionDate = new Date(distributionDate);
+  if (Number.isNaN(parsedDistributionDate.getTime())) {
+    throw new HttpBadRequestError('Date de distribution invalide');
   }
 
-  const parsedDistributionDate = new Date(distributionDate);
   const season = await getActiveSeason(parsedDistributionDate);
-  const itemsData = await createSeasonalItems(season);
-
-  const duplicated = await prisma.weeklyBasket.create({
-    data: {
-      weekNumber: parseInt(weekNumber),
-      year: parseInt(year),
-      distributionDate: parsedDistributionDate,
-      season,
-      notes: original.notes,
-      items: { create: itemsData }
-    },
-    include: itemsInclude
+  const duplicated = await generateWeeklyBasket({
+    distributionDate: parsedDistributionDate,
+    season,
+    notes: original.notes,
+    isPublished: false
   });
 
   res.status(httpStatusCodes.CREATED).json({

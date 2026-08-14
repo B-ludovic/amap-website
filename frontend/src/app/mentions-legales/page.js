@@ -15,14 +15,6 @@ const SECTIONS = [
 ];
 
 export default function MentionsLegalesPage() {
-  /* Le site n'a pas de page dédiée aux cookies : le réglage passe par le
-     panneau Orejime, ouvert à la demande. */
-  const openCookiePanel = () => {
-    if (typeof window !== 'undefined' && window.orejime) {
-      window.orejime.prompt();
-    }
-  };
-
   return (
     <div className="legal-page">
 
@@ -46,9 +38,9 @@ export default function MentionsLegalesPage() {
               ))}
             </nav>
           </div>
-          <button type="button" className="legal-cookie-btn" onClick={openCookiePanel}>
+          <Link href="/cookies" className="legal-cookie-btn">
             Gérer mes cookies
-          </button>
+          </Link>
         </aside>
 
         <div className="legal-content">
@@ -166,7 +158,7 @@ export default function MentionsLegalesPage() {
               Un cookie est un petit fichier texte déposé sur votre appareil lors de la
               visite d&apos;un site. Il permet de mémoriser des informations relatives à
               votre navigation. Le détail complet et le réglage de vos préférences se
-              trouvent dans le panneau de gestion des cookies.
+              trouvent sur la <Link href="/cookies">page de gestion des cookies</Link>.
             </p>
 
             <h3 className="legal-h3">Cookies strictement nécessaires</h3>
@@ -188,14 +180,10 @@ export default function MentionsLegalesPage() {
                 </dd>
               </div>
               <div className="def-row">
-                <dt className="def-label-strong">Sécurité</dt>
-                <dd className="def-value">Protection contre les attaques et les fraudes</dd>
-              </div>
-              <div className="def-row">
                 <dt className="def-label-strong">Consentement</dt>
                 <dd className="def-value">
-                  Cookie <code className="legal-code">orejime</code> — mémorise vos choix
-                  pendant 13 mois
+                  Cookie <code className="legal-code">eu-consent</code> — mémorise vos
+                  choix pendant 120 jours
                 </dd>
               </div>
             </dl>
@@ -208,18 +196,22 @@ export default function MentionsLegalesPage() {
             </p>
 
             <h3 className="legal-h3">Durée de conservation</h3>
-            <dl className="legal-durations">
-              <div className="legal-duration">
-                <dt className="legal-duration-label">Cookies de session</dt>
-                <dd className="legal-duration-value">fermeture du navigateur</dd>
+            <dl className="split-list legal-durations">
+              <div className="split-row">
+                <dt className="split-label">Cookie d&apos;authentification</dt>
+                <dd className="split-value">7 jours</dd>
               </div>
-              <div className="legal-duration">
-                <dt className="legal-duration-label">Cookie de consentement</dt>
-                <dd className="legal-duration-value">13 mois</dd>
+              <div className="split-row">
+                <dt className="split-label">Stockage local du navigateur</dt>
+                <dd className="split-value">déconnexion</dd>
               </div>
-              <div className="legal-duration">
-                <dt className="legal-duration-label">Cookies analytiques</dt>
-                <dd className="legal-duration-value">13 mois maximum</dd>
+              <div className="split-row">
+                <dt className="split-label">Cookie de consentement</dt>
+                <dd className="split-value">120 jours</dd>
+              </div>
+              <div className="split-row">
+                <dt className="split-label">Cookies analytiques</dt>
+                <dd className="split-value">13 mois maximum</dd>
               </div>
             </dl>
 
@@ -233,9 +225,9 @@ export default function MentionsLegalesPage() {
                   votre abonnement.
                 </p>
               </div>
-              <button type="button" className="btn btn-primary" onClick={openCookiePanel}>
+              <Link href="/cookies" className="btn btn-primary">
                 Gérer mes cookies
-              </button>
+              </Link>
             </div>
           </section>
 

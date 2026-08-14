@@ -17,7 +17,8 @@
 .account-page,
 .contact-page,
 .basket-page,
-.recipe-page {
+.recipe-page,
+.cookies-page {
   line-height: normal;
 }
 
@@ -262,6 +263,32 @@
   color: var(--notice-text);
 }
 
+/* Troisième déclinaison du même bandeau, en vert : une action vient d'aboutir.
+   Un peu plus ample que ses deux sœurs — elle confirme, elle ne corrige pas. */
+.success-band {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 22px;
+  background-color: var(--badge-live-bg);
+  border: var(--border-width) solid var(--badge-live-border);
+  border-radius: var(--border-radius-md);
+}
+
+.success-band-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: var(--badge-live-fg);
+  flex-shrink: 0;
+}
+
+.success-band-text {
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: var(--badge-live-strong);
+}
+
 /* Bouton d'envoi pleine largeur, en pied de formulaire */
 .form-submit {
   display: flex;
@@ -341,6 +368,47 @@
   font-size: var(--def-value-size, 14.5px);
   line-height: 1.6;
   color: var(--text-primary);
+  margin: 0;
+}
+
+/* Table posée dans le corps d'une carte : l'en-tête de la carte tient déjà lieu
+   de filet supérieur, celui de la table ferait doublon. */
+.def-list-flush {
+  border-top: none;
+}
+
+/* ---------- Ligne à deux bouts ----------
+   Libellé calé à gauche, valeur poussée à droite, filet en dessous. Sert partout
+   où une valeur courte répond à un intitulé — durées de conservation, état d'un
+   réglage. Distincte de .def-row, qui aligne ses valeurs sur une colonne fixe :
+   ici la valeur se cale sur le bord droit, quelle que soit sa longueur. */
+.split-list {
+  display: grid;
+  gap: 0;
+  margin: 0;
+}
+
+.split-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--split-gap, 24px);
+  padding: var(--split-pad, 13px) 0;
+}
+
+.split-row:not(:last-child) {
+  border-bottom: var(--border-width) solid var(--split-rule, var(--border-card));
+}
+
+.split-label {
+  font-size: var(--split-label-size, 14.5px);
+  color: var(--text-primary);
+}
+
+.split-value {
+  font-family: var(--font-mono);
+  font-size: var(--split-value-size, 13px);
+  color: var(--text-light);
   margin: 0;
 }
 
