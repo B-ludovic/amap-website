@@ -46,7 +46,7 @@ export const submitRequest = asyncHandler(async (req, res) => {
   // Vérifier qu'il n'a pas déjà une demande en attente
   const existingRequest = await prisma.subscriptionRequest.findFirst({
     where: {
-      email: user.email,
+      userId: user.id,
       status: {
         in: ['PENDING', 'IN_PROGRESS']
       }
@@ -60,6 +60,7 @@ export const submitRequest = asyncHandler(async (req, res) => {
   // Créer la demande avec les infos de l'utilisateur
   const request = await prisma.subscriptionRequest.create({
     data: {
+      userId: user.id,
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,
@@ -207,13 +208,17 @@ export const approveAndCreateSubscription = asyncHandler(async (req, res) => {
     throw new HttpConflictError('Cette demande a déjà été approuvée');
   }
 
-  // 2. Vérifier si l'utilisateur existe
-  let user = await prisma.user.findUnique({
-    where: { email: request.email }
+  // 2. Récupérer le compte vérifié auquel la demande est rattachée
+  if (!request.userId) {
+    throw new HttpBadRequestError('Cette demande n\'est pas rattachée à un compte utilisateur vérifié');
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: request.userId }
   });
 
-  if (!user) {
-    throw new HttpNotFoundError('Utilisateur non trouvé. L\'utilisateur doit d\'abord créer un compte.');
+  if (!user || user.deletedAt || !user.emailVerified) {
+    throw new HttpBadRequestError('Le compte utilisateur associé à cette demande est invalide');
   }
 
   // 3. Vérifier qu'il n'a pas déjà un abonnement actif
