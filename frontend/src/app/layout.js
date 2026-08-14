@@ -1,7 +1,7 @@
 import { headers } from 'next/headers';
 import { Fraunces, Plus_Jakarta_Sans, Geist_Mono } from 'next/font/google';
 import CookieConsent from '../components/CookieConsent';
-import Header from '../components/layout/Header';
+import ConditionalHeader from '../components/layout/ConditionalHeader';
 import ConditionalFooter from '../components/layout/ConditionalFooter';
 import Providers from '../components/Providers';
 import JsonLd from '../components/JsonLd';
@@ -113,7 +113,7 @@ async function RootLayout({ children }) {
         <a href="#main-content" className="skip-link">Aller au contenu principal</a>
         <JsonLd data={organizationJsonLd} />
         <Providers>
-          <Header />
+          <ConditionalHeader />
           <main className="main-content" id="main-content">
             {children}
           </main>

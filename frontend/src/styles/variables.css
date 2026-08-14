@@ -119,13 +119,20 @@
   --border-width-thick: 2px;
 
   /* ---------- INPUTS ---------- */
-  --input-height: 48px;
-  --input-padding-x: 0.875rem;  /* 14px */
-  --input-padding-y: 0.75rem;   /* 12px */
+  --input-height: 52px;
+  --input-padding-x: 16px;
+  --input-padding-y: 12px;
   --input-border-color: var(--border-card);
   --input-border-radius: var(--border-radius-md);
-  --input-font-size: 1rem;
-  --input-transition: border-color 0.2s;
+  --input-font-size: 15px;
+  --input-transition: border-color 150ms;
+
+  --field-bg: #FDFBF7;            /* crème plus clair que la page */
+  --field-placeholder: #B3B0A4;
+  --field-focus-ring: rgba(200, 90, 50, 0.15);
+  --error-text: #B23A22;
+  --error-border: #D9A08E;
+  --badge-live-border: #CBDBB0;
 
   /* ---------- OMBRES ---------- */
   /* Une seule ombre dans la maquette, sur la carte flottante du hero. */

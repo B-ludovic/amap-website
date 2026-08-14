@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300;1,9..144,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #FAF7F2; }
+  a { color: #C85A32; text-decoration: none; }
+  a:hover { color: #A8451F; }
+  input, textarea, select, button { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
+  input::placeholder, textarea::placeholder { color: #B3B0A4; }
+  input:focus-visible, textarea:focus-visible {
+    outline: none;
+    border-color: #C85A32 !important;
+    box-shadow: 0 0 0 3px rgba(200, 90, 50, 0.15);
+  }
+  ::selection { background: #F1D9CB; }
+</style>
+</helmet>
+
+<div style="font-family:'Plus Jakarta Sans',system-ui,sans-serif;color:#1F2421;background:#FAF7F2;min-height:100vh;-webkit-font-smoothing:antialiased">
+
+  <header style="position:sticky;top:0;z-index:50;background:rgba(250,247,242,0.94);border-bottom:1px solid #E7DFD3">
+    <div style="max-width:1240px;margin:0 auto;padding:0 40px;height:76px;display:flex;align-items:center;gap:40px">
+      <a href="mock.dc.html" style="display:flex;align-items:center;gap:10px;color:#1F2421;flex-shrink:0">
+        <img src="assets/logo.png" alt="Aux P'tits Pois" width="42" height="42" style="display:block" />
+        <span style="font-family:Fraunces,serif;font-weight:400;font-size:20px;letter-spacing:-0.01em;white-space:nowrap">Aux P'tits Pois</span>
+      </a>
+      <nav style="display:flex;align-items:center;gap:28px;margin-left:8px">
+        <a href="mock.dc.html" style="font-size:14.5px;font-weight:500;color:#4A5148;padding:6px 0;border-bottom:2px solid transparent" style-hover="color:#1F2421;border-bottom-color:#E3DCD0">Accueil</a>
+        <a href="mock.dc.html#etal" style="font-size:14.5px;font-weight:500;color:#4A5148;padding:6px 0;border-bottom:2px solid transparent" style-hover="color:#1F2421;border-bottom-color:#E3DCD0">Panier de la semaine</a>
+        <a href="abonnements.dc.html" style="font-size:14.5px;font-weight:500;color:#4A5148;padding:6px 0;border-bottom:2px solid transparent" style-hover="color:#1F2421;border-bottom-color:#E3DCD0">Nos abonnements</a>
+        <a href="mock.dc.html#producteurs" style="font-size:14.5px;font-weight:500;color:#4A5148;padding:6px 0;border-bottom:2px solid transparent" style-hover="color:#1F2421;border-bottom-color:#E3DCD0">Nos producteurs</a>
+        <a href="#candidature" style="font-size:14.5px;font-weight:600;color:#1F2421;padding:6px 0;border-bottom:2px solid #C85A32">Devenir producteur</a>
+      </nav>
+      <div style="display:flex;align-items:center;gap:20px;margin-left:auto;flex-shrink:0">
+        <a href="connexion.dc.html" style="font-size:14.5px;font-weight:500;color:#4A5148">Connexion</a>
+        <a href="#candidature" style="display:inline-flex;align-items:center;height:40px;padding:0 20px;background:#C85A32;color:#FAF7F2;border-radius:4px;font-size:14.5px;font-weight:600" style-hover="background:#A8451F">Candidater</a>
+      </div>
+    </div>
+  </header>
+
+  <sc-if value="{{ isSubmitted }}" hint-placeholder-val="{{ false }}">
+    <section style="max-width:1240px;margin:0 auto;padding:96px 40px 120px;display:grid;grid-template-columns:1.05fr 0.95fr;gap:80px;align-items:start">
+      <div>
+        <div style="display:inline-flex;align-items:center;gap:10px;padding:7px 14px 7px 12px;background:#EAF0DE;border:1px solid #CBDBB0;border-radius:999px;margin-bottom:32px">
+          <span style="width:7px;height:7px;border-radius:50%;background:#4E6B2A"></span>
+          <span style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:#4E6B2A">Candidature reçue</span>
+        </div>
+        <h1 style="font-family:Fraunces,serif;font-weight:300;font-style:italic;font-size:56px;line-height:1.05;letter-spacing:-0.025em;margin:0 0 24px">Merci — on vous rappelle.</h1>
+        <p style="font-size:17px;line-height:1.7;color:#4A5148;margin:0 0 36px;max-width:32em;text-wrap:pretty">Votre candidature est arrivée. Un bénévole du collectif la lit dans les quarante-huit heures et vous écrit pour convenir d'un premier échange.</p>
+        <div style="display:flex;gap:12px">
+          <a href="mock.dc.html" style="display:inline-flex;align-items:center;height:52px;padding:0 26px;background:#C85A32;color:#FAF7F2;border-radius:4px;font-size:15.5px;font-weight:600" style-hover="background:#A8451F">Retour à l'accueil</a>
+          <button type="button" onClick="{{ onReset }}" style="display:inline-flex;align-items:center;height:52px;padding:0 26px;background:transparent;color:#1F2421;border:1px solid #C9BFAF;border-radius:4px;font-size:15.5px;font-weight:600;cursor:pointer" style-hover="background:#F3EDE3;border-color:#1F2421">Envoyer une autre candidature</button>
+        </div>
+      </div>
+      <div style="border:1px solid #E3DCD0;border-radius:4px;background:#F3EDE3;padding:36px 36px 32px">
+        <div style="font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:#8A8B80;margin-bottom:24px">Prochaines étapes</div>
+        <div style="display:grid;gap:0">
+          <div style="display:grid;grid-template-columns:44px 1fr;gap:16px;padding-bottom:16px;border-bottom:1px solid #DDD3C4">
+            <span style="font-family:'Geist Mono',monospace;font-size:12px;font-weight:500;color:#C85A32;padding-top:3px">01</span>
+            <span style="font-size:15px;line-height:1.6;color:#1F2421">Étude de votre candidature — sous 48 h</span>
+          </div>
+          <div style="display:grid;grid-template-columns:44px 1fr;gap:16px;padding:16px 0;border-bottom:1px solid #DDD3C4">
+            <span style="font-family:'Geist Mono',monospace;font-size:12px;font-weight:500;color:#C85A32;padding-top:3px">02</span>
+            <span style="font-size:15px;line-height:1.6;color:#1F2421">Échange téléphonique pour mieux vous connaître</span>
+          </div>
+          <div style="display:grid;grid-template-columns:44px 1fr;gap:16px;padding:16px 0;border-bottom:1px solid #DDD3C4">
+            <span style="font-family:'Geist Mono',monospace;font-size:12px;font-weight:500;color:#C85A32;padding-top:3px">03</span>
+            <span style="font-size:15px;line-height:1.6;color:#1F2421">Visite de votre exploitation, si c'est possible</span>
+          </div>
+          <div style="display:grid;grid-template-columns:44px 1fr;gap:16px;padding:16px 0;border-bottom:1px solid #DDD3C4">
+            <span style="font-family:'Geist Mono',monospace;font-size:12px;font-weight:500;color:#C85A32;padding-top:3px">04</span>
+            <span style="font-size:15px;line-height:1.6;color:#1F2421">Validation et intégration au réseau</span>
+          </div>
+          <div style="display:grid;grid-template-columns:44px 1fr;gap:16px;padding-top:16px">
+            <span style="font-family:'Geist Mono',monospace;font-size:12px;font-weight:500;color:#C85A32;padding-top:3px">05</span>
+            <span style="font-size:15px;line-height:1.6;color:#1F2421">Première livraison</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </sc-if>
+
+  <sc-if value="{{ isEditing }}" hint-placeholder-val="{{ true }}">
+  <div>
+    <section style="max-width:1240px;margin:0 auto;padding:72px 40px 64px;display:grid;grid-template-columns:1.1fr 0.9fr;gap:72px;align-items:end;border-bottom:1px solid #E7DFD3">
+      <div>
+        <div style="font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:#8A8B80;margin-bottom:18px">Réseau producteurs · candidature ouverte</div>
+        <h1 style="font-family:Fraunces,serif;font-weight:300;font-style:italic;font-size:58px;line-height:1.04;letter-spacing:-0.025em;margin:0 0 24px;text-wrap:balance">Vous semez, on garantit l'écoulement.</h1>
+        <p style="font-size:17px;line-height:1.7;color:#4A5148;margin:0;max-width:32em;text-wrap:pretty">Nos adhérents s'engagent et paient à l'avance sur une saison complète. Pour vous, cela veut dire des volumes connus, une trésorerie avancée et zéro invendu.</p>
+      </div>
+      <div style="border-left:1px solid #E3DCD0;padding-left:36px">
+        <div style="display:grid;gap:0">
+          <div style="padding-bottom:16px;border-bottom:1px solid #E3DCD0">
+            <div style="font-family:'Geist Mono',monospace;font-size:26px;font-weight:500;color:#8F5F37;margin-bottom:4px">30 km</div>
+            <div style="font-size:13px;color:#8A8B80;line-height:1.45">rayon maximum autour du point de retrait</div>
+          </div>
+          <div style="padding:16px 0;border-bottom:1px solid #E3DCD0">
+            <div style="font-family:'Geist Mono',monospace;font-size:26px;font-weight:500;color:#8F5F37;margin-bottom:4px">48 h</div>
+            <div style="font-size:13px;color:#8A8B80;line-height:1.45">délai de réponse à une candidature</div>
+          </div>
+          <div style="padding-top:16px">
+            <div style="font-family:'Geist Mono',monospace;font-size:26px;font-weight:500;color:#8F5F37;margin-bottom:4px">1 an</div>
+            <div style="font-size:13px;color:#8A8B80;line-height:1.45">durée d'engagement minimale, de part et d'autre</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section style="max-width:1240px;margin:0 auto;padding:88px 40px 92px">
+      <div style="margin-bottom:52px">
+        <div style="font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:#8A8B80;margin-bottom:14px">Pourquoi nous rejoindre</div>
+        <h2 style="font-family:Fraunces,serif;font-weight:300;font-size:38px;line-height:1.1;letter-spacing:-0.02em;margin:0;max-width:24em">Six raisons, et aucune n'est du marketing.</h2>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0;border-top:1px solid #E3DCD0">
+        <div style="padding:32px 40px 34px 0;border-bottom:1px solid #E3DCD0">
+          <div style="font-family:'Geist Mono',monospace;font-size:11px;font-weight:500;color:#C85A32;margin-bottom:14px">01</div>
+          <h3 style="font-family:Fraunces,serif;font-weight:400;font-size:21px;line-height:1.25;margin:0 0 10px">Débouchés garantis</h3>
+          <p style="font-size:14.5px;line-height:1.7;color:#4A5148;margin:0">Vos productions sont écoulées chaque semaine auprès des adhérents. Pas de gaspillage, pas d'invendus.</p>
+        </div>
+        <div style="padding:32px 40px 34px;border-left:1px solid #E3DCD0;border-bottom:1px solid #E3DCD0">
+          <div style="font-family:'Geist Mono',monospace;font-size:11px;font-weight:500;color:#C85A32;margin-bottom:14px">02</div>
+          <h3 style="font-family:Fraunces,serif;font-weight:400;font-size:21px;line-height:1.25;margin:0 0 10px">Prix justes</h3>
+          <p style="font-size:14.5px;line-height:1.7;color:#4A5148;margin:0">Des tarifs équitables, discutés en assemblée, qui valorisent votre travail et la pérennité de l'exploitation.</p>
+        </div>
+        <div style="padding:32px 0 34px 40px;border-left:1px solid #E3DCD0;border-bottom:1px solid #E3DCD0">
+          <div style="font-family:'Geist Mono',monospace;font-size:11px;font-weight:500;color:#C85A32;margin-bottom:14px">03</div>
+          <h3 style="font-family:Fraunces,serif;font-weight:400;font-size:21px;line-height:1.25;margin:0 0 10px">Circuit ultra-court</h3>
+          <p style="font-size:14.5px;line-height:1.7;color:#4A5148;margin:0">Livraison directe au point de retrait, à moins de 30 km. Aucun intermédiaire, contact direct avec les mangeurs.</p>
+        </div>
+        <div style="padding:32px 40px 34px 0">
+          <div style="font-family:'Geist Mono',monospace;font-size:11px;font-weight:500;color:#C85A32;margin-bottom:14px">04</div>
+          <h3 style="font-family:Fraunces,serif;font-weight:400;font-size:21px;line-height:1.25;margin:0 0 10px">Planification facilitée</h3>
+          <p style="font-size:14.5px;line-height:1.7;color:#4A5148;margin:0">Des commandes prévisibles, connues avant les semis, qui vous laissent optimiser vos cultures.</p>
+        </div>
+        <div style="padding:32px 40px 34px;border-left:1px solid #E3DCD0">
+          <div style="font-family:'Geist Mono',monospace;font-size:11px;font-weight:500;color:#C85A32;margin-bottom:14px">05</div>
+          <h3 style="font-family:Fraunces,serif;font-weight:400;font-size:21px;line-height:1.25;margin:0 0 10px">Trésorerie sécurisée</h3>
+          <p style="font-size:14.5px;line-height:1.7;color:#4A5148;margin:0">Les adhérents s'engagent financièrement à l'avance sur la saison. Vous gagnez de la visibilité et un apport de trésorerie.</p>
+        </div>
+        <div style="padding:32px 0 34px 40px;border-left:1px solid #E3DCD0">
+          <div style="font-family:'Geist Mono',monospace;font-size:11px;font-weight:500;color:#C85A32;margin-bottom:14px">06</div>
+          <h3 style="font-family:Fraunces,serif;font-weight:400;font-size:21px;line-height:1.25;margin:0 0 10px">Gestion allégée</h3>
+          <p style="font-size:14.5px;line-height:1.7;color:#4A5148;margin:0">L'équipe de bénévoles gère les abonnements, les paiements et la communication. Vous restez sur votre métier.</p>
+        </div>
+      </div>
+    </section>
+
+    <section style="background:#F3EDE3;border-top:1px solid #E7DFD3;border-bottom:1px solid #E7DFD3">
+      <div style="max-width:1240px;margin:0 auto;padding:80px 40px 84px;display:grid;grid-template-columns:0.85fr 1.15fr;gap:72px;align-items:start">
+        <div>
+          <div style="font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:#8A8B80;margin-bottom:14px">Les critères requis</div>
+          <h2 style="font-family:Fraunces,serif;font-weight:300;font-size:38px;line-height:1.1;letter-spacing:-0.02em;margin:0 0 20px">Quatre conditions, pas de dossier à monter.</h2>
+          <p style="font-size:15px;line-height:1.7;color:#4A5148;margin:0">Si l'une d'elles vous semble limite, candidatez quand même : on en discute au téléphone.</p>
+        </div>
+        <div style="display:grid;gap:0;border-top:1px solid #DDD3C4">
+          <div style="display:grid;grid-template-columns:172px 1fr;gap:28px;padding:24px 0;border-bottom:1px solid #DDD3C4">
+            <h3 style="font-family:Fraunces,serif;font-weight:400;font-size:20px;line-height:1.25;margin:0">Agriculture biologique</h3>
+            <p style="font-size:15px;line-height:1.7;color:#4A5148;margin:0">Exploitation certifiée AB ou en conversion. Nous privilégions les pratiques respectueuses de l'environnement.</p>
+          </div>
+          <div style="display:grid;grid-template-columns:172px 1fr;gap:28px;padding:24px 0;border-bottom:1px solid #DDD3C4">
+            <h3 style="font-family:Fraunces,serif;font-weight:400;font-size:20px;line-height:1.25;margin:0">Localisation</h3>
+            <p style="font-size:15px;line-height:1.7;color:#4A5148;margin:0">Un rayon de 30 km maximum autour du point de retrait, à Clamart.</p>
+          </div>
+          <div style="display:grid;grid-template-columns:172px 1fr;gap:28px;padding:24px 0;border-bottom:1px solid #DDD3C4">
+            <h3 style="font-family:Fraunces,serif;font-weight:400;font-size:20px;line-height:1.25;margin:0">Production de saison</h3>
+            <p style="font-size:15px;line-height:1.7;color:#4A5148;margin:0">Légumes, fruits, œufs ou épicerie locale. Des productions variées au fil des saisons.</p>
+          </div>
+          <div style="display:grid;grid-template-columns:172px 1fr;gap:28px;padding:24px 0">
+            <h3 style="font-family:Fraunces,serif;font-weight:400;font-size:20px;line-height:1.25;margin:0">Engagement</h3>
+            <p style="font-size:15px;line-height:1.7;color:#4A5148;margin:0">Un an minimum, avec des livraisons régulières, et le respect de la charte de l'AMAP.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <sc-if value="{{ showTestimonial }}" hint-placeholder-val="{{ true }}">
+    <section style="background:#2D3A29;color:#EFEAE0">
+      <div style="max-width:1240px;margin:0 auto;padding:92px 40px 96px;display:grid;grid-template-columns:1fr 300px;gap:72px;align-items:center">
+        <div>
+          <div style="font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:#A6B39C;margin-bottom:28px">Un partenaire, trois ans plus tard</div>
+          <blockquote style="font-family:Fraunces,serif;font-weight:300;font-style:italic;font-size:34px;line-height:1.3;letter-spacing:-0.015em;margin:0 0 32px;color:#FAF7F2;text-wrap:pretty">« Je sais exactement ce que je dois produire, mes légumes sont valorisés à leur juste prix, et le contact direct avec les adhérents est très enrichissant. »</blockquote>
+          <div style="display:flex;align-items:baseline;gap:14px">
+            <span style="font-size:16px;font-weight:600;color:#FAF7F2">Simon</span>
+            <span style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:#A6B39C">3 Parcelles · partenaire depuis 3 ans</span>
+          </div>
+        </div>
+        <div style="border:1px solid rgba(239,234,224,0.2);border-radius:4px;overflow:hidden;aspect-ratio:3/4">
+          <img src="assets/legumes-terre.webp" alt="Maraîchage de plein champ" style="width:100%;height:100%;object-fit:cover;display:block" />
+        </div>
+      </div>
+    </section>
+    </sc-if>
+
+    <section id="candidature" style="max-width:1240px;margin:0 auto;padding:96px 40px 112px;display:grid;grid-template-columns:340px 1fr;gap:80px;align-items:start">
+      <div style="position:sticky;top:116px">
+        <div style="font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:#8A8B80;margin-bottom:14px">La candidature</div>
+        <h2 style="font-family:Fraunces,serif;font-weight:300;font-size:36px;line-height:1.1;letter-spacing:-0.02em;margin:0 0 20px">Postulez dès maintenant.</h2>
+        <p style="font-size:15px;line-height:1.7;color:#4A5148;margin:0 0 28px">Cinq minutes, quatre blocs. Nous revenons vers vous sous 48 heures pour un premier échange — rien n'est engagé avant.</p>
+        <div style="display:grid;gap:0;border-top:1px solid #E3DCD0">
+          <div style="display:grid;grid-template-columns:24px 1fr;gap:12px;padding:12px 0;border-bottom:1px solid #E3DCD0">
+            <span style="font-family:'Geist Mono',monospace;font-size:11px;color:#C85A32">01</span>
+            <span style="font-size:14px;color:#4A5148">Vos coordonnées</span>
+          </div>
+          <div style="display:grid;grid-template-columns:24px 1fr;gap:12px;padding:12px 0;border-bottom:1px solid #E3DCD0">
+            <span style="font-family:'Geist Mono',monospace;font-size:11px;color:#C85A32">02</span>
+            <span style="font-size:14px;color:#4A5148">Votre exploitation</span>
+          </div>
+          <div style="display:grid;grid-template-columns:24px 1fr;gap:12px;padding:12px 0;border-bottom:1px solid #E3DCD0">
+            <span style="font-family:'Geist Mono',monospace;font-size:11px;color:#C85A32">03</span>
+            <span style="font-size:14px;color:#4A5148">Votre production</span>
+          </div>
+          <div style="display:grid;grid-template-columns:24px 1fr;gap:12px;padding:12px 0">
+            <span style="font-family:'Geist Mono',monospace;font-size:11px;color:#C85A32">04</span>
+            <span style="font-size:14px;color:#4A5148">Parlez-nous de vous</span>
+          </div>
+        </div>
+        <a href="mailto:auxptitspois@gmail.com" style="display:inline-block;margin-top:28px;font-family:'Geist Mono',monospace;font-size:12.5px;color:#8F5F37;border-bottom:1px solid #DDC9B8">auxptitspois@gmail.com</a>
+      </div>
+
+      <form onSubmit="{{ onSubmit }}" style="display:grid;gap:24px">
+        <fieldset style="border:1px solid #E3DCD0;border-radius:4px;background:#FAF7F2;padding:32px 32px 34px;margin:0">
+          <legend style="font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:#8A8B80;padding:0 10px;margin-left:-10px">01 · Vos coordonnées</legend>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:8px">
+            <div style="display:grid;gap:7px;min-width:0">
+              <label for="firstName" style="font-size:13.5px;font-weight:600;color:#1F2421">Prénom <span style="color:#C85A32">*</span></label>
+              <input id="firstName" type="text" value="{{ f.firstName.value }}" onChange="{{ f.firstName.onChange }}" style="{{ f.firstName.style }}" />
+              <sc-if value="{{ f.firstName.error }}" hint-placeholder-val="{{ false }}"><span style="font-size:12.5px;color:#B23A22">{{ f.firstName.error }}</span></sc-if>
+            </div>
+            <div style="display:grid;gap:7px;min-width:0">
+              <label for="lastName" style="font-size:13.5px;font-weight:600;color:#1F2421">Nom <span style="color:#C85A32">*</span></label>
+              <input id="lastName" type="text" value="{{ f.lastName.value }}" onChange="{{ f.lastName.onChange }}" style="{{ f.lastName.style }}" />
+              <sc-if value="{{ f.lastName.error }}" hint-placeholder-val="{{ false }}"><span style="font-size:12.5px;color:#B23A22">{{ f.lastName.error }}</span></sc-if>
+            </div>
+            <div style="display:grid;gap:7px;min-width:0">
+              <label for="email" style="font-size:13.5px;font-weight:600;color:#1F2421">Email <span style="color:#C85A32">*</span></label>
+              <input id="email" type="text" inputMode="email" value="{{ f.email.value }}" onChange="{{ f.email.onChange }}" style="{{ f.email.style }}" />
+              <sc-if value="{{ f.email.error }}" hint-placeholder-val="{{ false }}"><span style="font-size:12.5px;color:#B23A22">{{ f.email.error }}</span></sc-if>
+            </div>
+            <div style="display:grid;gap:7px;min-width:0">
+              <label for="phone" style="font-size:13.5px;font-weight:600;color:#1F2421">Téléphone <span style="color:#C85A32">*</span></label>
+              <input id="phone" type="tel" placeholder="06 12 34 56 78" value="{{ f.phone.value }}" onChange="{{ f.phone.onChange }}" style="{{ f.phone.style }}" />
+              <sc-if value="{{ f.phone.error }}" hint-placeholder-val="{{ false }}"><span style="font-size:12.5px;color:#B23A22">{{ f.phone.error }}</span></sc-if>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset style="border:1px solid #E3DCD0;border-radius:4px;background:#FAF7F2;padding:32px 32px 34px;margin:0">
+          <legend style="font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:#8A8B80;padding:0 10px;margin-left:-10px">02 · Votre exploitation</legend>
+          <div style="display:grid;gap:20px;margin-top:8px">
+            <div style="display:grid;gap:7px;min-width:0">
+              <label for="farmName" style="font-size:13.5px;font-weight:600;color:#1F2421">Nom de l'exploitation <span style="color:#C85A32">*</span></label>
+              <input id="farmName" type="text" placeholder="Les Jardins de Marie" value="{{ f.farmName.value }}" onChange="{{ f.farmName.onChange }}" style="{{ f.farmName.style }}" />
+              <sc-if value="{{ f.farmName.error }}" hint-placeholder-val="{{ false }}"><span style="font-size:12.5px;color:#B23A22">{{ f.farmName.error }}</span></sc-if>
+            </div>
+            <div style="display:grid;gap:7px;min-width:0">
+              <label for="address" style="font-size:13.5px;font-weight:600;color:#1F2421">Adresse <span style="color:#C85A32">*</span></label>
+              <input id="address" type="text" placeholder="Numéro et nom de rue" value="{{ f.address.value }}" onChange="{{ f.address.onChange }}" style="{{ f.address.style }}" />
+              <sc-if value="{{ f.address.error }}" hint-placeholder-val="{{ false }}"><span style="font-size:12.5px;color:#B23A22">{{ f.address.error }}</span></sc-if>
+            </div>
+            <div style="display:grid;grid-template-columns:150px 1fr 150px;gap:20px">
+              <div style="display:grid;gap:7px;min-width:0">
+                <label for="postalCode" style="font-size:13.5px;font-weight:600;color:#1F2421">Code postal <span style="color:#C85A32">*</span></label>
+                <input id="postalCode" type="text" maxlength="5" placeholder="92140" value="{{ f.postalCode.value }}" onChange="{{ f.postalCode.onChange }}" style="{{ f.postalCode.style }}" />
+                <sc-if value="{{ f.postalCode.error }}" hint-placeholder-val="{{ false }}"><span style="font-size:12.5px;color:#B23A22">{{ f.postalCode.error }}</span></sc-if>
+              </div>
+              <div style="display:grid;gap:7px;min-width:0">
+                <label for="city" style="font-size:13.5px;font-weight:600;color:#1F2421">Ville <span style="color:#C85A32">*</span></label>
+                <input id="city" type="text" value="{{ f.city.value }}" onChange="{{ f.city.onChange }}" style="{{ f.city.style }}" />
+                <sc-if value="{{ f.city.error }}" hint-placeholder-val="{{ false }}"><span style="font-size:12.5px;color:#B23A22">{{ f.city.error }}</span></sc-if>
+              </div>
+              <div style="display:grid;gap:7px;min-width:0">
+                <label for="distance" style="font-size:13.5px;font-weight:600;color:#1F2421">Distance (km)</label>
+                <input id="distance" type="text" inputMode="numeric" placeholder="15" value="{{ f.distance.value }}" onChange="{{ f.distance.onChange }}" style="{{ f.distance.style }}" />
+                <span style="font-size:12.5px;color:#8A8B80;line-height:1.45">Depuis le point de retrait — optionnel</span>
+              </div>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset style="border:1px solid #E3DCD0;border-radius:4px;background:#FAF7F2;padding:32px 32px 34px;margin:0">
+          <legend style="font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:#8A8B80;padding:0 10px;margin-left:-10px">03 · Votre production</legend>
+          <div style="display:grid;gap:20px;margin-top:8px">
+            <div style="display:grid;gap:7px;min-width:0">
+              <label for="products" style="font-size:13.5px;font-weight:600;color:#1F2421">Types de produits <span style="color:#C85A32">*</span></label>
+              <textarea id="products" rows="3" placeholder="Légumes variés de saison, fruits rouges, œufs…" value="{{ f.products.value }}" onChange="{{ f.products.onChange }}" style="{{ f.products.style }}"></textarea>
+              <sc-if value="{{ f.products.error }}" hint-placeholder-val="{{ false }}"><span style="font-size:12.5px;color:#B23A22">{{ f.products.error }}</span></sc-if>
+            </div>
+            <label for="isBio" style="display:flex;align-items:center;gap:12px;padding:16px 18px;background:#F3EDE3;border:1px solid #E3DCD0;border-radius:4px;cursor:pointer">
+              <input id="isBio" type="checkbox" checked="{{ isBio }}" onChange="{{ onToggleBio }}" style="width:18px;height:18px;accent-color:#C85A32;cursor:pointer;margin:0" />
+              <span style="font-size:14.5px;color:#1F2421">Mon exploitation est certifiée Agriculture Biologique</span>
+            </label>
+            <sc-if value="{{ isBio }}" hint-placeholder-val="{{ false }}">
+              <div style="display:grid;gap:7px;min-width:0">
+                <label for="certifications" style="font-size:13.5px;font-weight:600;color:#1F2421">Certifications</label>
+                <input id="certifications" type="text" placeholder="AB, Nature &amp; Progrès, Demeter…" value="{{ f.certifications.value }}" onChange="{{ f.certifications.onChange }}" style="{{ f.certifications.style }}" />
+              </div>
+            </sc-if>
+          </div>
+        </fieldset>
+
+        <fieldset style="border:1px solid #E3DCD0;border-radius:4px;background:#FAF7F2;padding:32px 32px 34px;margin:0">
+          <legend style="font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:#8A8B80;padding:0 10px;margin-left:-10px">04 · Parlez-nous de vous</legend>
+          <div style="display:grid;gap:20px;margin-top:8px">
+            <div style="display:grid;gap:7px;min-width:0">
+              <label for="message" style="font-size:13.5px;font-weight:600;color:#1F2421">Message</label>
+              <textarea id="message" rows="5" placeholder="Votre exploitation, votre démarche, vos motivations…" value="{{ f.message.value }}" onChange="{{ f.message.onChange }}" style="{{ f.message.style }}"></textarea>
+            </div>
+            <div style="display:grid;gap:7px;min-width:0">
+              <label for="availability" style="font-size:13.5px;font-weight:600;color:#1F2421">Disponibilités pour un rendez-vous</label>
+              <input id="availability" type="text" placeholder="Disponible les matins en semaine" value="{{ f.availability.value }}" onChange="{{ f.availability.onChange }}" style="{{ f.availability.style }}" />
+            </div>
+          </div>
+        </fieldset>
+
+        <sc-if value="{{ hasErrors }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:12px;padding:16px 18px;background:#FBEDE9;border:1px solid #EDC7BC;border-radius:4px">
+            <span style="width:6px;height:6px;border-radius:50%;background:#B23A22;flex-shrink:0"></span>
+            <span style="font-size:14.5px;color:#8E2E1A">{{ errorSummary }}</span>
+          </div>
+        </sc-if>
+
+        <div style="display:grid;gap:14px;margin-top:4px">
+          <button type="submit" style="height:56px;background:#C85A32;color:#FAF7F2;border:none;border-radius:4px;font-size:16px;font-weight:600;cursor:pointer;transition:background 200ms" style-hover="background:#A8451F">{{ submitLabel }}</button>
+          <p style="font-size:13px;line-height:1.6;color:#8A8B80;margin:0;text-align:center">Les champs marqués d'une astérisque sont obligatoires. Vos données servent uniquement au traitement de votre candidature.</p>
+        </div>
+      </form>
+    </section>
+  </div>
+  </sc-if>
+
+  <footer style="background:#F3EDE3;border-top:1px solid #E7DFD3">
+    <div style="max-width:1240px;margin:0 auto;padding:64px 40px 32px">
+      <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:48px">
+        <div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+            <img src="assets/logo.png" alt="" width="34" height="34" style="display:block" />
+            <span style="font-family:Fraunces,serif;font-weight:400;font-size:18px">Aux P'tits Pois</span>
+          </div>
+          <p style="font-size:14.5px;line-height:1.7;color:#4A5148;margin:0 0 18px;max-width:26em">Votre AMAP locale à Clamart. Des produits frais, bio et de saison, en circuit court.</p>
+          <a href="mailto:auxptitspois@gmail.com" style="font-family:'Geist Mono',monospace;font-size:12.5px;color:#8F5F37;border-bottom:1px solid #DDC9B8">auxptitspois@gmail.com</a>
+        </div>
+        <div>
+          <div style="font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:#8A8B80;margin-bottom:16px">Navigation</div>
+          <div style="display:grid;gap:10px">
+            <a href="mock.dc.html" style="font-size:14.5px;color:#4A5148" style-hover="color:#1F2421">Accueil</a>
+            <a href="abonnements.dc.html" style="font-size:14.5px;color:#4A5148" style-hover="color:#1F2421">Nos abonnements</a>
+            <a href="mock.dc.html#etal" style="font-size:14.5px;color:#4A5148" style-hover="color:#1F2421">Panier de la semaine</a>
+            <a href="mock.dc.html#producteurs" style="font-size:14.5px;color:#4A5148" style-hover="color:#1F2421">Nos producteurs</a>
+            <a href="#candidature" style="font-size:14.5px;color:#4A5148" style-hover="color:#1F2421">Devenir producteur</a>
+          </div>
+        </div>
+        <div>
+          <div style="font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:#8A8B80;margin-bottom:16px">Mon compte</div>
+          <div style="display:grid;gap:10px">
+            <a href="connexion.dc.html" style="font-size:14.5px;color:#4A5148" style-hover="color:#1F2421">Connexion</a>
+            <a href="mock.dc.html" style="font-size:14.5px;color:#4A5148" style-hover="color:#1F2421">Inscription</a>
+            <a href="connexion.dc.html" style="font-size:14.5px;color:#4A5148" style-hover="color:#1F2421">Espace adhérent</a>
+          </div>
+        </div>
+        <div>
+          <div style="font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:#8A8B80;margin-bottom:16px">Informations</div>
+          <div style="display:grid;gap:10px">
+            <a href="mock.dc.html" style="font-size:14.5px;color:#4A5148" style-hover="color:#1F2421">Contact</a>
+            <a href="mock.dc.html" style="font-size:14.5px;color:#4A5148" style-hover="color:#1F2421">FAQ</a>
+            <a href="mock.dc.html" style="font-size:14.5px;color:#4A5148" style-hover="color:#1F2421">Mentions légales</a>
+            <a href="mock.dc.html" style="font-size:14.5px;color:#4A5148" style-hover="color:#1F2421">Gestion des cookies</a>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:48px;padding-top:24px;border-top:1px solid #DDD3C4;display:flex;align-items:center;justify-content:space-between;gap:24px">
+        <span style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:0.06em;color:#8A8B80">© 2026 Aux P'tits Pois — Tous droits réservés</span>
+        <span style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:0.06em;color:#8A8B80">Clamart · Île-de-France</span>
+      </div>
+    </div>
+  </footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440},&quot;showTestimonial&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Sections&quot;}}">
+const FIELDS = ["firstName","lastName","email","phone","farmName","address","city","postalCode","distance","products","certifications","message","availability"];
+
+const INPUT_BASE = {
+  width: "100%", height: "48px", padding: "0 14px", fontSize: "15px", color: "#1F2421",
+  background: "#FDFBF7", border: "1px solid #E3DCD0", borderRadius: "4px",
+  transition: "border-color 150ms"
+};
+const INPUT_MONO = Object.assign({}, INPUT_BASE, { fontFamily: "'Geist Mono',monospace", fontSize: "14.5px" });
+const TEXTAREA_BASE = {
+  width: "100%", padding: "13px 14px", fontSize: "15px", lineHeight: "1.6", color: "#1F2421",
+  background: "#FDFBF7", border: "1px solid #E3DCD0", borderRadius: "4px",
+  resize: "vertical", transition: "border-color 150ms"
+};
+const MONO_FIELDS = ["phone", "postalCode", "distance"];
+const AREA_FIELDS = ["products", "message"];
+
+function baseFor(key) {
+  if (AREA_FIELDS.indexOf(key) > -1) return TEXTAREA_BASE;
+  if (MONO_FIELDS.indexOf(key) > -1) return INPUT_MONO;
+  return INPUT_BASE;
+}
+
+class Component extends DCLogic {
+  state = {
+    values: FIELDS.reduce((a, k) => { a[k] = ""; return a; }, {}),
+    isBio: false,
+    errors: {},
+    submitted: false,
+    loading: false
+  };
+
+  validate() {
+    const v = this.state.values;
+    const e = {};
+    if (!v.firstName.trim()) e.firstName = "Prénom requis";
+    if (!v.lastName.trim()) e.lastName = "Nom requis";
+    if (!v.email.trim()) e.email = "Email requis";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.email)) e.email = "Email invalide";
+    if (!v.phone.trim()) e.phone = "Téléphone requis";
+    else if (!/^[0-9\s\-\+\(\)]{10,}$/.test(v.phone)) e.phone = "Numéro invalide";
+    if (!v.farmName.trim()) e.farmName = "Nom de l'exploitation requis";
+    if (!v.address.trim()) e.address = "Adresse requise";
+    if (!v.city.trim()) e.city = "Ville requise";
+    if (!v.postalCode.trim()) e.postalCode = "Code postal requis";
+    else if (!/^[0-9]{5}$/.test(v.postalCode)) e.postalCode = "Code postal invalide (5 chiffres)";
+    if (!v.products.trim()) e.products = "Types de produits requis";
+    return e;
+  }
+
+  renderVals() {
+    const { values, errors, submitted, loading, isBio } = this.state;
+    const errorCount = Object.keys(errors).length;
+
+    const f = {};
+    FIELDS.forEach(k => {
+      const base = baseFor(k);
+      f[k] = {
+        value: values[k],
+        error: errors[k] || false,
+        style: errors[k] ? Object.assign({}, base, { borderColor: "#D9A08E" }) : base,
+        onChange: (ev) => {
+          const val = ev.target.value;
+          this.setState(s => {
+            const nextErrors = Object.assign({}, s.errors);
+            delete nextErrors[k];
+            return { values: Object.assign({}, s.values, { [k]: val }), errors: nextErrors };
+          });
+        }
+      };
+    });
+
+    return {
+      f,
+      isTrue: true,
+      isBio,
+      showTestimonial: this.props.showTestimonial ?? true,
+      isSubmitted: submitted,
+      isEditing: !submitted,
+      hasErrors: errorCount > 0,
+      errorSummary: errorCount === 1
+        ? "Un champ demande votre attention avant l'envoi."
+        : errorCount + " champs demandent votre attention avant l'envoi.",
+      submitLabel: loading ? "Envoi en cours…" : "Envoyer ma candidature",
+      onToggleBio: () => this.setState(s => ({ isBio: !s.isBio })),
+      onReset: () => this.setState({
+        values: FIELDS.reduce((a, k) => { a[k] = ""; return a; }, {}),
+        isBio: false, errors: {}, submitted: false, loading: false
+      }),
+      onSubmit: (ev) => {
+        ev.preventDefault();
+        const e = this.validate();
+        if (Object.keys(e).length) { this.setState({ errors: e }); return; }
+        this.setState({ errors: {}, loading: true });
+        setTimeout(() => this.setState({ submitted: true, loading: false }), 550);
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>

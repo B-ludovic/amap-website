@@ -83,7 +83,8 @@ body {
 /* La landing gère elle-même sa respiration verticale, section par section.
    Son min-height est neutralisé : la page dépasse toujours l'écran, et le
    conserver décollerait le footer du contenu sur les très grands viewports. */
-.main-content:has(.landing) {
+.main-content:has(.landing),
+.main-content:has(.login-page) {
   padding: 0;
   min-height: 0;
 }
@@ -297,11 +298,12 @@ button {
 .select {
   width: 100%;
   height: var(--input-height);
-  padding: var(--input-padding-y) var(--input-padding-x);
+  padding: 0 var(--input-padding-x);
+  font-family: var(--font-body);
   font-size: var(--input-font-size);
   border: var(--border-width) solid var(--input-border-color);
   border-radius: var(--input-border-radius);
-  background-color: var(--white);
+  background-color: var(--field-bg);
   color: var(--text-primary);
   transition: var(--input-transition);
 }
@@ -350,18 +352,19 @@ button {
 .textarea:focus,
 .select:focus {
   outline: none;
-  border-color: var(--accent-color);
-  box-shadow: 0 0 0 3px rgba(251, 146, 60, 0.1);
+  border-color: var(--terracotta);
+  box-shadow: 0 0 0 3px var(--field-focus-ring);
 }
 
 .input::placeholder,
 .textarea::placeholder {
-  color: var(--text-light);
+  color: var(--field-placeholder);
 }
 
 .textarea {
   min-height: 120px;
   height: auto;
+  padding: var(--input-padding-y) var(--input-padding-x);
   resize: vertical;
 }
 
@@ -372,18 +375,19 @@ button {
 .form-label {
   display: block;
   margin-bottom: var(--spacing-sm);
-  font-weight: var(--font-weight-medium);
+  font-size: 13.5px;
+  font-weight: var(--font-weight-semibold);
   color: var(--text-primary);
 }
 
 .form-error {
   margin-top: var(--spacing-xs);
-  font-size: var(--font-size-sm);
-  color: var(--error-color);
+  font-size: 12.5px;
+  color: var(--error-text);
 }
 
 .input-error {
-  border-color: var(--error-color) !important;
+  border-color: var(--error-border) !important;
 }
 
 /* Badges */

@@ -202,6 +202,41 @@
   justify-content: center;
 }
 
+/* --- Header réduit des pages d'authentification --- */
+
+.auth-header-bar {
+  border-bottom: var(--border-width) solid var(--border-section);
+  background-color: var(--surface-page);
+  flex-shrink: 0;
+}
+
+.auth-header-inner {
+  height: 76px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 40px;
+}
+
+.auth-header-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14.5px;
+  font-weight: var(--font-weight-medium);
+  color: var(--text-secondary);
+  transition: color var(--transition-fast);
+}
+
+.auth-header-back:hover {
+  color: var(--text-primary);
+}
+
+.auth-header-arrow {
+  font-family: var(--font-mono);
+  font-size: 14px;
+}
+
 /* --- Tiroir de navigation mobile --- */
 
 .mobile-backdrop {

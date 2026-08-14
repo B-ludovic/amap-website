@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 
 function LoginForm({ onSubmit, loading }) {
   const [formData, setFormData] = useState({
@@ -56,73 +55,60 @@ function LoginForm({ onSubmit, loading }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="auth-form">
-      <div className="form-group">
-        <label htmlFor="email" className="form-label">
-          Email
-        </label>
-        <div className="input-wrapper">
-          <Mail size={20} className="input-icon" aria-hidden="true" />
-          <input
-            type="email"
-            id="email"
-            name="email"
-            className={`input input-with-icon ${errors.email ? 'input-error' : ''}`}
-            value={formData.email}
-            onChange={handleChange}
-            placeholder="votre@email.com"
-            disabled={loading}
-            required
-            aria-required="true"
-            autoComplete="email"
-            aria-describedby={errors.email ? 'login-email-error' : undefined}
-          />
-        </div>
+    <form onSubmit={handleSubmit} className="login-form" noValidate>
+      <div className="login-field">
+        <label htmlFor="email" className="login-label">Email</label>
+        <input
+          type="text"
+          inputMode="email"
+          id="email"
+          name="email"
+          className={`input ${errors.email ? 'input-error' : ''}`}
+          value={formData.email}
+          onChange={handleChange}
+          placeholder="votre@email.com"
+          disabled={loading}
+          autoComplete="email"
+          aria-invalid={errors.email ? 'true' : undefined}
+          aria-describedby={errors.email ? 'login-email-error' : undefined}
+        />
         {errors.email && (
-          <span id="login-email-error" className="form-error">{errors.email}</span>
+          <span id="login-email-error" className="login-error">{errors.email}</span>
         )}
       </div>
 
-      <div className="form-group">
-        <label htmlFor="password" className="form-label">
-          Mot de passe
-        </label>
-        <div className="input-wrapper">
-          <Lock size={20} className="input-icon" aria-hidden="true" />
-          <input
-            type={showPassword ? 'text' : 'password'}
-            id="password"
-            name="password"
-            className={`input input-with-icon ${errors.password ? 'input-error' : ''}`}
-            value={formData.password}
-            onChange={handleChange}
-            placeholder="••••••••"
-            disabled={loading}
-            required
-            aria-required="true"
-            autoComplete="current-password"
-            aria-describedby={errors.password ? 'login-password-error' : undefined}
-          />
+      <div className="login-field">
+        <div className="login-field-head">
+          <label htmlFor="password" className="login-label">Mot de passe</label>
           <button
             type="button"
-            className="input-toggle"
+            className="login-reveal"
             onClick={() => setShowPassword(!showPassword)}
             aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
           >
-            {showPassword ? <EyeOff size={20} aria-hidden="true" /> : <Eye size={20} aria-hidden="true" />}
+            {showPassword ? 'Masquer' : 'Afficher'}
           </button>
         </div>
+        <input
+          type={showPassword ? 'text' : 'password'}
+          id="password"
+          name="password"
+          className={`input ${errors.password ? 'input-error' : ''}`}
+          value={formData.password}
+          onChange={handleChange}
+          placeholder="••••••••"
+          disabled={loading}
+          autoComplete="current-password"
+          aria-invalid={errors.password ? 'true' : undefined}
+          aria-describedby={errors.password ? 'login-password-error' : undefined}
+        />
         {errors.password && (
-          <span id="login-password-error" className="form-error">{errors.password}</span>
+          <span id="login-password-error" className="login-error">{errors.password}</span>
         )}
       </div>
 
-      <button
-        type="submit"
-        className="btn btn-primary btn-lg btn-full"
-        disabled={loading}
-      >
-        {loading ? 'Connexion...' : 'Se connecter'}
+      <button type="submit" className="login-submit" disabled={loading}>
+        {loading ? 'Connexion…' : 'Se connecter'}
       </button>
     </form>
   );
