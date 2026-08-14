@@ -8,6 +8,8 @@ import AuthHeader from './AuthHeader';
    header réduit (logo + retour au site), conformément à la maquette. */
 export default function ConditionalHeader() {
   const pathname = usePathname();
-  if (pathname.startsWith('/auth')) return <AuthHeader />;
+  if (pathname.startsWith('/auth')) {
+    return <AuthHeader variant={pathname === '/auth/register' ? 'signin' : 'back'} />;
+  }
   return <Header />;
 }

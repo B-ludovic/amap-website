@@ -360,19 +360,7 @@
 }
 
 .producer-field {
-  display: grid;
   gap: 7px;
-  min-width: 0;
-}
-
-.producer-label {
-  font-size: 13.5px;
-  font-weight: var(--font-weight-semibold);
-  color: var(--text-primary);
-}
-
-.producer-required {
-  color: var(--terracotta);
 }
 
 /* La hauteur vient désormais du token global (48px) ; seule la gouttière
@@ -381,26 +369,10 @@
   padding: 0 14px;
 }
 
-.producer-form .input-mono {
-  font-family: var(--font-mono);
-  font-size: 14.5px;
-}
-
 .producer-form .textarea {
   padding: 13px 14px;
   line-height: 1.6;
   min-height: 0;
-}
-
-.producer-error {
-  font-size: 12.5px;
-  color: var(--error-text);
-}
-
-.producer-hint {
-  font-size: 12.5px;
-  line-height: 1.45;
-  color: var(--text-light);
 }
 
 /* Case à cocher « certifié AB » */
@@ -426,60 +398,13 @@
   flex-shrink: 0;
 }
 
-/* Récapitulatif d'erreurs, juste avant le bouton d'envoi */
-.producer-alert {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 16px 18px;
-  background-color: var(--error-bg);
-  border: var(--border-width) solid var(--error-bg-border);
-  border-radius: var(--border-radius-md);
-  font-size: 14.5px;
-  color: var(--error-strong);
-}
-
-.producer-alert-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background-color: var(--error-text);
-  flex-shrink: 0;
-}
-
 .producer-submit-zone {
   display: grid;
   gap: 14px;
   margin-top: 4px;
 }
 
-.producer-submit {
-  height: 56px;
-  background-color: var(--terracotta);
-  color: var(--surface-page);
-  border: none;
-  border-radius: var(--border-radius-md);
-  font-family: var(--font-body);
-  font-size: 16px;
-  font-weight: var(--font-weight-semibold);
-  cursor: pointer;
-  transition: background-color var(--transition-base);
-}
-
-.producer-submit:hover {
-  background-color: var(--terracotta-dark);
-}
-
-.producer-submit:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
 .producer-legal {
-  font-size: 13px;
-  line-height: 1.6;
-  color: var(--text-light);
-  margin: 0;
   text-align: center;
 }
 
@@ -495,30 +420,7 @@
 }
 
 .producer-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 7px 14px 7px 12px;
-  background-color: var(--badge-live-bg);
-  border: var(--border-width) solid var(--badge-live-border);
-  border-radius: var(--border-radius-full);
   margin-bottom: 32px;
-}
-
-.producer-badge-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background-color: var(--badge-live-fg);
-  flex-shrink: 0;
-}
-
-.producer-badge-label {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--badge-live-fg);
 }
 
 .producer-done-title {
@@ -556,48 +458,6 @@
 .producer-steps-card .eyebrow {
   display: block;
   margin-bottom: 24px;
-}
-
-.producer-steps {
-  display: grid;
-  gap: 0;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.producer-step {
-  display: grid;
-  grid-template-columns: 44px 1fr;
-  gap: 16px;
-  padding: 16px 0;
-  margin: 0;
-}
-
-.producer-step:first-child {
-  padding-top: 0;
-}
-
-.producer-step:last-child {
-  padding-bottom: 0;
-}
-
-.producer-step:not(:last-child) {
-  border-bottom: var(--border-width) solid var(--border-rule);
-}
-
-.producer-step-number {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  font-weight: var(--font-weight-medium);
-  color: var(--terracotta);
-  padding-top: 3px;
-}
-
-.producer-step-text {
-  font-size: 15px;
-  line-height: 1.6;
-  color: var(--text-primary);
 }
 
 /* ---------- Responsive ---------- */

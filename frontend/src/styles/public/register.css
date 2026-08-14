@@ -1,0 +1,345 @@
+/* Page d'inscription — report au pixel de mocks/inscription.dc.html.
+   Deux colonnes : le formulaire à gauche, une colonne d'appui collante à
+   droite. Hauteur des champs ramenée à 48px (token global) : la maquette la
+   pose à 52px, mais l'arbitrage retient 48px pour tout le site. Le bouton
+   d'envoi passe de 58px à 56px, hauteur commune à contact et connexion. */
+
+.register-page {
+  max-width: var(--container-max-width);
+  margin: 0 auto;
+  padding: 64px var(--container-padding) 96px;
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 72px;
+  align-items: start;
+  background-color: var(--surface-page);
+}
+
+/* ---------- Colonne du formulaire ---------- */
+
+.register-main {
+  max-width: 640px;
+}
+
+.register-main .eyebrow {
+  display: block;
+  margin-bottom: 18px;
+}
+
+.register-title {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-style: italic;
+  font-size: 50px;
+  line-height: 1.04;
+  letter-spacing: -0.025em;
+  color: var(--text-primary);
+  margin: 0 0 18px;
+}
+
+.register-lede {
+  font-size: 16.5px;
+  line-height: 1.75;
+  color: var(--text-secondary);
+  margin: 0 0 20px;
+  text-wrap: pretty;
+}
+
+.register-notice {
+  margin-bottom: 40px;
+}
+
+.register-alert {
+  margin-bottom: 28px;
+}
+
+.register-form {
+  display: grid;
+  gap: 32px;
+}
+
+/* Chaque étape du formulaire porte son numéro en légende */
+.register-fieldset {
+  border: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 20px;
+}
+
+.register-legend {
+  font-family: var(--font-mono);
+  font-size: var(--label-size);
+  letter-spacing: var(--label-tracking);
+  text-transform: uppercase;
+  color: var(--text-light);
+  padding: 0;
+  margin-bottom: 4px;
+}
+
+.register-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+/* Code postal à chasse fixe, ville sur le reste de la ligne */
+.register-row-address {
+  grid-template-columns: 170px 1fr;
+}
+
+/* ---------- Règles du mot de passe ----------
+   Deux colonnes de pastilles : pleine quand la règle est tenue, creuse sinon. */
+
+.register-rules {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 20px;
+  margin: 8px 0 0;
+  list-style: none;
+  padding: 0;
+}
+
+.register-rule {
+  display: grid;
+  grid-template-columns: 14px 1fr;
+  gap: 10px;
+  align-items: center;
+  margin: 0;
+}
+
+.register-rule-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  border: var(--border-width) solid var(--border-strong);
+  margin-left: 4px;
+}
+
+.register-rule-label {
+  font-size: 12.5px;
+  color: var(--text-light);
+}
+
+.register-rule-on .register-rule-dot {
+  background-color: var(--badge-live-fg);
+  border-color: var(--badge-live-fg);
+}
+
+.register-rule-on .register-rule-label {
+  color: var(--badge-live-fg);
+}
+
+/* ---------- Consentement RGPD ---------- */
+
+.register-consent-set {
+  gap: 12px;
+}
+
+.register-consent {
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  gap: 14px;
+  align-items: start;
+  padding: 18px 20px;
+  background-color: var(--surface-sand);
+  border: var(--border-width) solid var(--border-card);
+  border-radius: var(--border-radius-md);
+  cursor: pointer;
+}
+
+.register-consent-error {
+  background-color: var(--error-bg);
+  border-color: var(--error-border);
+}
+
+.register-consent-box {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--terracotta);
+  cursor: pointer;
+  margin: 3px 0 0;
+}
+
+.register-consent-text {
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--text-primary);
+}
+
+.register-send {
+  display: grid;
+  gap: 14px;
+}
+
+/* ---------- Écran de confirmation ---------- */
+
+.register-done {
+  max-width: 600px;
+}
+
+.register-done .pill-success {
+  margin-bottom: 28px;
+}
+
+.register-done-title {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-style: italic;
+  font-size: 48px;
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+  color: var(--text-primary);
+  margin: 0 0 18px;
+}
+
+.register-done-lede {
+  font-size: 16.5px;
+  line-height: 1.75;
+  color: var(--text-secondary);
+  margin: 0 0 34px;
+  text-wrap: pretty;
+}
+
+.register-done-mail {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  color: var(--brass);
+}
+
+.register-done .numbered-steps {
+  margin-bottom: 34px;
+}
+
+.register-done-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* ---------- Colonne d'appui ---------- */
+
+.register-aside {
+  display: grid;
+  gap: 20px;
+  align-content: start;
+  position: sticky;
+  top: 40px;
+}
+
+.register-figures {
+  border: var(--border-width) solid var(--border-card);
+  border-radius: var(--border-radius-md);
+  overflow: hidden;
+  background-color: var(--surface-page);
+}
+
+.register-figures-photo {
+  aspect-ratio: 4 / 5;
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  display: block;
+  border-bottom: var(--border-width) solid var(--border-card);
+}
+
+.register-figures-body {
+  padding: 20px 22px 22px;
+}
+
+.register-figures-body .side-block-label {
+  margin-bottom: 12px;
+}
+
+.register-figures-list {
+  display: grid;
+  gap: 0;
+  margin: 0;
+}
+
+.register-figure {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 11px 0;
+  border-bottom: var(--border-width) solid var(--border-soft);
+}
+
+.register-figure:first-child {
+  padding-top: 0;
+}
+
+.register-figure:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.register-figure-label {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.register-figure-value {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 1100px) {
+  .register-page {
+    gap: 48px;
+  }
+}
+
+@media (max-width: 900px) {
+  .register-page {
+    grid-template-columns: 1fr;
+    padding: 48px var(--container-padding) 72px;
+    gap: 48px;
+  }
+
+  .register-main,
+  .register-done {
+    max-width: none;
+  }
+
+  /* La carte est dessinée pour 360px : la laisser s'étirer déformerait la
+     vignette 4/5 en pavé plein écran. */
+  .register-aside {
+    position: static;
+    max-width: 360px;
+  }
+
+  .register-title {
+    font-size: 40px;
+  }
+
+  .register-done-title {
+    font-size: 38px;
+  }
+}
+
+@media (max-width: 560px) {
+  .register-row,
+  .register-row-address,
+  .register-rules {
+    grid-template-columns: 1fr;
+  }
+
+  .register-title {
+    font-size: 34px;
+  }
+
+  .register-done-title {
+    font-size: 32px;
+  }
+
+  .register-done-actions .btn-cta {
+    width: 100%;
+  }
+}

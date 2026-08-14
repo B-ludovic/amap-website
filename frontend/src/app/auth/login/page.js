@@ -43,9 +43,9 @@ function LoginPage() {
 
           {isSignedIn ? (
             <div>
-              <div className="login-session-badge">
-                <span className="login-session-dot" aria-hidden="true" />
-                <span className="login-session-label">Session ouverte</span>
+              <div className="pill-success login-session-badge">
+                <span className="pill-success-dot" aria-hidden="true" />
+                <span className="pill-success-label">Session ouverte</span>
               </div>
               <h1 className="login-title login-title-back">Content de vous revoir.</h1>
               <p className="login-lede">
@@ -53,7 +53,7 @@ function LoginPage() {
                 déjà publié.
               </p>
               <div className="login-session-actions">
-                <Link href="/compte" className="login-submit login-submit-link">
+                <Link href="/compte" className="form-submit login-submit-link">
                   Aller à mon espace
                 </Link>
                 <button type="button" className="login-secondary" onClick={logout}>

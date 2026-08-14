@@ -57,73 +57,9 @@
   gap: 22px;
 }
 
-.login-field {
-  display: grid;
-  gap: 8px;
-  min-width: 0;
-}
-
-.login-field-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.login-label {
-  font-size: 13.5px;
-  font-weight: var(--font-weight-semibold);
-  color: var(--text-primary);
-}
-
-/* Bascule « Afficher / Masquer », en capitales monospace */
-.login-reveal {
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  font-family: var(--font-mono);
-  font-size: var(--label-size);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--text-light);
-  transition: color var(--transition-fast);
-}
-
-.login-reveal:hover {
-  color: var(--text-primary);
-}
-
-.login-error {
-  font-size: 12.5px;
-  color: var(--error-text);
-}
-
+/* Le bouton d'envoi partagé, décollé de 2px du dernier champ */
 .login-submit {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 56px;
-  background-color: var(--terracotta);
-  color: var(--surface-page);
-  border: none;
-  border-radius: var(--border-radius-md);
-  font-family: var(--font-body);
-  font-size: 16px;
-  font-weight: var(--font-weight-semibold);
-  cursor: pointer;
-  transition: background-color var(--transition-base);
   margin-top: 2px;
-}
-
-.login-submit:hover {
-  background-color: var(--terracotta-dark);
-  color: var(--surface-page);
-}
-
-.login-submit:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
 }
 
 .login-secondary {
@@ -193,30 +129,7 @@
 /* ---------- État « session ouverte » ---------- */
 
 .login-session-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 7px 14px 7px 12px;
-  background-color: var(--badge-live-bg);
-  border: var(--border-width) solid var(--badge-live-border);
-  border-radius: var(--border-radius-full);
   margin-bottom: 28px;
-}
-
-.login-session-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background-color: var(--badge-live-fg);
-  flex-shrink: 0;
-}
-
-.login-session-label {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--badge-live-fg);
 }
 
 .login-title-back {
@@ -236,7 +149,6 @@
 }
 
 .login-submit-link {
-  margin-top: 0;
   height: 52px;
   font-size: 15.5px;
 }

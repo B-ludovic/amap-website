@@ -56,8 +56,8 @@ function LoginForm({ onSubmit, loading }) {
 
   return (
     <form onSubmit={handleSubmit} className="login-form" noValidate>
-      <div className="login-field">
-        <label htmlFor="email" className="login-label">Email</label>
+      <div className="field">
+        <label htmlFor="email" className="field-label">Email</label>
         <input
           type="text"
           inputMode="email"
@@ -73,16 +73,16 @@ function LoginForm({ onSubmit, loading }) {
           aria-describedby={errors.email ? 'login-email-error' : undefined}
         />
         {errors.email && (
-          <span id="login-email-error" className="login-error">{errors.email}</span>
+          <span id="login-email-error" className="field-error">{errors.email}</span>
         )}
       </div>
 
-      <div className="login-field">
-        <div className="login-field-head">
-          <label htmlFor="password" className="login-label">Mot de passe</label>
+      <div className="field">
+        <div className="field-head">
+          <label htmlFor="password" className="field-label">Mot de passe</label>
           <button
             type="button"
-            className="login-reveal"
+            className="reveal-toggle"
             onClick={() => setShowPassword(!showPassword)}
             aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
           >
@@ -103,11 +103,11 @@ function LoginForm({ onSubmit, loading }) {
           aria-describedby={errors.password ? 'login-password-error' : undefined}
         />
         {errors.password && (
-          <span id="login-password-error" className="login-error">{errors.password}</span>
+          <span id="login-password-error" className="field-error">{errors.password}</span>
         )}
       </div>
 
-      <button type="submit" className="login-submit" disabled={loading}>
+      <button type="submit" className="form-submit login-submit" disabled={loading}>
         {loading ? 'Connexion…' : 'Se connecter'}
       </button>
     </form>

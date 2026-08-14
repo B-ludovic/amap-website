@@ -14,6 +14,7 @@ import { httpStatusCodes } from './utils/httpErrors.js';
 // Import des routes
 import authRoutes from './routes/auth.routes.js';
 import producersRoutes from './routes/producers.routes.js';
+import statsRoutes from './routes/stats.routes.js';
 import adminRoutes from './routes/admin.routes.js';
 import shiftsRoutes from './routes/shifts.routes.js';
 import newslettersRoutes from './routes/newsletters.routes.js';
@@ -158,6 +159,7 @@ app.use('/api/auth/resend-confirmation', publicLimiter);
 app.use('/api/auth/reset-password', publicLimiter);
 app.use('/api/auth', authRoutes);
 app.use('/api/producers', producersRoutes);
+app.use('/api/stats', statsRoutes);
 app.use('/api/admin', adminLimiter);
 app.use('/api/admin', adminRoutes);
 

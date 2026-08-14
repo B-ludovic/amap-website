@@ -237,6 +237,31 @@
   font-size: 14px;
 }
 
+/* Variante de l'inscription : le retour au site cède la place au renvoi
+   vers la connexion, pour qui a déjà un compte. */
+.auth-header-signin {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.auth-header-signin-text {
+  font-size: 14.5px;
+  color: var(--text-light);
+}
+
+/* En dessous de 560px, le logo et le bouton se disputent la barre :
+   la question s'efface, le bouton suffit à dire où aller. */
+@media (max-width: 560px) {
+  .auth-header-signin {
+    gap: 12px;
+  }
+
+  .auth-header-signin-text {
+    display: none;
+  }
+}
+
 /* --- Tiroir de navigation mobile --- */
 
 .mobile-backdrop {

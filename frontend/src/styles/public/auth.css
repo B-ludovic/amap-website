@@ -54,10 +54,6 @@
   margin-top: var(--spacing-md);
 }
 
-.input-error {
-  border-color: var(--error-color) !important;
-}
-
 /* Footer */
 .auth-footer {
   margin-top: var(--spacing-xl);

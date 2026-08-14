@@ -144,17 +144,17 @@ export default function ContactPage() {
               </p>
 
               {(errorCount > 0 || serverError) && (
-                <div className="contact-alert" role="alert" aria-live="assertive">
-                  <span className="contact-alert-dot" aria-hidden="true" />
-                  <span className="contact-alert-text">{alertMessage}</span>
+                <div className="form-alert contact-alert" role="alert" aria-live="assertive">
+                  <span className="form-alert-dot" aria-hidden="true" />
+                  <span className="form-alert-text">{alertMessage}</span>
                 </div>
               )}
 
               <form onSubmit={handleSubmit} className="contact-form" noValidate>
                 <div className="contact-row">
-                  <div className="contact-field">
-                    <label htmlFor="name" className="contact-label">
-                      Nom complet <span className="contact-required" aria-label="obligatoire">*</span>
+                  <div className="field">
+                    <label htmlFor="name" className="field-label">
+                      Nom complet <span className="field-required" aria-label="obligatoire">*</span>
                     </label>
                     <input
                       type="text"
@@ -170,13 +170,13 @@ export default function ContactPage() {
                       aria-describedby={errors.name ? 'contact-name-error' : undefined}
                     />
                     {errors.name && (
-                      <span id="contact-name-error" className="contact-error">{errors.name}</span>
+                      <span id="contact-name-error" className="field-error">{errors.name}</span>
                     )}
                   </div>
 
-                  <div className="contact-field">
-                    <label htmlFor="email" className="contact-label">
-                      Email <span className="contact-required" aria-label="obligatoire">*</span>
+                  <div className="field">
+                    <label htmlFor="email" className="field-label">
+                      Email <span className="field-required" aria-label="obligatoire">*</span>
                     </label>
                     <input
                       type="text"
@@ -193,14 +193,14 @@ export default function ContactPage() {
                       aria-describedby={errors.email ? 'contact-email-error' : undefined}
                     />
                     {errors.email && (
-                      <span id="contact-email-error" className="contact-error">{errors.email}</span>
+                      <span id="contact-email-error" className="field-error">{errors.email}</span>
                     )}
                   </div>
                 </div>
 
-                <div className="contact-field">
-                  <label htmlFor="subject" className="contact-label">
-                    Sujet <span className="contact-required" aria-label="obligatoire">*</span>
+                <div className="field">
+                  <label htmlFor="subject" className="field-label">
+                    Sujet <span className="field-required" aria-label="obligatoire">*</span>
                   </label>
                   <input
                     type="text"
@@ -216,7 +216,7 @@ export default function ContactPage() {
                     aria-describedby={errors.subject ? 'contact-subject-error' : undefined}
                   />
                   {errors.subject && (
-                    <span id="contact-subject-error" className="contact-error">{errors.subject}</span>
+                    <span id="contact-subject-error" className="field-error">{errors.subject}</span>
                   )}
                   <div className="contact-topics">
                     {TOPICS.map(topic => (
@@ -233,9 +233,9 @@ export default function ContactPage() {
                   </div>
                 </div>
 
-                <div className="contact-field">
-                  <label htmlFor="message" className="contact-label">
-                    Message <span className="contact-required" aria-label="obligatoire">*</span>
+                <div className="field">
+                  <label htmlFor="message" className="field-label">
+                    Message <span className="field-required" aria-label="obligatoire">*</span>
                   </label>
                   <textarea
                     id="message"
@@ -251,15 +251,15 @@ export default function ContactPage() {
                     aria-describedby={errors.message ? 'contact-message-error' : undefined}
                   />
                   {errors.message && (
-                    <span id="contact-message-error" className="contact-error">{errors.message}</span>
+                    <span id="contact-message-error" className="field-error">{errors.message}</span>
                   )}
                 </div>
 
                 <div className="contact-send">
-                  <button type="submit" className="contact-submit" disabled={status === 'sending'}>
+                  <button type="submit" className="form-submit" disabled={status === 'sending'}>
                     {status === 'sending' ? 'Envoi en cours…' : 'Envoyer le message'}
                   </button>
-                  <p className="contact-privacy">
+                  <p className="form-note">
                     Vos coordonnées servent uniquement à vous répondre. Elles ne sont ni
                     revendues, ni utilisées pour la newsletter sans votre accord.
                   </p>

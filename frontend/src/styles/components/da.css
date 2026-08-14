@@ -10,6 +10,7 @@
 .producer-page,
 .subscriptions-page,
 .login-page,
+.register-page,
 .account-page,
 .contact-page,
 .basket-page,
@@ -117,6 +118,237 @@
 }
 
 
+/* ---------- Pilule d'état accompli ----------
+   Point plein et libellé capitales sur le vert clair des badges. Signale une
+   action déjà faite : session ouverte, compte créé. Contrairement à .live-dot,
+   ce point ne bat pas — il constate, il n'annonce rien en cours. */
+.pill-success {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 14px 7px 12px;
+  background-color: var(--badge-live-bg);
+  border: var(--border-width) solid var(--badge-live-border);
+  border-radius: var(--border-radius-full);
+}
+
+.pill-success-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: var(--badge-live-fg);
+  flex-shrink: 0;
+}
+
+.pill-success-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--badge-live-fg);
+}
+
+/* ---------- Champs de formulaire ----------
+   Étiquette au-dessus, champ, message d'erreur en dessous : la même colonne
+   sur contact, connexion, devenir producteur et inscription. */
+.field {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+/* Étiquette et bascule alignées sur la même ligne de base */
+.field-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.field-label {
+  font-size: 13.5px;
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+.field-required {
+  color: var(--terracotta);
+}
+
+.field-error {
+  font-size: 12.5px;
+  color: var(--error-text);
+}
+
+.field-hint {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--text-light);
+}
+
+/* Champs à chiffres : téléphone, code postal, SIRET */
+.input-mono {
+  font-family: var(--font-mono);
+  font-size: 14.5px;
+}
+
+/* Bascule « Afficher / Masquer » posée en regard de l'étiquette */
+.reveal-toggle {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: var(--label-size);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-light);
+  transition: color var(--transition-fast);
+}
+
+.reveal-toggle:hover {
+  color: var(--text-primary);
+}
+
+/* Bandeau d'erreur posé en tête de formulaire */
+.form-alert {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 18px;
+  background-color: var(--error-bg);
+  border: var(--border-width) solid var(--error-bg-border);
+  border-radius: var(--border-radius-md);
+}
+
+.form-alert-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--error-text);
+  flex-shrink: 0;
+}
+
+.form-alert-text {
+  font-size: 14.5px;
+  color: var(--error-strong);
+}
+
+/* Même gabarit en ambre : une précision à lire, pas une erreur à corriger */
+.notice-band {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background-color: var(--notice-bg);
+  border: var(--border-width) solid var(--notice-border);
+  border-radius: var(--border-radius-md);
+}
+
+.notice-band-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--notice-strong);
+  flex-shrink: 0;
+}
+
+.notice-band-text {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--notice-text);
+}
+
+/* Bouton d'envoi pleine largeur, en pied de formulaire */
+.form-submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 56px;
+  background-color: var(--terracotta);
+  color: var(--surface-page);
+  border: none;
+  border-radius: var(--border-radius-md);
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition: background-color var(--transition-base);
+}
+
+.form-submit:hover {
+  background-color: var(--terracotta-dark);
+  color: var(--surface-page);
+}
+
+.form-submit:disabled {
+  background-color: var(--terracotta-soft);
+  cursor: not-allowed;
+}
+
+/* Mention discrète sous le bouton d'envoi */
+.form-note {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-light);
+  margin: 0;
+}
+
+/* ---------- Liste numérotée ----------
+   Étapes empilées, numéro monospace en colonne fixe, séparées par un filet.
+   Partagée par le parcours de candidature et la confirmation d'inscription. */
+.numbered-steps {
+  display: grid;
+  gap: 0;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.numbered-step {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  gap: 16px;
+  padding: 16px 0;
+  margin: 0;
+}
+
+.numbered-step:not(:last-child) {
+  border-bottom: var(--border-width) solid var(--border-rule);
+}
+
+.numbered-step-number {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: var(--font-weight-medium);
+  color: var(--terracotta);
+  padding-top: 3px;
+}
+
+.numbered-step-text {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text-primary);
+}
+
+/* Variante collée aux bords d'une carte : pas de respiration en haut ni en bas */
+.numbered-steps-flush .numbered-step:first-child {
+  padding-top: 0;
+}
+
+.numbered-steps-flush .numbered-step:last-child {
+  padding-bottom: 0;
+}
+
+/* Variante posée à même la page : filet d'ouverture et filets de carte */
+.numbered-steps-ruled {
+  border-top: var(--border-width) solid var(--border-card);
+}
+
+.numbered-steps-ruled .numbered-step:not(:last-child) {
+  border-bottom-color: var(--border-card);
+}
+
 /* ---------- Cartes de colonne latérale ----------
    Carte bordée à en-tête sable, dont le corps empile des blocs séparés par un
    filet clair. Partagée par la colonne de droite de contact et du panier. */
@@ -187,6 +419,26 @@
   line-height: 1.65;
   color: var(--on-forest);
   margin: 0 0 18px;
+}
+
+/* Bouton de pied de carte forêt, cerclé du filet clair */
+.forest-card-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  border: var(--border-width) solid var(--on-forest-border);
+  border-radius: var(--border-radius-md);
+  font-size: 14px;
+  font-weight: var(--font-weight-semibold);
+  color: var(--on-forest);
+  transition: background-color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.forest-card-link:hover {
+  background-color: rgba(239, 234, 224, 0.08);
+  border-color: var(--on-forest);
+  color: var(--on-forest);
 }
 
 /* ---------- Carte recette ----------

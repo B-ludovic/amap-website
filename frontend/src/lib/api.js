@@ -845,6 +845,15 @@ const api = {
       });
     },
   },
+  // Chiffres publics de l'association (foyers adhérents, fermes partenaires)
+  stats: {
+    getPublic: async () => {
+      return fetchAPI('/stats', {
+        requiresAuth: false,
+      });
+    },
+  },
+
   closures: {
     getAll: async () => fetchAPI('/closures', { requiresAuth: true }),
 

@@ -205,9 +205,9 @@ export default function BecomeProducerPage() {
       <div className="producer-page">
         <section className="container producer-done">
           <div>
-            <div className="producer-badge">
-              <span className="producer-badge-dot" aria-hidden="true" />
-              <span className="producer-badge-label">Candidature reçue</span>
+            <div className="pill-success producer-badge">
+              <span className="pill-success-dot" aria-hidden="true" />
+              <span className="pill-success-label">Candidature reçue</span>
             </div>
             <h1 className="producer-done-title">Merci — on vous rappelle.</h1>
             <p className="producer-done-lede">
@@ -224,11 +224,11 @@ export default function BecomeProducerPage() {
 
           <div className="producer-steps-card">
             <div className="eyebrow">Prochaines étapes</div>
-            <ol className="producer-steps">
+            <ol className="numbered-steps numbered-steps-flush">
               {NEXT_STEPS.map((step, i) => (
-                <li className="producer-step" key={step}>
-                  <span className="producer-step-number">{String(i + 1).padStart(2, '0')}</span>
-                  <span className="producer-step-text">{step}</span>
+                <li className="numbered-step" key={step}>
+                  <span className="numbered-step-number">{String(i + 1).padStart(2, '0')}</span>
+                  <span className="numbered-step-text">{step}</span>
                 </li>
               ))}
             </ol>
@@ -366,36 +366,36 @@ export default function BecomeProducerPage() {
           <fieldset className="producer-fieldset">
             <legend className="producer-legend">01 · Vos coordonnées</legend>
             <div className="producer-grid-2">
-              <div className="producer-field">
-                <label htmlFor="firstName" className="producer-label">
-                  Prénom <span className="producer-required">*</span>
+              <div className="field producer-field">
+                <label htmlFor="firstName" className="field-label">
+                  Prénom <span className="field-required">*</span>
                 </label>
                 <input type="text" autoComplete="given-name" {...fieldProps('firstName')} />
-                {errors.firstName && <span id="firstName-error" className="producer-error">{errors.firstName}</span>}
+                {errors.firstName && <span id="firstName-error" className="field-error">{errors.firstName}</span>}
               </div>
 
-              <div className="producer-field">
-                <label htmlFor="lastName" className="producer-label">
-                  Nom <span className="producer-required">*</span>
+              <div className="field producer-field">
+                <label htmlFor="lastName" className="field-label">
+                  Nom <span className="field-required">*</span>
                 </label>
                 <input type="text" autoComplete="family-name" {...fieldProps('lastName')} />
-                {errors.lastName && <span id="lastName-error" className="producer-error">{errors.lastName}</span>}
+                {errors.lastName && <span id="lastName-error" className="field-error">{errors.lastName}</span>}
               </div>
 
-              <div className="producer-field">
-                <label htmlFor="email" className="producer-label">
-                  Email <span className="producer-required">*</span>
+              <div className="field producer-field">
+                <label htmlFor="email" className="field-label">
+                  Email <span className="field-required">*</span>
                 </label>
                 <input type="text" inputMode="email" autoComplete="email" {...fieldProps('email')} />
-                {errors.email && <span id="email-error" className="producer-error">{errors.email}</span>}
+                {errors.email && <span id="email-error" className="field-error">{errors.email}</span>}
               </div>
 
-              <div className="producer-field">
-                <label htmlFor="phone" className="producer-label">
-                  Téléphone <span className="producer-required">*</span>
+              <div className="field producer-field">
+                <label htmlFor="phone" className="field-label">
+                  Téléphone <span className="field-required">*</span>
                 </label>
                 <input type="tel" autoComplete="tel" placeholder="06 12 34 56 78" {...fieldProps('phone', { mono: true })} />
-                {errors.phone && <span id="phone-error" className="producer-error">{errors.phone}</span>}
+                {errors.phone && <span id="phone-error" className="field-error">{errors.phone}</span>}
               </div>
             </div>
           </fieldset>
@@ -403,43 +403,43 @@ export default function BecomeProducerPage() {
           <fieldset className="producer-fieldset">
             <legend className="producer-legend">02 · Votre exploitation</legend>
             <div className="producer-stack">
-              <div className="producer-field">
-                <label htmlFor="farmName" className="producer-label">
-                  Nom de l&apos;exploitation <span className="producer-required">*</span>
+              <div className="field producer-field">
+                <label htmlFor="farmName" className="field-label">
+                  Nom de l&apos;exploitation <span className="field-required">*</span>
                 </label>
                 <input type="text" placeholder="Les Jardins de Marie" {...fieldProps('farmName')} />
-                {errors.farmName && <span id="farmName-error" className="producer-error">{errors.farmName}</span>}
+                {errors.farmName && <span id="farmName-error" className="field-error">{errors.farmName}</span>}
               </div>
 
-              <div className="producer-field">
-                <label htmlFor="address" className="producer-label">
-                  Adresse <span className="producer-required">*</span>
+              <div className="field producer-field">
+                <label htmlFor="address" className="field-label">
+                  Adresse <span className="field-required">*</span>
                 </label>
                 <input type="text" autoComplete="street-address" placeholder="Numéro et nom de rue" {...fieldProps('address')} />
-                {errors.address && <span id="address-error" className="producer-error">{errors.address}</span>}
+                {errors.address && <span id="address-error" className="field-error">{errors.address}</span>}
               </div>
 
               <div className="producer-grid-address">
-                <div className="producer-field">
-                  <label htmlFor="postalCode" className="producer-label">
-                    Code postal <span className="producer-required">*</span>
+                <div className="field producer-field">
+                  <label htmlFor="postalCode" className="field-label">
+                    Code postal <span className="field-required">*</span>
                   </label>
                   <input type="text" maxLength={5} autoComplete="postal-code" placeholder="92140" {...fieldProps('postalCode', { mono: true })} />
-                  {errors.postalCode && <span id="postalCode-error" className="producer-error">{errors.postalCode}</span>}
+                  {errors.postalCode && <span id="postalCode-error" className="field-error">{errors.postalCode}</span>}
                 </div>
 
-                <div className="producer-field">
-                  <label htmlFor="city" className="producer-label">
-                    Ville <span className="producer-required">*</span>
+                <div className="field producer-field">
+                  <label htmlFor="city" className="field-label">
+                    Ville <span className="field-required">*</span>
                   </label>
                   <input type="text" autoComplete="address-level2" {...fieldProps('city')} />
-                  {errors.city && <span id="city-error" className="producer-error">{errors.city}</span>}
+                  {errors.city && <span id="city-error" className="field-error">{errors.city}</span>}
                 </div>
 
-                <div className="producer-field">
-                  <label htmlFor="distance" className="producer-label">Distance (km)</label>
+                <div className="field producer-field">
+                  <label htmlFor="distance" className="field-label">Distance (km)</label>
                   <input type="text" inputMode="numeric" placeholder="15" {...fieldProps('distance', { mono: true })} />
-                  <span className="producer-hint">Depuis le point de retrait — optionnel</span>
+                  <span className="field-hint">Depuis le point de retrait — optionnel</span>
                 </div>
               </div>
             </div>
@@ -448,9 +448,9 @@ export default function BecomeProducerPage() {
           <fieldset className="producer-fieldset">
             <legend className="producer-legend">03 · Votre production</legend>
             <div className="producer-stack">
-              <div className="producer-field">
-                <label htmlFor="products" className="producer-label">
-                  Types de produits <span className="producer-required">*</span>
+              <div className="field producer-field">
+                <label htmlFor="products" className="field-label">
+                  Types de produits <span className="field-required">*</span>
                 </label>
                 <textarea
                   rows={3}
@@ -458,7 +458,7 @@ export default function BecomeProducerPage() {
                   {...fieldProps('products')}
                   className={`textarea ${errors.products ? 'input-error' : ''}`}
                 />
-                {errors.products && <span id="products-error" className="producer-error">{errors.products}</span>}
+                {errors.products && <span id="products-error" className="field-error">{errors.products}</span>}
               </div>
 
               <label htmlFor="isBio" className="producer-check">
@@ -474,8 +474,8 @@ export default function BecomeProducerPage() {
               </label>
 
               {formData.isBio && (
-                <div className="producer-field">
-                  <label htmlFor="certifications" className="producer-label">Certifications</label>
+                <div className="field producer-field">
+                  <label htmlFor="certifications" className="field-label">Certifications</label>
                   <input type="text" placeholder="AB, Nature &amp; Progrès, Demeter…" {...fieldProps('certifications')} />
                 </div>
               )}
@@ -485,8 +485,8 @@ export default function BecomeProducerPage() {
           <fieldset className="producer-fieldset">
             <legend className="producer-legend">04 · Parlez-nous de vous</legend>
             <div className="producer-stack">
-              <div className="producer-field">
-                <label htmlFor="message" className="producer-label">Message</label>
+              <div className="field producer-field">
+                <label htmlFor="message" className="field-label">Message</label>
                 <textarea
                   rows={5}
                   placeholder="Votre exploitation, votre démarche, vos motivations…"
@@ -495,8 +495,8 @@ export default function BecomeProducerPage() {
                 />
               </div>
 
-              <div className="producer-field">
-                <label htmlFor="availability" className="producer-label">
+              <div className="field producer-field">
+                <label htmlFor="availability" className="field-label">
                   Disponibilités pour un rendez-vous
                 </label>
                 <input type="text" placeholder="Disponible les matins en semaine" {...fieldProps('availability')} />
@@ -505,9 +505,9 @@ export default function BecomeProducerPage() {
           </fieldset>
 
           {errorCount > 0 && (
-            <div className="producer-alert" role="alert">
-              <span className="producer-alert-dot" aria-hidden="true" />
-              <span>
+            <div className="form-alert producer-alert" role="alert">
+              <span className="form-alert-dot" aria-hidden="true" />
+              <span className="form-alert-text">
                 {errorCount === 1
                   ? 'Un champ demande votre attention avant l\'envoi.'
                   : `${errorCount} champs demandent votre attention avant l'envoi.`}
@@ -516,10 +516,10 @@ export default function BecomeProducerPage() {
           )}
 
           <div className="producer-submit-zone">
-            <button type="submit" className="producer-submit" disabled={loading}>
+            <button type="submit" className="form-submit" disabled={loading}>
               {loading ? 'Envoi en cours…' : 'Envoyer ma candidature'}
             </button>
-            <p className="producer-legal">
+            <p className="form-note producer-legal">
               Les champs marqués d&apos;une astérisque sont obligatoires. Vos données servent
               uniquement au traitement de votre candidature.
             </p>
