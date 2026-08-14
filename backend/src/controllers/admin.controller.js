@@ -482,15 +482,27 @@ const deleteBasketType = asyncHandler(async (req, res) => {
 
 // RÉCUPÉRER TOUS LES UTILISATEURS
 const getAllUsers = asyncHandler(async (req, res) => {
-  const { role, page = 1, limit = 20 } = req.query;
+  const { role, search, page = 1, limit = 20 } = req.query;
   const parsedPage = Math.max(parseInt(page) || 1, 1);
   const parsedLimit = Math.min(parseInt(limit) || 20, 100);
 
   const skip = (parsedPage - 1) * parsedLimit;
 
+  /* La recherche porte sur le nom, le prénom et l'email. Elle doit passer par
+     la base et non par un filtre côté navigateur : la liste est paginée, un
+     filtre local ne verrait que la page affichée. */
+  const trimmedSearch = typeof search === 'string' ? search.trim() : '';
+
   const where = {
     deletedAt: null, // Exclure les soft deleted
-    ...(role && { role })
+    ...(role && { role }),
+    ...(trimmedSearch && {
+      OR: [
+        { firstName: { contains: trimmedSearch, mode: 'insensitive' } },
+        { lastName: { contains: trimmedSearch, mode: 'insensitive' } },
+        { email: { contains: trimmedSearch, mode: 'insensitive' } }
+      ]
+    })
   };
 
   const [users, total] = await Promise.all([

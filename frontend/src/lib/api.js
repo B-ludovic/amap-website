@@ -122,6 +122,7 @@ export const admin = {
       if (params.page) queryParams.append('page', params.page);
       if (params.limit) queryParams.append('limit', params.limit);
       if (params.role) queryParams.append('role', params.role);
+      if (params.search) queryParams.append('search', params.search);
 
       const query = queryParams.toString() ? `?${queryParams.toString()}` : '';
       return fetchAPI(`/admin/users${query}`, {

@@ -1,0 +1,53 @@
+/* Utilisateurs — report de la vue « users » de mocks/admin.dc.html.
+   Une barre d'outils, puis une seule carte qui contient l'en-tête de colonnes,
+   les lignes et le pied de pagination. */
+
+.admin-users-table {
+  --admin-cols: 1.4fr 1.7fr 1.1fr 0.9fr 0.7fr 0.9fr 0.7fr;
+}
+
+.admin-users-table .admin-table-head {
+  background-color: var(--surface-sand);
+  padding: 12px 20px;
+}
+
+.admin-users-email {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.admin-users-count {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 1200px) {
+  .admin-users-table {
+    --admin-cols: 1.4fr 1.7fr 0.9fr 0.7fr 0.7fr;
+  }
+
+  .admin-users-phone,
+  .admin-users-since {
+    display: none;
+  }
+}
+
+@media (max-width: 780px) {
+  .admin-users-table {
+    --admin-cols: 1fr;
+    --admin-col-gap: 4px;
+  }
+
+  .admin-users-table .admin-table-head {
+    display: none;
+  }
+
+  .admin-users-table .admin-table-row {
+    align-items: flex-start;
+  }
+
+  .admin-users-table .admin-cell-right {
+    text-align: left;
+  }
+}

@@ -69,6 +69,17 @@ export function euroRound(value) {
   return `${groupThousands(String(Math.round(Number(value) || 0)))} €`;
 }
 
+/* « 0623456789 » → « 06 23 45 67 89 ».
+   La base stocke le numéro tel qu'il a été saisi ; le découpage par paires est
+   un choix d'affichage, il ne modifie rien en base. Un format inattendu
+   (indicatif international, longueur impaire) est laissé intact. */
+export function phone(value) {
+  if (!value) return '—';
+  const digits = String(value).replace(/\s+/g, '');
+  if (!/^\d{10}$/.test(digits)) return String(value);
+  return digits.match(/\d{2}/g).join(' ');
+}
+
 export function plural(count, singular, pluralForm) {
   return Math.abs(count) > 1 ? pluralForm : singular;
 }

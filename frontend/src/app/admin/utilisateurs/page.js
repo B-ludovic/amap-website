@@ -1,112 +1,115 @@
 'use client';
 
-import { useEffect, useState } from "react";
-import api from "../../../lib/api";
-import { useModal } from "../../../contexts/ModalContext";
-import { Search, UserCog, Trash2, Shield, User, Crown } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from 'react';
+import api from '../../../lib/api';
+import { useModal } from '../../../contexts/ModalContext';
+import AdminModal from '../../../components/admin/AdminModal';
+import { monthYear, longDate, phone, plural } from '../../../lib/format';
+import '../../../styles/admin/users.css';
 
-
+/* Les trois rôles du schéma Prisma. L'ancienne page listait CUSTOMER et
+   PRODUCER, qui n'existent pas dans l'enum UserRole : le filtre ne rendait
+   jamais rien et les libellés retombaient sur la valeur brute. */
 const ROLES = [
-  { value: 'CUSTOMER', label: 'Client', icon: User, color: '#6b7280' },
-  { value: 'PRODUCER', label: 'Producteur', icon: UserCog, color: '#10b981' },
-  { value: 'ADMIN', label: 'Administrateur', icon: Crown, color: '#f59e0b' },
+  { value: 'MEMBER', label: 'Adhérent', tone: '' },
+  { value: 'VOLUNTEER', label: 'Bénévole', tone: 'admin-badge-green' },
+  { value: 'ADMIN', label: 'Administrateur', shortLabel: 'Admin', tone: 'admin-badge-brown' }
 ];
 
+const PAGE_SIZE = 20;
+
+function roleOf(value) {
+  return ROLES.find(role => role.value === value);
+}
+
 export default function AdminUsersPage() {
-  const { showConfirm, showSuccess, showError, showModal } = useModal();
-  
+  const { showConfirm, showSuccess, showError } = useModal();
+
   const [users, setUsers] = useState([]);
+  const [pagination, setPagination] = useState({ total: 0, page: 1, totalPages: 1 });
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterRole, setFilterRole] = useState('');
+  const [search, setSearch] = useState('');
+  const [role, setRole] = useState('');
+  const [page, setPage] = useState(1);
+  const [selected, setSelected] = useState(null);
+  const [draftRole, setDraftRole] = useState('MEMBER');
+  const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
+  const debounceRef = useRef(null);
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async ({ search: term, role: roleFilter, page: wanted }) => {
     setLoading(true);
     try {
-      const response = await api.admin.users.getAll();
+      const response = await api.admin.users.getAll({
+        page: wanted,
+        limit: PAGE_SIZE,
+        ...(roleFilter && { role: roleFilter }),
+        ...(term && { search: term })
+      });
       setUsers(response.data.users);
+      setPagination(response.data.pagination);
     } catch (error) {
       showError('Erreur', 'Impossible de charger les utilisateurs.');
     } finally {
       setLoading(false);
     }
+  }, [showError]);
+
+  /* La recherche part vers le serveur après une pause de frappe : la liste est
+     paginée, filtrer les seuls résultats déjà chargés donnerait un compte faux. */
+  useEffect(() => {
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      fetchUsers({ search, role, page });
+    }, search ? 300 : 0);
+
+    return () => clearTimeout(debounceRef.current);
+  }, [search, role, page, fetchUsers]);
+
+  const openUser = (user) => {
+    setSelected(user);
+    setDraftRole(user.role);
   };
 
-  const handleChangeRole = (user) => {
-    const currentRole = ROLES.find(r => r.value === user.role);
-    
-    showModal({
-      title: 'Changer le rôle',
-      message: (
-        <div className="role-modal-content">
-          <p className="role-modal-user">
-            Changer le rôle de <strong>{user.firstName} {user.lastName}</strong>
-          </p>
-          <p className="role-modal-current">
-            Rôle actuel : <strong>{currentRole?.label}</strong>
-          </p>
-          <div className="role-select-list">
-            {ROLES.map(role => {
-              const Icon = role.icon;
-              return (
-                <button
-                  key={role.value}
-                  onClick={() => confirmRoleChange(user, role.value)}
-                  className={`role-select-btn ${user.role === role.value ? 'role-select-btn-active' : ''}`}
-                  data-color={role.color}
-                >
-                  <Icon size={20} className="role-select-icon" />
-                  <span className="role-select-label">
-                    {role.label}
-                  </span>
-                  {user.role === role.value && (
-                    <span className="role-select-check">✓</span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      ),
-      type: 'info',
-      confirmText: 'Fermer',
-      onConfirm: () => {},
-    });
+  const handleSaveRole = async () => {
+    if (!selected || draftRole === selected.role) {
+      setSelected(null);
+      return;
+    }
+
+    setSaving(true);
+    try {
+      await api.admin.users.changeRole(selected.id, draftRole);
+      showSuccess('Rôle modifié', `${selected.firstName} ${selected.lastName} est désormais ${roleOf(draftRole)?.label.toLowerCase()}.`);
+      setSelected(null);
+      fetchUsers({ search, role, page });
+    } catch (error) {
+      showError('Erreur', error.message);
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const confirmRoleChange = async (user, newRole) => {
-    if (user.role === newRole) return;
+  const handleResendVerification = async () => {
+    try {
+      await api.auth.resendConfirmation(selected.email);
+      showSuccess('Email envoyé', `Un nouvel email de vérification est parti vers ${selected.email}.`);
+    } catch (error) {
+      showError('Erreur', error.message);
+    }
+  };
 
-    const role = ROLES.find(r => r.value === newRole);
-    
+  const handleDelete = () => {
+    const user = selected;
     showConfirm(
-      'Confirmer le changement',
-      `Êtes-vous sûr de vouloir changer le rôle de ${user.firstName} ${user.lastName} en ${role.label} ?`,
-      async () => {
-        try {
-          await api.admin.users.changeRole(user.id, newRole);
-          showSuccess('Rôle modifié', `Le rôle a été changé en ${role.label}.`);
-          fetchUsers();
-        } catch (error) {
-          showError('Erreur', error.message);
-        }
-      }
-    );
-  };
-
-  const handleDeleteUser = (user) => {
-    showConfirm(
-      'Supprimer l\'utilisateur',
-      `Êtes-vous sûr de vouloir supprimer ${user.firstName} ${user.lastName} ? Cette action est irréversible.`,
+      'Supprimer le compte',
+      `Supprimer ${user.firstName} ${user.lastName} ? Cette action est irréversible.`,
       async () => {
         try {
           await api.admin.users.delete(user.id);
-          showSuccess('Utilisateur supprimé', `${user.firstName} ${user.lastName} a été supprimé avec succès.`);
-          fetchUsers();
+          showSuccess('Compte supprimé', `${user.firstName} ${user.lastName} a été supprimé.`);
+          setSelected(null);
+          fetchUsers({ search, role, page });
         } catch (error) {
           showError('Erreur', error.message);
         }
@@ -114,228 +117,179 @@ export default function AdminUsersPage() {
     );
   };
 
-  const filteredUsers = users.filter(user => {
-    const matchesSearch = 
-      user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesRole = !filterRole || user.role === filterRole;
-    
-    return matchesSearch && matchesRole;
-  });
-
-  const getRoleIcon = (role) => {
-    const roleData = ROLES.find(r => r.value === role);
-    if (!roleData) return null;
-    const Icon = roleData.icon;
-    return <Icon size={16} className="user-role-icon" data-color={roleData.color} />;
+  const changeFilter = (setter) => (event) => {
+    setter(event.target.value);
+    setPage(1);
   };
-
-  const getRoleLabel = (role) => {
-    return ROLES.find(r => r.value === role)?.label || role;
-  };
-
-  if (loading) {
-    return (
-      <div className="admin-page">
-        <div className="admin-loading">
-          <p>Chargement des utilisateurs...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
-    <div className="admin-page">
-      <div className="admin-page-header">
+    <div className="admin-users">
+      <div className="admin-page-head">
         <div>
-          <h1 className="admin-page-title">Utilisateurs</h1>
-          <p className="admin-page-description">
-            Gérez les utilisateurs et leurs rôles
+          <h1 className="admin-title">Utilisateurs</h1>
+          <p className="admin-title-lead">
+            {pagination.total} {plural(pagination.total, 'compte', 'comptes')} — adhérents, bénévoles et administrateurs.
           </p>
         </div>
       </div>
 
-      <div className="admin-page-content">
-        {/* Barre de recherche et filtres */}
-        <div className="admin-toolbar">
-          <div className="admin-search">
-            <label htmlFor="search-utilisateurs" className="sr-only">Rechercher un utilisateur</label>
-            <Search size={20} aria-hidden="true" />
-            <input
-              id="search-utilisateurs"
-              type="text"
-              placeholder="Rechercher un utilisateur..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="admin-search-input"
-            />
-          </div>
+      <div className="admin-toolbar-da">
+        <label htmlFor="admin-users-search" className="sr-only">Rechercher un utilisateur</label>
+        <input
+          id="admin-users-search"
+          type="text"
+          className="admin-search-field"
+          placeholder="Rechercher un utilisateur…"
+          value={search}
+          onChange={changeFilter(setSearch)}
+        />
 
-          <div className="admin-filters">
-            <Shield size={20} />
+        <label htmlFor="admin-users-role" className="sr-only">Filtrer par rôle</label>
+        <select
+          id="admin-users-role"
+          className="admin-select"
+          value={role}
+          onChange={changeFilter(setRole)}
+        >
+          <option value="">Tous les rôles</option>
+          {ROLES.map(item => (
+            <option key={item.value} value={item.value}>{item.label}</option>
+          ))}
+        </select>
+
+        <span className="admin-toolbar-count">
+          {pagination.total} {plural(pagination.total, 'compte', 'comptes')}
+        </span>
+      </div>
+
+      <div className="admin-panel admin-users-table">
+        <div className="admin-table-head">
+          <span>Nom</span>
+          <span>Email</span>
+          <span className="admin-users-phone">Téléphone</span>
+          <span>Rôle</span>
+          <span>Abos</span>
+          <span className="admin-users-since">Inscription</span>
+          <span className="admin-cell-right">Action</span>
+        </div>
+
+        {loading ? (
+          <p className="admin-empty">Chargement…</p>
+        ) : users.length === 0 ? (
+          <p className="admin-empty">Aucun utilisateur ne correspond à cette recherche.</p>
+        ) : (
+          users.map((user) => {
+            const userRole = roleOf(user.role);
+
+            return (
+              <div key={user.id} className="admin-table-row">
+                <span className="admin-cell-strong">{user.firstName} {user.lastName}</span>
+                <span className="admin-cell-mono admin-users-email">{user.email}</span>
+                <span className="admin-cell-mono admin-users-phone">{phone(user.phone)}</span>
+                <span>
+                  <span className={`admin-badge ${userRole?.tone ?? ''}`}>
+                    {userRole?.shortLabel ?? userRole?.label ?? user.role}
+                  </span>
+                </span>
+                <span className="admin-users-count">{user._count?.subscriptions ?? 0}</span>
+                <span className="admin-cell-mono admin-users-since">{monthYear(user.createdAt)}</span>
+                <span className="admin-cell-right">
+                  <button type="button" className="admin-btn-link" onClick={() => openUser(user)}>
+                    Ouvrir
+                  </button>
+                </span>
+              </div>
+            );
+          })
+        )}
+
+        {pagination.totalPages > 1 && (
+          <div className="admin-pager">
+            <span className="admin-pager-state">
+              Page {pagination.page} sur {pagination.totalPages}
+            </span>
+            <div className="admin-pager-controls">
+              <button
+                type="button"
+                className="admin-btn-link"
+                disabled={pagination.page <= 1}
+                onClick={() => setPage(current => Math.max(1, current - 1))}
+              >
+                ← Précédent
+              </button>
+              <button
+                type="button"
+                className="admin-btn-link"
+                disabled={pagination.page >= pagination.totalPages}
+                onClick={() => setPage(current => current + 1)}
+              >
+                Suivant →
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {selected && (
+        <AdminModal title="Fiche utilisateur" width="560px" onClose={() => setSelected(null)}>
+          <dl className="def-list admin-def">
+            <div className="def-row">
+              <dt className="def-label">Nom complet</dt>
+              <dd className="def-value">{selected.firstName} {selected.lastName}</dd>
+            </div>
+            <div className="def-row">
+              <dt className="def-label">Email</dt>
+              <dd className="def-value def-value-mono">{selected.email}</dd>
+            </div>
+            <div className="def-row">
+              <dt className="def-label">Téléphone</dt>
+              <dd className="def-value def-value-mono">{phone(selected.phone)}</dd>
+            </div>
+            <div className="def-row">
+              <dt className="def-label">Inscription</dt>
+              <dd className="def-value def-value-mono">{longDate(selected.createdAt)}</dd>
+            </div>
+            <div className="def-row">
+              <dt className="def-label">Email vérifié</dt>
+              <dd className="def-value def-value-mono">{selected.emailVerified ? 'Oui' : 'Non'}</dd>
+            </div>
+            <div className="def-row">
+              <dt className="def-label">Abonnements</dt>
+              <dd className="def-value def-value-mono">{selected._count?.subscriptions ?? 0}</dd>
+            </div>
+          </dl>
+
+          <div style={{ marginBottom: '26px' }}>
+            <label htmlFor="admin-user-role" className="admin-field-label">Rôle</label>
             <select
-              value={filterRole}
-              onChange={(e) => setFilterRole(e.target.value)}
-              className="admin-filter-select"
+              id="admin-user-role"
+              className="admin-select-full"
+              value={draftRole}
+              onChange={(event) => setDraftRole(event.target.value)}
             >
-              <option value="">Tous les rôles</option>
-              {ROLES.map(role => (
-                <option key={role.value} value={role.value}>
-                  {role.label}
-                </option>
+              {ROLES.map(item => (
+                <option key={item.value} value={item.value}>{item.label}</option>
               ))}
             </select>
           </div>
 
-          <div className="admin-toolbar-info">
-            {filteredUsers.length} utilisateur(s)
-          </div>
-        </div>
-
-        {/* Tableau Desktop */}
-        {filteredUsers.length > 0 ? (
-          <>
-            <div className="admin-table-container admin-table-desktop admin-table-container--cards">
-              <table className="admin-table">
-                <thead>
-                  <tr>
-                    <th>Nom</th>
-                    <th>Email</th>
-                    <th>Téléphone</th>
-                    <th>Rôle</th>
-                    <th>Commandes</th>
-                    <th>Inscription</th>
-                    <th className="admin-table-actions-header">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredUsers.map((user) => (
-                    <tr key={user.id}>
-                      <td data-label="Nom">
-                        <div className="admin-table-name">
-                          {user.firstName} {user.lastName}
-                          {user.emailVerified && (
-                            <span className="badge badge-success badge-sm">Vérifié</span>
-                          )}
-                        </div>
-                      </td>
-                      <td data-label="Email">{user.email}</td>
-                      <td data-label="Téléphone">{user.phone || '-'}</td>
-                      <td data-label="Rôle">
-                        <div className="user-role-badge">
-                          {getRoleIcon(user.role)}
-                          <span>{getRoleLabel(user.role)}</span>
-                        </div>
-                      </td>
-                      <td data-label="Commandes">
-                        <span className="admin-order-count">
-                          {user._count?.pickups || 0}
-                        </span>
-                      </td>
-                      <td data-label="Inscription">
-                        {new Date(user.createdAt).toLocaleDateString('fr-FR')}
-                      </td>
-                      <td data-label="Actions">
-                        <div className="admin-table-actions">
-                          <button
-                            onClick={() => handleChangeRole(user)}
-                            className="admin-action-btn admin-action-edit"
-                            title="Changer le rôle"
-                          >
-                            <UserCog size={18} />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteUser(user)}
-                            className="admin-action-btn admin-action-delete"
-                            title="Supprimer"
-                          >
-                            <Trash2 size={18} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Cards Mobile */}
-            <div className="admin-cards-mobile">
-              {filteredUsers.map((user) => (
-                <div key={user.id} className="admin-user-card">
-                  <div className="admin-user-card-header">
-                    <div className="admin-user-card-name">
-                      {user.firstName} {user.lastName}
-                      {user.emailVerified && (
-                        <span className="badge badge-success badge-sm">Vérifié</span>
-                      )}
-                    </div>
-                    <div className="user-role-badge">
-                      {getRoleIcon(user.role)}
-                      <span>{getRoleLabel(user.role)}</span>
-                    </div>
-                  </div>
-                  
-                  <div className="admin-user-card-body">
-                    <div className="admin-user-card-row">
-                      <span className="admin-user-card-label">Email</span>
-                      <span className="admin-user-card-value">{user.email}</span>
-                    </div>
-                    <div className="admin-user-card-row">
-                      <span className="admin-user-card-label">Téléphone</span>
-                      <span className="admin-user-card-value">{user.phone || '-'}</span>
-                    </div>
-                    <div className="admin-user-card-row">
-                      <span className="admin-user-card-label">Commandes</span>
-                      <span className="admin-order-count">{user._count?.pickups || 0}</span>
-                    </div>
-                    <div className="admin-user-card-row">
-                      <span className="admin-user-card-label">Inscription</span>
-                      <span className="admin-user-card-value">
-                        {new Date(user.createdAt).toLocaleDateString('fr-FR')}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="admin-user-card-actions">
-                    <button
-                      onClick={() => handleChangeRole(user)}
-                      className="btn btn-outline btn-sm"
-                    >
-                      <UserCog size={18} />
-                      Changer le rôle
-                    </button>
-                    <button
-                      onClick={() => handleDeleteUser(user)}
-                      className="btn btn-danger btn-sm"
-                    >
-                      <Trash2 size={18} />
-                      Supprimer
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </>
-        ) : (
-          <div className="admin-empty-state">
-            <p>Aucun utilisateur trouvé</p>
-            {(searchTerm || filterRole) && (
-              <button 
-                onClick={() => {
-                  setSearchTerm('');
-                  setFilterRole('');
-                }}
-                className="btn btn-outline btn-sm"
-              >
-                Effacer les filtres
+          <div className="admin-modal-actions">
+            <button type="button" className="admin-btn-primary" onClick={handleSaveRole} disabled={saving}>
+              {saving ? 'Enregistrement…' : 'Enregistrer'}
+            </button>
+            {!selected.emailVerified && (
+              <button type="button" className="admin-btn-ghost" onClick={handleResendVerification}>
+                Renvoyer l&apos;email de vérification
               </button>
             )}
+            <span className="admin-modal-actions-end">
+              <button type="button" className="admin-btn-danger" onClick={handleDelete}>
+                Supprimer le compte
+              </button>
+            </span>
           </div>
-        )}
-      </div>
+        </AdminModal>
+      )}
     </div>
   );
 }
