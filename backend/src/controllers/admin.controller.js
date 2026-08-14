@@ -569,10 +569,14 @@ const changeUserRole = asyncHandler(async (req, res) => {
   const { userId } = req.params;
   const { role } = req.body;
 
-  const validRoles = ['CUSTOMER', 'ADMIN', 'PRODUCER'];
+  const validRoles = ['MEMBER', 'VOLUNTEER', 'ADMIN'];
 
   if (!role || !validRoles.includes(role)) {
     throw new HttpBadRequestError(`Rôle invalide. Valeurs autorisées : ${validRoles.join(', ')}`);
+  }
+
+  if (userId === req.user.id) {
+    throw new HttpBadRequestError('Vous ne pouvez pas modifier votre propre rôle');
   }
 
   const user = await prisma.user.findUnique({
@@ -585,6 +589,16 @@ const changeUserRole = asyncHandler(async (req, res) => {
 
   if (user.deletedAt) {
     throw new HttpBadRequestError('Cet utilisateur est supprimé');
+  }
+
+  if (user.role === 'ADMIN' && role !== 'ADMIN') {
+    const admins = await prisma.user.count({
+      where: { role: 'ADMIN', deletedAt: null }
+    });
+
+    if (admins <= 1) {
+      throw new HttpBadRequestError('Impossible de rétrograder le dernier administrateur');
+    }
   }
 
   const updatedUser = await prisma.user.update({
