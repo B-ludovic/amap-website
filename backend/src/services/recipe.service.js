@@ -33,7 +33,84 @@ const TRANSLATION_OVERRIDES = {
     'maïs': 'corn',
 };
 
+// TheMealDB ne renvoie ni temps de préparation ni nombre de parts : les seules
+// métadonnées réelles sont la catégorie et l'origine du plat. Elles sont
+// traduites par table pour rester déterministes (pas d'appel réseau).
+const MEAL_CATEGORY_FR = {
+    Beef: 'Bœuf',
+    Breakfast: 'Petit-déjeuner',
+    Chicken: 'Poulet',
+    Dessert: 'Dessert',
+    Goat: 'Chèvre',
+    Lamb: 'Agneau',
+    Miscellaneous: 'Plat varié',
+    Pasta: 'Pâtes',
+    Pork: 'Porc',
+    Seafood: 'Produits de la mer',
+    Side: 'Accompagnement',
+    Starter: 'Entrée',
+    Vegan: 'Végétalien',
+    Vegetarian: 'Végétarien',
+};
+
+const MEAL_AREA_FR = {
+    American: 'Américaine',
+    British: 'Britannique',
+    Canadian: 'Canadienne',
+    Chinese: 'Chinoise',
+    Croatian: 'Croate',
+    Dutch: 'Néerlandaise',
+    Egyptian: 'Égyptienne',
+    Filipino: 'Philippine',
+    French: 'Française',
+    Greek: 'Grecque',
+    Indian: 'Indienne',
+    Irish: 'Irlandaise',
+    Italian: 'Italienne',
+    Jamaican: 'Jamaïcaine',
+    Japanese: 'Japonaise',
+    Kenyan: 'Kényane',
+    Malaysian: 'Malaisienne',
+    Mexican: 'Mexicaine',
+    Moroccan: 'Marocaine',
+    Polish: 'Polonaise',
+    Portuguese: 'Portugaise',
+    Russian: 'Russe',
+    Spanish: 'Espagnole',
+    Thai: 'Thaïlandaise',
+    Tunisian: 'Tunisienne',
+    Turkish: 'Turque',
+    Ukrainian: 'Ukrainienne',
+    Uruguayan: 'Uruguayenne',
+    Vietnamese: 'Vietnamienne',
+};
+
+const VEGETARIAN_CATEGORIES = ['Vegetarian', 'Vegan'];
+
 class RecipeService {
+
+    // Métadonnées affichables d'un plat : catégorie et origine traduites
+    mealMeta(meal) {
+        return {
+            category: meal.strCategory || null,
+            categoryLabel: MEAL_CATEGORY_FR[meal.strCategory] || meal.strCategory || null,
+            area: meal.strArea || null,
+            areaLabel: MEAL_AREA_FR[meal.strArea] || null,
+            isVegetarian: VEGETARIAN_CATEGORIES.includes(meal.strCategory),
+        };
+    }
+
+    // Liste des ingrédients bruts (anglais) d'un plat, en minuscules
+    rawIngredientNames(meal) {
+        const names = [];
+        for (let i = 1; i <= 20; i++) {
+            const ingredient = meal[`strIngredient${i}`];
+            if (ingredient && ingredient.trim()) {
+                names.push(ingredient.trim().toLowerCase());
+            }
+        }
+        return names;
+    }
 
     // Normaliser un terme de recherche (enlever les pluriels, nettoyer)
     normalizeSearchTerm(term) {
@@ -213,8 +290,7 @@ class RecipeService {
                         image: meal.strMealThumb,
                         readyInMinutes: 30,
                         servings: 4,
-                        category: meal.strCategory,
-                        area: meal.strArea
+                        ...this.mealMeta(meal)
                     };
                 })
             );
@@ -309,9 +385,24 @@ class RecipeService {
             const otherMatches = ingredientMeals.filter(m => !frenchIds.has(m.idMeal));
             const prioritized = [...frenchMatches, ...otherMatches].slice(0, number);
 
+            // filter.php ne renvoie que l'id, le titre et la vignette : catégorie,
+            // origine et liste d'ingrédients demandent une fiche complète par recette.
+            const lookups = await Promise.all(
+                prioritized.map(meal => this.lookupMeal(meal.idMeal))
+            );
+
+            // Termes anglais de tous les ingrédients demandés, pour savoir
+            // lesquels apparaissent réellement dans chaque recette
+            const asked = await this.translateAskedIngredients(
+                ingredients, mainIngredient, preTranslatedEn ?? null
+            );
+
             const recipes = await Promise.all(
-                prioritized.map(async (meal) => {
+                prioritized.map(async (meal, index) => {
+                    const full = lookups[index];
                     const translatedTitle = await this.translateToFrench(meal.strMeal);
+                    const meta = full ? this.mealMeta(full) : {};
+                    const names = full ? this.rawIngredientNames(full) : [];
 
                     return {
                         id: meal.idMeal,
@@ -319,7 +410,11 @@ class RecipeService {
                         image: meal.strMealThumb,
                         usedIngredientCount: 1,
                         readyInMinutes: 30,
-                        servings: 4
+                        servings: 4,
+                        ...meta,
+                        matchedIngredients: asked
+                            .filter(a => names.some(n => n.includes(a.en)))
+                            .map(a => a.fr)
                     };
                 })
             );
@@ -331,10 +426,42 @@ class RecipeService {
         }
     }
 
+    // Fiche complète d'un plat ; renvoie null plutôt que d'interrompre la recherche
+    async lookupMeal(mealId) {
+        try {
+            const response = await fetch(`${THEMEALDB_BASE_URL}/lookup.php?i=${mealId}`);
+            if (!response.ok) return null;
+            const data = await response.json();
+            return data.meals?.[0] || null;
+        } catch (error) {
+            console.error('Erreur lookupMeal:', error);
+            return null;
+        }
+    }
+
+    // Couples { fr, en } des ingrédients recherchés, dédoublonnés
+    async translateAskedIngredients(ingredients, mainIngredient, preTranslatedEn) {
+        const unique = [...new Set(ingredients.filter(Boolean))];
+        return Promise.all(
+            unique.map(async (fr) => ({
+                fr,
+                en: (fr === mainIngredient && preTranslatedEn)
+                    ? preTranslatedEn.toLowerCase()
+                    : (await this.translateIngredient(fr)).toLowerCase()
+            }))
+        );
+    }
+
     // Obtenir des suggestions de recettes pour un panier hebdomadaire
 
     async getSuggestionsForWeeklyBasket(weeklyBasketItems) {
-        const ingredients = weeklyBasketItems.map(item => item.product.name);
+        // Un item du panier peut être libre (customProductName) et n'avoir aucun produit
+        const ingredients = weeklyBasketItems
+            .map(item => item.product?.name || item.customProductName)
+            .filter(Boolean);
+
+        if (ingredients.length === 0) return [];
+
         const recipes = await this.findByIngredients(ingredients, 6);
         return recipes;
     }
