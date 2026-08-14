@@ -525,3 +525,162 @@
   color: var(--border-strong);
   cursor: not-allowed;
 }
+
+/* GRILLE DE FAITS
+   Deux colonnes de couples intitulé/valeur, séparées par un filet vertical.
+   Sert dans les fiches de demande, où les données arrivent par paires
+   naturelles (demandeur/date, email/téléphone, formule/tarif). */
+
+.admin-facts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-top: 1px solid var(--border-card);
+  margin-bottom: 24px;
+}
+
+.admin-facts > div {
+  padding: 16px 24px 16px 0;
+  border-bottom: 1px solid var(--border-card);
+}
+
+.admin-facts > div:nth-child(even) {
+  padding: 16px 0 16px 24px;
+  border-left: 1px solid var(--border-card);
+}
+
+.admin-fact-value {
+  font-size: 15px;
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+}
+
+.admin-fact-value-mono {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: var(--font-weight-normal);
+}
+
+/* BLOC DE CITATION
+   Message recopié tel qu'il a été écrit par le demandeur : fond sable pour
+   marquer qu'il n'est pas de la main de l'administration. */
+.admin-quote {
+  margin: 0;
+  padding: 16px 18px;
+  border-radius: var(--border-radius-md);
+  background-color: var(--surface-sand);
+  font-size: 14.5px;
+  line-height: 1.7;
+  color: var(--text-primary);
+}
+
+.admin-quote-compact {
+  padding: 12px 14px;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+/* GRILLE DE FICHES */
+
+.admin-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.admin-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+/* En-tête de fiche : nom en Fraunces, méta en monospace, état à droite. */
+.admin-item-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--border-card);
+  background-color: var(--surface-sand);
+}
+
+.admin-item-title {
+  margin: 0 0 5px;
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-normal);
+  font-size: 18px;
+}
+
+.admin-item-meta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-light);
+}
+
+.admin-item-body {
+  padding: 18px 20px;
+}
+
+.admin-item-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 18px;
+  flex-wrap: wrap;
+}
+
+/* Liste intitulé/valeur resserrée, posée dans le corps d'une fiche. */
+.admin-mini-def {
+  --def-col: 96px;
+  --def-gap: 14px;
+  --def-pad: 9px;
+  --def-rule: var(--border-soft);
+}
+
+.admin-mini-def .def-value {
+  font-size: 13.5px;
+  color: var(--text-primary);
+}
+
+/* ÉTAT VIDE EN CARTE */
+
+.admin-empty-card {
+  padding: 56px 20px;
+  border: 1px solid var(--border-card);
+  border-radius: var(--border-radius-md);
+  background-color: var(--surface-page);
+  text-align: center;
+}
+
+.admin-empty-card-title {
+  margin: 0 0 8px;
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-normal);
+  font-size: 20px;
+  color: var(--text-primary);
+}
+
+.admin-empty-card-note {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-light);
+}
+
+@media (max-width: 1100px) {
+  .admin-grid-2,
+  .admin-grid-3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .admin-facts {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-facts > div,
+  .admin-facts > div:nth-child(even) {
+    padding: 14px 0;
+    border-left: none;
+  }
+}

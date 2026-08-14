@@ -10,6 +10,15 @@ import {
 } from '../utils/httpErrors.js';
 import { logAudit } from '../services/audit.service.js';
 import { SubscriptionRequestSchema } from '../utils/validation.schemas.js';
+import { computeSubscriptionPrice, computeEndDate } from '../utils/subscriptionPricing.js';
+
+/* Le prix n'est pas stocké sur la demande : il découle de la formule choisie.
+   On le calcule à la lecture pour que l'administration annonce le montant exact
+   du contrat qui sera créé, sans recopier la grille côté navigateur. */
+const withPrice = (request) => ({
+  ...request,
+  price: computeSubscriptionPrice(request)
+});
 
 // SOUMETTRE UNE DEMANDE D'ABONNEMENT (UTILISATEUR CONNECTÉ)
 export const submitRequest = asyncHandler(async (req, res) => {
@@ -103,7 +112,7 @@ export const getAllRequests = asyncHandler(async (req, res) => {
   res.json({
     success: true,
     data: {
-      requests,
+      requests: requests.map(withPrice),
       pagination: {
         total,
         page: parsedPage,
@@ -128,7 +137,7 @@ export const getRequestById = asyncHandler(async (req, res) => {
 
   res.json({
     success: true,
-    data: request
+    data: withPrice(request)
   });
 });
 
@@ -153,13 +162,19 @@ export const updateRequestStatus = asyncHandler(async (req, res) => {
     throw new HttpNotFoundError('Demande d\'abonnement non trouvée');
   }
 
+  /* Le tampon de traitement se pose une seule fois. Réécrire une note sur une
+     demande déjà traitée ne doit pas repousser sa date ni changer la main qui
+     l'a traitée ; seul un retour en arrière (retour à « en attente ») efface
+     le tampon. */
+  const isProcessed = status === 'APPROVED' || status === 'REJECTED';
+
   const updatedRequest = await prisma.subscriptionRequest.update({
     where: { id },
     data: {
       status,
-      adminNotes: adminNotes || request.adminNotes,
-      processedAt: status === 'APPROVED' || status === 'REJECTED' ? new Date() : null,
-      processedBy: status === 'APPROVED' || status === 'REJECTED' ? req.user.id : null
+      adminNotes: adminNotes ?? request.adminNotes,
+      processedAt: isProcessed ? (request.processedAt ?? new Date()) : null,
+      processedBy: isProcessed ? (request.processedBy ?? req.user.id) : null
     }
   });
 
@@ -217,27 +232,8 @@ export const approveAndCreateSubscription = asyncHandler(async (req, res) => {
 
   // 4. Calculer les dates et le prix
   const startDate = new Date();
-  let endDate = new Date();
-  let price = 0;
-
-  if (request.type === 'ANNUAL') {
-    endDate.setFullYear(endDate.getFullYear() + 1);
-    
-    if (request.basketSize === 'SMALL') {
-      price = request.pricingType === 'SOLIDARITY' ? 177.60 : 888;
-    } else {
-      price = request.pricingType === 'SOLIDARITY' ? 278.40 : 1392;
-    }
-  } else {
-    // Découverte : 3 mois
-    endDate.setMonth(endDate.getMonth() + 3);
-    
-    if (request.basketSize === 'SMALL') {
-      price = request.pricingType === 'SOLIDARITY' ? 44.40 : 222;
-    } else {
-      price = request.pricingType === 'SOLIDARITY' ? 69.60 : 348;
-    }
-  }
+  const endDate = computeEndDate(request.type, startDate);
+  const price = computeSubscriptionPrice(request);
 
   // 5. Générer le numéro d'abonnement
   const year = new Date().getFullYear();
