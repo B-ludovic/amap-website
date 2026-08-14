@@ -155,11 +155,18 @@ const updateInquiryStatus = asyncHandler(async (req, res) => {
     throw new HttpNotFoundError('Demande introuvable');
   }
 
-  // Si accepté ET createProducer = true, créer le producteur
+  /* Création du producteur à l'acceptation. L'email d'un producteur est unique
+     en base : accepter deux fois la même candidature ferait remonter une
+     violation de contrainte brute. On regarde d'abord si la ferme est déjà
+     enregistrée, auquel cas on la réutilise au lieu d'en créer un doublon. */
   let newProducer = null;
 
   if (status === 'ACCEPTED' && createProducer) {
-    newProducer = await prisma.producer.create({
+    const existingProducer = await prisma.producer.findUnique({
+      where: { email: inquiry.email }
+    });
+
+    newProducer = existingProducer ?? await prisma.producer.create({
       data: {
         name: inquiry.farmName,
         email: inquiry.email,
@@ -171,20 +178,30 @@ const updateInquiryStatus = asyncHandler(async (req, res) => {
     });
   }
 
+  /* Le tampon de réponse se pose une seule fois, à la première décision.
+     Enregistrer une note ou repasser la candidature à l'étude ne doit pas
+     réécrire la date ni la main qui a répondu. */
+  const isAnswered = status === 'ACCEPTED' || status === 'REJECTED';
+
   const updated = await prisma.producerInquiry.update({
     where: { id },
     data: {
       status,
-      adminNotes,
-      respondedAt: new Date(),
-      respondedBy: req.user.id
+      adminNotes: adminNotes ?? inquiry.adminNotes,
+      respondedAt: isAnswered ? (inquiry.respondedAt ?? new Date()) : null,
+      respondedBy: isAnswered ? (inquiry.respondedBy ?? req.user.id) : null
     }
   });
 
-  if (status === 'ACCEPTED') {
-    await emailService.sendProducerInquiryAccepted(inquiry);
-  } else if (status === 'REJECTED') {
-    await emailService.sendProducerInquiryRejected(inquiry);
+  /* L'email ne part qu'au changement d'état. Sans cette garde, enregistrer une
+     note sur une candidature déjà acceptée renverrait la réponse au producteur
+     à chaque enregistrement. */
+  if (inquiry.status !== status) {
+    if (status === 'ACCEPTED') {
+      await emailService.sendProducerInquiryAccepted(inquiry);
+    } else if (status === 'REJECTED') {
+      await emailService.sendProducerInquiryRejected(inquiry);
+    }
   }
 
   res.json({

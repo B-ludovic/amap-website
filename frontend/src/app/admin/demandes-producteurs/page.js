@@ -1,237 +1,301 @@
 'use client';
 
-import { useEffect, useState } from "react";
-import api from "../../../lib/api";
-import { useModal } from "../../../contexts/ModalContext";
-import ProducerInquiryModal from "../../../components/admin/ProducerInquiryModal";
-import "../../../styles/admin/components.css";
-import "../../../styles/admin/dashboard.css";
-import "../../../styles/admin/layout.css";
-import "../../../styles/admin/requests.css";
-import { Sprout, Eye, Check, X, Clock, Archive, MapPin } from "lucide-react";
+import { useCallback, useEffect, useState } from 'react';
+import api from '../../../lib/api';
+import { useModal } from '../../../contexts/ModalContext';
+import AdminModal from '../../../components/admin/AdminModal';
+import { dayMonthYear, phone, plural } from '../../../lib/format';
+
+const STATUS = {
+  PENDING: { label: 'En attente', tone: 'admin-badge-amber' },
+  IN_PROGRESS: { label: 'À l\'étude', tone: 'admin-badge-brown' },
+  ACCEPTED: { label: 'Acceptée', tone: 'admin-badge-green' },
+  REJECTED: { label: 'Refusée', tone: 'admin-badge-red' },
+  ARCHIVED: { label: 'Archivée', tone: '' }
+};
+
+const FILTERS = [
+  { key: 'PENDING', label: 'En attente' },
+  { key: 'IN_PROGRESS', label: 'À l\'étude' },
+  { key: 'ACCEPTED', label: 'Acceptées' },
+  { key: 'REJECTED', label: 'Refusées' },
+  { key: 'ALL', label: 'Toutes' }
+];
+
+/* La maquette écrit « Sèvres (92310) · 9 km du point de retrait ». La distance
+   est facultative en base : sans elle, on s'arrête à la commune. */
+function locationOf(inquiry) {
+  const town = `${inquiry.city} (${inquiry.postalCode})`;
+  return inquiry.distance
+    ? `${town} · ${inquiry.distance} km du point de retrait`
+    : town;
+}
+
+/* La maquette montre « Certifiée AB depuis 2019 » ou « En conversion ». Le
+   champ libre `certifications` porte cette phrase quand elle a été saisie ;
+   sinon on retombe sur la case bio, seule information certaine. */
+function certificationOf(inquiry) {
+  if (inquiry.certifications) return inquiry.certifications;
+  return inquiry.isBio ? 'Agriculture biologique' : 'Non renseignée';
+}
 
 export default function AdminProducerInquiriesPage() {
+  const { showConfirm, showSuccess, showError } = useModal();
+
   const [inquiries, setInquiries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('PENDING');
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedInquiry, setSelectedInquiry] = useState(null);
-  
-  const { showError } = useModal();
+  const [selected, setSelected] = useState(null);
+  const [notes, setNotes] = useState('');
+  const [busy, setBusy] = useState(false);
 
-  useEffect(() => {
-    fetchInquiries();
-  }, [filter]);
-
-  const fetchInquiries = async () => {
+  const fetchInquiries = useCallback(async (status) => {
+    setLoading(true);
     try {
-      setLoading(true);
-      const params = filter !== 'all' ? { status: filter } : {};
-      const response = await api.producerInquiries.getAll(params);
+      const response = await api.producerInquiries.getAll(
+        status === 'ALL' ? {} : { status }
+      );
       setInquiries(response.data.inquiries);
     } catch (error) {
-      showError('Erreur', 'Erreur lors du chargement des demandes');
+      showError('Erreur', 'Impossible de charger les candidatures.');
     } finally {
       setLoading(false);
     }
+  }, [showError]);
+
+  useEffect(() => {
+    fetchInquiries(filter);
+  }, [filter, fetchInquiries]);
+
+  const openInquiry = (inquiry) => {
+    setSelected(inquiry);
+    setNotes(inquiry.adminNotes ?? '');
   };
 
-  const handleView = (inquiry) => {
-    setSelectedInquiry(inquiry);
-    setIsModalOpen(true);
-  };
-
-  const handleModalClose = (shouldRefresh) => {
-    setIsModalOpen(false);
-    setSelectedInquiry(null);
-    if (shouldRefresh) {
-      fetchInquiries();
+  const applyStatus = async (status, options = {}) => {
+    setBusy(true);
+    try {
+      await api.producerInquiries.updateStatus(selected.id, {
+        status,
+        adminNotes: notes,
+        ...options
+      });
+      showSuccess('Candidature mise à jour', options.successMessage ?? 'Le statut a été enregistré.');
+      setSelected(null);
+      fetchInquiries(filter);
+    } catch (error) {
+      showError('Erreur', error.message);
+    } finally {
+      setBusy(false);
     }
   };
 
-  const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('fr-FR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  const getStatusBadge = (status) => {
-    const statuses = {
-      PENDING: { label: 'En attente', color: 'warning', icon: Clock },
-      IN_PROGRESS: { label: 'En cours', color: 'info', icon: Clock },
-      ACCEPTED: { label: 'Acceptée', color: 'success', icon: Check },
-      REJECTED: { label: 'Refusée', color: 'error', icon: X },
-      ARCHIVED: { label: 'Archivée', color: 'secondary', icon: Archive }
-    };
-    
-    const info = statuses[status] || statuses.PENDING;
-    const Icon = info.icon;
-    
-    return (
-      <span className={`badge badge-${info.color}`}>
-        <Icon size={14} />
-        {info.label}
-      </span>
+  /* Accepter crée la fiche producteur dans la foulée : c'est ce que fait déjà
+     le backend quand on lui passe createProducer. La confirmation le dit, pour
+     que personne ne découvre la fiche après coup. */
+  const handleAccept = () => {
+    showConfirm(
+      'Accepter la candidature',
+      `Accepter ${selected.farmName} et créer sa fiche producteur ? Un email de réponse partira vers ${selected.email}.`,
+      () => applyStatus('ACCEPTED', {
+        createProducer: true,
+        successMessage: 'La candidature est acceptée et la fiche producteur créée.'
+      })
     );
   };
 
-  if (loading) {
-    return <div className="loading-state">Chargement...</div>;
-  }
+  const handleReject = () => {
+    showConfirm(
+      'Refuser la candidature',
+      `Refuser ${selected.farmName} ? Un email de réponse partira vers ${selected.email}.`,
+      () => applyStatus('REJECTED', { successMessage: 'La candidature a été refusée.' })
+    );
+  };
 
   return (
-    <div className="admin-page">
-      <div className="page-header">
+    <div className="admin-inquiries">
+      <div className="admin-page-head">
         <div>
-          <h1>Demandes producteurs</h1>
-          <p className="page-subtitle">Candidatures pour rejoindre le réseau</p>
-        </div>
-      </div>
-
-      {/* Filtres */}
-      <div className="toolbar">
-        <div className="toolbar-filters">
-          <button
-            className={`btn ${filter === 'PENDING' ? 'btn-primary' : 'btn-secondary'}`}
-            onClick={() => setFilter('PENDING')}
-          >
-            <Clock size={18} />
-            En attente
-          </button>
-          <button
-            className={`btn ${filter === 'IN_PROGRESS' ? 'btn-primary' : 'btn-secondary'}`}
-            onClick={() => setFilter('IN_PROGRESS')}
-          >
-            En cours
-          </button>
-          <button
-            className={`btn ${filter === 'ACCEPTED' ? 'btn-primary' : 'btn-secondary'}`}
-            onClick={() => setFilter('ACCEPTED')}
-          >
-            <Check size={18} />
-            Acceptées
-          </button>
-          <button
-            className={`btn ${filter === 'REJECTED' ? 'btn-primary' : 'btn-secondary'}`}
-            onClick={() => setFilter('REJECTED')}
-          >
-            <X size={18} />
-            Refusées
-          </button>
-          <button
-            className={`btn ${filter === 'all' ? 'btn-primary' : 'btn-secondary'}`}
-            onClick={() => setFilter('all')}
-          >
-            Toutes
-          </button>
-        </div>
-      </div>
-
-      {/* Liste des demandes */}
-      {inquiries.length === 0 ? (
-        <div className="empty-state">
-          <Sprout size={48} />
-          <h3>Aucune demande</h3>
-          <p>
-            {filter === 'PENDING' 
-              ? 'Aucune demande de producteur en attente'
-              : 'Aucune demande ne correspond à ce filtre'}
+          <h1 className="admin-title">Demandes producteurs</h1>
+          <p className="admin-title-lead">
+            {inquiries.length} {plural(inquiries.length, 'candidature', 'candidatures')}
+            {filter === 'PENDING' ? ' à étudier.' : ' avec ce filtre.'}
           </p>
         </div>
+      </div>
+
+      <div className="admin-pills">
+        {FILTERS.map(item => (
+          <button
+            key={item.key}
+            type="button"
+            className={`admin-pill ${filter === item.key ? 'admin-pill-active' : ''}`}
+            onClick={() => setFilter(item.key)}
+          >
+            {item.label}
+          </button>
+        ))}
+      </div>
+
+      {loading ? (
+        <p className="admin-empty">Chargement…</p>
+      ) : inquiries.length === 0 ? (
+        <div className="admin-empty-card">
+          <p className="admin-empty-card-title">Aucune candidature</p>
+          <p className="admin-empty-card-note">Rien à étudier avec ce filtre.</p>
+        </div>
       ) : (
-        <div className="requests-grid">
-          {inquiries.map((inquiry) => (
-            <div key={inquiry.id} className="request-card">
-              <div className="request-card-header">
-                <div className="request-info">
-                  <h3>{inquiry.farmName}</h3>
-                  <p className="request-subtitle">
-                    {inquiry.firstName} {inquiry.lastName}
-                  </p>
-                  <p className="request-date">
-                    Demande reçue le {formatDate(inquiry.createdAt)}
-                  </p>
-                </div>
-                {getStatusBadge(inquiry.status)}
-              </div>
+        <div className="admin-grid-2">
+          {inquiries.map((inquiry) => {
+            const status = STATUS[inquiry.status] ?? { label: inquiry.status, tone: '' };
 
-              <div className="request-card-body">
-                <div className="request-contact">
-                  <div className="contact-item">
-                    <span className="contact-label">Email :</span>
-                    <span className="contact-value">{inquiry.email}</span>
+            return (
+              <article key={inquiry.id} className="admin-panel">
+                <div className="admin-item-head">
+                  <div>
+                    <h2 className="admin-item-title">{inquiry.farmName}</h2>
+                    <p className="admin-item-contact">{inquiry.firstName} {inquiry.lastName}</p>
+                    <p className="admin-item-meta">Reçue le {dayMonthYear(inquiry.createdAt)}</p>
                   </div>
-                  <div className="contact-item">
-                    <span className="contact-label">Téléphone :</span>
-                    <span className="contact-value">{inquiry.phone}</span>
-                  </div>
+                  <span className={`admin-badge ${status.tone}`}>{status.label}</span>
                 </div>
 
-                <div className="producer-location">
-                  <MapPin size={16} />
-                  <span>
-                    {inquiry.city} ({inquiry.postalCode})
-                    {inquiry.distance && ` • ${inquiry.distance} km`}
-                  </span>
-                </div>
-
-                <div className="producer-details">
-                  <div className="detail-item">
-                    <span className="detail-label">Production :</span>
-                    <span className="detail-value">{inquiry.products}</span>
-                  </div>
-                  {inquiry.isBio && (
-                    <div className="bio-badge">
-                      <Sprout size={14} />
-                      <span>Agriculture biologique</span>
+                <div className="admin-item-body">
+                  <dl className="def-list admin-mini-def admin-inquiry-def">
+                    <div className="def-row">
+                      <dt className="def-label">Localisation</dt>
+                      <dd className="def-value">{locationOf(inquiry)}</dd>
                     </div>
-                  )}
-                  {inquiry.certifications && (
-                    <div className="certifications">
-                      <span className="detail-label">Certifications :</span>
-                      <span className="detail-value">{inquiry.certifications}</span>
+                    <div className="def-row">
+                      <dt className="def-label">Production</dt>
+                      <dd className="def-value">{inquiry.products}</dd>
                     </div>
+                    <div className="def-row">
+                      <dt className="def-label">Bio</dt>
+                      <dd className="def-value">{certificationOf(inquiry)}</dd>
+                    </div>
+                    <div className="def-row">
+                      <dt className="def-label">Contact</dt>
+                      <dd className="def-value def-value-mono">
+                        {inquiry.email}
+                        <br />
+                        {phone(inquiry.phone)}
+                      </dd>
+                    </div>
+                  </dl>
+
+                  {inquiry.message && (
+                    <p className="admin-quote admin-quote-compact" style={{ marginTop: '16px' }}>
+                      {inquiry.message}
+                    </p>
                   )}
+
+                  <div className="admin-item-actions">
+                    <button type="button" className="admin-btn-primary" onClick={() => openInquiry(inquiry)}>
+                      {inquiry.status === 'PENDING' || inquiry.status === 'IN_PROGRESS'
+                        ? 'Étudier la candidature'
+                        : 'Voir le détail'}
+                    </button>
+                  </div>
                 </div>
-
-                {inquiry.message && (
-                  <div className="request-message">
-                    <strong>Message :</strong>
-                    <p>{inquiry.message.substring(0, 100)}{inquiry.message.length > 100 ? '...' : ''}</p>
-                  </div>
-                )}
-
-                {inquiry.adminNotes && (
-                  <div className="request-admin-notes">
-                    <strong>Notes admin :</strong>
-                    <p>{inquiry.adminNotes}</p>
-                  </div>
-                )}
-              </div>
-
-              <div className="request-card-actions">
-                <button
-                  className="btn btn-primary"
-                  onClick={() => handleView(inquiry)}
-                >
-                  <Eye size={18} />
-                  Voir détails
-                </button>
-              </div>
-            </div>
-          ))}
+              </article>
+            );
+          })}
         </div>
       )}
 
-      {isModalOpen && selectedInquiry && (
-        <ProducerInquiryModal
-          inquiry={selectedInquiry}
-          onClose={handleModalClose}
-        />
+      {selected && (
+        <AdminModal title="Demande de producteur" width="720px" onClose={() => setSelected(null)}>
+          <div className="admin-facts">
+            <div>
+              <span className="admin-field-label">Exploitation</span>
+              <div className="admin-fact-value">{selected.farmName}</div>
+            </div>
+            <div>
+              <span className="admin-field-label">Interlocuteur</span>
+              <div className="admin-fact-value">{selected.firstName} {selected.lastName}</div>
+            </div>
+            <div>
+              <span className="admin-field-label">Localisation</span>
+              <div className="admin-fact-value">{locationOf(selected)}</div>
+            </div>
+            <div>
+              <span className="admin-field-label">Certification</span>
+              <div className="admin-fact-value">{certificationOf(selected)}</div>
+            </div>
+            <div>
+              <span className="admin-field-label">Production</span>
+              <div className="admin-fact-value">{selected.products}</div>
+            </div>
+            <div>
+              <span className="admin-field-label">Contact</span>
+              <div className="admin-fact-value admin-fact-value-mono">
+                {selected.email}
+                <br />
+                {phone(selected.phone)}
+              </div>
+            </div>
+          </div>
+
+          {selected.availability && (
+            <div style={{ marginBottom: '24px' }}>
+              <span className="admin-field-label">Disponibilités</span>
+              <p className="admin-fact-value">{selected.availability}</p>
+            </div>
+          )}
+
+          {selected.message && (
+            <div style={{ marginBottom: '24px' }}>
+              <span className="admin-field-label">Message</span>
+              <p className="admin-quote">{selected.message}</p>
+            </div>
+          )}
+
+          <div style={{ marginBottom: '26px' }}>
+            <label htmlFor="admin-inquiry-notes" className="admin-field-label">Notes internes</label>
+            <textarea
+              id="admin-inquiry-notes"
+              className="admin-textarea"
+              rows={3}
+              placeholder="Notes internes (visite prévue, remarques, conditions d'acceptation…)"
+              value={notes}
+              onChange={(event) => setNotes(event.target.value)}
+            />
+          </div>
+
+          <div className="admin-modal-actions">
+            {selected.status !== 'ACCEPTED' && (
+              <button type="button" className="admin-btn-forest" onClick={handleAccept} disabled={busy}>
+                Accepter la candidature
+              </button>
+            )}
+            {selected.status === 'PENDING' && (
+              <button
+                type="button"
+                className="admin-btn-ghost"
+                onClick={() => applyStatus('IN_PROGRESS', { successMessage: 'La candidature passe à l\'étude.' })}
+                disabled={busy}
+              >
+                Mettre à l&apos;étude
+              </button>
+            )}
+            <button
+              type="button"
+              className="admin-btn-ghost"
+              onClick={() => applyStatus(selected.status, { successMessage: 'Les notes internes ont été enregistrées.' })}
+              disabled={busy}
+            >
+              Enregistrer les notes
+            </button>
+            {selected.status !== 'REJECTED' && (
+              <span className="admin-modal-actions-end">
+                <button type="button" className="admin-btn-danger" onClick={handleReject} disabled={busy}>
+                  Refuser
+                </button>
+              </span>
+            )}
+          </div>
+        </AdminModal>
       )}
     </div>
   );

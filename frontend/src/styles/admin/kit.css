@@ -684,3 +684,21 @@
     border-left: none;
   }
 }
+
+/* Ligne d'interlocuteur sous le nom d'une exploitation. */
+.admin-item-contact {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.admin-item-contact + .admin-item-meta {
+  display: block;
+  margin-top: 5px;
+}
+
+/* Les candidatures producteurs ont des intitulés plus longs que les demandes
+   d'abonnement : la colonne des libellés s'élargit sur ce seul gabarit. */
+.admin-inquiry-def {
+  --def-col: 104px;
+}
