@@ -1,7 +1,5 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { Mail } from 'lucide-react';
- 
 
 function Footer() {
   const currentYear = new Date().getFullYear();
@@ -16,16 +14,19 @@ function Footer() {
               <Image
                 src="/icons/logo.png"
                 alt="Logo Aux P'tits Pois"
-                width={32}
-                height={32}
+                width={34}
+                height={34}
                 className="footer-icon"
               />
               Aux P&apos;tits Pois
             </h3>
             <p className="footer-description">
-              Votre AMAP locale pour des produits frais, bio et de saison.
-              Soutenez l&apos;agriculture locale et mangez sainement.
+              Votre AMAP locale à Clamart. Des produits frais, bio et de saison,
+              en circuit court.
             </p>
+            <a href="mailto:auxptitspois@gmail.com" className="footer-mail">
+              auxptitspois@gmail.com
+            </a>
           </div>
 
           {/* Colonne 2 : Navigation */}
@@ -39,7 +40,7 @@ function Footer() {
               </li>
               <li>
                 <Link href="/nos-abonnements" className="footer-link">
-                  Nos Abonnements
+                  Nos abonnements
                 </Link>
               </li>
               <li>
@@ -49,12 +50,12 @@ function Footer() {
               </li>
               <li>
                 <Link href="/nos-producteurs" className="footer-link">
-                  Nos Producteurs
+                  Nos producteurs
                 </Link>
               </li>
               <li>
                 <Link href="/devenir-producteur" className="footer-link">
-                  Devenir Producteur
+                  Devenir producteur
                 </Link>
               </li>
             </ul>
@@ -62,7 +63,7 @@ function Footer() {
 
           {/* Colonne 3 : Mon Compte */}
           <div className="footer-column">
-            <h4 className="footer-heading">Mon Compte</h4>
+            <h4 className="footer-heading">Mon compte</h4>
             <ul className="footer-links">
               <li>
                 <Link href="/auth/login" className="footer-link">
@@ -76,7 +77,7 @@ function Footer() {
               </li>
               <li>
                 <Link href="/compte" className="footer-link">
-                  Mon Compte
+                  Espace adhérent
                 </Link>
               </li>
             </ul>
@@ -98,7 +99,7 @@ function Footer() {
               </li>
               <li>
                 <Link href="/mentions-legales" className="footer-link">
-                  Mentions Légales
+                  Mentions légales
                 </Link>
               </li>
               <li>
@@ -113,33 +114,9 @@ function Footer() {
         {/* Bas du footer */}
         <div className="footer-bottom">
           <p className="footer-copyright">
-            © {currentYear} Aux P&apos;tits Pois. Tous droits réservés.
+            © {currentYear} Aux P&apos;tits Pois — Tous droits réservés
           </p>
-          <div className="footer-socials">
-            <span className="footer-social-link footer-social-disabled" aria-label="Facebook (bientôt disponible)">
-              <Image
-                src="/icons/facebook.png"
-                alt="Facebook"
-                width={20}
-                height={20}
-              />
-            </span>
-            <span className="footer-social-link footer-social-disabled" aria-label="Instagram (bientôt disponible)">
-              <Image
-                src="/icons/instagram.png"
-                alt="Instagram"
-                width={20}
-                height={20}
-              />
-            </span>
-            <a
-              href="mailto:auxptitspois@gmail.com"
-              className="footer-social-link"
-              aria-label="Email"
-            >
-              <Mail size={20} />
-            </a>
-          </div>
+          <p className="footer-place">Clamart · Île-de-France</p>
         </div>
       </div>
     </footer>

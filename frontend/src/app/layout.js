@@ -1,4 +1,5 @@
 import { headers } from 'next/headers';
+import { Fraunces, Plus_Jakarta_Sans, Geist_Mono } from 'next/font/google';
 import CookieConsent from '../components/CookieConsent';
 import Header from '../components/layout/Header';
 import ConditionalFooter from '../components/layout/ConditionalFooter';
@@ -13,6 +14,26 @@ import '../styles/components/header.css';
 import '../styles/components/footer.css';
 import '../styles/public/compte.css';
 
+const fraunces = Fraunces({
+  subsets: ['latin'],
+  style: ['normal', 'italic'],
+  display: 'swap',
+  variable: '--font-fraunces',
+});
+
+const jakarta = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-jakarta',
+});
+
+const geistMono = Geist_Mono({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-geist-mono',
+});
+
+const fontVariables = `${fraunces.variable} ${jakarta.variable} ${geistMono.variable}`;
 
 export const metadata = {
   title: {
@@ -87,7 +108,7 @@ async function RootLayout({ children }) {
   const nonce = headersList.get('x-nonce') ?? '';
 
   return (
-    <html lang="fr">
+    <html lang="fr" className={fontVariables}>
       <body>
         <a href="#main-content" className="skip-link">Aller au contenu principal</a>
         <JsonLd data={organizationJsonLd} />
