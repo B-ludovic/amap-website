@@ -153,11 +153,11 @@ export default function AdminWeeklyBasketPage() {
       <div className="page-header">
         <div>
           <h1>Panier hebdomadaire</h1>
-          <p className="page-subtitle">Composez le panier de chaque semaine</p>
+          <p className="page-subtitle">Générez le snapshot hebdomadaire depuis le catalogue saisonnier</p>
         </div>
         <button className="btn btn-primary" onClick={handleCreate}>
           <Plus size={20} />
-          Créer un panier
+          Générer un panier
         </button>
       </div>
 
@@ -229,7 +229,7 @@ export default function AdminWeeklyBasketPage() {
           <p>Créez votre premier panier hebdomadaire</p>
           <button className="btn btn-primary" onClick={handleCreate}>
             <Plus size={20} />
-            Créer un panier
+            Générer un panier
           </button>
         </div>
       ) : (
@@ -317,7 +317,6 @@ export default function AdminWeeklyBasketPage() {
       {isModalOpen && (
         <WeeklyBasketModal
           basket={selectedBasket}
-          lastBasket={currentBasket || (baskets.length > 0 ? baskets[0] : null)}
           onClose={handleModalClose}
         />
       )}

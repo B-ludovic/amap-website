@@ -471,8 +471,9 @@ const api = {
       });
     },
 
-    getCurrent: async () => {
-      return fetchAPI('/weekly-baskets/current', {
+    getCurrent: async (params = {}) => {
+      const queryString = new URLSearchParams(params).toString();
+      return fetchAPI(`/weekly-baskets/current${queryString ? `?${queryString}` : ''}`, {
         requiresAuth: true,
       });
     },

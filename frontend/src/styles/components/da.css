@@ -12,7 +12,8 @@
 .login-page,
 .account-page,
 .contact-page,
-.basket-page {
+.basket-page,
+.recipe-page {
   line-height: normal;
 }
 
@@ -186,6 +187,144 @@
   line-height: 1.65;
   color: var(--on-forest);
   margin: 0 0 18px;
+}
+
+/* ---------- Carte recette ----------
+   Vignette 3:2, titre Fraunces, ingrédients cités puis pied de métadonnées.
+   Partagée par la grille du panier et les suggestions de la page recette. */
+.recipe-card {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--surface-page);
+  border: var(--border-width) solid var(--border-card);
+  border-radius: var(--border-radius-md);
+  overflow: hidden;
+  color: var(--text-primary);
+  transition: border-color var(--transition-fast);
+}
+
+.recipe-card:hover {
+  border-color: var(--text-primary);
+  color: var(--text-primary);
+}
+
+.recipe-card-image {
+  aspect-ratio: 3 / 2;
+  border-bottom: var(--border-width) solid var(--border-card);
+  background-color: var(--surface-sand);
+  width: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.recipe-card-body {
+  padding: 18px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+}
+
+.recipe-card-title {
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-normal);
+  font-size: 19px;
+  line-height: 1.25;
+  letter-spacing: 0;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.recipe-card-tags {
+  font-family: var(--font-mono);
+  font-size: var(--label-size);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-light);
+  line-height: 1.5;
+}
+
+.recipe-card-foot {
+  margin-top: auto;
+  padding-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border-top: var(--border-width) solid var(--border-soft);
+}
+
+.recipe-card-meta {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}
+
+.recipe-card-sep {
+  color: var(--border-rule);
+}
+
+.recipe-card-veggie {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 4px 8px;
+  border-radius: var(--border-radius-sm);
+  background-color: var(--badge-live-bg);
+  color: var(--badge-live-fg);
+}
+
+/* Même badge, en taille pleine : posé sur une photo ou dans une carte */
+.badge-veggie {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 6px 10px;
+  border-radius: var(--border-radius-sm);
+  background-color: var(--badge-live-bg);
+  color: var(--badge-live-fg);
+}
+
+/* ---------- Boutons d'appel en pied de page ---------- */
+.btn-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 52px;
+  padding: 0 28px;
+  border-radius: var(--border-radius-md);
+  font-family: var(--font-body);
+  font-size: 15.5px;
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.btn-cta-primary {
+  background-color: var(--terracotta);
+  color: var(--surface-page);
+  border: none;
+}
+
+.btn-cta-primary:hover {
+  background-color: var(--terracotta-dark);
+  color: var(--surface-page);
+}
+
+.btn-cta-ghost {
+  background-color: transparent;
+  color: var(--text-primary);
+  border: var(--border-width) solid var(--border-strong);
+}
+
+.btn-cta-ghost:hover {
+  background-color: var(--surface-sand);
+  border-color: var(--text-primary);
+  color: var(--text-primary);
 }
 
 /* Colonne de chiffres adossée à un filet vertical (hero des pages internes) */

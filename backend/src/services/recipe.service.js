@@ -120,6 +120,52 @@ const MEAL_AREA_FR = {
 
 const VEGETARIAN_CATEGORIES = ['Vegetarian', 'Vegan'];
 
+// Les quantités de TheMealDB ne sont pas traduites : seules les unités et les
+// mentions courantes le sont, mot à mot. Le reste passe tel quel.
+const MEASURE_WORDS_FR = [
+    [/\btablespoons?\b|\btblsp\b|\btbsp\b|\btbs\b/gi, 'c. à s.'],
+    [/\bteaspoons?\b|\btsp\b|\btspn\b/gi, 'c. à c.'],
+    [/\bcups?\b/gi, 'tasse'],
+    [/\bcloves?\b/gi, 'gousse'],
+    [/\bslices?\b/gi, 'tranche'],
+    [/\bsliced\b/gi, 'émincé'],
+    [/\bpeeled\b/gi, 'épluché'],
+    [/\bdiced\b|\bcubed\b/gi, 'en dés'],
+    [/\bcrushed\b/gi, 'écrasé'],
+    [/\bground\b/gi, 'moulu'],
+    [/\bfresh\b/gi, 'frais'],
+    [/\bdried\b/gi, 'séché'],
+    [/\bboneless\b/gi, 'désossé'],
+    [/\bskinless\b/gi, 'sans peau'],
+    [/\bpinch(es)?\b/gi, 'pincée'],
+    [/\bdash(es)?\b/gi, 'trait'],
+    [/\bhandfuls?\b/gi, 'poignée'],
+    [/\bbunch(es)?\b/gi, 'botte'],
+    [/\bsprigs?\b/gi, 'brin'],
+    [/\bcans?\b|\btins?\b/gi, 'boîte'],
+    [/\bjars?\b/gi, 'bocal'],
+    [/\bpackets?\b|\bpacks?\b|\bbags?\b/gi, 'sachet'],
+    [/\bbottles?\b/gi, 'bouteille'],
+    [/\bsheets?\b/gi, 'feuille'],
+    [/\bpounds?\b|\blbs?\b/gi, 'livre'],
+    [/\bto taste\b|\bto serve\b|\bas required\b|\bas needed\b/gi, 'q.s.'],
+    [/\blarge\b/gi, 'grand'],
+    [/\bmedium\b/gi, 'moyen'],
+    [/\bsmall\b/gi, 'petit'],
+    [/\bwhole\b/gi, 'entier'],
+    [/\bchopped\b|\bfinely chopped\b/gi, 'haché'],
+    [/\bgrated\b/gi, 'râpé'],
+    [/\bminced\b/gi, 'émincé'],
+    [/\bbeaten\b/gi, 'battu'],
+    [/\bmelted\b/gi, 'fondu'],
+    [/\btopping\b/gi, 'garniture'],
+    [/\bgarnish\b/gi, 'décoration'],
+    [/\bdrizzle\b/gi, 'filet'],
+    [/\bsprinkling\b/gi, 'saupoudrage'],
+    [/\bfor frying\b|\bfor deep frying\b/gi, 'pour la friture'],
+    [/\bfor dusting\b/gi, 'pour saupoudrer'],
+];
+
 class RecipeService {
 
     // Métadonnées affichables d'un plat : catégorie et origine traduites
@@ -130,7 +176,46 @@ class RecipeService {
             area: meal.strArea || null,
             areaLabel: MEAL_AREA_FR[meal.strArea] || null,
             isVegetarian: VEGETARIAN_CATEGORIES.includes(meal.strCategory),
+            isVegan: meal.strCategory === 'Vegan',
         };
+    }
+
+    // « 2 tblsp » → « 2 c. à s. » ; ce qui n'est pas reconnu reste intact
+    localizeMeasure(measure) {
+        if (!measure) return '';
+        return MEASURE_WORDS_FR
+            .reduce((acc, [pattern, fr]) => acc.replace(pattern, fr), measure)
+            .replace(/\s+/g, ' ')
+            .trim();
+    }
+
+    /* Les instructions arrivent en un seul champ, découpé par des sauts de ligne
+       — mais pas toujours : certaines fiches tiennent en un bloc. On découpe donc
+       AVANT traduction (le traducteur écrase les sauts de ligne), avec un repli
+       par phrases groupées pour les fiches d'un seul tenant. */
+    splitInstructions(raw) {
+        if (!raw) return [];
+
+        // « STEP 1 », « 1. », « 2) » en tête de ligne : notre numérotation les remplace
+        const lines = raw
+            .replace(/\r\n|\r/g, '\n')
+            .split(/\n+/)
+            .map(line => line.trim().replace(/^(step\s*\d+\s*[:.)-]?\s*|\d+\s*[.)]\s*)/i, '').trim())
+            .filter(Boolean);
+
+        if (lines.length > 1) return lines;
+
+        const single = lines[0] || raw.trim();
+        if (single.length < 400) return single ? [single] : [];
+
+        // Un pavé unique : regroupé trois phrases par étape, faute de mieux
+        const sentences = single.match(/[^.!?]+[.!?]+(\s|$)/g) || [single];
+        const steps = [];
+        for (let i = 0; i < sentences.length; i += 3) {
+            const chunk = sentences.slice(i, i + 3).join('').trim();
+            if (chunk) steps.push(chunk);
+        }
+        return steps;
     }
 
     // Liste des ingrédients bruts (anglais) d'un plat, en minuscules
@@ -231,6 +316,44 @@ class RecipeService {
         return ingredients;
     }
 
+    /* Ingrédients de la recette cités dans le texte d'une étape. La comparaison
+       se fait sur des mots entiers, sans accent : « ail » ne doit pas se
+       reconnaître dans « travail », mais « tomate » doit l'être dans « tomates ». */
+    citedIngredients(text, ingredients) {
+        const haystack = ` ${this.deburr(text)} `;
+        const found = [];
+
+        ingredients.forEach(({ name }) => {
+            const term = this.deburr(name);
+            if (term.length < 3) return;
+            const pattern = new RegExp(`(^|[^a-z0-9])${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}s?([^a-z0-9]|$)`);
+            if (pattern.test(haystack) && !found.includes(name)) found.push(name);
+        });
+
+        return found;
+    }
+
+    deburr(value) {
+        return String(value)
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/œ/g, 'oe');
+    }
+
+    // Accroche courte : on s'arrête à une fin de phrase, jamais au milieu d'un mot
+    buildSummary(text, max = 220) {
+        const flat = String(text).replace(/\s+/g, ' ').trim();
+        if (flat.length <= max) return flat;
+
+        const cut = flat.slice(0, max);
+        const lastStop = Math.max(cut.lastIndexOf('. '), cut.lastIndexOf('! '), cut.lastIndexOf('? '));
+        if (lastStop > max * 0.5) return cut.slice(0, lastStop + 1);
+
+        const lastSpace = cut.lastIndexOf(' ');
+        return `${cut.slice(0, lastSpace > 0 ? lastSpace : max)}…`;
+    }
+
     // Extraire et traduire les ingrédients d'une recette
 
     async extractAndTranslateIngredients(meal) {
@@ -251,7 +374,7 @@ class RecipeService {
         const translatedIngredients = await Promise.all(
             ingredients.map(async (ing) => ({
                 name: await this.translateToFrench(ing.name),
-                measure: ing.measure
+                measure: this.localizeMeasure(ing.measure)
             }))
         );
 
@@ -354,12 +477,15 @@ class RecipeService {
             }
 
             const meal = data.meals[0];
+            const rawSteps = this.splitInstructions(meal.strInstructions);
 
-            const [translatedTitle, translatedInstructions, translatedIngredients] = await Promise.all([
+            const [translatedTitle, translatedSteps, translatedIngredients] = await Promise.all([
                 this.translateToFrench(meal.strMeal),
-                this.translateToFrench(meal.strInstructions),
+                Promise.all(rawSteps.map(step => this.translateToFrench(step))),
                 this.extractAndTranslateIngredients(meal)
             ]);
+
+            const instructions = translatedSteps.join('\n\n');
 
             return {
                 id: meal.idMeal,
@@ -367,10 +493,16 @@ class RecipeService {
                 image: meal.strMealThumb,
                 readyInMinutes: 30,
                 servings: 4,
-                instructions: translatedInstructions,
+                instructions,
+                // Chaque étape porte les ingrédients de la recette qu'elle cite
+                steps: translatedSteps.map(text => ({
+                    text,
+                    ingredients: this.citedIngredients(text, translatedIngredients)
+                })),
                 extendedIngredients: translatedIngredients,
                 sourceUrl: meal.strSource,
-                summary: translatedInstructions.substring(0, 200) + '...'
+                summary: this.buildSummary(instructions),
+                ...this.mealMeta(meal)
             };
         } catch (error) {
             console.error('Erreur getRecipeDetails:', error);

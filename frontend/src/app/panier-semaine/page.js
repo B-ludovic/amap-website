@@ -74,6 +74,7 @@ function groupByProducer(items) {
 
 export default function WeeklyBasketPublicPage() {
   const [basket, setBasket] = useState(null);
+  const [basketSize, setBasketSize] = useState(null);
   const [loading, setLoading] = useState(true);
   const [recipes, setRecipes] = useState([]);
   const [loadingRecipes, setLoadingRecipes] = useState(false);
@@ -96,7 +97,17 @@ export default function WeeklyBasketPublicPage() {
   const fetchCurrentBasket = async () => {
     try {
       setLoading(true);
-      const response = await api.weeklyBaskets.getCurrent();
+      let subscription = null;
+      try {
+        const response = await api.subscriptions.getMySubscription();
+        subscription = response.data;
+      } catch {
+        subscription = null;
+      }
+      const response = await api.weeklyBaskets.getCurrent(
+        subscription?.basketSize ? { basketSize: subscription.basketSize } : {}
+      );
+      setBasketSize(subscription?.basketSize || null);
       setBasket(response.data);
     } catch (error) {
       showError('Erreur', 'Erreur lors du chargement du panier');
@@ -265,30 +276,22 @@ export default function WeeklyBasketPublicPage() {
             <aside className="basket-aside">
               <div className="side-card">
                 <div className="side-card-head">
-                  <h2 className="side-card-title">Ce que vous recevez</h2>
+                  <h2 className="side-card-title">{basketSize ? 'Votre panier' : 'Les formules'}</h2>
                 </div>
                 <div className="side-card-body">
                   <div className="side-block">
                     <div className="basket-formula-head">
-                      <span className="basket-formula-name">Petit panier</span>
+                      <span className="basket-formula-name">
+                        {basketSize === 'SMALL' ? 'Petit panier' : basketSize === 'LARGE' ? 'Grand panier' : 'Composition de la semaine'}
+                      </span>
                       <span className="basket-formula-count">
                         {varietyCount} variété{varietyCount > 1 ? 's' : ''}
                       </span>
                     </div>
-                    <div className="basket-formula-note">2 à 4 kg · pour 1 à 2 personnes</div>
+                    {basketSize === 'SMALL' && <div className="basket-formula-note">Pour 1 à 2 personnes</div>}
+                    {basketSize === 'LARGE' && <div className="basket-formula-note">Pour une famille</div>}
                   </div>
-                  <div className="side-block">
-                    <div className="basket-formula-head">
-                      <span className="basket-formula-name">Grand panier</span>
-                      <span className="basket-formula-count">
-                        {varietyCount} variété{varietyCount > 1 ? 's' : ''}
-                      </span>
-                    </div>
-                    <div className="basket-formula-note">6 à 8 kg · pour une famille</div>
-                  </div>
-                  <p className="basket-formula-foot">
-                    Mêmes variétés dans les deux paniers, seules les quantités changent.
-                  </p>
+                  {!basketSize && <p className="basket-formula-foot">Connectez-vous pour voir la composition correspondant à votre abonnement.</p>}
                 </div>
               </div>
 
@@ -314,7 +317,7 @@ export default function WeeklyBasketPublicPage() {
               distribution. En attendant, les idées recettes plus bas restent à votre
               disposition.
             </p>
-            <Link href="/" className="basket-cta-primary">Retour à l&apos;accueil</Link>
+            <Link href="/" className="btn-cta btn-cta-primary">Retour à l&apos;accueil</Link>
           </div>
         </section>
       )}
@@ -405,29 +408,29 @@ export default function WeeklyBasketPublicPage() {
                     <Link
                       key={recipe.id}
                       href={`/recettes/${recipe.id}`}
-                      className="basket-recipe"
+                      className="recipe-card"
                     >
                       <img
-                        className="basket-recipe-image"
+                        className="recipe-card-image"
                         src={recipe.image}
                         alt={recipe.title}
                         loading="lazy"
                       />
-                      <div className="basket-recipe-body">
-                        <h3 className="basket-recipe-title">{recipe.title}</h3>
-                        {tags && <div className="basket-recipe-tags">{tags}</div>}
+                      <div className="recipe-card-body">
+                        <h3 className="recipe-card-title">{recipe.title}</h3>
+                        {tags && <div className="recipe-card-tags">{tags}</div>}
                         {(meta.length > 0 || recipe.isVegetarian) && (
-                          <div className="basket-recipe-foot">
+                          <div className="recipe-card-foot">
                             {meta.map((value, index) => (
                               <Fragment key={value}>
                                 {index > 0 && (
-                                  <span className="basket-recipe-sep" aria-hidden="true">·</span>
+                                  <span className="recipe-card-sep" aria-hidden="true">·</span>
                                 )}
-                                <span className="basket-recipe-meta">{value}</span>
+                                <span className="recipe-card-meta">{value}</span>
                               </Fragment>
                             ))}
                             {recipe.isVegetarian && (
-                              <span className="basket-recipe-veggie">Végé</span>
+                              <span className="recipe-card-veggie">Végé</span>
                             )}
                           </div>
                         )}
@@ -461,10 +464,10 @@ export default function WeeklyBasketPublicPage() {
             </p>
           </div>
           <div className="basket-cta-actions">
-            <Link href="/nos-abonnements" className="basket-cta-primary">
+            <Link href="/nos-abonnements" className="btn-cta btn-cta-primary">
               Découvrir nos abonnements
             </Link>
-            <Link href="/nos-producteurs" className="basket-cta-secondary">
+            <Link href="/nos-producteurs" className="btn-cta btn-cta-ghost">
               Nos producteurs
             </Link>
           </div>

@@ -130,14 +130,16 @@ model Producer {
 // PRODUITS //
 
 model Product {
-  id          String      @id @default(uuid())
+  id          String       @id @default(uuid())
   name        String
   producerId  String
   category    ProductCategory?
-  description String?     @db.Text
+  description String?      @db.Text
   image       String?
-  isActive    Boolean     @default(true)
-  isExample   Boolean     @default(false)
+  isActive    Boolean      @default(true)
+  isExample   Boolean      @default(false)
+  seasons     Season[]     @default([])
+  basketSizes BasketSize[] @default([SMALL, LARGE])
 
   producer    Producer    @relation(fields: [producerId], references: [id])
 
@@ -298,6 +300,7 @@ model WeeklyBasket {
   weekNumber      Int
   year            Int
   distributionDate DateTime
+  season          Season?
   
   isPublished     Boolean  @default(false)
   publishedAt     DateTime?
@@ -320,6 +323,7 @@ model WeeklyBasketItem {
   weeklyBasketId    String
   productId         String?
   customProductName String?
+  basketSizes       BasketSize[] @default([SMALL, LARGE])
 
   weeklyBasket      WeeklyBasket  @relation(fields: [weeklyBasketId], references: [id], onDelete: Cascade)
   product           Product?      @relation(fields: [productId], references: [id], onDelete: SetNull)

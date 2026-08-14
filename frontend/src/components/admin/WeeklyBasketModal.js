@@ -2,10 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
-import { X, Plus, Trash2, ShoppingBasket, RefreshCw } from 'lucide-react';
+import { X, ShoppingBasket } from 'lucide-react';
 import { useModal } from '../../contexts/ModalContext';
-import api from '../../lib/api';
-import logger from '../../lib/logger';
 
 // Prochain jour de distribution fixe (mercredi = 3)
 const DISTRIBUTION_DAY = 3;
@@ -34,25 +32,20 @@ const getISOWeekAndYear = (dateStr) => {
   return { week: weekNum, year: isoYear };
 };
 
-export default function WeeklyBasketModal({ basket, lastBasket, onClose }) {
+export default function WeeklyBasketModal({ basket, onClose }) {
   const containerRef = useRef(null);
   useFocusTrap(containerRef);
   const { showSuccess, showError } = useModal();
   const [loading, setLoading] = useState(false);
-  const [products, setProducts] = useState([]);
   const [formData, setFormData] = useState({
     weekNumber: '',
     year: new Date().getFullYear(),
     distributionDate: '',
     notes: '',
   });
-  // Chaque item : { type: 'catalogue' | 'libre', productId: '', customProductName: '' }
-  const [composition, setComposition] = useState([]);
   const [errors, setErrors] = useState({});
-  const [reconduireApplied, setReconduireApplied] = useState(false);
 
   useEffect(() => {
-    fetchProducts();
     if (basket) {
       const date = new Date(basket.distributionDate);
       const formattedDate = date.toISOString().split('T')[0];
@@ -63,16 +56,6 @@ export default function WeeklyBasketModal({ basket, lastBasket, onClose }) {
         distributionDate: formattedDate,
         notes: basket.notes || '',
       });
-
-      if (basket.items && basket.items.length > 0) {
-        setComposition(
-          basket.items.map(item => ({
-            type: item.productId ? 'catalogue' : 'libre',
-            productId: item.productId || '',
-            customProductName: item.customProductName || '',
-          }))
-        );
-      }
     } else {
       const nextDate = getNextDistributionDate();
       const { week, year } = getISOWeekAndYear(nextDate);
@@ -84,15 +67,6 @@ export default function WeeklyBasketModal({ basket, lastBasket, onClose }) {
       }));
     }
   }, [basket]);
-
-  const fetchProducts = async () => {
-    try {
-      const response = await api.admin.products.getAll();
-      setProducts(response.data || []);
-    } catch (error) {
-      logger.error('Erreur produits:', error);
-    }
-  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -112,45 +86,6 @@ export default function WeeklyBasketModal({ basket, lastBasket, onClose }) {
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
   };
 
-  const handleReconduire = () => {
-    if (!lastBasket) return;
-    setComposition(
-      lastBasket.items.map(item => ({
-        type: item.productId ? 'catalogue' : 'libre',
-        productId: item.productId || '',
-        customProductName: item.customProductName || '',
-      }))
-    );
-    if (lastBasket.notes) {
-      setFormData(prev => ({ ...prev, notes: lastBasket.notes }));
-    }
-    setReconduireApplied(true);
-  };
-
-  const handleAddProduct = () => {
-    setComposition(prev => [
-      ...prev,
-      { type: 'catalogue', productId: '', customProductName: '' }
-    ]);
-  };
-
-  const handleRemoveProduct = (index) => {
-    setComposition(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const handleItemChange = (index, field, value) => {
-    setComposition(prev => {
-      const next = [...prev];
-      if (field === 'type') {
-        // Réinitialiser les champs de l'autre mode
-        next[index] = { type: value, productId: '', customProductName: '' };
-      } else {
-        next[index] = { ...next[index], [field]: value };
-      }
-      return next;
-    });
-  };
-
   const validate = () => {
     const newErrors = {};
 
@@ -166,19 +101,6 @@ export default function WeeklyBasketModal({ basket, lastBasket, onClose }) {
       newErrors.distributionDate = 'Date de distribution requise';
     }
 
-    if (composition.length === 0) {
-      newErrors.composition = 'Ajoutez au moins un produit';
-    }
-
-    const hasInvalid = composition.some(item =>
-      (item.type === 'catalogue' && !item.productId) ||
-      (item.type === 'libre' && !item.customProductName.trim())
-    );
-
-    if (hasInvalid) {
-      newErrors.composition = 'Tous les produits doivent être renseignés';
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -191,18 +113,11 @@ export default function WeeklyBasketModal({ basket, lastBasket, onClose }) {
     setLoading(true);
 
     try {
-      const items = composition.map(item =>
-        item.type === 'catalogue'
-          ? { productId: item.productId }
-          : { customProductName: item.customProductName.trim() }
-      );
-
       const dataToSend = {
         weekNumber: parseInt(formData.weekNumber),
         year: parseInt(formData.year),
         distributionDate: formData.distributionDate,
         notes: formData.notes,
-        items
       };
 
       if (basket) {
@@ -220,10 +135,6 @@ export default function WeeklyBasketModal({ basket, lastBasket, onClose }) {
       setLoading(false);
     }
   };
-
-  const formatShortDate = (dateStr) => new Date(dateStr).toLocaleDateString('fr-FR', {
-    day: 'numeric', month: 'long', year: 'numeric'
-  });
 
   useEffect(() => {
     const handleEscape = (e) => { if (e.key === 'Escape') onClose(false); };
@@ -247,30 +158,6 @@ export default function WeeklyBasketModal({ basket, lastBasket, onClose }) {
 
         <form onSubmit={handleSubmit}>
           <div className="modal-body">
-
-            {/* Bouton Reconduire — uniquement en création */}
-            {!basket && lastBasket && (
-              <div className={`reconduire-banner${reconduireApplied ? ' reconduire-applied' : ''}`}>
-                <div className="reconduire-info">
-                  <RefreshCw size={18} />
-                  <div>
-                    <span className="reconduire-title">
-                      Semaine {lastBasket.weekNumber} · {lastBasket.year}
-                    </span>
-                    <span className="reconduire-subtitle">
-                      {lastBasket.items.length} produit{lastBasket.items.length > 1 ? 's' : ''} · {formatShortDate(lastBasket.distributionDate)}
-                    </span>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  className={`btn btn-sm${reconduireApplied ? ' btn-success' : ' btn-secondary'}`}
-                  onClick={handleReconduire}
-                >
-                  {reconduireApplied ? '✓ Composition reprise' : 'Reconduire ce panier'}
-                </button>
-              </div>
-            )}
 
             {/* Date de distribution */}
             <div className="form-group">
@@ -307,92 +194,12 @@ export default function WeeklyBasketModal({ basket, lastBasket, onClose }) {
                 placeholder="Message de la semaine pour les adhérents..."
               />
             </div>
-
-            {/* Composition */}
-            <div className="form-group">
-              <div className="basket-composition-header">
-                <label>
-                  Composition du panier <span className="required">*</span>
-                </label>
-                <button
-                  type="button"
-                  className="btn btn-secondary btn-sm"
-                  onClick={handleAddProduct}
-                >
-                  <Plus size={16} />
-                  Ajouter un produit
-                </button>
+            {!basket && (
+              <div className="empty-composition">
+                <ShoppingBasket size={32} />
+                <p>La composition sera générée depuis les produits actifs de la saison.</p>
               </div>
-
-              {errors.composition && (
-                <span className="error-message">{errors.composition}</span>
-              )}
-
-              {composition.length === 0 ? (
-                <div className="empty-composition">
-                  <ShoppingBasket size={32} />
-                  <p>Aucun produit ajouté</p>
-                </div>
-              ) : (
-                <div className="basket-composition-list">
-                  {composition.map((item, index) => (
-                    <div key={index} className="basket-composition-item">
-
-                      {/* Toggle catalogue / libre */}
-                      <div className="basket-item-type-toggle">
-                        <button
-                          type="button"
-                          className={`toggle-btn${item.type === 'catalogue' ? ' active' : ''}`}
-                          onClick={() => handleItemChange(index, 'type', 'catalogue')}
-                        >
-                          Catalogue
-                        </button>
-                        <button
-                          type="button"
-                          className={`toggle-btn${item.type === 'libre' ? ' active' : ''}`}
-                          onClick={() => handleItemChange(index, 'type', 'libre')}
-                        >
-                          Libre
-                        </button>
-                      </div>
-
-                      {/* Champ selon le mode */}
-                      <div className="basket-item-field">
-                        {item.type === 'catalogue' ? (
-                          <select
-                            value={item.productId}
-                            onChange={(e) => handleItemChange(index, 'productId', e.target.value)}
-                          >
-                            <option value="">Sélectionner un produit</option>
-                            {products.map(product => (
-                              <option key={product.id} value={product.id}>
-                                {product.name} ({product.producer.name})
-                              </option>
-                            ))}
-                          </select>
-                        ) : (
-                          <input
-                            type="text"
-                            value={item.customProductName}
-                            onChange={(e) => handleItemChange(index, 'customProductName', e.target.value)}
-                            placeholder="Nom du produit libre..."
-                          />
-                        )}
-                      </div>
-
-                      <button
-                        type="button"
-                        className="btn-remove-product"
-                        onClick={() => handleRemoveProduct(index)}
-                        aria-label="Supprimer ce produit"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+            )}
           </div>
 
           <div className="modal-footer">

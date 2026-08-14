@@ -22,9 +22,10 @@ export async function generateMetadata({ params }) {
     };
   }
 
+  const parts = [recipe.categoryLabel, recipe.areaLabel].filter(Boolean).join(' · ');
   const description = recipe.summary
     ? recipe.summary.replace(/<[^>]+>/g, '').slice(0, 160)
-    : `Recette ${recipe.title} — ${recipe.readyInMinutes ? `${recipe.readyInMinutes} min · ` : ''}${recipe.servings ? `${recipe.servings} personnes` : ''}`.trim();
+    : `Recette ${recipe.title}${parts ? ` — ${parts}` : ''}`;
 
   return {
     title: `${recipe.title} | Aux P'tits Pois`,

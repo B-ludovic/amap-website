@@ -26,6 +26,9 @@ export const ProductSchema = z.object({
   category:    z.string().max(100).optional(),
   description: z.string().max(1000).optional(),
   isExample:   z.boolean().optional(),
+  isActive:    z.boolean().optional(),
+  seasons:     z.array(z.enum(['SPRING', 'SUMMER', 'AUTUMN', 'WINTER'])).min(1, 'Sélectionnez au moins une saison'),
+  basketSizes: z.array(z.enum(['SMALL', 'LARGE'])).min(1, 'Sélectionnez au moins un format de panier'),
 });
 
 export const UpdateProductSchema = ProductSchema.partial();

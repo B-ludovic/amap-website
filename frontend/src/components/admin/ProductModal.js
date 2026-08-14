@@ -17,6 +17,9 @@ export default function ProductModal({ product, producers, onClose }) {
     category: '',
     description: '',
     isExample: false,
+    isActive: true,
+    seasons: [],
+    basketSizes: ['SMALL', 'LARGE'],
   });
   const [errors, setErrors] = useState({});
 
@@ -28,6 +31,9 @@ export default function ProductModal({ product, producers, onClose }) {
         category: product.category || '',
         description: product.description || '',
         isExample: product.isExample ?? false,
+        isActive: product.isActive ?? true,
+        seasons: product.seasons || [],
+        basketSizes: product.basketSizes || ['SMALL', 'LARGE'],
       });
     }
   }, [product]);
@@ -43,6 +49,16 @@ export default function ProductModal({ product, producers, onClose }) {
     }
   };
 
+  const handleArrayChange = (field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: prev[field].includes(value)
+        ? prev[field].filter(item => item !== value)
+        : [...prev[field], value]
+    }));
+    if (errors[field]) setErrors(prev => ({ ...prev, [field]: '' }));
+  };
+
   const validate = () => {
     const newErrors = {};
 
@@ -53,6 +69,9 @@ export default function ProductModal({ product, producers, onClose }) {
     if (!formData.producerId) {
       newErrors.producerId = 'Le producteur est requis';
     }
+
+    if (formData.seasons.length === 0) newErrors.seasons = 'Sélectionnez au moins une saison';
+    if (formData.basketSizes.length === 0) newErrors.basketSizes = 'Sélectionnez au moins un format';
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -182,6 +201,39 @@ export default function ProductModal({ product, producers, onClose }) {
                 rows="3"
                 placeholder="Décrivez le produit..."
               />
+            </div>
+
+            <fieldset className="form-group form-group-full">
+              <legend className="form-label">Saisons <span className="required">*</span></legend>
+              {[
+                ['SPRING', 'Printemps'], ['SUMMER', 'Été'], ['AUTUMN', 'Automne'], ['WINTER', 'Hiver']
+              ].map(([value, label]) => (
+                <label className="form-checkbox" key={value}>
+                  <input type="checkbox" checked={formData.seasons.includes(value)} onChange={() => handleArrayChange('seasons', value)} />
+                  <span>{label}</span>
+                </label>
+              ))}
+              {errors.seasons && <span className="form-error">{errors.seasons}</span>}
+            </fieldset>
+
+            <fieldset className="form-group form-group-full">
+              <legend className="form-label">Formats éligibles <span className="required">*</span></legend>
+              {[
+                ['SMALL', 'Petit panier'], ['LARGE', 'Grand panier']
+              ].map(([value, label]) => (
+                <label className="form-checkbox" key={value}>
+                  <input type="checkbox" checked={formData.basketSizes.includes(value)} onChange={() => handleArrayChange('basketSizes', value)} />
+                  <span>{label}</span>
+                </label>
+              ))}
+              {errors.basketSizes && <span className="form-error">{errors.basketSizes}</span>}
+            </fieldset>
+
+            <div className="form-group form-group-full">
+              <label className="form-checkbox">
+                <input type="checkbox" name="isActive" checked={formData.isActive} onChange={handleChange} />
+                <span>Disponible pour les paniers à générer</span>
+              </label>
             </div>
 
             {/* Est un exemple */}

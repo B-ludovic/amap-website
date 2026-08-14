@@ -84,12 +84,19 @@ const normalize = (value) =>
     .replace(/œ/g, 'oe')
     .replace(/-/g, ' ');
 
-export const getProductIcon = (name) => {
+const findEntry = (name) => {
   if (!name) return null;
   const needle = normalize(name);
-  const found = PRODUCT_ICONS.find(([pattern]) => needle.includes(pattern));
+  return PRODUCT_ICONS.find(([pattern]) => needle.includes(pattern)) || null;
+};
+
+export const getProductIcon = (name) => {
+  const found = findEntry(name);
   return found ? found[1] : null;
 };
+
+// Fruit ou légume reconnu — y compris ceux qui n'ont pas de pictogramme
+export const isProduce = (name) => findEntry(name) !== null;
 
 export const PRODUCT_CATEGORY_LABELS = {
   VEGETABLES: 'Légumes',

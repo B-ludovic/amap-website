@@ -159,7 +159,7 @@ const createProduct = asyncHandler(async (req, res) => {
   if (!parsed.success) {
     throw new HttpBadRequestError(parsed.error.errors[0].message);
   }
-  const { name: rawName, producerId, category, description, isExample } = parsed.data;
+  const { name: rawName, producerId, category, description, isExample, isActive, seasons, basketSizes } = parsed.data;
   const name = rawName.trim().charAt(0).toUpperCase() + rawName.trim().slice(1);
 
   const producer = await prisma.producer.findUnique({
@@ -183,7 +183,10 @@ const createProduct = asyncHandler(async (req, res) => {
       producerId,
       category,
       description,
-      isExample: isExample || false
+      isExample: isExample || false,
+      isActive: isActive ?? true,
+      seasons,
+      basketSizes
     },
     include: {
       producer: true
@@ -204,7 +207,7 @@ const updateProduct = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const parsed = UpdateProductSchema.safeParse(req.body);
   if (!parsed.success) throw new HttpBadRequestError(parsed.error.errors[0].message);
-  const { name: rawName, producerId, category, description, isExample } = parsed.data;
+  const { name: rawName, producerId, category, description, isExample, isActive, seasons, basketSizes } = parsed.data;
   const name = rawName ? rawName.trim().charAt(0).toUpperCase() + rawName.trim().slice(1) : undefined;
 
   const product = await prisma.product.findUnique({
@@ -232,7 +235,10 @@ const updateProduct = asyncHandler(async (req, res) => {
       producerId,
       category,
       description,
-      isExample
+      isExample,
+      isActive,
+      seasons,
+      basketSizes
     },
     include: {
       producer: true
@@ -253,7 +259,7 @@ const deleteProduct = asyncHandler(async (req, res) => {
   const product = await prisma.product.findUnique({
     where: { id },
     include: {
-      basketTypes: true
+      weeklyBasketItems: true
     }
   });
 
@@ -261,7 +267,7 @@ const deleteProduct = asyncHandler(async (req, res) => {
     throw new HttpNotFoundError('Produit introuvable');
   }
 
-  if (product.basketTypes.length > 0) {
+  if (product.weeklyBasketItems.length > 0) {
     throw new HttpConflictError(
       'Impossible de supprimer ce produit car il est utilisé dans des paniers. ' +
       'Veuillez d\'abord le retirer des paniers.'
