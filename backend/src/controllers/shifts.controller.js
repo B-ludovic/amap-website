@@ -28,6 +28,8 @@ async function refuseIfClosed(date) {
 const getAllShifts = asyncHandler(async (req, res) => {
   const { upcoming, past, limit = 20 } = req.query;
   const now = new Date();
+  const isAdmin = req.user.role === 'ADMIN';
+  const parsedLimit = Math.min(Math.max(parseInt(limit) || 20, 1), 100);
 
   let where = {};
 
@@ -43,17 +45,22 @@ const getAllShifts = asyncHandler(async (req, res) => {
     prisma.shift.count({ where }),
     prisma.shift.findMany({
       where,
-      take: parseInt(limit),
+      take: parsedLimit,
       include: {
         volunteers: {
           where: { user: { deletedAt: null } },
+          /* Ordre explicite : les confirmés d'abord, puis par nom. Sans lui,
+             l'ordre des pastilles changeait d'un rechargement à l'autre. */
+          orderBy: [{ status: 'asc' }, { user: { lastName: 'asc' } }],
           include: {
             user: {
               select: {
                 id: true,
                 firstName: true,
-                lastName: true,
-                email: true
+                ...(isAdmin && {
+                  lastName: true,
+                  email: true
+                })
               }
             }
           }
@@ -68,6 +75,7 @@ const getAllShifts = asyncHandler(async (req, res) => {
   // Ajouter info : complet ou non
   const shiftsWithStatus = shifts.map(shift => ({
     ...shift,
+    ...(!isAdmin && { notes: undefined }),
     isFull: shift.volunteers.filter(v => v.status === 'CONFIRMED').length >= shift.volunteersNeeded,
     confirmedCount: shift.volunteers.filter(v => v.status === 'CONFIRMED').length
   }));
@@ -82,20 +90,24 @@ const getAllShifts = asyncHandler(async (req, res) => {
 // RÉCUPÉRER UNE PERMANENCE
 const getShiftById = asyncHandler(async (req, res) => {
   const { id } = req.params;
+  const isAdmin = req.user.role === 'ADMIN';
 
   const shift = await prisma.shift.findUnique({
     where: { id },
     include: {
       volunteers: {
         where: { user: { deletedAt: null } },
+        orderBy: [{ status: 'asc' }, { user: { lastName: 'asc' } }],
         include: {
           user: {
             select: {
               id: true,
               firstName: true,
-              lastName: true,
-              email: true,
-              phone: true
+                ...(isAdmin && {
+                  lastName: true,
+                  email: true,
+                  phone: true
+                })
             }
           }
         }
@@ -109,7 +121,10 @@ const getShiftById = asyncHandler(async (req, res) => {
 
   res.json({
     success: true,
-    data: shift
+    data: {
+      ...shift,
+      ...(!isAdmin && { notes: undefined })
+    }
   });
 });
 
