@@ -1,0 +1,176 @@
+/* Messages de contact — report de la vue « messages » de mocks/admin.dc.html.
+   Deux colonnes : la pile des messages à gauche, la lecture à droite. */
+
+.admin-messages-split {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+/* Chaque message est un bouton pleine largeur ; le message ouvert porte un
+   filet terracotta collé au bord gauche. */
+.admin-message-entry {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 16px 18px;
+  border: none;
+  border-bottom: 1px solid var(--border-soft);
+  background: none;
+  text-align: left;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background-color 150ms;
+}
+
+.admin-message-entry:last-child {
+  border-bottom: none;
+}
+
+.admin-message-entry:hover {
+  background-color: var(--surface-sand);
+}
+
+.admin-message-entry-active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background-color: var(--terracotta);
+}
+
+.admin-message-entry-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.admin-message-entry-name {
+  font-size: 14px;
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+.admin-message-entry-date {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-light);
+}
+
+.admin-message-entry-subject {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 13.5px;
+  color: var(--text-primary);
+}
+
+/* Aperçu borné à deux lignes : la pile reste régulière quelle que soit la
+   longueur du message. */
+.admin-message-entry-preview {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-light);
+}
+
+.admin-message-entry-badge {
+  display: flex;
+  margin-top: 10px;
+}
+
+/* LECTURE */
+
+.admin-message-head {
+  padding: 22px 26px;
+  border-bottom: 1px solid var(--border-card);
+  background-color: var(--surface-sand);
+}
+
+.admin-message-subject {
+  margin: 0 0 10px;
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-normal);
+  font-size: 21px;
+}
+
+.admin-message-meta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.admin-message-meta-name {
+  font-size: 13.5px;
+  color: var(--text-secondary);
+}
+
+.admin-message-meta-email {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--badge-soon-fg);
+}
+
+.admin-message-meta-date {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--text-light);
+}
+
+.admin-message-body {
+  padding: 26px;
+}
+
+/* Le message est recopié tel quel : les retours à la ligne saisis par
+   l'expéditeur sont conservés. */
+.admin-message-text {
+  margin: 0 0 28px;
+  font-size: 15px;
+  line-height: 1.75;
+  color: var(--text-primary);
+  white-space: pre-line;
+}
+
+.admin-message-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding-top: 22px;
+  border-top: 1px solid var(--border-soft);
+}
+
+/* Lien de réponse : même gabarit que le bouton plein, mais c'est une ancre
+   mailto, elle doit s'aligner sur la hauteur des contrôles voisins. */
+.admin-message-reply {
+  display: inline-flex;
+  align-items: center;
+  height: 42px;
+  padding: 0 18px;
+  border-radius: var(--border-radius-md);
+  background-color: var(--terracotta);
+  color: var(--surface-page);
+  font-size: 13.5px;
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+  transition: background-color 150ms;
+}
+
+.admin-message-reply:hover {
+  background-color: var(--terracotta-dark);
+  color: var(--surface-page);
+}
+
+@media (max-width: 1000px) {
+  .admin-messages-split {
+    grid-template-columns: 1fr;
+  }
+}

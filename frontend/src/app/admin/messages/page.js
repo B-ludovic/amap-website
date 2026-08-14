@@ -1,211 +1,203 @@
 'use client';
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import api from "../../../lib/api";
-import logger from "../../../lib/logger";
-import { useAuth } from "../../../contexts/AuthContext";
-import "../../../styles/admin/components.css";
-import "../../../styles/admin/dashboard.css";
-import "../../../styles/admin/layout.css";
-import "../../../styles/admin/distribution.css";
-import "../../../styles/admin/messages.css";
+import { useCallback, useEffect, useState } from 'react';
+import api from '../../../lib/api';
+import { useModal } from '../../../contexts/ModalContext';
+import { numericDate, longDate, plural } from '../../../lib/format';
+import '../../../styles/admin/messages-da.css';
+
+/* `status` est une colonne texte libre en base, documentée par un commentaire
+   du schéma : UNREAD, READ, ARCHIVED. On s'en tient à ces trois valeurs. */
+const STATUS = {
+  UNREAD: { label: 'Non lu', tone: 'admin-badge-amber' },
+  READ: { label: 'Lu', tone: 'admin-badge-green' },
+  ARCHIVED: { label: 'Archivé', tone: '' }
+};
+
+const FILTERS = [
+  { key: 'UNREAD', label: 'Non lus' },
+  { key: 'READ', label: 'Lus' },
+  { key: 'ARCHIVED', label: 'Archivés' },
+  { key: 'ALL', label: 'Tous' }
+];
 
 export default function AdminMessagesPage() {
-  const { user, loading: authLoading } = useAuth();
-  const router = useRouter();
+  const { showConfirm, showSuccess, showError } = useModal();
+
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('ALL');
-  const [selectedMessage, setSelectedMessage] = useState(null);
+  const [selected, setSelected] = useState(null);
+  const [total, setTotal] = useState(0);
+  const [unread, setUnread] = useState(0);
 
-  useEffect(() => {
-    if (!authLoading && (!user || user.role !== 'ADMIN')) {
-      router.push('/admin/login');
-    }
-  }, [user, authLoading, router]);
-
-  useEffect(() => {
-    if (user?.role === 'ADMIN') {
-      loadData();
-    }
-  }, [user, filter]);
-
-  const loadData = async () => {
+  const fetchMessages = useCallback(async (status) => {
+    setLoading(true);
     try {
-      setLoading(true);
-      const data = await api.contactMessages.getAll(filter !== 'ALL' ? { status: filter } : {});
-      setMessages(data.data.messages);
+      const [listRes, allRes] = await Promise.all([
+        api.contactMessages.getAll(status === 'ALL' ? {} : { status }),
+        status === 'ALL' ? Promise.resolve(null) : api.contactMessages.getAll({})
+      ]);
+
+      const list = listRes.data.messages;
+      const all = allRes ? allRes.data.messages : list;
+
+      setMessages(list);
+      setTotal(all.length);
+      setUnread(all.filter(message => message.status === 'UNREAD').length);
+      setSelected(current => list.find(message => message.id === current?.id) ?? list[0] ?? null);
     } catch (error) {
-      logger.error('Erreur chargement messages:', error);
+      showError('Erreur', 'Impossible de charger les messages.');
     } finally {
       setLoading(false);
     }
-  };
+  }, [showError]);
 
-  const unreadCount = messages.filter(m => m.status === 'UNREAD').length;
+  useEffect(() => {
+    fetchMessages(filter);
+  }, [filter, fetchMessages]);
 
-  const handleStatusChange = async (id, status) => {
+  const changeStatus = async (message, status) => {
     try {
-      await api.contactMessages.updateStatus(id, status);
-      loadData();
-      if (selectedMessage?.id === id) {
-        setSelectedMessage({ ...selectedMessage, status });
-      }
+      await api.contactMessages.updateStatus(message.id, status);
+      /* La barre latérale porte le compteur de non-lus : elle écoute cet
+         événement pour se rafraîchir sans recharger la page. */
       window.dispatchEvent(new CustomEvent('contact-unread-changed'));
+      fetchMessages(filter);
     } catch (error) {
-      logger.error('Erreur mise à jour statut:', error);
+      showError('Erreur', error.message);
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!confirm('Supprimer ce message ?')) return;
-
-    try {
-      await api.contactMessages.delete(id);
-      loadData();
-      setSelectedMessage(null);
-      window.dispatchEvent(new CustomEvent('contact-unread-changed'));
-    } catch (error) {
-      logger.error('Erreur suppression:', error);
-    }
-  };
-
-  const handleViewMessage = async (message) => {
-    setSelectedMessage(message);
+  /* Ouvrir un message le marque comme lu : c'est l'acte de lecture qui change
+     l'état, pas un bouton séparé. */
+  const openMessage = (message) => {
+    setSelected(message);
     if (message.status === 'UNREAD') {
-      handleStatusChange(message.id, 'READ');
+      changeStatus(message, 'READ');
     }
   };
 
-  if (authLoading || loading) {
-    return <div className="admin-loading">Chargement...</div>;
-  }
+  const handleDelete = () => {
+    const message = selected;
+    showConfirm(
+      'Supprimer le message',
+      `Supprimer le message de ${message.name} ? Cette action est irréversible.`,
+      async () => {
+        try {
+          await api.contactMessages.delete(message.id);
+          window.dispatchEvent(new CustomEvent('contact-unread-changed'));
+          showSuccess('Message supprimé', 'Le message a été retiré.');
+          setSelected(null);
+          fetchMessages(filter);
+        } catch (error) {
+          showError('Erreur', error.message);
+        }
+      }
+    );
+  };
 
   return (
-    <div className="admin-messages-page">
-      <div className="messages-header">
-        <h1>Messages de Contact</h1>
+    <div className="admin-messages">
+      <div className="admin-page-head">
+        <div>
+          <h1 className="admin-title">Messages de contact</h1>
+          <p className="admin-title-lead">
+            {unread} {plural(unread, 'message non lu', 'messages non lus')} sur {total}.
+          </p>
+        </div>
       </div>
 
-      <div className="messages-filters">
-        <button
-          className={filter === 'ALL' ? 'active' : ''}
-          onClick={() => setFilter('ALL')}
-        >
-          Tous
-        </button>
-        <button
-          className={filter === 'UNREAD' ? 'active' : ''}
-          onClick={() => setFilter('UNREAD')}
-        >
-          Non lus ({unreadCount})
-        </button>
-        <button
-          className={filter === 'READ' ? 'active' : ''}
-          onClick={() => setFilter('READ')}
-        >
-          Lus
-        </button>
-        <button
-          className={filter === 'ARCHIVED' ? 'active' : ''}
-          onClick={() => setFilter('ARCHIVED')}
-        >
-          Archivés
-        </button>
+      <div className="admin-pills">
+        {FILTERS.map(item => (
+          <button
+            key={item.key}
+            type="button"
+            className={`admin-pill ${filter === item.key ? 'admin-pill-active' : ''}`}
+            onClick={() => setFilter(item.key)}
+          >
+            {item.label}
+          </button>
+        ))}
       </div>
 
-      <div className="messages-container">
-        {/* Liste des messages */}
-        <div className="messages-list">
-          {messages.length === 0 ? (
-            <div className="no-messages">Aucun message</div>
-          ) : (
-            messages.map(message => (
-              <div
-                key={message.id}
-                className={`message-item ${message.status === 'UNREAD' ? 'unread' : ''} ${selectedMessage?.id === message.id ? 'active' : ''}`}
-                onClick={() => handleViewMessage(message)}
-              >
-                <div className="message-item-header">
-                  <strong>{message.name}</strong>
-                  <span className="message-date">
-                    {new Date(message.createdAt).toLocaleDateString('fr-FR')}
+      {loading ? (
+        <p className="admin-empty">Chargement…</p>
+      ) : messages.length === 0 ? (
+        <div className="admin-empty-card">
+          <p className="admin-empty-card-title">Aucun message</p>
+          <p className="admin-empty-card-note">Rien à lire avec ce filtre.</p>
+        </div>
+      ) : (
+        <div className="admin-messages-split">
+          <div className="admin-panel">
+            {messages.map((message) => {
+              const status = STATUS[message.status] ?? { label: message.status, tone: '' };
+
+              return (
+                <button
+                  key={message.id}
+                  type="button"
+                  className={`admin-message-entry ${selected?.id === message.id ? 'admin-message-entry-active' : ''}`}
+                  onClick={() => openMessage(message)}
+                >
+                  <span className="admin-message-entry-top">
+                    <span className="admin-message-entry-name">{message.name}</span>
+                    <span className="admin-message-entry-date">{numericDate(message.createdAt)}</span>
                   </span>
-                </div>
-                <div className="message-item-subject">{message.subject}</div>
-                <div className="message-item-preview">
-                  {message.message.substring(0, 100)}...
-                </div>
-                <div className="message-item-footer">
-                  <span className={`status-badge ${message.status.toLowerCase()}`}>
-                    {message.status === 'UNREAD' ? 'Non lu' : message.status === 'READ' ? 'Lu' : 'Archivé'}
+                  <span className="admin-message-entry-subject">{message.subject}</span>
+                  <span className="admin-message-entry-preview">{message.message}</span>
+                  <span className="admin-message-entry-badge">
+                    <span className={`admin-badge ${status.tone}`}>{status.label}</span>
                   </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {selected && (
+            <div className="admin-panel">
+              <div className="admin-message-head">
+                <h2 className="admin-message-subject">{selected.subject}</h2>
+                <div className="admin-message-meta">
+                  <span className="admin-message-meta-name">{selected.name}</span>
+                  <span className="admin-message-meta-email">{selected.email}</span>
+                  <span className="admin-message-meta-date">{longDate(selected.createdAt)}</span>
                 </div>
               </div>
-            ))
+
+              <div className="admin-message-body">
+                <p className="admin-message-text">{selected.message}</p>
+
+                <div className="admin-message-actions">
+                  <a
+                    className="admin-message-reply"
+                    href={`mailto:${selected.email}?subject=${encodeURIComponent(`Re : ${selected.subject}`)}`}
+                  >
+                    Répondre par email
+                  </a>
+
+                  <label htmlFor="admin-message-status" className="sr-only">Statut du message</label>
+                  <select
+                    id="admin-message-status"
+                    className="admin-select"
+                    value={selected.status}
+                    onChange={(event) => changeStatus(selected, event.target.value)}
+                  >
+                    {Object.entries(STATUS).map(([value, item]) => (
+                      <option key={value} value={value}>{item.label}</option>
+                    ))}
+                  </select>
+
+                  <button type="button" className="admin-btn-danger" onClick={handleDelete}>
+                    Supprimer
+                  </button>
+                </div>
+              </div>
+            </div>
           )}
         </div>
-
-        {/* Détail du message */}
-        {selectedMessage && (
-          <div className="message-detail">
-            <div className="message-detail-header">
-              <h2>{selectedMessage.subject}</h2>
-              <button
-                className="btn-close"
-                onClick={() => setSelectedMessage(null)}
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="message-detail-info">
-              <div className="info-row">
-                <strong>De :</strong> {selectedMessage.name}
-              </div>
-              <div className="info-row">
-                <strong>Email :</strong>
-                <a href={`mailto:${selectedMessage.email}`}>{selectedMessage.email}</a>
-              </div>
-              <div className="info-row">
-                <strong>Date :</strong>
-                {new Date(selectedMessage.createdAt).toLocaleString('fr-FR')}
-              </div>
-            </div>
-
-            <div className="message-detail-content">
-              <p>{selectedMessage.message}</p>
-            </div>
-
-            <div className="message-detail-actions">
-              <a
-                href={`mailto:${selectedMessage.email}?subject=Re: ${selectedMessage.subject}`}
-                className="btn btn-primary"
-              >
-                Répondre
-              </a>
-
-              <select
-                value={selectedMessage.status}
-                onChange={(e) => handleStatusChange(selectedMessage.id, e.target.value)}
-                className="status-select"
-              >
-                <option value="UNREAD">Non lu</option>
-                <option value="READ">Lu</option>
-                <option value="ARCHIVED">Archivé</option>
-              </select>
-
-              <button
-                onClick={() => handleDelete(selectedMessage.id)}
-                className="btn btn-danger"
-              >
-                Supprimer
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
+      )}
     </div>
   );
 }
