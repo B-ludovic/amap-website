@@ -77,6 +77,19 @@ function createItemsByBasketSize(products) {
   return Array.from(selectedProducts, ([productId, basketSizes]) => ({ productId, basketSizes }));
 }
 
+async function resolveExistingBasket(existingBasket, shouldPublish) {
+  if (!shouldPublish || existingBasket.isPublished) return existingBasket;
+
+  return prisma.weeklyBasket.update({
+    where: { id: existingBasket.id },
+    data: {
+      isPublished: true,
+      publishedAt: existingBasket.publishedAt || new Date()
+    },
+    include: basketInclude
+  });
+}
+
 export async function generateWeeklyBasket({ distributionDate, season, notes = null, isPublished = true }) {
   const { year, weekNumber } = getIsoWeekParts(distributionDate);
   const existingBasket = await prisma.weeklyBasket.findUnique({
@@ -84,7 +97,7 @@ export async function generateWeeklyBasket({ distributionDate, season, notes = n
     include: basketInclude
   });
 
-  if (existingBasket) return existingBasket;
+  if (existingBasket) return resolveExistingBasket(existingBasket, isPublished);
 
   const products = await prisma.product.findMany({
     where: {
@@ -117,9 +130,11 @@ export async function generateWeeklyBasket({ distributionDate, season, notes = n
   } catch (error) {
     if (error.code !== 'P2002') throw error;
 
-    return prisma.weeklyBasket.findUnique({
+    const concurrentBasket = await prisma.weeklyBasket.findUnique({
       where: { year_weekNumber: { year, weekNumber } },
       include: basketInclude
     });
+
+    return resolveExistingBasket(concurrentBasket, isPublished);
   }
 }

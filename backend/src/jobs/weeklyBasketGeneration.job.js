@@ -56,7 +56,10 @@ export function getNextDistributionDate(now = new Date()) {
 
 export async function generateNextWeeklyBasket(now = new Date()) {
   const { weekday, hour } = getParisDateParts(now);
-  if (weekday !== GENERATION_DAY || hour < GENERATION_HOUR) {
+  const isScheduledThursday = weekday === GENERATION_DAY && hour >= GENERATION_HOUR;
+  const isCatchUpDay = weekday !== DISTRIBUTION_DAY && weekday !== GENERATION_DAY;
+
+  if (!isScheduledThursday && !isCatchUpDay) {
     return null;
   }
 
@@ -80,5 +83,5 @@ export function startWeeklyBasketGenerationJob() {
     });
   }, CHECK_INTERVAL_MS);
 
-  console.log('[WeeklyBasketJob] Job démarré (jeudi après 02:00)');
+  console.log('[WeeklyBasketJob] Job démarré (jeudi après 02:00, rattrapage jusqu’au mardi)');
 }
