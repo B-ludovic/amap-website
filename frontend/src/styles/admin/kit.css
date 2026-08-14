@@ -702,3 +702,68 @@
 .admin-inquiry-def {
   --def-col: 104px;
 }
+
+/* FORMULAIRES DE FICHE
+   Colonne de champs à gouttière constante ; les paires tiennent sur une même
+   ligne quand la place le permet. */
+
+.admin-form {
+  display: grid;
+  gap: 20px;
+  margin-bottom: 26px;
+}
+
+.admin-form-row {
+  display: grid;
+  grid-template-columns: repeat(var(--admin-form-cols, 2), 1fr);
+  gap: 20px;
+}
+
+.admin-form-field {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+
+.admin-form-field .admin-field-label {
+  margin-bottom: 0;
+}
+
+/* Case à cocher présentée comme une bande cliquable : la cible de clic couvre
+   toute la ligne, pas seulement le carré de 17px. */
+.admin-check {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--border-card);
+  border-radius: var(--border-radius-md);
+  background-color: var(--surface-sand);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.admin-check input {
+  width: 17px;
+  height: 17px;
+  margin: 0;
+  accent-color: var(--terracotta);
+  cursor: pointer;
+}
+
+.admin-checks {
+  display: grid;
+  gap: 10px;
+}
+
+/* Message d'erreur de champ, sous l'intitulé fautif. */
+.admin-form-error {
+  font-size: 13px;
+  color: var(--error-text);
+}
+
+@media (max-width: 700px) {
+  .admin-form-row {
+    grid-template-columns: 1fr;
+  }
+}

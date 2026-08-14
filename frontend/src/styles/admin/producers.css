@@ -1,0 +1,57 @@
+/* Producteurs — report de la vue « producers » de mocks/admin.dc.html. */
+
+.admin-producers-table {
+  --admin-cols: 1.2fr 1.6fr 1fr 1.3fr 0.7fr 0.8fr;
+  --admin-row-pad: 14px 20px;
+}
+
+.admin-producers-table .admin-table-head {
+  background-color: var(--surface-sand);
+  padding: 12px 20px;
+}
+
+.admin-producers-email {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Bloc de la fiche de ferme : les champs affichés sur la page publique des
+   producteurs, séparés du bloc d'identité par un filet et un sur-titre. */
+.admin-farm-section {
+  padding-top: 22px;
+  border-top: 1px solid var(--border-card);
+}
+
+.admin-farm-section-label {
+  display: block;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 1100px) {
+  .admin-producers-table {
+    --admin-cols: 1.2fr 1.6fr 1.3fr 0.7fr 0.8fr;
+  }
+
+  .admin-producers-phone {
+    display: none;
+  }
+}
+
+@media (max-width: 780px) {
+  .admin-producers-table {
+    --admin-cols: 1fr;
+    --admin-col-gap: 4px;
+  }
+
+  .admin-producers-table .admin-table-head {
+    display: none;
+  }
+
+  .admin-producers-table .admin-table-row {
+    align-items: flex-start;
+  }
+
+  .admin-producers-table .admin-cell-right {
+    text-align: left;
+  }
+}
