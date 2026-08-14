@@ -71,7 +71,7 @@ function SeasonTable({ defaultSeason = 'Été' }) {
     <>
       <div className="etal-head">
         <div>
-          <div className="label">L&apos;étal · ce qu&apos;il y a dans le panier</div>
+          <div className="eyebrow">L&apos;étal · ce qu&apos;il y a dans le panier</div>
           <h2 className="section-display">Le tableau des saisons.</h2>
         </div>
         <div className="season-switch" role="group" aria-label="Choisir une saison">

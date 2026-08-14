@@ -108,7 +108,7 @@ export default async function HomePage() {
             </div>
 
             <aside className="basket-card">
-              <div className="label">Panier de la semaine</div>
+              <div className="eyebrow">Panier de la semaine</div>
               <div className="basket-card-title">{basket.title}</div>
               <div className="basket-card-tags">
                 {basket.items.map(name => (
@@ -128,7 +128,7 @@ export default async function HomePage() {
         <div className="container cycle">
           <div className="cycle-head">
             <div>
-              <div className="label">Le cycle · comment ça marche</div>
+              <div className="eyebrow">Le cycle · comment ça marche</div>
               <h2 className="section-display">Trois étapes, puis un rendez-vous chaque semaine.</h2>
             </div>
             <Link href="/nos-abonnements" className="link-underline">Voir les abonnements</Link>
@@ -183,12 +183,12 @@ export default async function HomePage() {
       <section className="band-forest">
         <div className="container meeting">
           <div>
-            <div className="label label-on-forest">Le point de rendez-vous</div>
+            <div className="eyebrow eyebrow-on-forest">Le point de rendez-vous</div>
             <h2 className="section-display meeting-title">Mercredi, 18h15. On vous attend.</h2>
 
             <dl className="meeting-rows">
               <div className="meeting-row">
-                <dt className="label label-on-forest">Adresse</dt>
+                <dt className="eyebrow eyebrow-on-forest">Adresse</dt>
                 <dd className="meeting-value">
                   Paroisse Saint François de Sales<br />
                   340 avenue du Général de Gaulle<br />
@@ -196,13 +196,13 @@ export default async function HomePage() {
                 </dd>
               </div>
               <div className="meeting-row">
-                <dt className="label label-on-forest">Créneau</dt>
+                <dt className="eyebrow eyebrow-on-forest">Créneau</dt>
                 <dd className="meeting-value">
                   Chaque mercredi, <span className="mono-strong">18h15 → 19h15</span>
                 </dd>
               </div>
               <div className="meeting-row">
-                <dt className="label label-on-forest">Permanence</dt>
+                <dt className="eyebrow eyebrow-on-forest">Permanence</dt>
                 <dd className="meeting-value">
                   Deux adhérents par distribution — environ trois fois par an et par foyer.
                 </dd>
@@ -230,7 +230,7 @@ export default async function HomePage() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            <span className="label label-on-forest">Plan d&apos;accès</span>
+            <span className="eyebrow eyebrow-on-forest">Plan d&apos;accès</span>
             <span className="map-slot-text">
               340 avenue du Général de Gaulle, Clamart
             </span>
@@ -243,7 +243,7 @@ export default async function HomePage() {
       <section className="farms" id="producteurs">
         <div className="container">
           <div className="farms-head">
-            <div className="label">Les fermes partenaires</div>
+            <div className="eyebrow">Les fermes partenaires</div>
             <h2 className="section-display">On sait qui cultive, et où.</h2>
             <p className="farms-lede">
               Trois exploitations bio ou en conversion, toutes à moins de trente kilomètres
@@ -262,7 +262,7 @@ export default async function HomePage() {
                 />
               </div>
               <div className="farm-body">
-                <div className="label">Maraîchage · 12 km</div>
+                <div className="eyebrow">Maraîchage · 12 km</div>
                 <h3 className="farm-name">Ferme des Trois Chênes</h3>
                 <p className="farm-text">
                   Légumes de plein champ et sous serre froide. Certifiée AB depuis 2016.
@@ -280,7 +280,7 @@ export default async function HomePage() {
                 />
               </div>
               <div className="farm-body">
-                <div className="label">Petits fruits · 24 km</div>
+                <div className="eyebrow">Petits fruits · 24 km</div>
                 <h3 className="farm-name">Le Clos Bertaud</h3>
                 <p className="farm-text">
                   Fraises, framboises et groseilles de mai à septembre. En conversion bio.
@@ -298,7 +298,7 @@ export default async function HomePage() {
                 />
               </div>
               <div className="farm-body">
-                <div className="label">Œufs &amp; farine · 28 km</div>
+                <div className="eyebrow">Œufs &amp; farine · 28 km</div>
                 <h3 className="farm-name">GAEC de la Vallée</h3>
                 <p className="farm-text">
                   Poules élevées en plein air et blé meunier écrasé à la ferme.
@@ -313,7 +313,7 @@ export default async function HomePage() {
       <section className="band-sand" id="abonnements">
         <div className="container pricing">
           <div>
-            <div className="label">Les abonnements</div>
+            <div className="eyebrow">Les abonnements</div>
             <h2 className="section-display">Un prix, et il ne bouge plus.</h2>
             <p className="pricing-lede">
               49 semaines de légumes, réglées en plusieurs fois. Avec le Secours Catholique,
@@ -327,7 +327,7 @@ export default async function HomePage() {
 
           <div className="pricing-cards">
             <article className="price-card">
-              <div className="label">Petit panier · 2 à 4 kg</div>
+              <div className="eyebrow">Petit panier · 2 à 4 kg</div>
               <div className="price-amount">19,00 €</div>
               <div className="price-period">par semaine · 931 € l&apos;année</div>
               <div className="price-rule" aria-hidden="true" />
@@ -340,7 +340,7 @@ export default async function HomePage() {
 
             <article className="price-card price-card-featured">
               <div className="price-flag">Le plus choisi</div>
-              <div className="label">Grand panier · 6 à 8 kg</div>
+              <div className="eyebrow">Grand panier · 6 à 8 kg</div>
               <div className="price-amount">29,80 €</div>
               <div className="price-period">par semaine · 1 460,20 € l&apos;année</div>
               <div className="price-rule" aria-hidden="true" />

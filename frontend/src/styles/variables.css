@@ -132,6 +132,9 @@
   --field-focus-ring: rgba(200, 90, 50, 0.15);
   --error-text: #B23A22;
   --error-border: #D9A08E;
+  --error-bg: #FBEDE9;
+  --error-bg-border: #EDC7BC;
+  --error-strong: #8E2E1A;
   --badge-live-border: #CBDBB0;
 
   /* ---------- OMBRES ---------- */

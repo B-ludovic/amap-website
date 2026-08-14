@@ -6,86 +6,6 @@
   color: var(--text-primary);
 }
 
-/* ---------- Éléments transverses ---------- */
-
-/* Label capitales en Geist Mono, présent en tête de chaque section */
-.landing .label {
-  font-family: var(--font-mono);
-  font-size: var(--label-size);
-  font-weight: var(--font-weight-normal);
-  letter-spacing: var(--label-tracking);
-  text-transform: uppercase;
-  color: var(--text-light);
-  line-height: 1.5;
-}
-
-.landing .label-on-forest {
-  color: var(--on-forest-muted);
-}
-
-/* Titre de section : Fraunces 300, 40px, chasse resserrée */
-.landing .section-display {
-  font-family: var(--font-display);
-  font-weight: 300;
-  font-size: 40px;
-  line-height: 1.1;
-  letter-spacing: var(--display-tracking);
-  color: var(--text-primary);
-  margin: 0;
-  max-width: 20em;
-}
-
-.landing .link-underline {
-  font-size: 14.5px;
-  font-weight: var(--font-weight-semibold);
-  color: var(--terracotta);
-  white-space: nowrap;
-  border-bottom: var(--border-width) solid var(--border-accent);
-  padding-bottom: 2px;
-}
-
-.landing .link-underline:hover {
-  color: var(--terracotta-dark);
-  border-bottom-color: var(--terracotta-dark);
-}
-
-/* Bandes de fond pleine largeur */
-.landing .band-sand {
-  background-color: var(--surface-sand);
-  border-top: var(--border-width) solid var(--border-section);
-  border-bottom: var(--border-width) solid var(--border-section);
-}
-
-.landing .band-forest {
-  background-color: var(--surface-forest);
-  color: var(--on-forest);
-}
-
-/* Boutons propres à la landing */
-.landing .btn-ghost-forest {
-  background-color: transparent;
-  color: var(--on-forest);
-  border-color: var(--on-forest-border);
-}
-
-.landing .btn-ghost-forest:hover {
-  background-color: rgba(239, 234, 224, 0.08);
-  border-color: var(--on-forest);
-  color: var(--on-forest);
-}
-
-.landing .btn-forest {
-  background-color: var(--surface-forest);
-  color: var(--surface-page);
-  border-color: var(--surface-forest);
-}
-
-.landing .btn-forest:hover {
-  background-color: var(--text-primary);
-  border-color: var(--text-primary);
-  color: var(--surface-page);
-}
-
 /* ---------- Hero ---------- */
 
 .hero .container {
@@ -239,7 +159,7 @@
   box-shadow: var(--shadow-float);
 }
 
-.basket-card .label {
+.basket-card .eyebrow {
   letter-spacing: var(--label-tracking);
   margin-bottom: 10px;
 }
@@ -282,7 +202,7 @@
   margin-bottom: 52px;
 }
 
-.cycle-head .label {
+.cycle-head .eyebrow {
   margin-bottom: 14px;
 }
 
@@ -365,7 +285,7 @@
   flex-wrap: wrap;
 }
 
-.etal-head .label {
+.etal-head .eyebrow {
   margin-bottom: 14px;
 }
 
@@ -509,7 +429,7 @@
   align-items: center;
 }
 
-.meeting .label {
+.meeting .eyebrow {
   margin-bottom: 16px;
 }
 
@@ -607,7 +527,7 @@
   margin-bottom: 52px;
 }
 
-.farms-head .label {
+.farms-head .eyebrow {
   margin-bottom: 14px;
 }
 
@@ -658,7 +578,7 @@
   padding: 22px 22px 24px;
 }
 
-.farm-body .label {
+.farm-body .eyebrow {
   letter-spacing: 0.12em;
   margin-bottom: 10px;
 }
@@ -690,7 +610,7 @@
   align-items: start;
 }
 
-.pricing .label {
+.pricing .eyebrow {
   margin-bottom: 14px;
 }
 
@@ -758,7 +678,7 @@
   border-radius: var(--border-radius-sm);
 }
 
-.price-card .label {
+.price-card .eyebrow {
   letter-spacing: 0.12em;
   margin-bottom: 14px;
 }
@@ -894,11 +814,11 @@
     padding-bottom: 68px;
   }
 
-  .landing .section-display {
+  .section-display {
     font-size: 32px;
   }
 
-  .meeting-title {
+  .landing .meeting-title {
     font-size: 34px;
   }
 

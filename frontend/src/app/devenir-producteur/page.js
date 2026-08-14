@@ -1,33 +1,89 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Sprout, MapPin, Mail, MessageSquare, CheckCircle, Package, Heart, TrendingUp, PiggyBank, ClipboardCheck } from 'lucide-react';
+import Link from 'next/link';
+import Image from 'next/image';
 import { useModal } from '../../contexts/ModalContext';
 import api from '../../lib/api';
 import '../../styles/public/become-producer.css';
 
+const BENEFITS = [
+  {
+    title: 'Débouchés garantis',
+    text: "Vos productions sont écoulées chaque semaine auprès des adhérents. Pas de gaspillage, pas d'invendus.",
+  },
+  {
+    title: 'Prix justes',
+    text: "Des tarifs équitables, discutés en assemblée, qui valorisent votre travail et la pérennité de l'exploitation.",
+  },
+  {
+    title: 'Circuit ultra-court',
+    text: 'Livraison directe au point de retrait, à moins de 30 km. Aucun intermédiaire, contact direct avec les mangeurs.',
+  },
+  {
+    title: 'Planification facilitée',
+    text: 'Des commandes prévisibles, connues avant les semis, qui vous laissent optimiser vos cultures.',
+  },
+  {
+    title: 'Trésorerie sécurisée',
+    text: "Les adhérents s'engagent financièrement à l'avance sur la saison. Vous gagnez de la visibilité et un apport de trésorerie.",
+  },
+  {
+    title: 'Gestion allégée',
+    text: "L'équipe de bénévoles gère les abonnements, les paiements et la communication. Vous restez sur votre métier.",
+  },
+];
+
+const CRITERIA = [
+  {
+    title: 'Agriculture biologique',
+    text: 'Exploitation certifiée AB ou en conversion. Nous privilégions les pratiques respectueuses de l\'environnement.',
+  },
+  {
+    title: 'Localisation',
+    text: 'Un rayon de 30 km maximum autour du point de retrait, à Clamart.',
+  },
+  {
+    title: 'Production de saison',
+    text: 'Légumes, fruits, œufs ou épicerie locale. Des productions variées au fil des saisons.',
+  },
+  {
+    title: 'Engagement',
+    text: "Un an minimum, avec des livraisons régulières, et le respect de la charte de l'AMAP.",
+  },
+];
+
+const NEXT_STEPS = [
+  'Étude de votre candidature — sous 48 h',
+  'Échange téléphonique pour mieux vous connaître',
+  "Visite de votre exploitation, si c'est possible",
+  'Validation et intégration au réseau',
+  'Première livraison',
+];
+
+const FORM_STEPS = ['Vos coordonnées', 'Votre exploitation', 'Votre production', 'Parlez-nous de vous'];
+
+const EMPTY_FORM = {
+  firstName: '',
+  lastName: '',
+  email: '',
+  phone: '',
+  farmName: '',
+  address: '',
+  city: '',
+  postalCode: '',
+  distance: '',
+  products: '',
+  isBio: false,
+  certifications: '',
+  message: '',
+  availability: '',
+};
+
 export default function BecomeProducerPage() {
-  const router = useRouter();
-  const { showSuccess, showError } = useModal();
+  const { showError } = useModal();
 
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    farmName: '',
-    address: '',
-    city: '',
-    postalCode: '',
-    distance: '',
-    products: '',
-    isBio: false,
-    certifications: '',
-    message: '',
-    availability: ''
-  });
-
+  const [formData, setFormData] = useState(EMPTY_FORM);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -95,8 +151,8 @@ export default function BecomeProducerPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Le récapitulatif d'erreurs s'affiche en bas du formulaire, pas en modale.
     if (!validate()) {
-      showError('Erreur', 'Veuillez corriger les erreurs du formulaire');
       return;
     }
 
@@ -115,7 +171,6 @@ export default function BecomeProducerPage() {
       await api.producerInquiries.submit(dataToSubmit);
 
       setSubmitted(true);
-      showSuccess('Succès', 'Candidature envoyée avec succès !');
     } catch (error) {
       showError(
         'Erreur',
@@ -126,498 +181,350 @@ export default function BecomeProducerPage() {
     }
   };
 
+  const handleReset = () => {
+    setFormData(EMPTY_FORM);
+    setErrors({});
+    setLoading(false);
+    setSubmitted(false);
+  };
+
+  const errorCount = Object.values(errors).filter(Boolean).length;
+
+  const fieldProps = (name, extra = {}) => ({
+    id: name,
+    name,
+    value: formData[name],
+    onChange: handleChange,
+    className: `input ${errors[name] ? 'input-error' : ''}${extra.mono ? ' input-mono' : ''}`,
+    'aria-invalid': errors[name] ? 'true' : undefined,
+    'aria-describedby': errors[name] ? `${name}-error` : undefined,
+  });
+
   if (submitted) {
     return (
-      <div className="become-producer-page">
-        <div className="container">
-          <div className="success-card">
-            <div className="success-icon">
-              <CheckCircle size={64} aria-hidden="true" />
+      <div className="producer-page">
+        <section className="container producer-done">
+          <div>
+            <div className="producer-badge">
+              <span className="producer-badge-dot" aria-hidden="true" />
+              <span className="producer-badge-label">Candidature reçue</span>
             </div>
-            <h1>Candidature envoyée !</h1>
-            <p className="success-message">
-              Merci pour votre intérêt à rejoindre le réseau Aux P'tits Pois. 
-              Nous avons bien reçu votre candidature et nous vous recontacterons 
-              dans les plus brefs délais pour échanger sur votre projet.
+            <h1 className="producer-done-title">Merci — on vous rappelle.</h1>
+            <p className="producer-done-lede">
+              Votre candidature est arrivée. Un bénévole du collectif la lit dans les
+              quarante-huit heures et vous écrit pour convenir d&apos;un premier échange.
             </p>
-
-            <div className="next-steps">
-              <h2>Prochaines étapes</h2>
-              <ol>
-                <li>Nous étudions votre candidature (sous 48h)</li>
-                <li>Échange téléphonique pour mieux vous connaître</li>
-                <li>Visite de votre exploitation si possible</li>
-                <li>Validation et intégration au réseau</li>
-                <li>Première livraison !</li>
-              </ol>
-            </div>
-
-            <div className="success-actions">
-              <button 
-                className="btn btn-primary"
-                onClick={() => router.push('/')}
-              >
-                Retour à l'accueil
+            <div className="producer-done-actions">
+              <Link href="/" className="btn btn-primary btn-lg">Retour à l&apos;accueil</Link>
+              <button type="button" className="btn btn-secondary btn-lg" onClick={handleReset}>
+                Envoyer une autre candidature
               </button>
             </div>
           </div>
-        </div>
+
+          <div className="producer-steps-card">
+            <div className="eyebrow">Prochaines étapes</div>
+            <ol className="producer-steps">
+              {NEXT_STEPS.map((step, i) => (
+                <li className="producer-step" key={step}>
+                  <span className="producer-step-number">{String(i + 1).padStart(2, '0')}</span>
+                  <span className="producer-step-text">{step}</span>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
       </div>
     );
   }
 
   return (
-    <div className="become-producer-page">
+    <div className="producer-page">
+
       {/* Hero */}
-      <section className="producer-hero">
-        <div className="container">
-          <div className="hero-content">
-            <h1>Devenez producteur partenaire</h1>
-            <p className="hero-subtitle">
-              Rejoignez notre réseau de producteurs locaux et bio, 
-              et bénéficiez de débouchés garantis pour vos productions.
-            </p>
-          </div>
+      <section className="container producer-hero">
+        <div>
+          <div className="eyebrow">Réseau producteurs · candidature ouverte</div>
+          <h1 className="producer-title">Vous semez, on garantit l&apos;écoulement.</h1>
+          <p className="producer-lede">
+            Nos adhérents s&apos;engagent et paient à l&apos;avance sur une saison complète.
+            Pour vous, cela veut dire des volumes connus, une trésorerie avancée et zéro
+            invendu.
+          </p>
         </div>
+
+        <dl className="producer-facts">
+          <div className="producer-fact">
+            <dt className="producer-fact-value">30 km</dt>
+            <dd className="producer-fact-label">rayon maximum autour du point de retrait</dd>
+          </div>
+          <div className="producer-fact">
+            <dt className="producer-fact-value">48 h</dt>
+            <dd className="producer-fact-label">délai de réponse à une candidature</dd>
+          </div>
+          <div className="producer-fact">
+            <dt className="producer-fact-value">1 an</dt>
+            <dd className="producer-fact-label">durée d&apos;engagement minimale, de part et d&apos;autre</dd>
+          </div>
+        </dl>
       </section>
 
       {/* Pourquoi nous rejoindre */}
-      <section className="why-join">
-        <div className="container">
-          <h2 className="section-title">Pourquoi rejoindre Aux P'tits Pois ?</h2>
-          
-          <div className="benefits-grid">
-            <div className="benefit-card">
-              <div className="benefit-icon">
-                <TrendingUp size={32} aria-hidden="true" />
-              </div>
-              <h3>Débouchés garantis</h3>
-              <p>
-                Vos productions sont écoulées chaque semaine auprès de nos adhérents. 
-                Pas de gaspillage, pas d'invendus.
-              </p>
-            </div>
+      <section className="container producer-why">
+        <div className="producer-why-head">
+          <div className="eyebrow">Pourquoi nous rejoindre</div>
+          <h2 className="section-display">Six raisons, et aucune n&apos;est du marketing.</h2>
+        </div>
 
-            <div className="benefit-card">
-              <div className="benefit-icon">
-                <Heart size={32} aria-hidden="true" />
-              </div>
-              <h3>Prix justes</h3>
-              <p>
-                Des tarifs équitables qui valorisent votre travail et garantissent 
-                la pérennité de votre exploitation.
-              </p>
-            </div>
-
-            <div className="benefit-card">
-              <div className="benefit-icon">
-                <MapPin size={32} aria-hidden="true" />
-              </div>
-              <h3>Circuit ultra-court</h3>
-              <p>
-                Livraison directe au point de retrait, à moins de 30 km. 
-                Pas d'intermédiaires, contact direct avec les consommateurs.
-              </p>
-            </div>
-
-            <div className="benefit-card">
-              <div className="benefit-icon">
-                <Package size={32} aria-hidden="true" />
-              </div>
-              <h3>Planification facilitée</h3>
-              <p>
-                Commandes prévisibles qui vous permettent d'optimiser vos cultures 
-                et votre gestion.
-              </p>
-            </div>
-
-            <div className="benefit-card">
-              <div className="benefit-icon">
-                <PiggyBank size={32} aria-hidden="true" />
-              </div>
-              <h3>Trésorerie sécurisée</h3>
-              <p>
-                Les adhérents s'engagent financièrement à l'avance sur une saison complète. Vous bénéficiez ainsi d'une visibilité et d'un apport de trésorerie précieux.
-              </p>
-            </div>
-
-            <div className="benefit-card">
-              <div className="benefit-icon">
-                <ClipboardCheck size={32} aria-hidden="true" />
-              </div>
-              <h3>Gestion allégée</h3>
-              <p>
-                Notre équipe de bénévoles gère les abonnements, les paiements et la communication. Vous pouvez vous concentrer pleinement sur votre cœur de métier.
-              </p>
-            </div>
-          </div>
+        <div className="producer-benefits">
+          {BENEFITS.map((benefit, i) => (
+            <article className="producer-benefit" key={benefit.title}>
+              <div className="producer-benefit-number">{String(i + 1).padStart(2, '0')}</div>
+              <h3 className="producer-benefit-title">{benefit.title}</h3>
+              <p className="producer-benefit-text">{benefit.text}</p>
+            </article>
+          ))}
         </div>
       </section>
 
-      {/* Critères requis */}
-      <section className="criteria-section">
-        <div className="container">
-          <h2 className="section-title">Les critères requis</h2>
-          
-          <div className="criteria-list">
-            <div className="criteria-item">
-              <div className="criteria-icon">
-                <Sprout size={24} aria-hidden="true" />
-              </div>
-              <div className="criteria-content">
-                <h3>Agriculture biologique</h3>
-                <p>
-                  Exploitation certifiée AB ou en conversion bio. Nous privilégions 
-                  les pratiques respectueuses de l'environnement.
-                </p>
-              </div>
-            </div>
-
-            <div className="criteria-item">
-              <div className="criteria-icon">
-                <MapPin size={24} aria-hidden="true" />
-              </div>
-              <div className="criteria-content">
-                <h3>Localisation</h3>
-                <p>
-                  Votre exploitation doit être située dans un rayon de 30 km maximum 
-                  autour de notre point de retrait.
-                </p>
-              </div>
-            </div>
-
-            <div className="criteria-item">
-              <div className="criteria-icon">
-                <Package size={24} aria-hidden="true" />
-              </div>
-              <div className="criteria-content">
-                <h3>Production de saison</h3>
-                <p>
-                  Légumes, fruits, œufs, ou produits d'épicerie locaux. 
-                  Productions variées au fil des saisons.
-                </p>
-              </div>
-            </div>
-
-            <div className="criteria-item">
-              <div className="criteria-icon">
-                <Heart size={24} aria-hidden="true" />
-              </div>
-              <div className="criteria-content">
-                <h3>Engagement</h3>
-                <p>
-                  Engagement sur au moins 1 an avec livraisons régulières. 
-                  Respect de la charte de l'AMAP.
-                </p>
-              </div>
-            </div>
+      {/* Les critères */}
+      <section className="band-sand">
+        <div className="container producer-criteria">
+          <div>
+            <div className="eyebrow">Les critères requis</div>
+            <h2 className="section-display">Quatre conditions, pas de dossier à monter.</h2>
+            <p className="producer-criteria-lede">
+              Si l&apos;une d&apos;elles vous semble limite, candidatez quand même : on en
+              discute au téléphone.
+            </p>
           </div>
+
+          <dl className="producer-criteria-list">
+            {CRITERIA.map(item => (
+              <div className="producer-criterion" key={item.title}>
+                <dt className="producer-criterion-title">{item.title}</dt>
+                <dd className="producer-criterion-text">{item.text}</dd>
+              </div>
+            ))}
+          </dl>
         </div>
       </section>
 
       {/* Témoignage */}
-      <section className="testimonial-section">
-        <div className="container">
-          <div className="testimonial-card">
-            <div className="testimonial-icon">
-              <Sprout size={48} aria-hidden="true" />
-            </div>
-            <blockquote>
-              "Rejoindre Aux P'tits Pois a changé ma façon de travailler. Je sais exactement 
-              ce que je dois produire, mes légumes sont valorisés à leur juste prix, et le contact 
-              direct avec les adhérents est très enrichissant. C'est une vraie bouffée d'air frais !"
+      <section className="band-forest">
+        <div className="container producer-quote">
+          <div>
+            <div className="eyebrow eyebrow-on-forest">Un partenaire, trois ans plus tard</div>
+            <blockquote className="producer-quote-text">
+              « Je sais exactement ce que je dois produire, mes légumes sont valorisés à
+              leur juste prix, et le contact direct avec les adhérents est très
+              enrichissant. »
             </blockquote>
-            <div className="testimonial-author">
-              <strong>Simon</strong>
-              <span>3 Parcelles - Producteur partenaire depuis 3 ans</span>
+            <div className="producer-quote-author">
+              <span className="producer-quote-name">Simon</span>
+              <span className="producer-quote-farm">3 Parcelles · partenaire depuis 3 ans</span>
             </div>
+          </div>
+
+          <div className="producer-quote-photo">
+            <Image
+              src="/images/ferme-maraichage.webp"
+              alt="Maraîchage de plein champ"
+              width={1078}
+              height={1076}
+            />
           </div>
         </div>
       </section>
 
-      {/* Formulaire */}
-      <section className="form-section">
-        <div className="container">
-          <div className="form-header">
-            <h2>Postulez dès maintenant</h2>
-            <p>
-              Remplissez ce formulaire pour nous faire part de votre intérêt. 
-              Nous reviendrons vers vous rapidement.
-            </p>
-          </div>
+      {/* Candidature */}
+      <section id="candidature" className="container producer-apply">
+        <aside className="producer-apply-side">
+          <div className="eyebrow">La candidature</div>
+          <h2 className="section-display producer-apply-title">Postulez dès maintenant.</h2>
+          <p className="producer-apply-lede">
+            Cinq minutes, quatre blocs. Nous revenons vers vous sous 48 heures pour un
+            premier échange — rien n&apos;est engagé avant.
+          </p>
 
-          <form onSubmit={handleSubmit} className="producer-form">
-            {/* Informations personnelles */}
-            <div className="form-section-card">
-              <h3>
-                <Mail size={20} aria-hidden="true" />
-                Vos coordonnées
-              </h3>
+          <ol className="producer-summary">
+            {FORM_STEPS.map((step, i) => (
+              <li className="producer-summary-row" key={step}>
+                <span className="producer-summary-number">{String(i + 1).padStart(2, '0')}</span>
+                <span className="producer-summary-text">{step}</span>
+              </li>
+            ))}
+          </ol>
 
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="firstName">Prénom *</label>
-                  <input
-                    type="text"
-                    id="firstName"
-                    name="firstName"
-                    value={formData.firstName}
-                    onChange={handleChange}
-                    className={errors.firstName ? 'input-error' : ''}
-                    required
-                  />
-                  {errors.firstName && (
-                    <span className="error-message">{errors.firstName}</span>
-                  )}
-                </div>
+          <a href="mailto:auxptitspois@gmail.com" className="producer-apply-mail">
+            auxptitspois@gmail.com
+          </a>
+        </aside>
 
-                <div className="form-group">
-                  <label htmlFor="lastName">Nom *</label>
-                  <input
-                    type="text"
-                    id="lastName"
-                    name="lastName"
-                    value={formData.lastName}
-                    onChange={handleChange}
-                    className={errors.lastName ? 'input-error' : ''}
-                    required
-                  />
-                  {errors.lastName && (
-                    <span className="error-message">{errors.lastName}</span>
-                  )}
-                </div>
-              </div>
+        <form onSubmit={handleSubmit} className="producer-form" noValidate>
 
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="email">Email *</label>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    className={errors.email ? 'input-error' : ''}
-                    required
-                  />
-                  {errors.email && (
-                    <span className="error-message">{errors.email}</span>
-                  )}
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="phone">Téléphone *</label>
-                  <input
-                    type="tel"
-                    id="phone"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    placeholder="06 12 34 56 78"
-                    className={errors.phone ? 'input-error' : ''}
-                    required
-                  />
-                  {errors.phone && (
-                    <span className="error-message">{errors.phone}</span>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Exploitation */}
-            <div className="form-section-card">
-              <h3>
-                <Sprout size={20} aria-hidden="true" />
-                Votre exploitation
-              </h3>
-
-              <div className="form-group">
-                <label htmlFor="farmName">Nom de l'exploitation *</label>
-                <input
-                  type="text"
-                  id="farmName"
-                  name="farmName"
-                  value={formData.farmName}
-                  onChange={handleChange}
-                  placeholder="Ex: Les Jardins de Marie"
-                  className={errors.farmName ? 'input-error' : ''}
-                  required
-                />
-                {errors.farmName && (
-                  <span className="error-message">{errors.farmName}</span>
-                )}
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="address">Adresse *</label>
-                <input
-                  type="text"
-                  id="address"
-                  name="address"
-                  value={formData.address}
-                  onChange={handleChange}
-                  placeholder="Numéro et nom de rue"
-                  className={errors.address ? 'input-error' : ''}
-                  required
-                />
-                {errors.address && (
-                  <span className="error-message">{errors.address}</span>
-                )}
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="postalCode">Code postal *</label>
-                  <input
-                    type="text"
-                    id="postalCode"
-                    name="postalCode"
-                    value={formData.postalCode}
-                    onChange={handleChange}
-                    placeholder="75001"
-                    maxLength="5"
-                    className={errors.postalCode ? 'input-error' : ''}
-                    required
-                  />
-                  {errors.postalCode && (
-                    <span className="error-message">{errors.postalCode}</span>
-                  )}
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="city">Ville *</label>
-                  <input
-                    type="text"
-                    id="city"
-                    name="city"
-                    value={formData.city}
-                    onChange={handleChange}
-                    className={errors.city ? 'input-error' : ''}
-                    required
-                  />
-                  {errors.city && (
-                    <span className="error-message">{errors.city}</span>
-                  )}
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="distance">Distance (km)</label>
-                  <input
-                    type="number"
-                    id="distance"
-                    name="distance"
-                    value={formData.distance}
-                    onChange={handleChange}
-                    placeholder="15"
-                    min="0"
-                    max="50"
-                  />
-                  <small className="form-hint">
-                    Distance approximative depuis notre point de retrait (optionnel)
-                  </small>
-                </div>
-              </div>
-            </div>
-
-            {/* Production */}
-            <div className="form-section-card">
-              <h3>
-                <Package size={20} aria-hidden="true" />
-                Votre production
-              </h3>
-
-              <div className="form-group">
-                <label htmlFor="products">Types de produits *</label>
-                <textarea
-                  id="products"
-                  name="products"
-                  value={formData.products}
-                  onChange={handleChange}
-                  rows="3"
-                  placeholder="Ex: Légumes variés de saison, fruits rouges, œufs..."
-                  className={errors.products ? 'input-error' : ''}
-                  required
-                />
-                {errors.products && (
-                  <span className="error-message">{errors.products}</span>
-                )}
-              </div>
-
-              <div className="form-group checkbox-group">
-                <label className="checkbox-label">
-                  <input
-                    type="checkbox"
-                    name="isBio"
-                    checked={formData.isBio}
-                    onChange={handleChange}
-                  />
-                  <span>Mon exploitation est certifiée Agriculture Biologique</span>
+          <fieldset className="producer-fieldset">
+            <legend className="producer-legend">01 · Vos coordonnées</legend>
+            <div className="producer-grid-2">
+              <div className="producer-field">
+                <label htmlFor="firstName" className="producer-label">
+                  Prénom <span className="producer-required">*</span>
                 </label>
+                <input type="text" autoComplete="given-name" {...fieldProps('firstName')} />
+                {errors.firstName && <span id="firstName-error" className="producer-error">{errors.firstName}</span>}
               </div>
+
+              <div className="producer-field">
+                <label htmlFor="lastName" className="producer-label">
+                  Nom <span className="producer-required">*</span>
+                </label>
+                <input type="text" autoComplete="family-name" {...fieldProps('lastName')} />
+                {errors.lastName && <span id="lastName-error" className="producer-error">{errors.lastName}</span>}
+              </div>
+
+              <div className="producer-field">
+                <label htmlFor="email" className="producer-label">
+                  Email <span className="producer-required">*</span>
+                </label>
+                <input type="text" inputMode="email" autoComplete="email" {...fieldProps('email')} />
+                {errors.email && <span id="email-error" className="producer-error">{errors.email}</span>}
+              </div>
+
+              <div className="producer-field">
+                <label htmlFor="phone" className="producer-label">
+                  Téléphone <span className="producer-required">*</span>
+                </label>
+                <input type="tel" autoComplete="tel" placeholder="06 12 34 56 78" {...fieldProps('phone', { mono: true })} />
+                {errors.phone && <span id="phone-error" className="producer-error">{errors.phone}</span>}
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset className="producer-fieldset">
+            <legend className="producer-legend">02 · Votre exploitation</legend>
+            <div className="producer-stack">
+              <div className="producer-field">
+                <label htmlFor="farmName" className="producer-label">
+                  Nom de l&apos;exploitation <span className="producer-required">*</span>
+                </label>
+                <input type="text" placeholder="Les Jardins de Marie" {...fieldProps('farmName')} />
+                {errors.farmName && <span id="farmName-error" className="producer-error">{errors.farmName}</span>}
+              </div>
+
+              <div className="producer-field">
+                <label htmlFor="address" className="producer-label">
+                  Adresse <span className="producer-required">*</span>
+                </label>
+                <input type="text" autoComplete="street-address" placeholder="Numéro et nom de rue" {...fieldProps('address')} />
+                {errors.address && <span id="address-error" className="producer-error">{errors.address}</span>}
+              </div>
+
+              <div className="producer-grid-address">
+                <div className="producer-field">
+                  <label htmlFor="postalCode" className="producer-label">
+                    Code postal <span className="producer-required">*</span>
+                  </label>
+                  <input type="text" maxLength={5} autoComplete="postal-code" placeholder="92140" {...fieldProps('postalCode', { mono: true })} />
+                  {errors.postalCode && <span id="postalCode-error" className="producer-error">{errors.postalCode}</span>}
+                </div>
+
+                <div className="producer-field">
+                  <label htmlFor="city" className="producer-label">
+                    Ville <span className="producer-required">*</span>
+                  </label>
+                  <input type="text" autoComplete="address-level2" {...fieldProps('city')} />
+                  {errors.city && <span id="city-error" className="producer-error">{errors.city}</span>}
+                </div>
+
+                <div className="producer-field">
+                  <label htmlFor="distance" className="producer-label">Distance (km)</label>
+                  <input type="text" inputMode="numeric" placeholder="15" {...fieldProps('distance', { mono: true })} />
+                  <span className="producer-hint">Depuis le point de retrait — optionnel</span>
+                </div>
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset className="producer-fieldset">
+            <legend className="producer-legend">03 · Votre production</legend>
+            <div className="producer-stack">
+              <div className="producer-field">
+                <label htmlFor="products" className="producer-label">
+                  Types de produits <span className="producer-required">*</span>
+                </label>
+                <textarea
+                  rows={3}
+                  placeholder="Légumes variés de saison, fruits rouges, œufs…"
+                  {...fieldProps('products')}
+                  className={`textarea ${errors.products ? 'input-error' : ''}`}
+                />
+                {errors.products && <span id="products-error" className="producer-error">{errors.products}</span>}
+              </div>
+
+              <label htmlFor="isBio" className="producer-check">
+                <input
+                  id="isBio"
+                  name="isBio"
+                  type="checkbox"
+                  checked={formData.isBio}
+                  onChange={handleChange}
+                  className="producer-checkbox"
+                />
+                <span>Mon exploitation est certifiée Agriculture Biologique</span>
+              </label>
 
               {formData.isBio && (
-                <div className="form-group">
-                  <label htmlFor="certifications">Certifications</label>
-                  <input
-                    type="text"
-                    id="certifications"
-                    name="certifications"
-                    value={formData.certifications}
-                    onChange={handleChange}
-                    placeholder="Ex: AB, Nature & Progrès, Demeter..."
-                  />
+                <div className="producer-field">
+                  <label htmlFor="certifications" className="producer-label">Certifications</label>
+                  <input type="text" placeholder="AB, Nature &amp; Progrès, Demeter…" {...fieldProps('certifications')} />
                 </div>
               )}
             </div>
+          </fieldset>
 
-            {/* Message */}
-            <div className="form-section-card">
-              <h3>
-                <MessageSquare size={20} aria-hidden="true" />
-                Parlez-nous de vous
-              </h3>
-
-              <div className="form-group">
-                <label htmlFor="message">Message</label>
+          <fieldset className="producer-fieldset">
+            <legend className="producer-legend">04 · Parlez-nous de vous</legend>
+            <div className="producer-stack">
+              <div className="producer-field">
+                <label htmlFor="message" className="producer-label">Message</label>
                 <textarea
-                  id="message"
-                  name="message"
-                  value={formData.message}
-                  onChange={handleChange}
-                  rows="5"
-                  placeholder="Présentez votre exploitation, votre démarche, vos motivations..."
+                  rows={5}
+                  placeholder="Votre exploitation, votre démarche, vos motivations…"
+                  {...fieldProps('message')}
+                  className="textarea"
                 />
               </div>
 
-              <div className="form-group">
-                <label htmlFor="availability">Disponibilités pour un rendez-vous</label>
-                <input
-                  type="text"
-                  id="availability"
-                  name="availability"
-                  value={formData.availability}
-                  onChange={handleChange}
-                  placeholder="Ex: Disponible les matins en semaine"
-                />
+              <div className="producer-field">
+                <label htmlFor="availability" className="producer-label">
+                  Disponibilités pour un rendez-vous
+                </label>
+                <input type="text" placeholder="Disponible les matins en semaine" {...fieldProps('availability')} />
               </div>
             </div>
+          </fieldset>
 
-            {/* Submit */}
-            <div className="form-actions">
-              <button
-                type="submit"
-                className="btn btn-primary btn-lg btn-block"
-                disabled={loading}
-              >
-                {loading ? 'Envoi en cours...' : 'Envoyer ma candidature'}
-              </button>
-              <p className="form-notice">
-                * Champs obligatoires. Vos données sont uniquement utilisées pour 
-                le traitement de votre candidature.
-              </p>
+          {errorCount > 0 && (
+            <div className="producer-alert" role="alert">
+              <span className="producer-alert-dot" aria-hidden="true" />
+              <span>
+                {errorCount === 1
+                  ? 'Un champ demande votre attention avant l\'envoi.'
+                  : `${errorCount} champs demandent votre attention avant l'envoi.`}
+              </span>
             </div>
-          </form>
-        </div>
+          )}
+
+          <div className="producer-submit-zone">
+            <button type="submit" className="producer-submit" disabled={loading}>
+              {loading ? 'Envoi en cours…' : 'Envoyer ma candidature'}
+            </button>
+            <p className="producer-legal">
+              Les champs marqués d&apos;une astérisque sont obligatoires. Vos données servent
+              uniquement au traitement de votre candidature.
+            </p>
+          </div>
+        </form>
       </section>
     </div>
   );

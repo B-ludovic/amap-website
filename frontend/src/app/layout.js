@@ -9,6 +9,7 @@ import '../../public/orejime/orejime-standard.css';
 import '../styles/components/orejime.css';
 import '../styles/variables.css';
 import '../styles/globals.css';
+import '../styles/components/da.css';
 import '../styles/components/modal.css';
 import '../styles/components/header.css';
 import '../styles/components/footer.css';

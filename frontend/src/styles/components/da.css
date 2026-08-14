@@ -1,0 +1,87 @@
+/* Motifs récurrents de la direction artistique, partagés par les pages publiques.
+   Nommage volontairement distinct pour ne croiser aucune classe existante. */
+
+/* Sur-titre en capitales monospace, posé au-dessus des titres de section */
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--label-size);
+  font-weight: var(--font-weight-normal);
+  letter-spacing: var(--label-tracking);
+  text-transform: uppercase;
+  color: var(--text-light);
+  line-height: 1.5;
+}
+
+.eyebrow-on-forest {
+  color: var(--on-forest-muted);
+}
+
+/* Titre de section : Fraunces 300, chasse resserrée */
+.section-display {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: 40px;
+  line-height: 1.1;
+  letter-spacing: var(--display-tracking);
+  color: var(--text-primary);
+  margin: 0;
+  max-width: 20em;
+}
+
+/* Lien souligné d'un filet d'accent */
+.link-underline {
+  font-size: 14.5px;
+  font-weight: var(--font-weight-semibold);
+  color: var(--terracotta);
+  white-space: nowrap;
+  border-bottom: var(--border-width) solid var(--border-accent);
+  padding-bottom: 2px;
+}
+
+.link-underline:hover {
+  color: var(--terracotta-dark);
+  border-bottom-color: var(--terracotta-dark);
+}
+
+/* Bandes de fond pleine largeur */
+.band-sand {
+  background-color: var(--surface-sand);
+  border-top: var(--border-width) solid var(--border-section);
+  border-bottom: var(--border-width) solid var(--border-section);
+}
+
+.band-forest {
+  background-color: var(--surface-forest);
+  color: var(--on-forest);
+}
+
+/* Boutons propres aux fonds sombres */
+.btn-ghost-forest {
+  background-color: transparent;
+  color: var(--on-forest);
+  border-color: var(--on-forest-border);
+}
+
+.btn-ghost-forest:hover {
+  background-color: rgba(239, 234, 224, 0.08);
+  border-color: var(--on-forest);
+  color: var(--on-forest);
+}
+
+.btn-forest {
+  background-color: var(--surface-forest);
+  color: var(--surface-page);
+  border-color: var(--surface-forest);
+}
+
+.btn-forest:hover {
+  background-color: var(--text-primary);
+  border-color: var(--text-primary);
+  color: var(--surface-page);
+}
+
+@media (max-width: 900px) {
+  .section-display {
+    font-size: 32px;
+  }
+}
