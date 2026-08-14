@@ -1,185 +1,193 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { useFocusTrap } from '../../hooks/useFocusTrap';
-import { X, DoorClosed, AlertTriangle, Mail } from 'lucide-react';
+import { useState } from 'react';
 import api from '../../lib/api';
 import { useModal } from '../../contexts/ModalContext';
+import AdminModal from './AdminModal';
+import { countClosureDays } from '../../lib/closures';
+import { dayMonthYearLong, plural } from '../../lib/format';
 
-function todayISO() {
-  return new Date().toISOString().split('T')[0];
+function pad(number) {
+  return String(number).padStart(2, '0');
 }
 
-function addDays(dateStr, days) {
-  const d = new Date(dateStr);
-  d.setDate(d.getDate() + days);
-  return d.toISOString().split('T')[0];
+/* Les champs date parlent en « AAAA-MM-JJ » local. On écrit la date à la main
+   plutôt que par toISOString, qui bascule d'un jour en soirée parisienne. */
+function toInputValue(value) {
+  const date = value instanceof Date ? value : new Date(value);
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
 
-function formatDateFR(dateStr) {
-  return new Date(dateStr).toLocaleDateString('fr-FR', {
-    day: 'numeric', month: 'long', year: 'numeric'
-  });
+function addDays(inputValue, days) {
+  const date = new Date(`${inputValue}T12:00:00`);
+  date.setDate(date.getDate() + days);
+  return toInputValue(date);
 }
 
-export default function ClosureModal({ daysUsed, daysRemaining, onClose }) {
-  const containerRef = useRef(null);
-  useFocusTrap(containerRef);
+export default function ClosureModal({ closure, daysUsed, maxDays, year, onClose }) {
   const { showConfirm } = useModal();
-  const [startDate, setStartDate] = useState(todayISO());
-  const [endDate, setEndDate] = useState(addDays(todayISO(), 7));
-  const [reason, setReason] = useState('');
+  const isEdit = Boolean(closure);
+
+  const [startDate, setStartDate] = useState(
+    closure ? toInputValue(closure.startDate) : toInputValue(new Date())
+  );
+  const [endDate, setEndDate] = useState(
+    closure ? toInputValue(closure.endDate) : addDays(toInputValue(new Date()), 6)
+  );
+  const [reason, setReason] = useState(closure?.reason ?? '');
+  const [notify, setNotify] = useState(!isEdit);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const daysRequested = Math.round((new Date(endDate) - new Date(startDate)) / 86400000);
-  const isExhausted = daysRemaining === 0;
-  const wouldExceed = daysRequested > daysRemaining;
+  /* Budget disponible pour cette fermeture-ci : le quota annuel moins ce qui
+     est déjà engagé, mais la fermeture en cours de modification se rend son
+     propre coût — sinon elle se compterait contre elle-même, exactement comme
+     le fait le contrôleur avec son excludedId. */
+  const ownDays = isEdit ? countClosureDays(closure.startDate, closure.endDate) : 0;
+  const budget = Math.max(0, maxDays - daysUsed + ownDays);
 
-  function handleConfirm() {
-    if (new Date(endDate) <= new Date(startDate)) {
-      setError('La date de fin doit être après la date de début.');
+  const daysRequested = countClosureDays(startDate, endDate);
+  const isReversed = new Date(endDate) < new Date(startDate);
+  const wouldExceed = daysRequested > budget;
+  const daysLeftAfter = Math.max(0, budget - daysRequested);
+
+  const submit = async () => {
+    setError('');
+    setLoading(true);
+    try {
+      const payload = { startDate, endDate, reason: reason.trim() || undefined, notify };
+      const response = isEdit
+        ? await api.closures.update(closure.id, payload)
+        : await api.closures.create(payload);
+
+      onClose(true, response.message);
+    } catch (err) {
+      setError(err.message || 'Une erreur est survenue.');
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+
+    if (isReversed) {
+      setError('La date de fin ne peut pas précéder la date de début.');
       return;
     }
-    showConfirm(
-      'Confirmer la fermeture AMAP',
-      `Créer une fermeture du ${formatDateFR(startDate)} au ${formatDateFR(endDate)} ? Une newsletter sera automatiquement envoyée à tous les abonnés actifs.`,
-      async () => {
-        setError('');
-        setLoading(true);
-        try {
-          const result = await api.closures.create({ startDate, endDate, reason: reason || undefined });
-          onClose(true, result.data?.sentCount ?? 0);
-        } catch (err) {
-          setError(err.response?.data?.message || err.message || 'Erreur lors de la création');
-        } finally {
-          setLoading(false);
-        }
-      }
-    );
-  }
 
-  useEffect(() => {
-    const handleEscape = (e) => { if (e.key === 'Escape') onClose(false); };
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
-  }, [onClose]);
+    const period = `du ${dayMonthYearLong(startDate)} au ${dayMonthYearLong(endDate)}`;
+    const mail = notify
+      ? ' Une newsletter partira aux abonnés actifs.'
+      : ' Aucune newsletter ne sera envoyée.';
+
+    showConfirm(
+      isEdit ? 'Modifier la fermeture' : 'Confirmer la fermeture',
+      isEdit
+        ? `Enregistrer la fermeture ${period} ?${mail}`
+        : `Fermer l'AMAP ${period} ? Aucune distribution n'aura lieu pendant cette période.${mail}`,
+      submit
+    );
+  };
 
   return (
-    <div className="modal-overlay" onClick={() => onClose(false)}>
-      <div className="modal-container" ref={containerRef} role="dialog" aria-modal="true" aria-labelledby="modal-title-closure" onClick={e => e.stopPropagation()}>
-        <div className="modal-header">
-          <div className="modal-title-group">
-            <DoorClosed size={20} />
-            <h2 id="modal-title-closure" className="modal-title">Créer une fermeture AMAP</h2>
+    <AdminModal
+      title={isEdit ? 'Modifier la fermeture' : 'Créer une fermeture'}
+      width="640px"
+      onClose={() => onClose(false)}
+    >
+      <form onSubmit={handleSubmit}>
+        <div className="admin-form admin-closure-form">
+          <div className="admin-form-row">
+            <div className="admin-form-field">
+              <label htmlFor="cl-start" className="admin-field-label">Date de début *</label>
+              <input
+                id="cl-start"
+                type="date"
+                className="admin-input admin-input-mono"
+                value={startDate}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  setStartDate(value);
+                  if (new Date(endDate) < new Date(value)) setEndDate(value);
+                }}
+              />
+            </div>
+            <div className="admin-form-field">
+              <label htmlFor="cl-end" className="admin-field-label">Date de fin *</label>
+              <input
+                id="cl-end"
+                type="date"
+                className="admin-input admin-input-mono"
+                value={endDate}
+                min={startDate}
+                onChange={(event) => setEndDate(event.target.value)}
+              />
+            </div>
           </div>
-          <button className="modal-close" onClick={() => onClose(false)}>
-            <X size={20} />
-          </button>
-        </div>
 
-        <div className="modal-body">
-          {/* Info newsletter */}
-          <div className="closure-modal-info">
-            <Mail size={16} />
-            <span>Une newsletter sera automatiquement envoyée à tous les abonnés actifs lors de la création.</span>
-          </div>
-
-          {isExhausted ? (
-            <div className="closure-quota-exhausted">
-              <AlertTriangle size={32} />
-              <p>La limite de 3 semaines de fermeture pour cette année est atteinte.</p>
+          {/* Coût de la période, recalculé à chaque frappe. Les deux bornes sont
+              comprises : du 24 au 31, l'AMAP est fermée huit jours. */}
+          {wouldExceed ? (
+            <div className="form-alert admin-closure-cost">
+              <span className="form-alert-dot" />
+              <span className="form-alert-text">
+                Cette période consomme <span className="admin-closure-cost-strong">{daysRequested} {plural(daysRequested, 'jour', 'jours')}</span>,
+                il n&apos;en reste que {budget} sur le quota {year}.
+              </span>
             </div>
           ) : (
-            <>
-              {/* Quota restant */}
-              <div className="pause-weeks-counter closure-weeks-counter">
-                <span>Jours de fermeture utilisés cette année :</span>
-                <strong>{daysUsed} / 21</strong>
-              </div>
+            <div className="notice-band admin-closure-cost">
+              <span className="notice-band-dot" />
+              <span className="notice-band-text">
+                Cette fermeture consomme <span className="admin-closure-cost-strong">{daysRequested} {plural(daysRequested, 'jour', 'jours')}</span> sur le quota annuel.
+              </span>
+              <span className="admin-closure-cost-right">reste {daysLeftAfter} j</span>
+            </div>
+          )}
 
-              {/* Date début */}
-              <div className="form-group">
-                <label className="form-label">Date de début</label>
-                <input
-                  type="date"
-                  className="form-input"
-                  value={startDate}
-                  onChange={e => setStartDate(e.target.value)}
-                />
-              </div>
+          <div className="admin-form-field">
+            <label htmlFor="cl-reason" className="admin-field-label">Motif (optionnel)</label>
+            <input
+              id="cl-reason"
+              type="text"
+              className="admin-input"
+              placeholder="Ex : congés estivaux, travaux…"
+              value={reason}
+              onChange={(event) => setReason(event.target.value)}
+            />
+          </div>
 
-              {/* Date fin */}
-              <div className="form-group">
-                <label className="form-label">Date de fin</label>
-                <input
-                  type="date"
-                  className="form-input"
-                  value={endDate}
-                  min={addDays(startDate, 1)}
-                  onChange={e => setEndDate(e.target.value)}
-                />
-              </div>
+          <label className="admin-check" htmlFor="cl-notify">
+            <input
+              id="cl-notify"
+              type="checkbox"
+              checked={notify}
+              onChange={(event) => setNotify(event.target.checked)}
+            />
+            <span>
+              {isEdit
+                ? 'Prévenir les adhérents du changement par newsletter'
+                : 'Prévenir les adhérents par newsletter automatique'}
+            </span>
+          </label>
 
-              {/* Durée calculée */}
-              {daysRequested > 0 && (
-                <p className="closure-duration-hint">
-                  Durée : {daysRequested} jour{daysRequested > 1 ? 's' : ''}
-                  {wouldExceed && (
-                    <span className="closure-quota-exceeded">
-                      — dépasse le quota restant ({daysRemaining} j)
-                    </span>
-                  )}
-                </p>
-              )}
-
-              {/* Raison */}
-              <div className="form-group">
-                <label className="form-label">Motif <span className="form-optional">(optionnel)</span></label>
-                <textarea
-                  className="form-input"
-                  rows={2}
-                  value={reason}
-                  onChange={e => setReason(e.target.value)}
-                  placeholder="Ex : congés estivaux, travaux…"
-                />
-              </div>
-
-              {/* Avertissement */}
-              <div className="closure-modal-warning">
-                <AlertTriangle size={16} />
-                <div>
-                  <strong>Êtes-vous sûr ?</strong> Aucune distribution ne sera effectuée du{' '}
-                  <strong>{formatDateFR(startDate)}</strong> au <strong>{formatDateFR(endDate)}</strong>.
-                  Un email sera envoyé à tous les abonnés actifs.
-                </div>
-              </div>
-
-              {error && (
-                <div className="closure-modal-error">
-                  <AlertTriangle size={16} />
-                  <span>{error}</span>
-                </div>
-              )}
-            </>
+          {error && (
+            <div className="form-alert">
+              <span className="form-alert-dot" />
+              <span className="form-alert-text">{error}</span>
+            </div>
           )}
         </div>
 
-        <div className="modal-footer">
-          <button className="btn btn-secondary" onClick={() => onClose(false)} disabled={loading}>
+        <div className="admin-modal-actions">
+          <button type="submit" className="admin-btn-primary" disabled={loading || wouldExceed || isReversed}>
+            {loading ? 'Enregistrement…' : isEdit ? 'Enregistrer' : 'Créer la fermeture'}
+          </button>
+          <button type="button" className="admin-btn-ghost" onClick={() => onClose(false)} disabled={loading}>
             Annuler
           </button>
-          {!isExhausted && (
-            <button
-              className="btn btn-primary"
-              onClick={handleConfirm}
-              disabled={loading || wouldExceed}
-            >
-              {loading ? 'Création…' : 'Créer la fermeture'}
-            </button>
-          )}
         </div>
-      </div>
-    </div>
+      </form>
+    </AdminModal>
   );
 }

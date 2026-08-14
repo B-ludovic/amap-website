@@ -1,63 +1,73 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import api from '../../../lib/api';
 import { useModal } from '../../../contexts/ModalContext';
 import ClosureModal from '../../../components/admin/ClosureModal';
-import '../../../styles/admin/components.css';
-import '../../../styles/admin/layout.css';
-import '../../../styles/admin/fermetures.css';
-import { DoorClosed, Plus, Trash2, AlertTriangle } from 'lucide-react';
+import { countClosureDays, closureState } from '../../../lib/closures';
+import { dayMonthYearLong, plural } from '../../../lib/format';
+import '../../../styles/admin/closures-da.css';
 
-function formatDateFR(dateStr) {
-  return new Date(dateStr).toLocaleDateString('fr-FR', {
-    day: 'numeric', month: 'long', year: 'numeric'
-  });
-}
+const STATES = {
+  ONGOING: { label: 'En cours', tone: 'admin-badge-red' },
+  UPCOMING: { label: 'À venir', tone: 'admin-badge-amber' },
+  PAST: { label: 'Passée', tone: '' }
+};
 
-function getClosureTag(startDate, endDate) {
-  const now = new Date();
-  const start = new Date(startDate);
-  const end = new Date(endDate);
-  if (end < now) return { label: 'Passée', className: 'past' };
-  if (start <= now) return { label: 'En cours', className: 'ongoing' };
-  return { label: 'À venir', className: 'future' };
-}
+/* Les fermetures à venir et celle en cours passent devant, dans l'ordre du
+   calendrier ; les passées suivent, de la plus récente à la plus ancienne.
+   L'API les rend triées par date croissante, ce qui enterrerait les prochaines
+   sous celles de janvier. */
+function orderForAdmin(closures) {
+  const upcoming = [];
+  const past = [];
 
-function daysBetween(startDate, endDate) {
-  return Math.round((new Date(endDate) - new Date(startDate)) / 86400000);
+  for (const closure of closures) {
+    (closureState(closure) === 'PAST' ? past : upcoming).push(closure);
+  }
+
+  upcoming.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+  past.sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
+
+  return [...upcoming, ...past];
 }
 
 export default function AdminFermeturesPage() {
+  const { showConfirm, showSuccess, showError } = useModal();
+
   const [closures, setClosures] = useState([]);
-  const [daysUsed, setDaysUsed] = useState(0);
-  const [daysRemaining, setDaysRemaining] = useState(21);
+  const [quota, setQuota] = useState({ year: new Date().getFullYear(), maxDays: 21, used: 0, remaining: 21 });
   const [loading, setLoading] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const { showSuccess, showError, showConfirm } = useModal();
+  const [editing, setEditing] = useState(null);
 
-  useEffect(() => {
-    fetchClosures();
-  }, []);
-
-  const fetchClosures = async () => {
+  const fetchClosures = useCallback(async () => {
+    setLoading(true);
     try {
-      setLoading(true);
       const response = await api.closures.getAll();
-      setClosures(response.data.closures);
-      setDaysUsed(response.data.daysUsedThisYear);
-      setDaysRemaining(response.data.daysRemainingThisYear);
-    } catch {
-      showError('Erreur', 'Impossible de charger les fermetures');
+      const data = response.data;
+
+      setClosures(orderForAdmin(data.closures));
+      setQuota({
+        year: data.year,
+        maxDays: data.maxDaysPerYear,
+        used: data.daysUsedThisYear,
+        remaining: data.daysRemainingThisYear
+      });
+    } catch (error) {
+      showError('Erreur', 'Impossible de charger les fermetures.');
     } finally {
       setLoading(false);
     }
-  };
+  }, [showError]);
 
-  const handleModalClose = (shouldRefresh, sentCount) => {
-    setIsModalOpen(false);
+  useEffect(() => {
+    fetchClosures();
+  }, [fetchClosures]);
+
+  const closeModal = (shouldRefresh, message) => {
+    setEditing(null);
     if (shouldRefresh) {
-      showSuccess('Fermeture créée', `Newsletter envoyée à ${sentCount} abonné(s).`);
+      showSuccess('Fermeture enregistrée', message ?? 'La période a été enregistrée.');
       fetchClosures();
     }
   };
@@ -65,130 +75,124 @@ export default function AdminFermeturesPage() {
   const handleDelete = (closure) => {
     showConfirm(
       'Supprimer la fermeture',
-      `Supprimer la fermeture du ${formatDateFR(closure.startDate)} au ${formatDateFR(closure.endDate)} ?`,
+      `Supprimer la fermeture du ${dayMonthYearLong(closure.startDate)} au ${dayMonthYearLong(closure.endDate)} ? Les adhérents déjà prévenus ne recevront pas de démenti.`,
       async () => {
         try {
           await api.closures.delete(closure.id);
-          showSuccess('Succès', 'Fermeture supprimée');
+          showSuccess('Fermeture supprimée', 'La période a été retirée du calendrier.');
           fetchClosures();
-        } catch (err) {
-          showError('Erreur', err.response?.data?.message || 'Erreur lors de la suppression');
+        } catch (error) {
+          showError('Erreur', error.message);
         }
       }
     );
   };
 
-  const isFuture = (closure) => new Date(closure.startDate) > new Date();
-
-  const percentUsed = Math.min(100, Math.round((daysUsed / 21) * 100));
+  const isExhausted = quota.remaining === 0;
+  const filled = Math.min(100, Math.round((quota.used / quota.maxDays) * 1000) / 10);
 
   return (
-    <div className="admin-page">
-      {/* En-tête */}
-      <div className="page-header">
-        <div className="page-header-content">
-          <div className="page-title-group">
-            <DoorClosed size={24} className="page-title-icon" />
-            <div>
-              <h1 className="page-title">Fermetures AMAP</h1>
-              <p className="page-subtitle">
-                Gérez les semaines de fermeture (max 3 semaines / 21 jours par an).
-                Une newsletter est envoyée automatiquement aux abonnés actifs.
-              </p>
-            </div>
-          </div>
-          <button
-            className="btn btn-primary"
-            onClick={() => setIsModalOpen(true)}
-            disabled={daysRemaining === 0}
-          >
-            <Plus size={16} />
-            Nouvelle fermeture
-          </button>
+    <div className="admin-closures">
+      <div className="admin-page-head">
+        <div>
+          <h1 className="admin-title">Fermetures AMAP</h1>
+          <p className="admin-title-lead">
+            Semaines sans distribution — les adhérents sont prévenus par newsletter.
+          </p>
         </div>
+        <button
+          type="button"
+          className="admin-btn-primary"
+          onClick={() => setEditing({ id: null })}
+          disabled={isExhausted}
+        >
+          Créer une fermeture
+        </button>
       </div>
 
-      {/* Quota annuel */}
-      <div className="closure-quota">
-        <span className="closure-quota-label">
-          Quota {new Date().getFullYear()} : <strong>{daysUsed} / 21 jours</strong>
-        </span>
-        <div className="closure-quota-bar-wrap">
+      {/* Jauge de quota : ce qui est engagé sur l'année civile en cours. */}
+      <div className="admin-quota">
+        <div className="admin-quota-head">
+          <span className="admin-quota-label">
+            Quota {quota.year} — <span className="admin-quota-count">{quota.used} / {quota.maxDays} jours</span>
+          </span>
+          <span className={`admin-quota-left ${isExhausted ? 'admin-quota-left-empty' : ''}`}>
+            {isExhausted
+              ? 'quota atteint'
+              : `${quota.remaining} ${plural(quota.remaining, 'jour restant', 'jours restants')}`}
+          </span>
+        </div>
+        <div className="admin-quota-track">
           <div
-            className={`closure-quota-bar${daysUsed >= 21 ? ' full' : ''}`}
-            style={{ width: `${percentUsed}%` }}
+            className={`admin-quota-fill ${isExhausted ? 'admin-quota-fill-full' : ''}`}
+            style={{ width: `${filled}%` }}
           />
         </div>
-        <span className="closure-quota-label">
-          {daysRemaining > 0
-            ? <><strong>{daysRemaining}</strong> jour{daysRemaining > 1 ? 's' : ''} restant{daysRemaining > 1 ? 's' : ''}</>
-            : <span className="closure-quota-exceeded">Quota atteint</span>
-          }
-        </span>
+        <p className="admin-quota-note">
+          Trois semaines de fermeture collective au maximum par année civile, soit {quota.maxDays} jours.
+        </p>
       </div>
 
-      {/* Liste */}
       {loading ? (
-        <div className="loading-state">Chargement…</div>
+        <p className="admin-empty">Chargement…</p>
       ) : closures.length === 0 ? (
-        <div className="empty-state">
-          <DoorClosed size={48} />
-          <h3>Aucune fermeture</h3>
-          <p>Créez une fermeture pour informer automatiquement les abonnés.</p>
+        <div className="admin-empty-card">
+          <p className="admin-empty-card-title">Aucune fermeture</p>
+          <p className="admin-empty-card-note">Le calendrier de distribution est complet.</p>
         </div>
       ) : (
-        <div className="closures-list">
-          {closures.map(closure => {
-            const tag = getClosureTag(closure.startDate, closure.endDate);
-            const days = daysBetween(closure.startDate, closure.endDate);
+        <div className="admin-closures-list">
+          {closures.map((closure) => {
+            const state = closureState(closure);
+            const badge = STATES[state];
+            const days = countClosureDays(closure.startDate, closure.endDate);
+
             return (
-              <div key={closure.id} className={`closure-card${tag.className === 'past' ? ' past' : ''}`}>
-                <div className="closure-card-icon">
-                  <DoorClosed size={18} />
-                </div>
-                <div className="closure-card-body">
-                  <div className="closure-card-dates">
-                    {formatDateFR(closure.startDate)} → {formatDateFR(closure.endDate)}
+              <article key={closure.id} className="admin-row-card admin-closure">
+                <div className="admin-closure-days">{days} j</div>
+
+                <div>
+                  <div className="admin-closure-range">
+                    {dayMonthYearLong(closure.startDate)} → {dayMonthYearLong(closure.endDate)}
                   </div>
-                  <div className="closure-card-meta">
-                    <span className="closure-card-duration">{days} jour{days > 1 ? 's' : ''}</span>
-                    {closure.reason && (
-                      <span className="closure-card-reason">{closure.reason}</span>
-                    )}
-                    <span className={`closure-card-tag ${tag.className}`}>{tag.label}</span>
+                  <div className="admin-closure-meta">
+                    <span className={`admin-badge ${badge.tone}`}>{badge.label}</span>
+                    {closure.reason && <span className="admin-closure-reason">{closure.reason}</span>}
                   </div>
                 </div>
-                {isFuture(closure) && (
-                  <button
-                    className="btn btn-icon btn-danger"
-                    onClick={() => handleDelete(closure)}
-                    title="Supprimer"
-                  >
-                    <Trash2 size={16} />
-                  </button>
+
+                {/* Une fermeture commencée ne se corrige plus : les adhérents ont
+                    déjà organisé leur semaine autour. Le serveur refuse, l'écran
+                    ne propose donc pas. */}
+                {state === 'UPCOMING' ? (
+                  <div className="admin-closure-actions">
+                    <button type="button" className="admin-btn-link" onClick={() => setEditing(closure)}>
+                      Modifier
+                    </button>
+                    <button
+                      type="button"
+                      className="admin-btn-link admin-btn-link-delete"
+                      onClick={() => handleDelete(closure)}
+                    >
+                      Supprimer
+                    </button>
+                  </div>
+                ) : (
+                  <span className="admin-closure-locked">Non modifiable</span>
                 )}
-              </div>
+              </article>
             );
           })}
         </div>
       )}
 
-      {/* Avertissement quota atteint */}
-      {daysRemaining === 0 && (
-        <div className="closure-modal-warning closure-quota-warning">
-          <AlertTriangle size={16} />
-          <span>
-            Le quota de 3 semaines de fermeture pour {new Date().getFullYear()} est atteint.
-            Il ne sera pas possible de créer de nouvelles fermetures cette année.
-          </span>
-        </div>
-      )}
-
-      {isModalOpen && (
+      {editing && (
         <ClosureModal
-          daysUsed={daysUsed}
-          daysRemaining={daysRemaining}
-          onClose={handleModalClose}
+          closure={editing.id ? editing : null}
+          daysUsed={quota.used}
+          maxDays={quota.maxDays}
+          year={quota.year}
+          onClose={closeModal}
         />
       )}
     </div>

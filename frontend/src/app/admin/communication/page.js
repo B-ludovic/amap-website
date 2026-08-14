@@ -148,7 +148,7 @@ export default function AdminCommunicationPage() {
             const state = stateOf(newsletter);
 
             return (
-              <article key={newsletter.id} className="admin-newsletter">
+              <article key={newsletter.id} className="admin-row-card admin-newsletter">
                 <div>
                   <div className="admin-newsletter-head">
                     <h2 className="admin-newsletter-subject">{newsletter.subject}</h2>

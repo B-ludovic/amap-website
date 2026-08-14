@@ -649,6 +649,22 @@
   color: var(--text-primary);
 }
 
+/* BANDE-CARTE
+   Un enregistrement par bande horizontale : la matière à gauche, les actions
+   collées à droite. Les colonnes se règlent par --admin-row-cols quand un
+   chiffre doit tenir en tête de bande — « auto 1fr auto » pour les fermetures,
+   « 1fr auto » par défaut. En dessous de 1100px la bande s'empile. */
+.admin-row-card {
+  display: grid;
+  grid-template-columns: var(--admin-row-cols, 1fr auto);
+  gap: var(--admin-row-gap, 28px);
+  align-items: center;
+  padding: 22px 24px;
+  border: 1px solid var(--border-card);
+  border-radius: var(--border-radius-md);
+  background-color: var(--surface-page);
+}
+
 /* ÉTAT VIDE EN CARTE */
 
 .admin-empty-card {
@@ -677,6 +693,11 @@
   .admin-grid-2,
   .admin-grid-3 {
     grid-template-columns: 1fr;
+  }
+
+  .admin-row-card {
+    grid-template-columns: 1fr;
+    gap: 16px;
   }
 }
 
@@ -716,7 +737,7 @@
 
 .admin-form {
   display: grid;
-  gap: 20px;
+  gap: var(--admin-form-gap, 20px);
   margin-bottom: 26px;
 }
 

@@ -864,6 +864,12 @@ const api = {
       requiresAuth: true,
     }),
 
+    update: async (id, data) => fetchAPI(`/closures/${id}`, {
+      method: 'PUT',
+      body: data,
+      requiresAuth: true,
+    }),
+
     delete: async (id) => fetchAPI(`/closures/${id}`, {
       method: 'DELETE',
       requiresAuth: true,

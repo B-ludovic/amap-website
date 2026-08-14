@@ -1,0 +1,157 @@
+/* Fermetures AMAP — report de la vue « closures » de mocks/admin.dc.html.
+   Une jauge de quota en tête, puis la pile des périodes fermées. */
+
+/* JAUGE DE QUOTA
+   Trois semaines par année civile : la barre montre ce qui est déjà engagé. */
+
+.admin-quota {
+  padding: 24px 28px;
+  margin-bottom: 24px;
+  border: 1px solid var(--border-card);
+  border-radius: var(--border-radius-md);
+  background-color: var(--surface-page);
+}
+
+.admin-quota-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 12px;
+}
+
+.admin-quota-label {
+  font-size: 14.5px;
+  color: var(--text-primary);
+}
+
+.admin-quota-count {
+  font-family: var(--font-mono);
+  font-weight: var(--font-weight-medium);
+}
+
+.admin-quota-left {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--badge-soon-fg);
+}
+
+.admin-quota-left-empty {
+  color: var(--error-text);
+}
+
+/* Rail et remplissage : la largeur du remplissage est posée en style en ligne,
+   c'est la seule valeur qui dépend de la donnée. */
+.admin-quota-track {
+  height: 6px;
+  overflow: hidden;
+  border-radius: 3px;
+  background-color: var(--border-soft);
+}
+
+.admin-quota-fill {
+  height: 100%;
+  background-color: var(--terracotta);
+  transition: width 250ms;
+}
+
+.admin-quota-fill-full {
+  background-color: var(--error-text);
+}
+
+.admin-quota-note {
+  margin: 12px 0 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-light);
+}
+
+/* PILE DES FERMETURES
+   Bande .admin-row-card en trois colonnes : le nombre de jours en tête, la
+   période au centre, les actions à droite. */
+
+.admin-closures-list {
+  display: grid;
+  gap: 14px;
+}
+
+.admin-closure {
+  --admin-row-cols: auto 1fr auto;
+}
+
+.admin-closure-days {
+  font-family: var(--font-mono);
+  font-size: 22px;
+  font-weight: var(--font-weight-medium);
+  color: var(--badge-soon-fg);
+  white-space: nowrap;
+}
+
+.admin-closure-range {
+  margin-bottom: 6px;
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-normal);
+  font-size: 19px;
+}
+
+.admin-closure-meta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.admin-closure-reason {
+  font-size: 13.5px;
+  color: var(--text-secondary);
+}
+
+/* Une fermeture commencée ne se corrige plus : à la place des deux boutons,
+   une mention en monospace dit pourquoi. */
+.admin-closure-locked {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-light);
+  white-space: nowrap;
+}
+
+.admin-closure-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+/* MODALE
+   Le bandeau de coût reprend .notice-band, simplement plus ample, et bascule
+   sur .form-alert quand la période demandée dépasse le quota restant. */
+
+/* La maquette espace les blocs de cette modale de 22px, deux de plus que le
+   réglage courant du kit. */
+.admin-closure-form {
+  --admin-form-gap: 22px;
+}
+
+.admin-closure-cost {
+  --notice-pad: 16px 18px;
+}
+
+.admin-closure-cost-right {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--notice-strong);
+  white-space: nowrap;
+}
+
+.admin-closure-cost-strong {
+  font-family: var(--font-mono);
+  font-weight: var(--font-weight-medium);
+}
+
+@media (max-width: 1100px) {
+  .admin-closure {
+    --admin-row-cols: 1fr;
+  }
+}

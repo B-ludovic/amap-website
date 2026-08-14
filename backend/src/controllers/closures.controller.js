@@ -5,8 +5,12 @@ import {
   HttpNotFoundError,
   HttpBadRequestError
 } from '../utils/httpErrors.js';
-
-const MAX_CLOSURE_DAYS_PER_YEAR = 21; // 3 semaines
+import {
+  MAX_CLOSURE_DAYS_PER_YEAR,
+  countClosureDays,
+  getYearBounds,
+  sumClosureDays
+} from '../utils/closurePeriod.js';
 
 function formatDateFR(date) {
   return new Date(date).toLocaleDateString('fr-FR', {
@@ -16,9 +20,14 @@ function formatDateFR(date) {
   });
 }
 
-function buildClosureEmailHtml(startDate, endDate, reason) {
+function buildClosureEmailHtml(startDate, endDate, reason, isUpdate) {
   const start = formatDateFR(startDate);
   const end = formatDateFR(endDate);
+  const title = isUpdate ? 'Fermeture de l\'AMAP — dates modifiées' : 'Fermeture de l\'AMAP';
+  const lead = isUpdate
+    ? 'Les dates de fermeture annoncées précédemment ont changé.'
+    : 'Bonjour,';
+
   return `<!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -38,10 +47,10 @@ function buildClosureEmailHtml(startDate, endDate, reason) {
 <body>
   <div class="wrapper">
     <div class="header">
-      <h1>Fermeture de l'AMAP</h1>
+      <h1>${title}</h1>
     </div>
     <div class="body">
-      <p>Bonjour,</p>
+      <p>${lead}</p>
       <div class="highlight">
         <p>L'AMAP sera <strong>fermée du ${start} au ${end}</strong>.<br/>
         Aucune distribution ne sera effectuée pendant cette période.</p>
@@ -56,27 +65,102 @@ function buildClosureEmailHtml(startDate, endDate, reason) {
 </html>`;
 }
 
+/* Prévenir les adhérents : la newsletter est d'abord écrite en base — elle
+   laisse une trace dans /admin/communication — puis envoyée aux abonnés
+   actifs. Sans abonné actif, la trace reste, rien ne part. */
+async function announceClosure({ closure, adminId, isUpdate }) {
+  const activeSubscriptions = await prisma.subscription.findMany({
+    where: { status: 'ACTIVE' },
+    include: { user: { select: { email: true, firstName: true } } }
+  });
+  const recipients = activeSubscriptions.map(subscription => subscription.user);
+
+  const prefix = isUpdate ? 'Fermeture de l\'AMAP modifiée' : 'Fermeture de l\'AMAP';
+  const newsletter = await prisma.newsletter.create({
+    data: {
+      subject: `${prefix} du ${formatDateFR(closure.startDate)} au ${formatDateFR(closure.endDate)}`,
+      content: buildClosureEmailHtml(closure.startDate, closure.endDate, closure.reason, isUpdate),
+      type: 'ALERT',
+      target: 'ACTIVE_SUBSCRIBERS',
+      createdBy: adminId
+    }
+  });
+
+  if (recipients.length === 0) return 0;
+
+  const result = await emailService.sendNewsletter(newsletter, recipients);
+  const sentCount = result.results?.sent ?? 0;
+
+  await prisma.newsletter.update({
+    where: { id: newsletter.id },
+    data: { sentAt: new Date(), sentCount }
+  });
+
+  return sentCount;
+}
+
+/* Jours déjà consommés sur l'année civile d'une date, la fermeture en cours de
+   modification exclue du calcul — sinon elle se compterait contre elle-même. */
+async function countDaysUsedInYear(date, excludedId) {
+  const { year, start, end } = getYearBounds(date);
+
+  const closures = await prisma.amapClosure.findMany({
+    where: {
+      startDate: { gte: start, lte: end },
+      ...(excludedId && { id: { not: excludedId } })
+    }
+  });
+
+  return { year, daysUsed: sumClosureDays(closures) };
+}
+
+/* Contrôle commun à la création et à la modification : dates cohérentes et
+   quota annuel respecté. */
+async function validateClosurePeriod({ startDate, endDate, excludedId }) {
+  if (!startDate || !endDate) {
+    throw new HttpBadRequestError('Dates de début et fin requises');
+  }
+
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+    throw new HttpBadRequestError('Dates invalides');
+  }
+
+  if (end < start) {
+    throw new HttpBadRequestError('La date de fin ne peut pas précéder la date de début');
+  }
+
+  const daysRequested = countClosureDays(start, end);
+  const { year, daysUsed } = await countDaysUsedInYear(start, excludedId);
+
+  if (daysUsed + daysRequested > MAX_CLOSURE_DAYS_PER_YEAR) {
+    throw new HttpBadRequestError(
+      `Limite de 3 semaines de fermeture atteinte pour ${year}. Jours déjà utilisés : ${daysUsed}/${MAX_CLOSURE_DAYS_PER_YEAR}`
+    );
+  }
+
+  return { start, end };
+}
+
 // LISTER LES FERMETURES
 const getAllClosures = asyncHandler(async (req, res) => {
   const closures = await prisma.amapClosure.findMany({
     orderBy: { startDate: 'asc' }
   });
 
-  // Total de jours utilisés cette année civile
-  const year = new Date().getFullYear();
-  const yearStart = new Date(`${year}-01-01`);
-  const yearEnd = new Date(`${year}-12-31T23:59:59`);
-
-  const daysUsedThisYear = closures
-    .filter(c => new Date(c.startDate) >= yearStart && new Date(c.startDate) <= yearEnd)
-    .reduce((sum, c) =>
-      sum + Math.round((new Date(c.endDate) - new Date(c.startDate)) / 86400000), 0
-    );
+  const { year, start, end } = getYearBounds(new Date());
+  const daysUsedThisYear = sumClosureDays(
+    closures.filter(closure => closure.startDate >= start && closure.startDate <= end)
+  );
 
   res.json({
     success: true,
     data: {
       closures,
+      year,
+      maxDaysPerYear: MAX_CLOSURE_DAYS_PER_YEAR,
       daysUsedThisYear,
       daysRemainingThisYear: Math.max(0, MAX_CLOSURE_DAYS_PER_YEAR - daysUsedThisYear)
     }
@@ -85,77 +169,62 @@ const getAllClosures = asyncHandler(async (req, res) => {
 
 // CRÉER UNE FERMETURE
 const createClosure = asyncHandler(async (req, res) => {
-  const { startDate, endDate, reason } = req.body;
+  const { startDate, endDate, reason, notify = true } = req.body;
 
-  if (!startDate || !endDate) {
-    throw new HttpBadRequestError('Dates de début et fin requises');
-  }
+  const { start, end } = await validateClosurePeriod({ startDate, endDate });
 
-  const start = new Date(startDate);
-  const end = new Date(endDate);
-
-  if (end <= start) {
-    throw new HttpBadRequestError('La date de fin doit être après la date de début');
-  }
-
-  const daysRequested = Math.round((end - start) / 86400000);
-
-  // Vérifier la limite de 3 semaines par année civile
-  const year = start.getFullYear();
-  const yearStart = new Date(`${year}-01-01`);
-  const yearEnd = new Date(`${year}-12-31T23:59:59`);
-
-  const existingClosures = await prisma.amapClosure.findMany({
-    where: { startDate: { gte: yearStart, lte: yearEnd } }
-  });
-
-  const daysUsed = existingClosures.reduce((sum, c) =>
-    sum + Math.round((new Date(c.endDate) - new Date(c.startDate)) / 86400000), 0
-  );
-
-  if (daysUsed + daysRequested > MAX_CLOSURE_DAYS_PER_YEAR) {
-    throw new HttpBadRequestError(
-      `Limite de 3 semaines de fermeture atteinte pour ${year}. Jours déjà utilisés : ${daysUsed}/${MAX_CLOSURE_DAYS_PER_YEAR}`
-    );
-  }
-
-  // Créer la fermeture
   const closure = await prisma.amapClosure.create({
-    data: { startDate: start, endDate: end, reason }
+    data: { startDate: start, endDate: end, reason: reason || null }
   });
 
-  // Récupérer les abonnés actifs
-  const activeSubscriptions = await prisma.subscription.findMany({
-    where: { status: 'ACTIVE' },
-    include: { user: { select: { email: true, firstName: true } } }
-  });
-  const recipients = activeSubscriptions.map(s => s.user);
-
-  // Créer la newsletter (trace dans /admin/communication)
-  const newsletter = await prisma.newsletter.create({
-    data: {
-      subject: `Fermeture de l'AMAP du ${formatDateFR(start)} au ${formatDateFR(end)}`,
-      content: buildClosureEmailHtml(start, end, reason),
-      target: 'ACTIVE_SUBSCRIBERS',
-      createdBy: req.user.id
-    }
-  });
-
-  // Envoyer si des abonnés actifs existent
-  let sentCount = 0;
-  if (recipients.length > 0) {
-    const result = await emailService.sendNewsletter(newsletter, recipients);
-    sentCount = result.results?.sent ?? 0;
-    await prisma.newsletter.update({
-      where: { id: newsletter.id },
-      data: { sentAt: new Date(), sentCount }
-    });
-  }
+  const sentCount = notify
+    ? await announceClosure({ closure, adminId: req.user.id, isUpdate: false })
+    : 0;
 
   res.json({
     success: true,
-    message: `Fermeture créée. Newsletter envoyée à ${sentCount} abonné(s).`,
-    data: { closure, sentCount }
+    message: notify
+      ? `Fermeture créée. Newsletter envoyée à ${sentCount} abonné(s).`
+      : 'Fermeture créée. Aucune newsletter envoyée.',
+    data: { closure, sentCount, notified: Boolean(notify) }
+  });
+});
+
+/* MODIFIER UNE FERMETURE
+   Même garde-fou que la suppression : une fermeture commencée est un fait
+   accompli, les adhérents ont déjà organisé leur semaine autour. Seule une
+   fermeture encore à venir se corrige. */
+const updateClosure = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { startDate, endDate, reason, notify = false } = req.body;
+
+  const closure = await prisma.amapClosure.findUnique({ where: { id } });
+
+  if (!closure) {
+    throw new HttpNotFoundError('Fermeture introuvable');
+  }
+
+  if (new Date(closure.startDate) <= new Date()) {
+    throw new HttpBadRequestError('Impossible de modifier une fermeture passée ou en cours');
+  }
+
+  const { start, end } = await validateClosurePeriod({ startDate, endDate, excludedId: id });
+
+  const updated = await prisma.amapClosure.update({
+    where: { id },
+    data: { startDate: start, endDate: end, reason: reason || null }
+  });
+
+  const sentCount = notify
+    ? await announceClosure({ closure: updated, adminId: req.user.id, isUpdate: true })
+    : 0;
+
+  res.json({
+    success: true,
+    message: notify
+      ? `Fermeture modifiée. Newsletter envoyée à ${sentCount} abonné(s).`
+      : 'Fermeture modifiée. Aucune newsletter envoyée.',
+    data: { closure: updated, sentCount, notified: Boolean(notify) }
   });
 });
 
@@ -178,4 +247,4 @@ const deleteClosure = asyncHandler(async (req, res) => {
   res.json({ success: true, message: 'Fermeture supprimée' });
 });
 
-export { getAllClosures, createClosure, deleteClosure };
+export { getAllClosures, createClosure, updateClosure, deleteClosure };

@@ -244,7 +244,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 14px 16px;
+  padding: var(--notice-pad, 14px 16px);
   background-color: var(--notice-bg);
   border: var(--border-width) solid var(--notice-border);
   border-radius: var(--border-radius-md);

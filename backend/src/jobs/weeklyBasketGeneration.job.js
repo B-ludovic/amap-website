@@ -1,8 +1,10 @@
+import { prisma } from '../config/database.js';
 import {
   generateWeeklyBasket,
   getActiveSeason,
   getIsoWeekParts
 } from '../services/weeklyBasketGenerator.service.js';
+import { getUtcDayBounds } from '../utils/closurePeriod.js';
 
 const DISTRIBUTION_DAY = 3;
 const GENERATION_DAY = 4;
@@ -54,6 +56,20 @@ export function getNextDistributionDate(now = new Date()) {
   return targetDate;
 }
 
+/* Une fermeture AMAP couvre-t-elle ce jour de distribution ? Les deux bornes
+   sont fermées, comme dans la newsletter envoyée aux adhérents : chevauchement
+   entre la période de fermeture et le jour civil de la distribution. */
+export async function findClosureCovering(distributionDate) {
+  const { start, end } = getUtcDayBounds(distributionDate);
+
+  return prisma.amapClosure.findFirst({
+    where: {
+      startDate: { lte: end },
+      endDate: { gte: start }
+    }
+  });
+}
+
 export async function generateNextWeeklyBasket(now = new Date()) {
   const { weekday, hour } = getParisDateParts(now);
   const isScheduledThursday = weekday === GENERATION_DAY && hour >= GENERATION_HOUR;
@@ -64,6 +80,16 @@ export async function generateNextWeeklyBasket(now = new Date()) {
   }
 
   const distributionDate = getNextDistributionDate(now);
+
+  /* Semaine fermée : aucun tirage. Sans ce garde-fou, le job publierait un
+     panier pour une semaine où aucune distribution n'a lieu. */
+  const closure = await findClosureCovering(distributionDate);
+  if (closure) {
+    const { weekNumber, year } = getIsoWeekParts(distributionDate);
+    console.log(`[WeeklyBasketJob] Semaine ${weekNumber}/${year} fermée : aucun panier généré`);
+    return null;
+  }
+
   const season = await getActiveSeason(distributionDate);
   const basket = await generateWeeklyBasket({ distributionDate, season });
   const { year, weekNumber } = getIsoWeekParts(distributionDate);

@@ -48,16 +48,8 @@
   gap: 14px;
 }
 
-.admin-newsletter {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 28px;
-  align-items: center;
-  padding: 22px 24px;
-  border: 1px solid var(--border-card);
-  border-radius: var(--border-radius-md);
-  background-color: var(--surface-page);
-}
+/* La bande elle-même vient de .admin-row-card (kit.css) : seul le contenu est
+   propre à la newsletter. */
 
 .admin-newsletter-head {
   display: flex;
@@ -241,10 +233,5 @@
 @media (max-width: 1100px) {
   .admin-comms-stats {
     grid-template-columns: repeat(2, 1fr);
-  }
-
-  .admin-newsletter {
-    grid-template-columns: 1fr;
-    gap: 16px;
   }
 }

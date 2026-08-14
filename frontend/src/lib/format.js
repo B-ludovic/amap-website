@@ -40,11 +40,20 @@ export function longDayMonth(value) {
   return `${day.charAt(0).toUpperCase()}${day.slice(1)} ${date.getDate()} ${MONTHS[date.getMonth()]}`;
 }
 
-/* « 19 août 2026 » */
+/* « 19 août 2026 » — colonnes et méta, mois abrégé */
 export function dayMonthYear(value) {
   const date = toDate(value);
   if (!date) return '—';
   return `${date.getDate()} ${MONTHS_SHORT[date.getMonth()]} ${date.getFullYear()}`;
+}
+
+/* « 24 décembre 2026 » — mois en toutes lettres, pour les lignes d'affichage
+   et les phrases : un titre de carte ou un texte de confirmation ne gagne rien
+   à l'abréviation. */
+export function dayMonthYearLong(value) {
+  const date = toDate(value);
+  if (!date) return '—';
+  return `${date.getDate()} ${MONTHS[date.getMonth()]} ${date.getFullYear()}`;
 }
 
 /* « 08/2026 » — ancienneté d'un adhérent */
