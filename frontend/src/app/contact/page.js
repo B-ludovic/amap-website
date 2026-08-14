@@ -270,19 +270,19 @@ export default function ContactPage() {
         </div>
 
         <aside className="contact-aside">
-          <div className="contact-card">
-            <div className="contact-card-head">
-              <h2 className="contact-card-title">Nous joindre autrement</h2>
+          <div className="side-card">
+            <div className="side-card-head">
+              <h2 className="side-card-title">Nous joindre autrement</h2>
             </div>
-            <div className="contact-card-body">
-              <div className="contact-block">
-                <div className="contact-block-label">Email</div>
+            <div className="side-card-body">
+              <div className="side-block">
+                <div className="side-block-label">Email</div>
                 <a href="mailto:auxptitspois@gmail.com" className="contact-mail">
                   auxptitspois@gmail.com
                 </a>
               </div>
-              <div className="contact-block">
-                <div className="contact-block-label">Sur place</div>
+              <div className="side-block">
+                <div className="side-block-label">Sur place</div>
                 <p className="contact-address">
                   Paroisse Saint François de Sales<br />
                   340 avenue du Général de Gaulle<br />
@@ -292,8 +292,8 @@ export default function ContactPage() {
                   Le plus simple : venez nous voir pendant une distribution.
                 </p>
               </div>
-              <div className="contact-block">
-                <div className="contact-block-label">Distribution</div>
+              <div className="side-block">
+                <div className="side-block-label">Distribution</div>
                 <p className="contact-address">
                   Chaque mercredi<br />
                   <span className="contact-hours-time">18h15 → 19h15</span>
@@ -302,9 +302,9 @@ export default function ContactPage() {
             </div>
           </div>
 
-          <div className="contact-faq">
+          <div className="forest-card contact-faq">
             <div className="eyebrow">Avant d&apos;écrire</div>
-            <p className="contact-faq-text">
+            <p className="forest-card-text">
               La FAQ regroupe les questions les plus fréquentes : pauses, tarif solidaire,
               panier non retiré, permanences.
             </p>

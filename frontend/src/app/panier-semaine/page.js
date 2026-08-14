@@ -1,27 +1,76 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { ShoppingBasket, Calendar, Leaf, LeafyGreen, Apple, Egg, Wheat, Clock, Users, Search, Lightbulb, MapPin } from 'lucide-react';
+import { Fragment, useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useModal } from '../../contexts/ModalContext';
 import api from '../../lib/api';
 import logger from '../../lib/logger';
-import Link from 'next/link';
-import Image from 'next/image';
 import { SEASONAL_VEGETABLES, SEASON_LABELS, getCurrentSeason } from '../../constants/recipes';
+import { getProductIcon, PRODUCT_CATEGORY_LABELS } from '../../constants/productIcons';
 import '../../styles/public/weekly-basket.css';
 
-const categoryIcon = (category) => {
-  switch (category) {
-    case 'FRUITS':    return Apple;
-    case 'EGGS':      return Egg;
-    case 'GROCERY':   return Wheat;
-    case 'VEGETABLES':
-    default:          return LeafyGreen;
-  }
-};
+/* Dates formatées à la main : Intl n'emploie pas les mêmes espaces côté
+   serveur et côté navigateur, ce qui casse l'hydratation. */
+const DAYS_LONG = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
+const MONTHS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+
+/* « mercredi 19 août 2026 » */
+function longDate(value) {
+  const d = value ? new Date(value) : null;
+  if (!d || Number.isNaN(d.getTime())) return '—';
+  return `${DAYS_LONG[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+}
 
 const season = getCurrentSeason();
 const seasonalPills = SEASONAL_VEGETABLES[season];
+
+/* Un panier peut mêler produits du catalogue et lignes libres : les premiers
+   sont regroupés par producteur, les secondes rassemblées à la fin. */
+function groupByProducer(items) {
+  const groups = [];
+  const byProducer = new Map();
+
+  items.filter(item => item.product).forEach(item => {
+    const producer = item.product.producer;
+    const key = producer?.id || producer?.name || 'inconnu';
+    if (!byProducer.has(key)) {
+      const group = {
+        key,
+        name: producer?.name || 'Producteur inconnu',
+        specialty: producer?.specialty || null,
+        items: []
+      };
+      byProducer.set(key, group);
+      groups.push(group);
+    }
+    byProducer.get(key).items.push({
+      id: item.id,
+      name: item.product.name,
+      note: PRODUCT_CATEGORY_LABELS[item.product.category] || null,
+      icon: getProductIcon(item.product.name)
+    });
+  });
+
+  // Le producteur qui fournit le plus gros de la semaine ouvre la liste
+  groups.sort((a, b) => b.items.length - a.items.length);
+
+  const free = items.filter(item => !item.product && item.customProductName);
+  if (free.length > 0) {
+    groups.push({
+      key: 'libres',
+      name: 'Autres produits',
+      specialty: null,
+      items: free.map(item => ({
+        id: item.id,
+        name: item.customProductName,
+        note: null,
+        icon: getProductIcon(item.customProductName)
+      }))
+    });
+  }
+
+  return groups;
+}
 
 export default function WeeklyBasketPublicPage() {
   const [basket, setBasket] = useState(null);
@@ -31,6 +80,7 @@ export default function WeeklyBasketPublicPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchMode, setSearchMode] = useState('ingredients');
   const [activePillId, setActivePillId] = useState(null);
+  const [appliedQuery, setAppliedQuery] = useState('');
   const { showError } = useModal();
 
   useEffect(() => {
@@ -71,13 +121,11 @@ export default function WeeklyBasketPublicPage() {
   const handleSearch = async (query, queryEn = null, mode = null) => {
     const effectiveMode = mode ?? searchMode;
     setLoadingRecipes(true);
+    setAppliedQuery(query);
     try {
-      let response;
-      if (effectiveMode === 'ingredients') {
-        response = await api.recipes.findByIngredients(query, queryEn);
-      } else {
-        response = await api.recipes.search(query, queryEn);
-      }
+      const response = effectiveMode === 'ingredients'
+        ? await api.recipes.findByIngredients(query, queryEn)
+        : await api.recipes.search(query, queryEn);
       setRecipes(response.data || []);
     } catch (error) {
       logger.error('Erreur recherche:', error);
@@ -91,340 +139,337 @@ export default function WeeklyBasketPublicPage() {
     e.preventDefault();
     if (!searchQuery.trim()) return;
     setActivePillId(null);
-    handleSearch(searchQuery);
+    handleSearch(searchQuery.trim());
   };
 
   const handlePillClick = (veg) => {
     setSearchQuery(veg.queryFr);
     setActivePillId(veg.id);
+    setSearchMode('ingredients');
     handleSearch(veg.queryFr, veg.queryEn, 'ingredients');
   };
 
-  const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('fr-FR', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
-
-  const groupCatalogueByProducer = (items) => {
-    const grouped = {};
-    items
-      .filter(item => item.product)
-      .forEach(item => {
-        const producerName = item.product.producer?.name || 'Producteur inconnu';
-        if (!grouped[producerName]) {
-          grouped[producerName] = { specialty: item.product.producer?.specialty, items: [] };
-        }
-        grouped[producerName].items.push(item);
-      });
-    return grouped;
+  const handleReset = () => {
+    setSearchQuery('');
+    setAppliedQuery('');
+    setActivePillId(null);
+    if (basket) {
+      fetchRecipeSuggestions();
+    } else {
+      setRecipes([]);
+    }
   };
 
   if (loading) {
     return (
-      <div className="weekly-basket-public-page">
-        <div className="container">
-          <div className="loading-state">Chargement du panier...</div>
-        </div>
+      <div className="basket-page">
+        <div className="basket-loading">Chargement du panier</div>
       </div>
     );
   }
 
-  const groupedByProducer = basket ? groupCatalogueByProducer(basket.items) : {};
-  const freeItems = basket ? basket.items.filter(item => !item.product && item.customProductName) : [];
-  const totalCount = basket ? basket.items.length : 0;
+  const groups = basket ? groupByProducer(basket.items) : [];
+  const varietyCount = basket ? basket.items.length : 0;
+  const shownRecipes = recipes.slice(0, 6);
+
+  const resultLabel = appliedQuery
+    ? (shownRecipes.length === 0
+        ? `Aucune recette pour « ${appliedQuery} »`
+        : `${shownRecipes.length} ${shownRecipes.length > 1 ? 'recettes' : 'recette'} pour « ${appliedQuery} »`)
+    : (basket
+        ? `${shownRecipes.length} ${shownRecipes.length > 1 ? 'suggestions' : 'suggestion'} à partir du panier de la semaine`
+        : 'Choisissez un légume ou lancez une recherche');
 
   return (
-    <div className="weekly-basket-public-page">
-
+    <div className="basket-page">
       {basket ? (
         <>
-          {/* Hero */}
           <section className="basket-hero">
-            <div className="container">
-              <div className="basket-hero-content">
-                <div className="basket-badge">
-                  <ShoppingBasket size={20} aria-hidden="true" />
-                  <span>Panier de la semaine</span>
+            <div>
+              <div className="basket-badge">
+                <span className="live-dot" aria-hidden="true" />
+                <span className="basket-badge-text">
+                  Panier publié · {varietyCount} variété{varietyCount > 1 ? 's' : ''}
+                </span>
+              </div>
+              <h1 className="basket-title">Semaine {basket.weekNumber} — {basket.year}</h1>
+              <p className="basket-date">Distribution le {longDate(basket.distributionDate)}</p>
+              <div className="basket-meta">
+                <div className="basket-meta-row">
+                  <span className="basket-meta-label">Créneau</span>
+                  <span className="basket-meta-value">
+                    Mercredi de <span className="basket-meta-mono">18h15 à 19h15</span>
+                  </span>
                 </div>
-                <h1>Semaine {basket.weekNumber} - {basket.year}</h1>
-                <div className="basket-date">
-                  <Calendar size={20} aria-hidden="true" />
-                  <span>Distribution : {formatDate(basket.distributionDate)}</span>
-                </div>
-                <div className="basket-info-card">
-                  <div className="basket-info-item">
-                    <Clock size={18} aria-hidden="true" />
-                    <span>Mercredi de 18h15 à 19h15</span>
-                  </div>
-                  <div className="basket-info-divider" />
-                  <div className="basket-info-item">
-                    <MapPin size={18} aria-hidden="true" />
-                    <div>
-                      <span>Paroisse Saint François de Sales de Clamart</span>
-                      <span className="basket-info-sub">340 Avenue du Général de Gaulle, 92140 Clamart</span>
-                    </div>
-                  </div>
+                <div className="basket-meta-row">
+                  <span className="basket-meta-label">Retrait</span>
+                  <span className="basket-meta-value">
+                    Paroisse Saint François de Sales<br />
+                    <span className="basket-meta-sub">340 avenue du Général de Gaulle, 92140 Clamart</span>
+                  </span>
                 </div>
               </div>
             </div>
+            <div className="basket-visual">
+              <img
+                src="/placeholder/legumes-ete.webp"
+                alt="Légumes de saison du panier de la semaine"
+              />
+            </div>
           </section>
 
-          {/* Message de la semaine */}
           {basket.notes && (
-            <section className="basket-message">
-              <div className="container">
-                <div className="message-card">
-                  <div className="message-icon">
-                    <Leaf size={24} aria-hidden="true" />
-                  </div>
-                  <div className="message-content">
-                    <h3>Le mot de la semaine</h3>
-                    <p>{basket.notes}</p>
-                  </div>
-                </div>
+            <section className="basket-note">
+              <div className="basket-note-inner">
+                <div className="eyebrow">Le mot de la semaine</div>
+                <p className="basket-note-text">{basket.notes}</p>
               </div>
             </section>
           )}
 
-          {/* Récapitulatif */}
-          <section className="basket-summary">
-            <div className="container">
-              <div className="summary-cards">
-                <div className="summary-card">
-                  <div className="summary-icon small">
-                    <ShoppingBasket size={24} aria-hidden="true" />
-                  </div>
-                  <div className="summary-content">
-                    <h3>Petit Panier</h3>
-                    <div className="summary-stats">
-                      <span className="stat-value">{totalCount}</span>
-                      <span className="stat-label">variété{totalCount > 1 ? 's' : ''}</span>
-                    </div>
-                    <p className="summary-note">2 à 4 kg • Idéal pour 1-2 personnes</p>
-                  </div>
-                </div>
-                <div className="summary-card">
-                  <div className="summary-icon large">
-                    <ShoppingBasket size={32} aria-hidden="true" />
-                  </div>
-                  <div className="summary-content">
-                    <h3>Grand Panier</h3>
-                    <div className="summary-stats">
-                      <span className="stat-value">{totalCount}</span>
-                      <span className="stat-label">variété{totalCount > 1 ? 's' : ''}</span>
-                    </div>
-                    <p className="summary-note">6 à 8 kg • Idéal pour famille</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
+          <section className="basket-compo">
+            <div>
+              <div className="eyebrow">Composition</div>
+              <h2 className="basket-section-title">Qui a cultivé quoi.</h2>
 
-          {/* Composition */}
-          <section className="basket-composition">
-            <div className="container">
-              <h2 className="section-title">Composition du panier</h2>
-              <div className="producers-list">
-                {Object.entries(groupedByProducer).map(([producerName, group]) => (
-                  <div key={producerName} className="producer-section">
-                    <div className="producer-header">
-                      <div className="producer-icon">
-                        <Leaf size={24} aria-hidden="true" />
-                      </div>
-                      <div className="producer-info">
-                        <h3>{producerName}</h3>
+              <div className="basket-groups">
+                {groups.map(group => (
+                  <div key={group.key}>
+                    <div className="basket-group-head">
+                      <div>
+                        <h3 className="basket-group-name">{group.name}</h3>
                         {group.specialty && (
-                          <p className="producer-specialty">{group.specialty}</p>
+                          <div className="basket-group-specialty">{group.specialty}</div>
                         )}
                       </div>
+                      <span className="basket-group-count">
+                        {group.items.length} produit{group.items.length > 1 ? 's' : ''}
+                      </span>
                     </div>
-                    <ul className="products-list">
-                      {group.items.map((item) => {
-                        const Icon = categoryIcon(item.product.category);
-                        return (
-                          <li key={item.id} className="product-item">
-                            <Icon size={16} />
-                            <span>{item.product.name}</span>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </div>
-                ))}
-                {freeItems.length > 0 && (
-                  <div className="producer-section">
-                    <div className="producer-header">
-                      <div className="producer-icon">
-                        <Leaf size={24} aria-hidden="true" />
-                      </div>
-                      <div className="producer-info">
-                        <h3>Autres produits</h3>
-                      </div>
-                    </div>
-                    <ul className="products-list">
-                      {freeItems.map((item) => (
-                        <li key={item.id} className="product-item">
-                          <Leaf size={16} aria-hidden="true" />
-                          <span>{item.customProductName}</span>
+                    <ul className="basket-items">
+                      {group.items.map(item => (
+                        <li key={item.id} className="basket-item">
+                          <span className="basket-item-tile" aria-hidden="true">
+                            {item.icon && <img src={item.icon} alt="" />}
+                          </span>
+                          <span className="basket-item-name">{item.name}</span>
+                          {item.note && <span className="basket-item-note">{item.note}</span>}
                         </li>
                       ))}
                     </ul>
                   </div>
-                )}
+                ))}
               </div>
             </div>
+
+            <aside className="basket-aside">
+              <div className="side-card">
+                <div className="side-card-head">
+                  <h2 className="side-card-title">Ce que vous recevez</h2>
+                </div>
+                <div className="side-card-body">
+                  <div className="side-block">
+                    <div className="basket-formula-head">
+                      <span className="basket-formula-name">Petit panier</span>
+                      <span className="basket-formula-count">
+                        {varietyCount} variété{varietyCount > 1 ? 's' : ''}
+                      </span>
+                    </div>
+                    <div className="basket-formula-note">2 à 4 kg · pour 1 à 2 personnes</div>
+                  </div>
+                  <div className="side-block">
+                    <div className="basket-formula-head">
+                      <span className="basket-formula-name">Grand panier</span>
+                      <span className="basket-formula-count">
+                        {varietyCount} variété{varietyCount > 1 ? 's' : ''}
+                      </span>
+                    </div>
+                    <div className="basket-formula-note">6 à 8 kg · pour une famille</div>
+                  </div>
+                  <p className="basket-formula-foot">
+                    Mêmes variétés dans les deux paniers, seules les quantités changent.
+                  </p>
+                </div>
+              </div>
+
+              <div className="forest-card">
+                <div className="eyebrow">Pas encore adhérent</div>
+                <p className="forest-card-text">
+                  Ce panier part chaque mercredi aux foyers adhérents. Il reste des places
+                  pour la saison prochaine.
+                </p>
+                <Link href="/nos-abonnements" className="basket-join-link">
+                  Voir les abonnements
+                </Link>
+              </div>
+            </aside>
           </section>
         </>
       ) : (
-        <div className="container">
-          <div className="empty-basket">
-            <ShoppingBasket size={64} aria-hidden="true" />
-            <h2>Aucun panier publié</h2>
-            <p>Le panier de la semaine n'est pas encore disponible.</p>
-            <p className="empty-subtitle">Revenez bientôt pour découvrir la sélection de légumes frais !</p>
-            <Link href="/" className="btn btn-primary">
-              Retour à l'accueil
-            </Link>
-          </div>
-        </div>
-      )}
-
-      {/* Suggestions de recettes — toujours visible */}
-      <section className="recipe-suggestions">
-        <div className="container">
-          <h2 className="section-title">Idées recettes de saison</h2>
-
-          {/* Barre de recherche */}
-          <div className="manual-search">
-            <div className="search-mode-toggle">
-              <button
-                type="button"
-                className={`toggle-btn ${searchMode === 'name' ? 'active' : ''}`}
-                onClick={() => setSearchMode('name')}
-              >
-                Par nom
-              </button>
-              <button
-                type="button"
-                className={`toggle-btn ${searchMode === 'ingredients' ? 'active' : ''}`}
-                onClick={() => setSearchMode('ingredients')}
-              >
-                Par ingrédients
-              </button>
-            </div>
-
-            <form onSubmit={handleManualSearch} className="search-form">
-              <div className="search-input-wrapper">
-                <Search size={20} aria-hidden="true" />
-                <input
-                  type="text"
-                  placeholder={
-                    searchMode === 'ingredients'
-                      ? 'Ex : tomates, courgettes, oignons...'
-                      : 'Ex : soupe, gratin, salade...'
-                  }
-                  value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    setActivePillId(null);
-                  }}
-                  className="search-input"
-                />
-              </div>
-              <button type="submit" className="btn btn-primary">
-                Rechercher
-              </button>
-            </form>
-
-            {/* Pilules saisonnières */}
-            <div className="season-pills-container">
-              <span className="season-pills-label">
-                Suggestions {SEASON_LABELS[season]} :
-              </span>
-              <div className="season-pills">
-                {seasonalPills.map((veg) => (
-                  <button
-                    key={veg.id}
-                    type="button"
-                    className={`season-pill ${activePillId === veg.id ? 'active' : ''}`}
-                    onClick={() => handlePillClick(veg)}
-                  >
-                    <Image src={veg.icon} alt="" width={20} height={20} aria-hidden="true" />
-                    <span>{veg.name}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <p className="search-hint" style={{ visibility: searchMode === 'ingredients' ? 'visible' : 'hidden' }}>
-              <Lightbulb size={16} aria-hidden="true" />
-              <span>Séparez les ingrédients par des virgules</span>
+        <section className="basket-empty">
+          <div className="basket-empty-card">
+            <h1 className="basket-empty-title">Le panier n&apos;est pas encore publié.</h1>
+            <p className="basket-empty-text">
+              La composition de la semaine est mise en ligne quelques jours avant la
+              distribution. En attendant, les idées recettes plus bas restent à votre
+              disposition.
             </p>
-          </div>
-
-          {/* Résultats */}
-          {loadingRecipes ? (
-            <div className="loading-state">Chargement des recettes...</div>
-          ) : recipes.length > 0 ? (
-            <>
-              <div className="recipes-grid">
-                {recipes.slice(0, 6).map((recipe) => (
-                  <Link key={recipe.id} href={`/recettes/${recipe.id}`} className="recipe-card">
-                    <div className="recipe-image">
-                      <img src={recipe.image} alt={recipe.title} loading="lazy" />
-                    </div>
-                    <div className="recipe-content">
-                      <h3>{recipe.title}</h3>
-                      <div className="recipe-meta">
-                        <span className="meta-item">
-                          <Clock size={16} aria-hidden="true" />
-                          env. 30 min
-                        </span>
-                        <span className="meta-item">
-                          <Users size={16} aria-hidden="true" />
-                          2 pers.
-                        </span>
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-              <div className="cta-center">
-                <Link href="/recettes" className="btn btn-primary">
-                  Voir toutes les recettes
-                </Link>
-              </div>
-            </>
-          ) : null}
-        </div>
-      </section>
-
-      {/* CTA abonnement — seulement si panier publié */}
-      {basket && (
-        <section className="basket-cta">
-          <div className="container">
-            <div className="cta-card">
-              <h2>Envie de profiter de nos paniers chaque semaine ?</h2>
-              <p>
-                Rejoignez Aux P'tits Pois et recevez des légumes frais et de saison
-                directement de nos producteurs locaux.
-              </p>
-              <div className="cta-actions">
-                <Link href="/nos-abonnements" className="btn btn-primary btn-lg">
-                  Découvrir nos abonnements
-                </Link>
-                <Link href="/nos-producteurs" className="btn btn-primary btn-lg">
-                  Nos producteurs
-                </Link>
-              </div>
-            </div>
+            <Link href="/" className="basket-cta-primary">Retour à l&apos;accueil</Link>
           </div>
         </section>
       )}
+
+      <section className="basket-recipes">
+        <div className="basket-recipes-inner">
+          <div className="basket-recipes-head">
+            <div className="eyebrow">Idées recettes · suggestions {SEASON_LABELS[season].toLowerCase()}</div>
+            <h2 className="basket-section-title">Qu&apos;est-ce qu&apos;on en fait ?</h2>
+            <p className="basket-recipes-lede">
+              Cherchez par ingrédient du panier, ou par nom de plat si vous avez déjà une idée.
+            </p>
+          </div>
+
+          <div className="basket-modes">
+            <button
+              type="button"
+              className={`basket-mode ${searchMode === 'ingredients' ? 'is-active' : ''}`}
+              onClick={() => setSearchMode('ingredients')}
+            >
+              Par ingrédients
+            </button>
+            <button
+              type="button"
+              className={`basket-mode ${searchMode === 'name' ? 'is-active' : ''}`}
+              onClick={() => setSearchMode('name')}
+            >
+              Par nom
+            </button>
+          </div>
+
+          <form onSubmit={handleManualSearch} className="basket-search">
+            <input
+              type="text"
+              className="input"
+              placeholder={
+                searchMode === 'ingredients'
+                  ? 'Ex : tomate, courgette, aubergine…'
+                  : 'Ex : gratin, soupe, tarte…'
+              }
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setActivePillId(null);
+              }}
+              aria-label="Rechercher une recette"
+            />
+            <button type="submit" className="basket-search-submit" disabled={loadingRecipes}>
+              Rechercher
+            </button>
+          </form>
+
+          <div className="basket-pills">
+            <span className="basket-pills-label">Légumes du moment</span>
+            <div className="basket-pills-list">
+              {seasonalPills.map(veg => (
+                <button
+                  key={veg.id}
+                  type="button"
+                  className={`basket-pill ${activePillId === veg.id ? 'is-active' : ''}`}
+                  onClick={() => handlePillClick(veg)}
+                >
+                  <img src={veg.icon} alt="" aria-hidden="true" />
+                  <span>{veg.name}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="basket-results">
+            <span className="basket-results-label">
+              {loadingRecipes ? 'Recherche en cours…' : resultLabel}
+            </span>
+            {appliedQuery && (
+              <button type="button" className="basket-reset" onClick={handleReset}>
+                Réinitialiser
+              </button>
+            )}
+          </div>
+
+          {shownRecipes.length > 0 ? (
+            <>
+              <div className="basket-recipes-grid">
+                {shownRecipes.map(recipe => {
+                  const tags = (recipe.matchedIngredients || []).join(' · ');
+                  const meta = [recipe.categoryLabel, recipe.areaLabel].filter(Boolean);
+                  return (
+                    <Link
+                      key={recipe.id}
+                      href={`/recettes/${recipe.id}`}
+                      className="basket-recipe"
+                    >
+                      <img
+                        className="basket-recipe-image"
+                        src={recipe.image}
+                        alt={recipe.title}
+                        loading="lazy"
+                      />
+                      <div className="basket-recipe-body">
+                        <h3 className="basket-recipe-title">{recipe.title}</h3>
+                        {tags && <div className="basket-recipe-tags">{tags}</div>}
+                        {(meta.length > 0 || recipe.isVegetarian) && (
+                          <div className="basket-recipe-foot">
+                            {meta.map((value, index) => (
+                              <Fragment key={value}>
+                                {index > 0 && (
+                                  <span className="basket-recipe-sep" aria-hidden="true">·</span>
+                                )}
+                                <span className="basket-recipe-meta">{value}</span>
+                              </Fragment>
+                            ))}
+                            {recipe.isVegetarian && (
+                              <span className="basket-recipe-veggie">Végé</span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+              <div className="basket-recipes-all">
+                <Link href="/recettes" className="link-underline">Toutes les recettes</Link>
+              </div>
+            </>
+          ) : !loadingRecipes && (appliedQuery || basket) && (
+            <div className="basket-recipes-empty">
+              <div className="basket-recipes-empty-title">Rien trouvé pour cette recherche</div>
+              <p className="basket-recipes-empty-text">
+                Essayez un légume du panier — ou cherchez par nom de plat : gratin, soupe, tarte.
+              </p>
+            </div>
+          )}
+        </div>
+      </section>
+
+      <section className="basket-cta">
+        <div className="basket-cta-card">
+          <div>
+            <h2 className="basket-cta-title">Ce panier, chaque mercredi.</h2>
+            <p className="basket-cta-text">
+              Un contrat à l&apos;année, un prix qui ne bouge pas, et des légumes que vous
+              voyez pousser à trente kilomètres.
+            </p>
+          </div>
+          <div className="basket-cta-actions">
+            <Link href="/nos-abonnements" className="basket-cta-primary">
+              Découvrir nos abonnements
+            </Link>
+            <Link href="/nos-producteurs" className="basket-cta-secondary">
+              Nos producteurs
+            </Link>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

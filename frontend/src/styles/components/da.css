@@ -11,7 +11,8 @@
 .subscriptions-page,
 .login-page,
 .account-page,
-.contact-page {
+.contact-page,
+.basket-page {
   line-height: normal;
 }
 
@@ -114,6 +115,78 @@
   color: var(--surface-page);
 }
 
+
+/* ---------- Cartes de colonne latérale ----------
+   Carte bordée à en-tête sable, dont le corps empile des blocs séparés par un
+   filet clair. Partagée par la colonne de droite de contact et du panier. */
+.side-card {
+  border: var(--border-width) solid var(--border-card);
+  border-radius: var(--border-radius-md);
+  background-color: var(--surface-page);
+  overflow: hidden;
+}
+
+.side-card-head {
+  padding: 18px 22px;
+  border-bottom: var(--border-width) solid var(--border-card);
+  background-color: var(--surface-sand);
+}
+
+.side-card-title {
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-normal);
+  font-size: 18px;
+  letter-spacing: 0;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.side-card-body {
+  padding: 6px 22px 20px;
+}
+
+.side-block {
+  padding: 18px 0;
+  border-bottom: var(--border-width) solid var(--border-soft);
+}
+
+.side-block:last-child {
+  padding: 18px 0 0;
+  border-bottom: none;
+}
+
+/* Label interne de carte : chasse plus serrée que les sur-titres de section */
+.side-block-label {
+  font-family: var(--font-mono);
+  font-size: var(--label-size);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-light);
+  margin-bottom: 8px;
+}
+
+/* Encart d'appel sur fond forêt, posé en bas de colonne */
+.forest-card {
+  border: var(--border-width) solid var(--border-card);
+  border-radius: var(--border-radius-md);
+  background-color: var(--surface-forest);
+  color: var(--on-forest);
+  padding: 22px;
+}
+
+.forest-card .eyebrow {
+  display: block;
+  letter-spacing: 0.12em;
+  color: var(--on-forest-muted);
+  margin-bottom: 14px;
+}
+
+.forest-card-text {
+  font-size: 14.5px;
+  line-height: 1.65;
+  color: var(--on-forest);
+  margin: 0 0 18px;
+}
 
 /* Colonne de chiffres adossée à un filet vertical (hero des pages internes) */
 /* Trois chiffres, séparés par des filets, adossés au filet vertical */
