@@ -1,378 +1,386 @@
 'use client';
 
-import { useEffect, useState } from "react";
-import api from "../../../lib/api";
-import logger from "../../../lib/logger";
-import { useModal } from "../../../contexts/ModalContext";
-import SubscriptionDetailModal from "../../../components/admin/SubscriptionDetailModal";
-import ContractModal from "../../../components/admin/ContractModal";
-import "../../../styles/admin/components.css";
-import "../../../styles/admin/dashboard.css";
-import "../../../styles/admin/layout.css";
-import "../../../styles/admin/subscription.css";
-import { CreditCard, Eye, PauseCircle, XCircle, Search } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from 'react';
+import api from '../../../lib/api';
+import { useModal } from '../../../contexts/ModalContext';
+import AdminModal from '../../../components/admin/AdminModal';
+import { monthYear, numericDate, euro, plural } from '../../../lib/format';
+import '../../../styles/admin/subscriptions.css';
+
+const STATUS = {
+  ACTIVE: { label: 'Actif', tone: 'admin-badge-green' },
+  PAUSED: { label: 'En pause', tone: 'admin-badge-brown' },
+  PENDING: { label: 'En attente', tone: 'admin-badge-amber' },
+  EXPIRED: { label: 'Expiré', tone: '' },
+  CANCELLED: { label: 'Résilié', tone: 'admin-badge-red' }
+};
+
+const TYPE_LABELS = { ANNUAL: 'Annuel', DISCOVERY: 'Découverte' };
+const SIZE_LABELS = { SMALL: 'Petit', LARGE: 'Grand' };
+const PRICING_LABELS = { NORMAL: 'Normal', SOLIDARITY: 'Solidaire' };
+
+/* Le backend plafonne le total des pauses à quatorze jours par contrat.
+   La fiche annonce ce qu'il reste, calculé sur la même base. */
+const PAUSE_DAYS_ALLOWED = 14;
+const DAY_MS = 86400000;
+const PAGE_SIZE = 20;
+
+function periodOf(subscription) {
+  return `${monthYear(subscription.startDate)} → ${monthYear(subscription.endDate)}`;
+}
+
+function pauseDaysUsed(pauses = []) {
+  return pauses.reduce((total, pause) => {
+    const start = new Date(pause.startDate);
+    const end = new Date(pause.endDate);
+    return total + Math.max(0, Math.round((end - start) / DAY_MS) + 1);
+  }, 0);
+}
 
 export default function AdminSubscriptionsPage() {
+  const { showConfirm, showSuccess, showError } = useModal();
+
   const [subscriptions, setSubscriptions] = useState([]);
-  const [stats, setStats] = useState(null);
+  const [pagination, setPagination] = useState({ total: 0, page: 1, totalPages: 1 });
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filters, setFilters] = useState({
-    status: '',
-    type: '',
-    pricingType: ''
-  });
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-  const [selectedSubscription, setSelectedSubscription] = useState(null);
-  const [isContractModalOpen, setIsContractModalOpen] = useState(false);
-  const [selectedSubscriptionForContract, setSelectedSubscriptionForContract] = useState(null);
+  const [search, setSearch] = useState('');
+  const [status, setStatus] = useState('');
+  const [type, setType] = useState('');
+  const [page, setPage] = useState(1);
+  const [selected, setSelected] = useState(null);
+  const [busy, setBusy] = useState(false);
 
-  const { showError } = useModal();
+  const debounceRef = useRef(null);
 
-  useEffect(() => {
-    fetchSubscriptions();
-    fetchStats();
-  }, [filters]);
-
-  const fetchSubscriptions = async () => {
+  const fetchSubscriptions = useCallback(async (filters) => {
+    setLoading(true);
     try {
-      setLoading(true);
-      const params = {
-        ...filters,
-        limit: 50
-      };
-      
-      const response = await api.subscriptions.getAll(params);
+      const response = await api.subscriptions.getAll({
+        page: filters.page,
+        limit: PAGE_SIZE,
+        ...(filters.status && { status: filters.status }),
+        ...(filters.type && { type: filters.type }),
+        ...(filters.search && { search: filters.search })
+      });
       setSubscriptions(response.data.subscriptions);
+      setPagination(response.data.pagination);
     } catch (error) {
-      showError('Erreur', 'Erreur lors du chargement des abonnements');
+      showError('Erreur', 'Impossible de charger les abonnements.');
     } finally {
       setLoading(false);
     }
-  };
+  }, [showError]);
 
-  const fetchStats = async () => {
+  useEffect(() => {
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      fetchSubscriptions({ search, status, type, page });
+    }, search ? 300 : 0);
+
+    return () => clearTimeout(debounceRef.current);
+  }, [search, status, type, page, fetchSubscriptions]);
+
+  /* La ligne de liste ne porte ni les règlements ni les permanences : on
+     recharge la fiche complète à l'ouverture. */
+  const openSubscription = async (subscription) => {
     try {
-      const response = await api.subscriptions.getStats();
-      setStats(response.data);
+      const response = await api.subscriptions.getById(subscription.id);
+      setSelected(response.data);
     } catch (error) {
-      logger.error('Erreur stats:', error);
+      showError('Erreur', 'Impossible de charger cet abonnement.');
     }
   };
 
-  const handleViewDetail = async (subscriptionId) => {
+  const refresh = () => {
+    setSelected(null);
+    fetchSubscriptions({ search, status, type, page });
+  };
+
+  const handleContract = async () => {
     try {
-      const response = await api.subscriptions.getById(subscriptionId);
-      setSelectedSubscription(response.data);
-      setIsDetailModalOpen(true);
+      const url = await api.subscriptions.getContractBlobUrl(selected.id);
+      window.open(url, '_blank', 'noopener');
     } catch (error) {
-      showError('Erreur', 'Erreur lors du chargement des détails');
+      showError('Erreur', error.message);
     }
   };
 
-  const handleViewContract = (sub) => {
-    setSelectedSubscriptionForContract(sub);
-    setIsContractModalOpen(true);
-  };
+  const handlePause = () => {
+    const startDate = new Date();
+    const endDate = new Date();
+    endDate.setDate(endDate.getDate() + 6);
 
-  const handleFilterChange = (key, value) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
-  };
-
-  const filteredSubscriptions = subscriptions.filter(sub => {
-    if (!searchTerm) return true;
-    
-    const search = searchTerm.toLowerCase();
-    return (
-      sub.user.firstName.toLowerCase().includes(search) ||
-      sub.user.lastName.toLowerCase().includes(search) ||
-      sub.user.email.toLowerCase().includes(search) ||
-      sub.subscriptionNumber.toLowerCase().includes(search)
-    );
-  });
-
-  const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('fr-FR');
-  };
-
-  const getStatusBadge = (status) => {
-    const statuses = {
-      PENDING: { label: 'En attente', color: 'warning' },
-      ACTIVE: { label: 'Actif', color: 'success' },
-      PAUSED: { label: 'En pause', color: 'secondary' },
-      EXPIRED: { label: 'Expiré', color: 'error' },
-      CANCELLED: { label: 'Annulé', color: 'error' }
-    };
-    
-    const info = statuses[status] || statuses.PENDING;
-    return <span className={`badge badge-${info.color}`}>{info.label}</span>;
-  };
-
-  const getTypeBadge = (type) => {
-    return type === 'ANNUAL' ? (
-      <span className="badge badge-primary">Annuel</span>
-    ) : (
-      <span className="badge badge-info">Découverte</span>
+    showConfirm(
+      'Mettre en pause',
+      `Suspendre le contrat ${selected.subscriptionNumber} pour une semaine, à partir d'aujourd'hui ?`,
+      async () => {
+        setBusy(true);
+        try {
+          await api.subscriptions.pause(selected.id, {
+            startDate: startDate.toISOString(),
+            endDate: endDate.toISOString()
+          });
+          showSuccess('Contrat suspendu', 'La pause a été enregistrée.');
+          refresh();
+        } catch (error) {
+          showError('Erreur', error.message);
+        } finally {
+          setBusy(false);
+        }
+      }
     );
   };
 
-  const getBasketSizeBadge = (size) => {
-    return size === 'SMALL' ? (
-      <span className="badge basket-small">Petit</span>
-    ) : (
-      <span className="badge basket-large">Grand</span>
+  const handleResume = async () => {
+    setBusy(true);
+    try {
+      await api.subscriptions.resume(selected.id);
+      showSuccess('Contrat repris', 'Le contrat est de nouveau actif.');
+      refresh();
+    } catch (error) {
+      showError('Erreur', error.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleCancel = () => {
+    showConfirm(
+      'Résilier le contrat',
+      `Résilier ${selected.subscriptionNumber} ? L'adhérent ne recevra plus de panier.`,
+      async () => {
+        setBusy(true);
+        try {
+          await api.subscriptions.cancel(selected.id);
+          showSuccess('Contrat résilié', 'Le contrat a été résilié.');
+          refresh();
+        } catch (error) {
+          showError('Erreur', error.message);
+        } finally {
+          setBusy(false);
+        }
+      }
     );
   };
 
-  if (loading && !stats) {
-    return <div className="loading-state">Chargement...</div>;
-  }
+  const changeFilter = (setter) => (event) => {
+    setter(event.target.value);
+    setPage(1);
+  };
+
+  const selectedStatus = selected ? (STATUS[selected.status] ?? { label: selected.status, tone: '' }) : null;
+  const daysUsed = selected ? pauseDaysUsed(selected.pauses) : 0;
+  const paid = selected ? selected.paidAmount : 0;
+  const due = selected ? Math.max(0, selected.price - selected.paidAmount) : 0;
 
   return (
-    <div className="admin-page">
-      <div className="page-header">
+    <div className="admin-subs">
+      <div className="admin-page-head">
         <div>
-          <h1>Abonnements</h1>
-          <p className="page-subtitle">Gérez tous les abonnements</p>
+          <h1 className="admin-title">Abonnements</h1>
+          <p className="admin-title-lead">
+            {pagination.total} {plural(pagination.total, 'contrat', 'contrats')} enregistrés.
+          </p>
         </div>
       </div>
 
-      {/* Statistiques */}
-      {stats && (
-        <div className="stats-grid">
-          <div className="stat-card">
-            <div className="stat-icon stat-icon-success">
-              <CreditCard size={24} />
-            </div>
-            <div className="stat-content">
-              <div className="stat-value">{stats.active}</div>
-              <div className="stat-label">Abonnements actifs</div>
-            </div>
-          </div>
+      <div className="admin-toolbar-da">
+        <label htmlFor="admin-subs-search" className="sr-only">Rechercher un adhérent</label>
+        <input
+          id="admin-subs-search"
+          type="text"
+          className="admin-search-field"
+          placeholder="Rechercher un adhérent…"
+          value={search}
+          onChange={changeFilter(setSearch)}
+        />
 
-          <div className="stat-card">
-            <div className="stat-icon stat-icon-warning">
-              <PauseCircle size={24} />
-            </div>
-            <div className="stat-content">
-              <div className="stat-value">{stats.paused}</div>
-              <div className="stat-label">En pause</div>
-            </div>
-          </div>
+        <label htmlFor="admin-subs-status" className="sr-only">Filtrer par statut</label>
+        <select id="admin-subs-status" className="admin-select" value={status} onChange={changeFilter(setStatus)}>
+          <option value="">Tous les statuts</option>
+          <option value="ACTIVE">Actifs</option>
+          <option value="PAUSED">En pause</option>
+          <option value="PENDING">En attente</option>
+          <option value="EXPIRED">Expirés</option>
+          <option value="CANCELLED">Résiliés</option>
+        </select>
 
-          <div className="stat-card">
-            <div className="stat-icon stat-icon-danger">
-              <XCircle size={24} />
-            </div>
-            <div className="stat-content">
-              <div className="stat-value">{stats.cancelled}</div>
-              <div className="stat-label">Annulés</div>
-            </div>
-          </div>
+        <label htmlFor="admin-subs-type" className="sr-only">Filtrer par type</label>
+        <select id="admin-subs-type" className="admin-select" value={type} onChange={changeFilter(setType)}>
+          <option value="">Tous les types</option>
+          <option value="ANNUAL">Annuel</option>
+          <option value="DISCOVERY">Découverte</option>
+        </select>
 
-          <div className="stat-card">
-            <div className="stat-icon stat-icon-primary">
-              <CreditCard size={24} />
-            </div>
-            <div className="stat-content">
-              <div className="stat-value">{stats.solidarity}</div>
-              <div className="stat-label">Tarif solidaire</div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Filtres et recherche */}
-      <div className="toolbar">
-        <div className="search-bar">
-          <label htmlFor="search-abonnements" className="sr-only">Rechercher un adhérent</label>
-          <Search size={20} aria-hidden="true" />
-          <input
-            id="search-abonnements"
-            type="text"
-            placeholder="Rechercher un adhérent..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-
-        <div className="toolbar-filters">
-          <select
-            className="filter-select"
-            value={filters.status}
-            onChange={(e) => handleFilterChange('status', e.target.value)}
-          >
-            <option value="">Tous les statuts</option>
-            <option value="ACTIVE">Actifs</option>
-            <option value="PAUSED">En pause</option>
-            <option value="PENDING">En attente</option>
-            <option value="EXPIRED">Expirés</option>
-            <option value="CANCELLED">Annulés</option>
-          </select>
-
-          <select
-            className="filter-select"
-            value={filters.type}
-            onChange={(e) => handleFilterChange('type', e.target.value)}
-          >
-            <option value="">Tous les types</option>
-            <option value="ANNUAL">Annuel</option>
-            <option value="DISCOVERY">Découverte</option>
-          </select>
-
-          <select
-            className="filter-select"
-            value={filters.pricingType}
-            onChange={(e) => handleFilterChange('pricingType', e.target.value)}
-          >
-            <option value="">Toutes les tarifications</option>
-            <option value="NORMAL">Normal</option>
-            <option value="SOLIDARITY">Solidaire</option>
-          </select>
-        </div>
+        <span className="admin-toolbar-count">
+          {pagination.total} {plural(pagination.total, 'contrat', 'contrats')}
+        </span>
       </div>
 
-      {/* Liste des abonnements */}
-      {loading ? (
-        <div className="loading-state">Chargement...</div>
-      ) : filteredSubscriptions.length === 0 ? (
-        <div className="empty-state">
-          <CreditCard size={48} />
-          <h3>Aucun abonnement trouvé</h3>
-          <p>Aucun abonnement ne correspond à vos critères</p>
+      <div className="admin-panel admin-subs-table">
+        <div className="admin-table-head">
+          <span>N°</span>
+          <span>Adhérent</span>
+          <span>Type</span>
+          <span className="admin-subs-size">Panier</span>
+          <span>Période</span>
+          <span>Statut</span>
+          <span className="admin-subs-pickups-cell">Retraits</span>
+          <span className="admin-cell-right">Action</span>
         </div>
-      ) : (
-        <div className="subscriptions-table-container admin-table-container--cards">
-          <table className="subscriptions-table">
-            <thead>
-              <tr>
-                <th>N° Abonnement</th>
-                <th>Adhérent</th>
-                <th>Type</th>
-                <th>Panier</th>
-                <th>Période</th>
-                <th>Statut</th>
-                <th>Retraits restants</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredSubscriptions.map((sub) => (
-                <tr key={sub.id}>
-                  <td data-label="N° Abonnement">
-                    <span className="td-content">
-                      <button
-                        className="subscription-number subscription-number-link"
-                        onClick={() => handleViewContract(sub)}
-                        title="Voir le contrat"
-                      >
-                        {sub.subscriptionNumber}
-                      </button>
-                    </span>
-                  </td>
 
-                  <td data-label="Adhérent">
-                    <span className="td-content">
-                      <div className="subscriber-info">
-                        <div className="subscriber-name">
-                          {sub.user.firstName} {sub.user.lastName}
-                        </div>
-                        <div className="subscriber-email">
-                          {sub.user.email}
-                        </div>
-                      </div>
-                    </span>
-                  </td>
+        {loading ? (
+          <p className="admin-empty">Chargement…</p>
+        ) : subscriptions.length === 0 ? (
+          <p className="admin-empty">Aucun abonnement ne correspond à ces filtres.</p>
+        ) : (
+          subscriptions.map((subscription) => {
+            const state = STATUS[subscription.status] ?? { label: subscription.status, tone: '' };
 
-                  <td data-label="Type">
-                    <span className="td-content">
-                      <div className="subscription-badges">
-                        {getTypeBadge(sub.type)}
-                        {sub.pricingType === 'SOLIDARITY' && (
-                          <span className="badge badge-warning">Solidaire</span>
-                        )}
-                      </div>
-                    </span>
-                  </td>
+            return (
+              <div key={subscription.id} className="admin-table-row">
+                <span className="admin-subs-ref">{subscription.subscriptionNumber}</span>
+                <span className="admin-cell-strong">
+                  {subscription.user?.firstName} {subscription.user?.lastName}
+                </span>
+                <span className="admin-cell-muted">{TYPE_LABELS[subscription.type] ?? subscription.type}</span>
+                <span className="admin-cell-muted admin-subs-size">
+                  {SIZE_LABELS[subscription.basketSize] ?? subscription.basketSize}
+                </span>
+                <span className="admin-subs-period">{periodOf(subscription)}</span>
+                <span>
+                  <span className={`admin-badge ${state.tone}`}>{state.label}</span>
+                </span>
+                <span className="admin-subs-pickups admin-subs-pickups-cell">
+                  {subscription.pickupsRemaining}
+                </span>
+                <span className="admin-cell-right">
+                  <button type="button" className="admin-btn-link" onClick={() => openSubscription(subscription)}>
+                    Détail
+                  </button>
+                </span>
+              </div>
+            );
+          })
+        )}
 
-                  <td data-label="Panier">
-                    <span className="td-content">
-                      <div className="subscription-badges">
-                        {getBasketSizeBadge(sub.basketSize)}
-                      </div>
-                    </span>
-                  </td>
+        {pagination.totalPages > 1 && (
+          <div className="admin-pager">
+            <span className="admin-pager-state">
+              Page {pagination.page} sur {pagination.totalPages}
+            </span>
+            <div className="admin-pager-controls">
+              <button
+                type="button"
+                className="admin-btn-link"
+                disabled={pagination.page <= 1}
+                onClick={() => setPage(current => Math.max(1, current - 1))}
+              >
+                ← Précédent
+              </button>
+              <button
+                type="button"
+                className="admin-btn-link"
+                disabled={pagination.page >= pagination.totalPages}
+                onClick={() => setPage(current => current + 1)}
+              >
+                Suivant →
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
 
-                  <td data-label="Période">
-                    <span className="td-content">
-                      <div className="subscription-dates">
-                        <div className="date-item">
-                          <span className="date-label">Début:</span>
-                          <span className="date-value">{formatDate(sub.startDate)}</span>
-                        </div>
-                        <div className="date-item">
-                          <span className="date-label">Fin:</span>
-                          <span className="date-value">{formatDate(sub.endDate)}</span>
-                        </div>
-                      </div>
-                    </span>
-                  </td>
+      {selected && (
+        <AdminModal title="Détails de l'abonnement" width="700px" onClose={() => setSelected(null)}>
+          <div className="admin-sub-identity">
+            <span className="admin-sub-identity-ref">{selected.subscriptionNumber}</span>
+            <span className="admin-sub-identity-name">
+              {selected.user?.firstName} {selected.user?.lastName}
+            </span>
+            <span className={`admin-badge ${selectedStatus.tone}`}>{selectedStatus.label}</span>
+          </div>
 
-                  <td data-label="Statut">
-                    <span className="td-content">
-                      {getStatusBadge(sub.status)}
-                    </span>
-                  </td>
+          <div className="admin-sub-summary">
+            <div>
+              <span className="admin-field-label">Formule</span>
+              <div className="admin-sub-summary-value">
+                {TYPE_LABELS[selected.type] ?? selected.type} · {(SIZE_LABELS[selected.basketSize] ?? selected.basketSize).toLowerCase()} panier
+              </div>
+            </div>
+            <div>
+              <span className="admin-field-label">Période</span>
+              <div className="admin-sub-summary-value admin-sub-summary-value-mono">{periodOf(selected)}</div>
+            </div>
+            <div>
+              <span className="admin-field-label">Retraits restants</span>
+              <div className="admin-sub-summary-value admin-sub-summary-value-mono">
+                {selected.pickupsRemaining} sur {selected.pickupsRemaining + selected.pickupsDone}
+              </div>
+            </div>
+          </div>
 
-                  <td data-label="Retraits restants">
-                    <span className="td-content">
-                      <div className="pickups-count">
-                        {sub.pickupsRemaining ?? 0}
-                      </div>
-                    </span>
-                  </td>
+          <dl className="def-list admin-sub-follow">
+            <div className="def-row">
+              <dt className="def-label">Règlement</dt>
+              <dd className="def-value">
+                {euro(selected.price)} · {euro(paid)} encaissé
+                {due > 0 ? ` · reste ${euro(due)}` : ' · soldé'}
+                {selected.payments?.length > 0 && ` · ${selected.payments.length} ${plural(selected.payments.length, 'versement', 'versements')}`}
+              </dd>
+            </div>
+            <div className="def-row">
+              <dt className="def-label">Pauses posées</dt>
+              <dd className="def-value">
+                {selected.pauses?.length > 0
+                  ? `${selected.pauses.length} ${plural(selected.pauses.length, 'pause', 'pauses')} · ${daysUsed} ${plural(daysUsed, 'jour utilisé', 'jours utilisés')} sur ${PAUSE_DAYS_ALLOWED}`
+                  : `Aucune · ${PAUSE_DAYS_ALLOWED} jours disponibles`}
+              </dd>
+            </div>
+            <div className="def-row">
+              <dt className="def-label">Permanences</dt>
+              <dd className="def-value">
+                {selected.user?._count?.shiftVolunteers ?? 0} {plural(selected.user?._count?.shiftVolunteers ?? 0, 'créneau tenu', 'créneaux tenus')}
+              </dd>
+            </div>
+            <div className="def-row">
+              <dt className="def-label">Point de retrait</dt>
+              <dd className="def-value">{selected.pickupLocation?.name ?? '—'}</dd>
+            </div>
+            {selected.pickups?.length > 0 && (
+              <div className="def-row">
+                <dt className="def-label">Dernier retrait</dt>
+                <dd className="def-value">
+                  {numericDate(selected.pickups[0].pickupDate)} · {selected.pickupsDone} au total
+                </dd>
+              </div>
+            )}
+          </dl>
 
-                  <td data-label="Actions">
-                    <span className="td-content">
-                      <div className="table-actions">
-                        <button
-                          className="btn btn-icon"
-                          onClick={() => handleViewDetail(sub.id)}
-                          title="Voir détails"
-                        >
-                          <Eye size={18} />
-                        </button>
-                      </div>
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+          <div className="admin-modal-actions">
+            <button type="button" className="admin-btn-primary" onClick={handleContract}>
+              Générer le contrat PDF
+            </button>
+            {selected.status === 'ACTIVE' && (
+              <button type="button" className="admin-btn-ghost" onClick={handlePause} disabled={busy}>
+                Mettre en pause
+              </button>
+            )}
+            {selected.status === 'PAUSED' && (
+              <button type="button" className="admin-btn-ghost" onClick={handleResume} disabled={busy}>
+                Reprendre
+              </button>
+            )}
+            {selected.status !== 'CANCELLED' && (
+              <span className="admin-modal-actions-end">
+                <button type="button" className="admin-btn-danger" onClick={handleCancel} disabled={busy}>
+                  Résilier
+                </button>
+              </span>
+            )}
+          </div>
+        </AdminModal>
       )}
-
-      {isContractModalOpen && selectedSubscriptionForContract && (
-        <ContractModal
-          subscription={selectedSubscriptionForContract}
-          onClose={() => {
-            setIsContractModalOpen(false);
-            setSelectedSubscriptionForContract(null);
-          }}
-        />
-      )}
-
-      {isDetailModalOpen && selectedSubscription && (
-        <SubscriptionDetailModal
-          subscription={selectedSubscription}
-          onClose={() => {
-            setIsDetailModalOpen(false);
-            setSelectedSubscription(null);
-          }}
-          onUpdate={() => { fetchSubscriptions(); fetchStats(); }}
-        />
-      )}
-
     </div>
   );
 }

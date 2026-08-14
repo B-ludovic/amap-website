@@ -11,6 +11,7 @@ import {
   httpStatusCodes
 } from '../utils/httpErrors.js';
 import { logAudit } from '../services/audit.service.js';
+import { computeRemainingPickups } from '../utils/subscriptionSchedule.js';
 
 // Générer un numéro d'abonnement unique
 const generateSubscriptionNumber = async () => {
@@ -125,7 +126,7 @@ const getSubscriptionRequests = asyncHandler(async (req, res) => {
 
 // RÉCUPÉRER TOUS LES ABONNEMENTS (ADMIN)
 const getAllSubscriptions = asyncHandler(async (req, res) => {
-  const { status, type, pricingType, page = 1, limit = 20 } = req.query;
+  const { status, type, pricingType, search, page = 1, limit = 20 } = req.query;
   const parsedPage = Math.max(parseInt(page) || 1, 1);
   const parsedLimit = Math.min(parseInt(limit) || 20, 100);
 
@@ -143,6 +144,20 @@ const getAllSubscriptions = asyncHandler(async (req, res) => {
 
   if (pricingType) {
     where.pricingType = pricingType;
+  }
+
+  /* Recherche sur le numéro de contrat et sur l'identité de l'adhérent. Elle
+     doit passer par la base : la liste est paginée, filtrer les seuls contrats
+     déjà chargés ne verrait que la page en cours. */
+  const trimmedSearch = typeof search === 'string' ? search.trim() : '';
+
+  if (trimmedSearch) {
+    where.OR = [
+      { subscriptionNumber: { contains: trimmedSearch, mode: 'insensitive' } },
+      { user: { firstName: { contains: trimmedSearch, mode: 'insensitive' } } },
+      { user: { lastName: { contains: trimmedSearch, mode: 'insensitive' } } },
+      { user: { email: { contains: trimmedSearch, mode: 'insensitive' } } }
+    ];
   }
 
   const [subscriptions, total] = await Promise.all([
@@ -198,22 +213,14 @@ const getAllSubscriptions = asyncHandler(async (req, res) => {
     toResume.forEach(s => { s.status = 'ACTIVE'; });
   }
 
-  // Calcul des retraits restants : base fixe de 49 paniers/an (52 semaines - 3 semaines de fermeture)
-  // proratisée selon la durée réelle de l'abonnement, moins les retraits déjà effectués
-  const PICKUPS_PER_YEAR = 49;
-  const MS_PER_YEAR = 365.25 * 86400000;
-
-  const subscriptionsWithRemaining = subscriptions.map(sub => {
-    const subStart = new Date(sub.startDate);
-    const subEnd = new Date(sub.endDate);
-    const durationMs = subEnd - subStart;
-    const pickupsTotal = Math.round((durationMs / MS_PER_YEAR) * PICKUPS_PER_YEAR);
-
-    return {
-      ...sub,
-      pickupsRemaining: Math.max(0, pickupsTotal - sub._count.pickups)
-    };
-  });
+  const subscriptionsWithRemaining = subscriptions.map(sub => ({
+    ...sub,
+    pickupsRemaining: computeRemainingPickups({
+      startDate: sub.startDate,
+      endDate: sub.endDate,
+      pickupsDone: sub._count.pickups
+    })
+  }));
 
   res.json({
     success: true,
@@ -242,7 +249,10 @@ const getSubscriptionById = asyncHandler(async (req, res) => {
           email: true,
           firstName: true,
           lastName: true,
-          phone: true
+          phone: true,
+          /* Permanences tenues par l'adhérent : la fiche de contrat les
+             affiche, or elles pendent à l'utilisateur et non au contrat. */
+          _count: { select: { shiftVolunteers: true } }
         }
       },
       pickupLocation: true,
@@ -278,9 +288,23 @@ const getSubscriptionById = asyncHandler(async (req, res) => {
     throw new HttpNotFoundError('Abonnement introuvable');
   }
 
+  /* `pickups` est tronqué aux dix derniers pour l'affichage : le décompte des
+     retraits effectués se lit sur la table, pas sur la longueur du tableau. */
+  const pickupsDone = await prisma.weeklyPickup.count({
+    where: { subscriptionId: id }
+  });
+
   res.json({
     success: true,
-    data: subscription
+    data: {
+      ...subscription,
+      pickupsDone,
+      pickupsRemaining: computeRemainingPickups({
+        startDate: subscription.startDate,
+        endDate: subscription.endDate,
+        pickupsDone
+      })
+    }
   });
 });
 
