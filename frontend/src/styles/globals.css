@@ -86,6 +86,7 @@ body {
 .main-content:has(.landing),
 .main-content:has(.login-page),
 .main-content:has(.register-page),
+.main-content:has(.producers-page),
 .main-content:has(.producer-page),
 .main-content:has(.subscriptions-page),
 .main-content:has(.account-page),

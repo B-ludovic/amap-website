@@ -1,576 +1,456 @@
-/* NOS PRODUCTEURS */
+/* Page des producteurs — report au pixel de mocks/producteurs.dc.html.
+   Les fiches alternent photo à gauche et photo à droite, séparées par un filet.
+   Les classes portent le préfixe `farm-` : `producer-` appartient déjà à la
+   page « devenir producteur », et les deux feuilles cohabitent en navigation. */
 
-/* Page principale */
 .producers-page {
-  min-height: 100vh;
-  background-color: var(--background-color);
+  background-color: var(--surface-page);
 }
 
-.container {
-  max-width: 1200px;
+/* ---------- Hero ---------- */
+
+.farms-hero {
+  max-width: var(--container-max-width);
   margin: 0 auto;
-  padding: 0 var(--spacing-lg);
+  padding: 72px var(--container-padding) 56px;
 }
 
-/* ÉTATS */
-
-.loading-state {
-  text-align: center;
-  padding: var(--spacing-3xl) var(--spacing-lg);
-  color: var(--text-light);
-  font-size: var(--font-size-lg);
+.farms-hero .eyebrow {
+  display: block;
+  margin-bottom: 18px;
 }
 
-.empty-state {
-  text-align: center;
-  padding: var(--spacing-3xl) var(--spacing-lg);
-  max-width: 600px;
-  margin: 0 auto;
+.farms-hero-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 72px;
+  align-items: end;
 }
 
-.empty-state svg {
-  color: var(--text-light);
-  margin-bottom: var(--spacing-lg);
-}
-
-.empty-state h3 {
-  font-size: var(--font-size-2xl);
+.farms-title {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-style: italic;
+  font-size: 58px;
+  line-height: 1.04;
+  letter-spacing: -0.025em;
   color: var(--text-primary);
-  margin-bottom: var(--spacing-md);
+  margin: 0 0 22px;
+  text-wrap: balance;
 }
 
-.empty-state p {
-  font-size: var(--font-size-base);
-  color: var(--text-secondary);
-}
-
-/* HERO */
-
-.producers-hero {
-  background: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)), url('/placeholder/legumes-ete.webp') center/cover no-repeat;
-  color: var(--white);
-  padding: var(--spacing-3xl) 0 var(--spacing-2xl) 0;
-  position: relative;
-  overflow: hidden;
-}
-
-.producers-hero::before {
-  content: none;
-}
-
-.hero-content {
-  position: relative;
-  text-align: center;
-  max-width: 1000px;
-  margin: 0 auto;
-}
-
-.hero-content h1 {
-  font-size: var(--font-size-4xl);
-  font-weight: 700;
-  color: var(--white);
-  margin-bottom: var(--spacing-lg);
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-  order: 1;
-}
-
-.hero-subtitle {
-  font-size: var(--font-size-xl);
+.farms-lede {
+  font-size: 17px;
   line-height: 1.7;
-  opacity: 1;
-  margin-bottom: var(--spacing-3xl);
-  max-width: 750px;
-  margin-left: auto;
-  margin-right: auto;
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.4);
-  font-weight: 400;
-  color: var(--white);
+  color: var(--text-secondary);
+  margin: 0;
+  max-width: 36em;
+  text-wrap: pretty;
+}
+
+/* ---------- Bandeau « L'engagement » ---------- */
+
+.farms-pledge {
+  max-width: var(--container-max-width);
+  margin: 0 auto;
+  padding: 44px var(--container-padding);
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 36px;
+  align-items: start;
+}
+
+.farms-pledge .eyebrow {
+  white-space: nowrap;
+  padding-top: 6px;
+}
+
+.farms-pledge-text {
+  font-size: 16.5px;
+  line-height: 1.75;
+  color: var(--text-primary);
+  margin: 0;
+  max-width: 62em;
+  text-wrap: pretty;
+}
+
+/* ---------- Fiches ---------- */
+
+.farms-list {
+  max-width: var(--container-max-width);
+  margin: 0 auto;
+  padding: 88px var(--container-padding) 40px;
+}
+
+.farm {
+  display: grid;
+  grid-template-columns: 0.95fr 1.05fr;
+  gap: 64px;
+  align-items: start;
+  padding: 72px 0;
+  border-bottom: var(--border-width) solid var(--border-card);
+}
+
+.farm:first-child {
+  padding-top: 0;
+}
+
+.farm:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+/* Une fiche sur deux renvoie la photo à droite */
+.farm:nth-child(even) {
+  grid-template-columns: 1.05fr 0.95fr;
+}
+
+.farm:nth-child(even) .farm-visual {
   order: 2;
 }
 
-.hero-stats {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--spacing-lg);
-  max-width: 900px;
-  margin: 0 auto;
-  order: 3;
-}
-
-.stat-item {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
-  background-color: rgba(255, 255, 255, 0.25);
-  padding: var(--spacing-xl);
-  border-radius: var(--border-radius-lg);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.stat-number {
-  font-size: var(--font-size-3xl);
-  font-weight: 700;
-  color: var(--white);
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-  line-height: 1.2;
-}
-
-.stat-label {
-  font-size: var(--font-size-base);
-  opacity: 0.95;
-  color: var(--white);
-  font-weight: 500;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-}
-
-/* INTRO */
-
-.producers-intro {
-  padding: var(--spacing-3xl) 0;
-  background-color: var(--white);
-}
-
-.intro-card {
-  display: flex;
-  gap: var(--spacing-xl);
-  align-items: center;
-  background: linear-gradient(135deg, rgba(107, 157, 90, 0.08), rgba(107, 157, 90, 0.03));
-  padding: var(--spacing-2xl);
-  border-radius: var(--border-radius-lg);
-  box-shadow: var(--shadow-md);
-}
-
-.intro-icon {
-  flex-shrink: 0;
-  width: 80px;
-  height: 80px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: var(--primary-color);
-  color: var(--white);
-  border-radius: var(--border-radius-md);
-}
-
-.intro-content h2 {
-  font-size: var(--font-size-2xl);
-  color: var(--text-primary);
-  margin-bottom: var(--spacing-md);
-  font-weight: 600;
-}
-
-.intro-content p {
-  font-size: var(--font-size-base);
-  color: var(--text-secondary);
-  line-height: 1.7;
-}
-
-/* LISTE DES PRODUCTEURS */
-
-.producers-list {
-  padding: var(--spacing-3xl) 0;
-  padding-right: var(--spacing-lg);
-  background: var(--gradient-soft-banner);
-}
-
-.producers-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: var(--spacing-xl);
-}
-
-.producer-card {
-  background: white;
-  border-radius: var(--border-radius-lg);
-  overflow: hidden;
-  box-shadow: var(--shadow-md);
-  border: 1px solid var(--border-color);
-  transition: var(--transition-normal);
-  display: flex;
-  flex-direction: column;
-}
-
-.producer-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
-}
-
-/* Image */
-.producer-image {
+.farm-frame {
   position: relative;
-  width: 100%;
-  height: 200px;
+  aspect-ratio: 4 / 5;
+  border-radius: var(--border-radius-md);
   overflow: hidden;
-  background-color: #f5f5f5;
+  border: var(--border-width) solid var(--border-card);
+  background-color: var(--surface-sand);
 }
 
-.producer-image img {
+/* La règle globale sur `img` impose height:auto : il faut la spécificité du
+   cadre pour que la photo remplisse vraiment le format 4/5. */
+.farm-frame .farm-photo {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
 }
 
-.image-placeholder {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, rgba(107, 157, 90, 0.1), rgba(107, 157, 90, 0.05));
-  color: var(--primary-color);
-}
-
-.bio-badge {
+.farm-badge {
   position: absolute;
-  top: var(--spacing-md);
-  right: var(--spacing-md);
+  top: 14px;
+  left: 14px;
+}
+
+.farm-head {
   display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  background-color: var(--success-color-dark);
-  color: var(--white);
-  padding: var(--spacing-xs) var(--spacing-md);
-  border-radius: var(--border-radius-full);
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  box-shadow: var(--shadow-md);
-}
-
-/* Contenu */
-.producer-content {
-  padding: var(--spacing-xl);
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-lg);
-  flex: 1;
-}
-
-.producer-header h3 {
-  font-size: var(--font-size-xl);
-  color: var(--text-primary);
-  margin-bottom: var(--spacing-xs);
-  font-weight: 600;
-}
-
-.producer-specialty {
-  font-size: var(--font-size-sm);
-  color: var(--text-light);
-  font-style: italic;
-}
-
-.producer-location {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  font-size: var(--font-size-base);
-  color: var(--text-secondary);
-}
-
-.producer-location svg {
-  color: var(--primary-color);
-  flex-shrink: 0;
-}
-
-.producer-description {
-  font-size: var(--font-size-base);
-  color: var(--text-secondary);
-  line-height: 1.7;
-}
-
-/* Productions */
-.producer-products {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
-}
-
-.products-label {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  font-size: var(--font-size-base);
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.products-label svg {
-  color: var(--primary-color);
-}
-
-.products-tags {
-  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  margin-bottom: 14px;
   flex-wrap: wrap;
-  gap: var(--spacing-xs);
 }
 
-.product-tag {
-  display: inline-block;
-  padding: var(--spacing-xs) var(--spacing-md);
-  background-color: rgba(107, 157, 90, 0.1);
-  color: var(--primary-color);
-  border-radius: var(--border-radius-full);
-  font-size: var(--font-size-sm);
-  font-weight: 500;
+.farm-index {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: var(--font-weight-medium);
+  color: var(--terracotta);
 }
 
-.product-tag.more {
-  background-color: #f5f5f5;
+.farm-specialty {
+  font-family: var(--font-mono);
+  font-size: var(--label-size);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
   color: var(--text-light);
 }
 
-/* Contact */
-.producer-contact {
+.farm-name {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: 38px;
+  line-height: 1.08;
+  letter-spacing: var(--display-tracking);
+  color: var(--text-primary);
+  margin: 0 0 8px;
+}
+
+.farm-place {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 26px;
+}
+
+.farm-text {
+  font-size: 16px;
+  line-height: 1.75;
+  color: var(--text-secondary);
+  margin: 0 0 28px;
+  max-width: 36em;
+  text-wrap: pretty;
+}
+
+/* Productions, en étiquettes bordées */
+
+.farm-crops {
+  margin-bottom: 28px;
+}
+
+.farm-crops-label {
+  font-family: var(--font-mono);
+  font-size: var(--label-size);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-light);
+  margin-bottom: 12px;
+}
+
+.farm-crops-list {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--spacing-sm);
-  padding-top: var(--spacing-md);
-  border-top: 1px solid var(--border-color);
-  margin-top: auto;
+  gap: 8px;
 }
 
-.contact-link {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-sm) var(--spacing-md);
-  font-size: var(--font-size-base);
-  color: var(--primary-color);
-  background-color: rgba(107, 157, 90, 0.08);
-  border-radius: var(--border-radius-md);
-  text-decoration: none;
-  transition: var(--transition-fast);
-  font-weight: 500;
-}
-
-.contact-link:hover {
-  background-color: rgba(107, 157, 90, 0.15);
-}
-
-.contact-link svg {
-  flex-shrink: 0;
-}
-
-/* CTA SECTIONS */
-
-.join-cta {
-  padding: var(--spacing-3xl) 0;
-  background-color: var(--white);
-}
-
-.join-cta .btn-primary {
-  background-color: var(--white);
-  color: #2d5a27;
-  border: 2px solid #2d5a27;
-}
-
-.join-cta .btn-primary:hover {
-  background-color: #2d5a27;
-  color: var(--white);
-  border-color: #2d5a27;
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
-}
-
-.cta-card {
-  display: flex;
-  gap: var(--spacing-xl);
-  align-items: center;
-  background: linear-gradient(135deg, rgba(107, 157, 90, 0.12), rgba(212, 165, 116, 0.08));
-  border: 1px solid rgba(107, 157, 90, 0.25);
-  padding: var(--spacing-2xl);
-  border-radius: var(--border-radius-lg);
-  box-shadow: var(--shadow-md);
-}
-
-.cta-content h2 {
-  color: #2d5a27;
-}
-
-.cta-content p {
-  color: #4a4a4a;
-}
-
-.cta-icon {
-  flex-shrink: 0;
-  width: 80px;
-  height: 80px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: var(--primary-color);
-  color: var(--white);
-  border-radius: var(--border-radius-md);
-}
-
-.cta-content {
-  flex: 1;
-}
-
-.cta-content h2 {
-  font-size: var(--font-size-2xl);
-  color: var(--text-primary);
-  margin-bottom: var(--spacing-md);
-  font-weight: 600;
-}
-
-.cta-content p {
-  font-size: var(--font-size-base);
+.farm-crop {
+  font-size: 13px;
   color: var(--text-secondary);
-  line-height: 1.7;
-  margin-bottom: var(--spacing-lg);
+  background-color: var(--surface-sand);
+  border: var(--border-width) solid var(--border-card);
+  border-radius: var(--border-radius-sm);
+  padding: 6px 11px;
 }
 
-.subscription-cta {
-  padding: var(--spacing-3xl) 0;
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+.farm-crop-more {
+  color: var(--text-light);
+  background-color: var(--surface-page);
 }
 
-.cta-banner {
-  text-align: center;
-  color: var(--white);
-  max-width: 800px;
+/* Fiche technique : libellé à gauche, valeur à droite */
+
+.farm-specs {
+  display: grid;
+  gap: 0;
+  border-top: var(--border-width) solid var(--border-card);
+  margin: 0;
+}
+
+.farm-spec {
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  gap: 20px;
+  padding: 13px 0;
+}
+
+.farm-spec:not(:last-child) {
+  border-bottom: var(--border-width) solid var(--border-card);
+}
+
+.farm-spec-label {
+  font-family: var(--font-mono);
+  font-size: var(--label-size);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-light);
+  padding-top: 2px;
+}
+
+.farm-spec-value {
+  font-size: 14.5px;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.farm-spec-mono {
+  font-family: var(--font-mono);
+  font-size: 14px;
+}
+
+.farm-contact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  align-items: center;
+}
+
+.farm-contact-link {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  color: var(--brass);
+  border-bottom: var(--border-width) solid var(--border-brass);
+}
+
+.farm-contact-link:hover {
+  color: var(--terracotta-dark);
+  border-bottom-color: var(--terracotta-dark);
+}
+
+/* ---------- Aucune ferme publiée ---------- */
+
+.farms-empty {
+  max-width: var(--container-max-width);
   margin: 0 auto;
+  padding: 80px var(--container-padding) 88px;
 }
 
-.cta-banner h2 {
-  font-size: var(--font-size-3xl);
-  font-weight: 700;
-  margin-bottom: var(--spacing-lg);
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+.farms-empty-card {
+  border: var(--border-width) solid var(--border-card);
+  border-radius: var(--border-radius-md);
+  background-color: var(--surface-page);
+  padding: 48px 44px;
+  max-width: 640px;
 }
 
-.cta-banner p {
-  font-size: var(--font-size-lg);
+.farms-empty-title {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: 30px;
+  line-height: 1.15;
+  letter-spacing: var(--display-tracking);
+  margin: 0 0 12px;
+}
+
+.farms-empty-text {
+  font-size: 15.5px;
   line-height: 1.7;
-  margin-bottom: var(--spacing-xl);
-  opacity: 0.95;
-  color: var(--white);
+  color: var(--text-secondary);
+  margin: 0;
 }
 
-/* Boutons dans subscription-cta */
-.subscription-cta .btn-primary {
-  background: var(--white) !important;
-  color: var(--text-primary) !important;
-  font-weight: 600;
-  box-shadow: var(--shadow-lg);
+/* ---------- Double appel, sur fond forêt ---------- */
+
+.farms-cta {
+  margin-top: 88px;
 }
 
-.subscription-cta .btn-primary:hover {
-  background: rgba(255, 255, 255, 0.95) !important;
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-xl);
-  color: var(--text-primary) !important;
+.farms-cta-inner {
+  max-width: var(--container-max-width);
+  margin: 0 auto;
+  padding: 80px var(--container-padding) 84px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: start;
 }
 
-/* Responsive */
+.farms-cta-block .eyebrow {
+  display: block;
+  margin-bottom: 18px;
+}
 
-/* Tablette et Ecrans intermédiaires (max-width: 1024px) */
-@media (max-width: 1024px) {
-  /* SECTION HERO */
-  .producers-hero {
-    padding: var(--spacing-2xl) 0 var(--spacing-xl);
+.farms-cta-second {
+  border-left: var(--border-width) solid var(--on-forest-frame);
+  padding-left: 56px;
+}
+
+.farms-cta-title {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-style: italic;
+  font-size: 36px;
+  line-height: 1.12;
+  letter-spacing: var(--display-tracking);
+  color: var(--surface-page);
+  margin: 0 0 18px;
+}
+
+.farms-cta-text {
+  font-size: 15.5px;
+  line-height: 1.7;
+  color: var(--on-forest);
+  margin: 0 0 28px;
+  max-width: 34em;
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 1100px) {
+  .farms-hero-grid {
+    gap: 48px;
   }
 
-  .hero-content h1 {
-    font-size: var(--font-size-3xl);
+  .farm {
+    gap: 44px;
   }
 
-  /* GRILLES PRINCIPALES */
-  /* La grille des producteurs passe de 3 ou 4 colonnes à 2 */
-  .producers-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--spacing-lg);
+  .farms-cta-inner {
+    gap: 56px;
   }
 
-  /* La grille des statistiques passe de 3 ou 4 colonnes à 2 */
-  .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--spacing-md);
-  }
-
-  /* CARTES PRODUCTEUR */
-  .producer-card {
-    /* Ajustement du padding/taille si nécessaire */
-  }
-
-  /* CTA BANNER */
-  .cta-banner h2 {
-    font-size: var(--font-size-3xl);
+  .farms-cta-second {
+    padding-left: 40px;
   }
 }
 
-/* Mobile (max-width: 768px) */
-@media (max-width: 768px) {
-  /* SECTION HERO */
-  .producers-hero {
-    padding: var(--spacing-xl) 0 var(--spacing-lg);
+@media (max-width: 900px) {
+  .farms-hero {
+    padding-top: 56px;
+    padding-bottom: 44px;
   }
 
-  .hero-content h1 {
-    font-size: var(--font-size-2xl);
-  }
-
-  /* GRILLES PRINCIPALES (Empilement vertical) */
-  .producers-grid {
+  .farms-hero-grid {
     grid-template-columns: 1fr;
-    gap: var(--spacing-md);
+    gap: 36px;
+    align-items: start;
   }
 
-  .stats-grid {
+  .farms-title {
+    font-size: 44px;
+  }
+
+  .farms-pledge {
     grid-template-columns: 1fr;
-    gap: var(--spacing-sm);
-  }
-  
-  .stat-number {
-      font-size: var(--font-size-xl);
-  }
-  
-  .stat-title {
-      font-size: var(--font-size-sm);
+    gap: 16px;
   }
 
-  /* LISTE ET SECTIONS */
-  .producers-intro,
-  .producers-list,
-  .join-cta,
-  .subscription-cta {
-    padding: var(--spacing-xl) 0;
+  .farms-pledge .eyebrow {
+    padding-top: 0;
   }
 
-  /* CTA BANNER et cartes CTA (Intro/Join) */
-  /* Passage des cartes à flex-direction: column (empilement vertical) */
-  .intro-card,
-  .cta-card {
-    flex-direction: column;
-    text-align: center;
-    padding: var(--spacing-lg);
-  }
-  
-  /* Ajustement de la taille des icônes */
-  .intro-icon,
-  .cta-icon {
-    width: 56px;
-    height: 56px;
-    margin-bottom: var(--spacing-md);
+  .farms-list {
+    padding-top: 64px;
   }
 
-  .intro-icon svg,
-  .cta-icon svg {
-    width: 28px;
-    height: 28px;
+  .farm,
+  .farm:nth-child(even) {
+    grid-template-columns: 1fr;
+    gap: 32px;
   }
 
-  /* CTA BANNER TITRE */
-  .cta-banner h2 {
-    font-size: var(--font-size-xl);
+  /* Sur une colonne, la photo repasse en tête pour toutes les fiches */
+  .farm:nth-child(even) .farm-visual {
+    order: 0;
+  }
+
+  .farm-frame {
+    max-width: 420px;
+  }
+
+  .farms-cta {
+    margin-top: 64px;
+  }
+
+  .farms-cta-inner {
+    grid-template-columns: 1fr;
+    gap: 48px;
+    padding-top: 64px;
+    padding-bottom: 68px;
+  }
+
+  .farms-cta-second {
+    border-left: none;
+    border-top: var(--border-width) solid var(--on-forest-frame);
+    padding-left: 0;
+    padding-top: 48px;
   }
 }
 
-/* Très petits mobiles (max-width: 480px) */
-@media (max-width: 480px) {
-  .hero-content h1 {
-    font-size: var(--font-size-xl);
+@media (max-width: 560px) {
+  .farms-title {
+    font-size: 34px;
+  }
+
+  .farm-name {
+    font-size: 30px;
+  }
+
+  .farms-cta-title {
+    font-size: 30px;
+  }
+
+  .farm-spec {
+    grid-template-columns: 1fr;
+    gap: 6px;
   }
 }

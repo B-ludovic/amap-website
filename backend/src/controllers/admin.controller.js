@@ -13,8 +13,20 @@ import { normalizeTitleCase } from '../utils/normalize.js';
 
 // GESTION DES PRODUCTEURS //
 
+/* Champs de la fiche de ferme : le formulaire admin renvoie « » pour ce qui
+   n'a pas été rempli, on stocke null plutôt qu'une chaîne vide. */
+const farmFields = (data) => ({
+  city: data.city || null,
+  postalCode: data.postalCode || null,
+  distanceKm: data.distanceKm ?? null,
+  certification: data.certification || 'NONE',
+  farmDetailLabel: data.farmDetailLabel || null,
+  farmDetail: data.farmDetail || null,
+  partnerSince: data.partnerSince ?? null,
+});
 
-// CRÉER UN PRODUCTEUR 
+
+// CRÉER UN PRODUCTEUR
 const createProducer = asyncHandler(async (req, res) => {
   const parsed = ProducerSchema.safeParse(req.body);
   if (!parsed.success) {
@@ -38,7 +50,8 @@ const createProducer = asyncHandler(async (req, res) => {
       email,
       phone,
       specialty,
-      image
+      image,
+      ...farmFields(parsed.data)
     }
   });
 
@@ -86,7 +99,8 @@ const updateProducer = asyncHandler(async (req, res) => {
       phone,
       specialty,
       image,
-      isActive
+      isActive,
+      ...farmFields(parsed.data)
     }
   });
 

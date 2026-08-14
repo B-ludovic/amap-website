@@ -116,14 +116,29 @@ model Producer {
   image       String?
   isActive    Boolean  @default(true)
   isExample   Boolean  @default(false)
-  
+
+  // Fiche de la ferme, affichée sur la page publique des producteurs
+  city            String?
+  postalCode      String?
+  distanceKm      Int?      // distance au point de retrait
+  certification   ProducerCertification @default(NONE)
+  farmDetailLabel String?   // « Surface », « Cheptel »…
+  farmDetail      String?   // « 4 hectares · 2 serres froides »
+  partnerSince    Int?      // année d'entrée dans l'AMAP
+
   products    Product[]
-  
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  
+
   @@index([email])
   @@index([isActive])
+}
+
+enum ProducerCertification {
+  NONE        // aucune mention affichée
+  ORGANIC     // Certifiée AB
+  CONVERSION  // En conversion bio
 }
 
 

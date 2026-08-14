@@ -8,6 +8,7 @@
    chiffres, badges — et décale le contenu de quelques pixels à chaque bloc. */
 .landing,
 .producer-page,
+.producers-page,
 .subscriptions-page,
 .login-page,
 .register-page,
@@ -527,6 +528,12 @@
   color: var(--badge-live-fg);
 }
 
+/* Variante ambre du badge : une mention en cours d'acquisition, pas encore acquise */
+.badge-conversion {
+  background-color: var(--badge-soon-bg);
+  color: var(--badge-soon-fg);
+}
+
 /* Même badge, en taille pleine : posé sur une photo ou dans une carte */
 .badge-veggie {
   display: inline-block;
@@ -589,19 +596,19 @@
   margin: 0;
 }
 
-.fact:not(:last-child) {
+.facts .fact:not(:last-child) {
   border-bottom: var(--border-width) solid var(--border-card);
 }
 
-.fact:first-child {
+.facts .fact:first-child {
   padding-bottom: 16px;
 }
 
-.fact:not(:first-child):not(:last-child) {
+.facts .fact:not(:first-child):not(:last-child) {
   padding: 16px 0;
 }
 
-.fact:last-child {
+.facts .fact:last-child {
   padding-top: 16px;
 }
 
@@ -618,6 +625,42 @@
   line-height: 1.45;
   color: var(--text-light);
   margin: 0;
+}
+
+/* Même famille de chiffres, posée à l'horizontale sous un filet : trois
+   colonnes séparées par des filets verticaux, en pied de hero. */
+/* Colonnes distribuées d'après le nombre de chiffres réellement affichés :
+   un chiffre sans donnée derrière est retiré, la rangée se resserre d'elle-même. */
+.facts-row {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 0;
+  border-top: var(--border-width) solid var(--border-card);
+  padding-top: 22px;
+  margin: 0;
+}
+
+.facts-row .fact {
+  padding: 0 18px;
+  border-left: var(--border-width) solid var(--border-card);
+}
+
+.facts-row .fact:first-child {
+  padding: 0 18px 0 0;
+  border-left: none;
+}
+
+.facts-row .fact:last-child {
+  padding: 0 0 0 18px;
+}
+
+.facts-row .fact-value {
+  margin-bottom: 6px;
+}
+
+.facts-row .fact-label {
+  font-size: 12.5px;
 }
 
 /* Trois colonnes numérotées, séparées par des filets */
@@ -688,6 +731,21 @@
   .step:nth-child(1) { padding-right: 28px; }
   .step:nth-child(2) { padding: 0 28px; }
   .step:nth-child(3) { padding-left: 28px; }
+}
+
+@media (max-width: 560px) {
+  .facts-row {
+    grid-auto-flow: row;
+    grid-auto-columns: auto;
+    gap: 16px;
+  }
+
+  .facts-row .fact,
+  .facts-row .fact:first-child,
+  .facts-row .fact:last-child {
+    padding: 0;
+    border-left: none;
+  }
 }
 
 @media (max-width: 900px) {

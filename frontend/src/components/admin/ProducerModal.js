@@ -18,6 +18,13 @@ export default function ProducerModal({ producer, onClose }) {
     phone: '',
     specialty: '',
     description: '',
+    city: '',
+    postalCode: '',
+    distanceKm: '',
+    certification: 'NONE',
+    farmDetailLabel: '',
+    farmDetail: '',
+    partnerSince: '',
     isActive: true,
     isExample: false,
   });
@@ -31,6 +38,13 @@ export default function ProducerModal({ producer, onClose }) {
         phone: producer.phone || '',
         specialty: producer.specialty || '',
         description: producer.description || '',
+        city: producer.city || '',
+        postalCode: producer.postalCode || '',
+        distanceKm: producer.distanceKm ?? '',
+        certification: producer.certification || 'NONE',
+        farmDetailLabel: producer.farmDetailLabel || '',
+        farmDetail: producer.farmDetail || '',
+        partnerSince: producer.partnerSince ?? '',
         isActive: producer.isActive ?? true,
         isExample: producer.isExample ?? false,
       });
@@ -60,6 +74,14 @@ export default function ProducerModal({ producer, onClose }) {
       newErrors.email = 'L\'email est requis';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = 'Email invalide';
+    }
+
+    if (formData.postalCode && !/^\d{5}$/.test(formData.postalCode)) {
+      newErrors.postalCode = 'Code postal : 5 chiffres';
+    }
+
+    if (formData.partnerSince && !/^\d{4}$/.test(String(formData.partnerSince))) {
+      newErrors.partnerSince = 'Année sur 4 chiffres';
     }
 
     setErrors(newErrors);
@@ -202,6 +224,129 @@ export default function ProducerModal({ producer, onClose }) {
                 rows="4"
                 placeholder="Présentez le producteur..."
               />
+            </div>
+
+            {/* Fiche de la ferme — alimente la page publique des producteurs */}
+            <div className="form-group form-group-full">
+              <p className="form-help">
+                Les champs ci-dessous alimentent la fiche publique de la ferme. Laissés
+                vides, les blocs correspondants ne s&apos;affichent pas.
+              </p>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="city" className="form-label">
+                Ville
+              </label>
+              <input
+                type="text"
+                id="city"
+                name="city"
+                value={formData.city}
+                onChange={handleChange}
+                className="input"
+                placeholder="Ex: Clamart"
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="postalCode" className="form-label">
+                Code postal
+              </label>
+              <input
+                type="text"
+                id="postalCode"
+                name="postalCode"
+                value={formData.postalCode}
+                onChange={handleChange}
+                className={`input ${errors.postalCode ? 'input-error' : ''}`}
+                inputMode="numeric"
+                maxLength={5}
+                placeholder="92140"
+              />
+              {errors.postalCode && <span className="form-error">{errors.postalCode}</span>}
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="distanceKm" className="form-label">
+                Distance du point de retrait (km)
+              </label>
+              <input
+                type="number"
+                id="distanceKm"
+                name="distanceKm"
+                value={formData.distanceKm}
+                onChange={handleChange}
+                className="input"
+                min="0"
+                max="300"
+                placeholder="12"
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="certification" className="form-label">
+                Certification
+              </label>
+              <select
+                id="certification"
+                name="certification"
+                value={formData.certification}
+                onChange={handleChange}
+                className="select"
+              >
+                <option value="NONE">Aucune mention</option>
+                <option value="ORGANIC">Certifiée AB</option>
+                <option value="CONVERSION">En conversion bio</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="farmDetailLabel" className="form-label">
+                Libellé du détail
+              </label>
+              <input
+                type="text"
+                id="farmDetailLabel"
+                name="farmDetailLabel"
+                value={formData.farmDetailLabel}
+                onChange={handleChange}
+                className="input"
+                placeholder="Ex: Surface, Cheptel"
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="farmDetail" className="form-label">
+                Détail de l&apos;exploitation
+              </label>
+              <input
+                type="text"
+                id="farmDetail"
+                name="farmDetail"
+                value={formData.farmDetail}
+                onChange={handleChange}
+                className="input"
+                placeholder="Ex: 4 hectares · 2 serres froides"
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="partnerSince" className="form-label">
+                Partenaire depuis
+              </label>
+              <input
+                type="number"
+                id="partnerSince"
+                name="partnerSince"
+                value={formData.partnerSince}
+                onChange={handleChange}
+                className={`input ${errors.partnerSince ? 'input-error' : ''}`}
+                min="1900"
+                max="2200"
+                placeholder="2018"
+              />
+              {errors.partnerSince && <span className="form-error">{errors.partnerSince}</span>}
             </div>
 
             {/* Statut actif */}

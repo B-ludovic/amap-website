@@ -1,11 +1,60 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
-import { Sprout, MapPin, Package, Leaf, Mail, Phone, ExternalLink  } from 'lucide-react';
 import Link from 'next/link';
 import { useModal } from '../../contexts/ModalContext';
 import api from '../../lib/api';
 import '../../styles/public/producers.css';
+
+/* Photos d'illustration, faute de clichés des fermes elles-mêmes : elles
+   tournent dans l'ordre des fiches. Dès qu'un producteur a une image en base,
+   c'est la sienne qui passe. */
+const ILLUSTRATIONS = [
+  '/placeholder/legumes-terre.webp',
+  '/placeholder/legumes-jardin.webp',
+  '/placeholder/legumes-ht.webp',
+];
+
+/* Le titre s'accorde au nombre de fermes réellement publiées. Au-delà de dix,
+   on retombe sur une formule qui ne compte pas. */
+const COUNT_WORDS = [
+  null, 'Une', 'Deux', 'Trois', 'Quatre', 'Cinq',
+  'Six', 'Sept', 'Huit', 'Neuf', 'Dix',
+];
+
+const CERTIFICATIONS = {
+  ORGANIC: { label: 'Certifiée AB', className: 'badge-veggie' },
+  CONVERSION: { label: 'En conversion bio', className: 'badge-veggie badge-conversion' },
+};
+
+/* Un numéro français stocké d'un bloc se lit mieux par paires. Découpage à la
+   main : Intl ne s'occupe pas des téléphones, et les espaces insécables
+   d'autres formateurs provoqueraient un écart d'hydratation. */
+function formatPhone(phone) {
+  const digits = phone.replace(/\D/g, '');
+  if (digits.length !== 10) return phone;
+  return digits.match(/.{2}/g).join(' ');
+}
+
+function buildTitle(count) {
+  if (count === 1) return 'Une ferme, un nom, un visage.';
+  const word = COUNT_WORDS[count];
+  if (!word) return 'Nos fermes, leurs noms, leurs visages.';
+  return `${word} fermes, ${word.toLowerCase()} noms, ${word.toLowerCase()} visages.`;
+}
+
+function buildPlace(producer) {
+  const parts = [];
+  if (producer.city) {
+    parts.push(producer.postalCode ? `${producer.city} (${producer.postalCode})` : producer.city);
+  } else if (producer.postalCode) {
+    parts.push(producer.postalCode);
+  }
+  if (producer.distanceKm || producer.distanceKm === 0) {
+    parts.push(`${producer.distanceKm} km du point de retrait`);
+  }
+  return parts.join(' · ');
+}
 
 function ProducersPage() {
   const [producers, setProducers] = useState([]);
@@ -13,251 +62,251 @@ function ProducersPage() {
   const { showError } = useModal();
 
   useEffect(() => {
-    fetchProducers();
-  }, []);
+    let cancelled = false;
 
-  const fetchProducers = async () => {
-    try {
-      setLoading(true);
-      const response = await api.producers.getAll();
-      // Filtrer pour n'afficher que les producteurs actifs
-      const activeProducers = response.data.producers.filter(
-        producer => producer.isActive
-      );
-      setProducers(activeProducers);
-    } catch (error) {
-      showError('Erreur', 'Impossible de charger les producteurs');
-    } finally {
-      setLoading(false);
-    }
-  };
+    const fetchProducers = async () => {
+      try {
+        const response = await api.producers.getAll();
+        const active = response.data.producers.filter((producer) => producer.isActive);
+        if (!cancelled) setProducers(active);
+      } catch (error) {
+        if (!cancelled) showError('Erreur', 'Impossible de charger les producteurs');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    fetchProducers();
+    return () => { cancelled = true; };
+    // Chargement unique : showError est recréé à chaque rendu du contexte et
+    // le placer en dépendance relancerait la requête à chaque ouverture de modale.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (loading) {
     return (
       <div className="producers-page">
-        <div className="container">
-          <div className="loading-state">Chargement des producteurs...</div>
-        </div>
+        <section className="farms-hero">
+          <div className="eyebrow">Les fermes partenaires</div>
+          <p className="farms-lede">Chargement des fermes…</p>
+        </section>
       </div>
     );
   }
 
+  /* Chiffres du hero : chacun n'apparaît que si la donnée existe derrière. */
+  const certified = producers.filter((p) => p.certification && p.certification !== 'NONE');
+  const distances = producers
+    .map((p) => p.distanceKm)
+    .filter((km) => typeof km === 'number');
+
+  const facts = [];
+  if (producers.length > 0) {
+    facts.push({
+      value: String(producers.length),
+      label: producers.length > 1 ? 'fermes partenaires' : 'ferme partenaire',
+    });
+  }
+  if (certified.length > 0) {
+    const share = Math.round((certified.length / producers.length) * 100);
+    facts.push({ value: `${share} %`, label: 'bio ou en conversion' });
+  }
+  if (distances.length > 0) {
+    facts.push({ value: `${Math.max(...distances)} km`, label: 'la plus éloignée' });
+  }
+
   return (
     <div className="producers-page">
+
       {/* Hero */}
-      <section className="producers-hero">
-        <div className="container">
-          <div className="hero-content">
-            <h1>Nos Producteurs</h1>
-            <p className="hero-subtitle">
-              Découvrez les agriculteurs passionnés qui cultivent vos légumes 
-              avec soin et respect de l'environnement.
+      <section className="farms-hero">
+        <div className="eyebrow">Les fermes partenaires</div>
+        <div className="farms-hero-grid">
+          <div>
+            <h1 className="farms-title">{buildTitle(producers.length)}</h1>
+            <p className="farms-lede">
+              Nous n&apos;achetons pas à des grossistes. Chaque légume du panier vient de
+              l&apos;une de ces exploitations, toutes à moins de trente kilomètres, toutes
+              visitées par des adhérents.
             </p>
-            <div className="hero-stats">
-              <div className="stat-item">
-                <span className="stat-number">{producers.length}</span>
-                <span className="stat-label">Producteurs partenaires</span>
-              </div>
-              <div className="stat-item">
-                <span className="stat-number">100%</span>
-                <span className="stat-label">Agriculture biologique</span>
-              </div>
-              <div className="stat-item">
-                <span className="stat-number">&lt; 30 km</span>
-                <span className="stat-label">Rayon maximum</span>
-              </div>
-            </div>
           </div>
-        </div>
-      </section>
 
-      {/* Intro */}
-      <section className="producers-intro">
-        <div className="container">
-          <div className="intro-card">
-            <div className="intro-icon">
-              <Leaf size={48} aria-hidden="true" />
-            </div>
-            <div className="intro-content">
-              <h2>Des producteurs engagés</h2>
-              <p>
-                Tous nos producteurs partagent les valeurs de l'AMAP : respect de l'environnement, 
-                agriculture biologique, circuit court et prix équitables. Ils s'engagent à fournir 
-                des produits de qualité, cultivés avec passion sur des exploitations à taille humaine.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Liste des producteurs */}
-      <section className="producers-list">
-        <div className="container">
-          {producers.length === 0 ? (
-            <div className="empty-state">
-              <Sprout size={64} aria-hidden="true" />
-              <h3>Aucun producteur</h3>
-              <p>La liste des producteurs sera bientôt disponible.</p>
-            </div>
-          ) : (
-            <div className="producers-grid">
-              {producers.map((producer, index) => {
-                const placeholderImages = [
-                  '/placeholder/legumes-terre.png',
-                  '/placeholder/legumes-panier.png',
-                  '/placeholder/legumes-cuisine.png',
-                  '/placeholder/legumes-ete.png',
-                  '/placeholder/legumes-ht.png',
-                  '/placeholder/legumes-jardin.png'
-                ];
-                const placeholderImage = placeholderImages[index % placeholderImages.length];
-                
-                return (
-                <div key={producer.id} className="producer-card">
-                  {/* Image placeholder */}
-                  <div className="producer-image">
-                    {producer.image ? (
-                      <img src={producer.image} alt={producer.name} loading="lazy" />
-                    ) : (
-                      <img
-                        src={placeholderImage}
-                        alt={producer.name}
-                        className="placeholder-image"
-                        loading="lazy"
-                      />
-                    )}
-                    {producer.isBio && (
-                      <div className="bio-badge">
-                        <Leaf size={16} aria-hidden="true" />
-                        <span>Bio</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Contenu */}
-                  <div className="producer-content">
-                    <div className="producer-header">
-                      <h3>{producer.name}</h3>
-                      {producer.specialty && (
-                        <p className="producer-specialty">{producer.specialty}</p>
-                      )}
-                    </div>
-
-                    {/* Localisation */}
-                    {(producer.city || producer.postalCode) && (
-                      <div className="producer-location">
-                        <MapPin size={16} aria-hidden="true" />
-                        <span>
-                          {producer.city}
-                          {producer.postalCode && ` (${producer.postalCode})`}
-                        </span>
-                      </div>
-                    )}
-
-                    {/* Description */}
-                    {producer.description && (
-                      <p className="producer-description">
-                        {producer.description}
-                      </p>
-                    )}
-
-                    {/* Productions */}
-                    {producer.products && producer.products.length > 0 && (
-                      <div className="producer-products">
-                        <div className="products-label">
-                          <Package size={16} aria-hidden="true" />
-                          <span>Productions :</span>
-                        </div>
-                        <div className="products-tags">
-                          {producer.products.slice(0, 6).map((product) => (
-                            <span key={product.id} className="product-tag">
-                              {product.name}
-                            </span>
-                          ))}
-                          {producer.products.length > 6 && (
-                            <span className="product-tag more">
-                              +{producer.products.length - 6} autres
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Contact */}
-                    <div className="producer-contact">
-                      {producer.email && (
-                        <a 
-                          href={`mailto:${producer.email}`}
-                          className="contact-link"
-                          title="Envoyer un email"
-                        >
-                          <Mail size={16} aria-hidden="true" />
-                          <span>Contact</span>
-                        </a>
-                      )}
-                      {producer.phone && (
-                        <a 
-                          href={`tel:${producer.phone}`}
-                          className="contact-link"
-                          title="Appeler"
-                        >
-                          <Phone size={16} aria-hidden="true" />
-                          <span>{producer.phone}</span>
-                        </a>
-                      )}
-                      {producer.website && (
-                        <a 
-                          href={producer.website}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="contact-link"
-                          title="Visiter le site web"
-                        >
-                          <ExternalLink size={16} aria-hidden="true" />
-                          <span>Site web</span>
-                        </a>
-                      )}
-                    </div>
-                  </div>
+          {facts.length > 0 && (
+            <dl className="facts-row">
+              {facts.map((fact) => (
+                <div className="fact" key={fact.label}>
+                  <dt className="fact-value">{fact.value}</dt>
+                  <dd className="fact-label">{fact.label}</dd>
                 </div>
-              );
-              })}
-            </div>
+              ))}
+            </dl>
           )}
         </div>
       </section>
 
-      {/* CTA Devenir producteur */}
-      <section className="join-cta">
-        <div className="container">
-          <div className="cta-card">
-            <div className="cta-icon">
-              <Sprout size={48} aria-hidden="true" />
-            </div>
-            <div className="cta-content">
-              <h2>Vous êtes producteur local ?</h2>
-              <p>
-                Rejoignez notre réseau de producteurs et bénéficiez de débouchés garantis 
-                pour vos produits bio et locaux.
-              </p>
-              <Link href="/devenir-producteur" className="btn btn-primary btn-lg">
-                Candidater
-              </Link>
-            </div>
-          </div>
+      {/* L'engagement */}
+      <section className="band-sand">
+        <div className="farms-pledge">
+          <div className="eyebrow">L&apos;engagement</div>
+          <p className="farms-pledge-text">
+            Le contrat va dans les deux sens : les adhérents règlent la saison à
+            l&apos;avance, les producteurs s&apos;engagent sur des volumes et sur une
+            agriculture sans intrant de synthèse. Les prix sont discutés une fois par an,
+            en assemblée, avec les producteurs présents dans la salle.
+          </p>
         </div>
       </section>
 
-      {/* CTA Abonnements */}
-      <section className="subscription-cta">
-        <div className="container">
-          <div className="cta-banner">
-            <h2>Envie de soutenir nos producteurs ?</h2>
-            <p>
-              Abonnez-vous pour recevoir chaque semaine des légumes frais 
-              et de saison directement de nos producteurs locaux.
+      {/* Les fiches */}
+      {producers.length === 0 ? (
+        <section className="farms-empty">
+          <div className="farms-empty-card">
+            <h2 className="farms-empty-title">Aucune ferme publiée pour l&apos;instant.</h2>
+            <p className="farms-empty-text">
+              Les fiches des exploitations partenaires seront mises en ligne prochainement.
             </p>
-            <Link href="/nos-abonnements" className="btn btn-primary btn-lg">
+          </div>
+        </section>
+      ) : (
+        <section className="farms-list">
+          {producers.map((producer, index) => {
+            const certification = CERTIFICATIONS[producer.certification];
+            const place = buildPlace(producer);
+            const crops = producer.products || [];
+            const visible = crops.slice(0, 6);
+            const extra = crops.length - visible.length;
+            const hasOwnPhoto = Boolean(producer.image);
+            const photo = hasOwnPhoto
+              ? producer.image
+              : ILLUSTRATIONS[index % ILLUSTRATIONS.length];
+
+            return (
+              <article className="farm" key={producer.id}>
+                <div className="farm-visual">
+                  <div className="farm-frame">
+                    <img
+                      src={photo}
+                      /* Illustration générique : elle ne montre pas cette ferme,
+                         elle ne doit donc rien annoncer aux lecteurs d'écran. */
+                      alt={hasOwnPhoto ? producer.name : ''}
+                      loading="lazy"
+                      className="farm-photo"
+                    />
+                    {certification && (
+                      <span className={`${certification.className} farm-badge`}>
+                        {certification.label}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="farm-body">
+                  <div className="farm-head">
+                    <span className="farm-index">{String(index + 1).padStart(2, '0')}</span>
+                    {producer.specialty && (
+                      <span className="farm-specialty">{producer.specialty}</span>
+                    )}
+                  </div>
+
+                  <h2 className="farm-name">{producer.name}</h2>
+
+                  {place && <div className="farm-place">{place}</div>}
+
+                  {producer.description && (
+                    <p className="farm-text">{producer.description}</p>
+                  )}
+
+                  {crops.length > 0 && (
+                    <div className="farm-crops">
+                      <div className="farm-crops-label">Productions</div>
+                      <div className="farm-crops-list">
+                        {visible.map((product) => (
+                          <span className="farm-crop" key={product.id || product.name}>
+                            {product.name}
+                          </span>
+                        ))}
+                        {extra > 0 && (
+                          <span className="farm-crop farm-crop-more">
+                            + {extra} autre{extra > 1 ? 's' : ''}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  <dl className="farm-specs">
+                    {producer.farmDetail && (
+                      <div className="farm-spec">
+                        <dt className="farm-spec-label">
+                          {producer.farmDetailLabel || 'Exploitation'}
+                        </dt>
+                        <dd className="farm-spec-value">{producer.farmDetail}</dd>
+                      </div>
+                    )}
+
+                    {producer.partnerSince && (
+                      <div className="farm-spec">
+                        <dt className="farm-spec-label">Partenaire depuis</dt>
+                        <dd className="farm-spec-value farm-spec-mono">
+                          {producer.partnerSince}
+                        </dd>
+                      </div>
+                    )}
+
+                    {(producer.email || producer.phone) && (
+                      <div className="farm-spec">
+                        <dt className="farm-spec-label">Contact</dt>
+                        <dd className="farm-spec-value farm-contact">
+                          {producer.email && (
+                            <a
+                              href={`mailto:${producer.email}`}
+                              className="farm-contact-link"
+                            >
+                              {producer.email}
+                            </a>
+                          )}
+                          {producer.phone && (
+                            <a
+                              href={`tel:${producer.phone.replace(/\s/g, '')}`}
+                              className="farm-contact-link"
+                            >
+                              {formatPhone(producer.phone)}
+                            </a>
+                          )}
+                        </dd>
+                      </div>
+                    )}
+                  </dl>
+                </div>
+              </article>
+            );
+          })}
+        </section>
+      )}
+
+      {/* Double appel */}
+      <section className="band-forest farms-cta">
+        <div className="farms-cta-inner">
+          <div className="farms-cta-block">
+            <div className="eyebrow eyebrow-on-forest">Vous produisez à moins de 30 km</div>
+            <h2 className="farms-cta-title">Il reste de la place à l&apos;étal.</h2>
+            <p className="farms-cta-text">
+              Nous cherchons surtout des fromages, du miel et des légumes d&apos;hiver.
+              Débouchés garantis, contractualisés à l&apos;année, réponse sous 48 heures.
+            </p>
+            <Link href="/devenir-producteur" className="btn btn-primary btn-lg">
+              Candidater
+            </Link>
+          </div>
+
+          <div className="farms-cta-block farms-cta-second">
+            <div className="eyebrow eyebrow-on-forest">Vous voulez les soutenir</div>
+            <h2 className="farms-cta-title">Prenez un panier.</h2>
+            <p className="farms-cta-text">
+              C&apos;est le seul geste qui compte vraiment pour eux : un engagement à
+              l&apos;année, payé d&apos;avance, qui leur permet de savoir quoi semer.
+            </p>
+            <Link href="/nos-abonnements" className="btn btn-ghost-forest btn-lg">
               Découvrir nos abonnements
             </Link>
           </div>
@@ -266,6 +315,7 @@ function ProducersPage() {
     </div>
   );
 }
+
 export default function Page() {
   return (
     <Suspense>

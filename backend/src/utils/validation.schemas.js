@@ -1,5 +1,13 @@
 import { z } from 'zod';
 
+/* Un champ numérique laissé vide dans un formulaire arrive en « » : sans ce
+   filtre, la coercition le transformerait en 0 au lieu de le laisser vide. */
+const emptyToUndefined = (schema) =>
+  z.preprocess(
+    (value) => (value === '' || value === null ? undefined : value),
+    schema.optional()
+  );
+
 export const PasswordSchema = z.string()
   .min(12, 'Le mot de passe doit contenir au moins 12 caractères')
   .regex(/[A-Z]/, 'Doit contenir au moins une majuscule')
@@ -14,6 +22,16 @@ export const ProducerSchema = z.object({
   phone:       z.string().max(20).optional(),
   specialty:   z.string().max(200).optional(),
   image:       z.string().max(500).optional(),
+  // Fiche de la ferme, affichée sur la page publique des producteurs.
+  // Le formulaire admin envoie une chaîne vide pour un champ laissé de côté :
+  // on la ramène à undefined avant de valider, sinon « » deviendrait 0.
+  city:            z.string().max(120).optional().or(z.literal('')),
+  postalCode:      z.string().regex(/^\d{5}$/, 'Code postal : 5 chiffres').optional().or(z.literal('')),
+  distanceKm:      emptyToUndefined(z.coerce.number().int().min(0).max(300, 'Distance : 300 km maximum')),
+  certification:   z.enum(['NONE', 'ORGANIC', 'CONVERSION']).optional(),
+  farmDetailLabel: z.string().max(40, 'Libellé : 40 caractères maximum').optional().or(z.literal('')),
+  farmDetail:      z.string().max(200, 'Détail : 200 caractères maximum').optional().or(z.literal('')),
+  partnerSince:    emptyToUndefined(z.coerce.number().int().min(1900, 'Année invalide').max(2200, 'Année invalide')),
 });
 
 export const UpdateProducerSchema = ProducerSchema.partial().extend({
