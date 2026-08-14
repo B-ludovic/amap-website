@@ -3,53 +3,48 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import {
-  LayoutDashboard,
-  Tractor,
-  Package,
-  ShoppingBasket,
-  Calendar,
-  Users,
-  MapPin,
-  Settings,
-  LogOut,
-  ChevronDown,
-  UserCog,
-  Mail,
-  Megaphone,
-  UserPlus,
-  CreditCard,
-  Sprout,
-  DoorClosed,
-  ShieldCheck
-} from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useModal } from '../../contexts/ModalContext';
 import api from '../../lib/api';
 
+const MENU_ITEMS = [
+  { title: 'Tableau de bord', path: '/admin', exact: true },
+  { title: 'Utilisateurs', path: '/admin/utilisateurs' },
+  { title: 'Demandes abonnements', path: '/admin/demandes-abonnements', badge: 'subscriptions' },
+  { title: 'Abonnements', path: '/admin/abonnements' },
+  { title: 'Demandes producteurs', path: '/admin/demandes-producteurs', badge: 'producers' },
+  { title: 'Producteurs', path: '/admin/producteurs' },
+  { title: 'Produits', path: '/admin/produits' },
+  { title: 'Panier hebdomadaire', path: '/admin/panier-hebdomadaire' },
+  { title: 'Distribution', path: '/admin/distribution' },
+  { title: 'Permanences', path: '/admin/permanences' },
+  { title: 'Messages', path: '/admin/messages', badge: 'messages' },
+  { title: 'Communication', path: '/admin/communication' },
+  { title: 'Fermetures AMAP', path: '/admin/fermetures' },
+  { title: 'Journal d\'audit', path: '/admin/journal' },
+  { title: 'Paramètres', path: '/admin/parametres' }
+];
+
 export default function AdminSidebar({ currentPath }) {
   const router = useRouter();
   const { logout } = useAuth();
   const { showConfirm } = useModal();
-  const [openMenus, setOpenMenus] = useState({});
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [pendingSubscriptions, setPendingSubscriptions] = useState(0);
-  const [pendingProducers, setPendingProducers] = useState(0);
+  const [counts, setCounts] = useState({ messages: 0, subscriptions: 0, producers: 0 });
 
   useEffect(() => {
     const fetchUnreadCount = () => {
       api.contactMessages.getAll({ status: 'UNREAD' })
-        .then(data => setUnreadCount(data.data.messages.length))
+        .then(data => setCounts(prev => ({ ...prev, messages: data.data.messages.length ?? 0 })))
         .catch(() => {});
     };
 
     const fetchPendingCounts = () => {
       api.subscriptionRequests.getAll({ status: 'PENDING' })
-        .then(data => setPendingSubscriptions(data.data?.requests?.length ?? 0))
+        .then(data => setCounts(prev => ({ ...prev, subscriptions: data.data?.requests?.length ?? 0 })))
         .catch(() => {});
       api.producerInquiries.getAll({ status: 'PENDING' })
-        .then(data => setPendingProducers(data.data?.inquiries?.length ?? 0))
+        .then(data => setCounts(prev => ({ ...prev, producers: data.data?.inquiries?.length ?? 0 })))
         .catch(() => {});
     };
 
@@ -70,185 +65,45 @@ export default function AdminSidebar({ currentPath }) {
     );
   };
 
-  const toggleMenu = (menuKey) => {
-    setOpenMenus(prev => ({
-      ...prev,
-      [menuKey]: !prev[menuKey]
-    }));
-  };
-
-  const menuItems = [
-    {
-      title: 'Dashboard',
-      icon: LayoutDashboard,
-      path: '/admin',
-      exact: true
-    },
-    {
-      title: 'Utilisateurs',
-      icon: Users,
-      path: '/admin/utilisateurs'
-    },
-    {
-      title: 'Demandes abonnements',
-      icon: UserPlus,
-      path: '/admin/demandes-abonnements',
-      badge: pendingSubscriptions
-    },
-    {
-      title: 'Abonnements',
-      icon: CreditCard,
-      path: '/admin/abonnements'
-    },
-    {
-      title: 'Demandes producteurs',
-      icon: Sprout,
-      path: '/admin/demandes-producteurs',
-      badge: pendingProducers
-    },
-    {
-      title: 'Producteurs',
-      icon: Tractor,
-      path: '/admin/producteurs'
-    },
-    {
-      title: 'Produits',
-      icon: Package,
-      path: '/admin/produits'
-    },
-    {
-      title: 'Panier hebdomadaire',
-      icon: ShoppingBasket,
-      path: '/admin/panier-hebdomadaire'
-    },
-    {
-      title: 'Distribution',
-      icon: Calendar,
-      path: '/admin/distribution'
-    },
-    {
-      title: 'Permanences',
-      icon: UserCog,
-      path: '/admin/permanences'
-    },
-    {
-      title: 'Messages',
-      icon: Mail,
-      path: '/admin/messages',
-      badge: unreadCount
-    },
-    {
-      title: 'Communication',
-      icon: Megaphone,
-      path: '/admin/communication'
-    },
-    {
-      title: 'Fermetures AMAP',
-      icon: DoorClosed,
-      path: '/admin/fermetures'
-    },
-    {
-      title: 'Journal d\'audit',
-      icon: ShieldCheck,
-      path: '/admin/journal'
-    },
-    {
-      title: 'Paramètres',
-      icon: Settings,
-      path: '/admin/parametres'
-    }
-  ];
-
-  const isActive = (item) => {
-    if (item.exact) {
-      return currentPath === item.path;
-    }
-    return currentPath.startsWith(item.path);
-  };
+  const isActive = (item) => (
+    item.exact ? currentPath === item.path : currentPath.startsWith(item.path)
+  );
 
   return (
     <aside className="admin-sidebar">
-      {/* Logo */}
       <div className="admin-sidebar-header">
         <Link href="/admin" className="admin-logo">
-          <span className="admin-logo-icon">
-            <Image
-              src="/icons/pea.png"
-              alt="Logo"
-              width={32}
-              height={32}
-            />
+          <Image src="/icons/pea.png" alt="" width={30} height={30} />
+          <span>
+            <span className="admin-logo-text">Aux P&apos;tits Pois</span>
+            <span className="admin-logo-kicker">Administration</span>
           </span>
-          <span className="admin-logo-text">Admin</span>
         </Link>
       </div>
 
-      {/* Navigation */}
       <nav className="admin-sidebar-nav">
-        {menuItems.map((item) => {
-          const Icon = item.icon;
-          const active = isActive(item);
-
-          if (item.subItems) {
-            const isOpen = openMenus[item.title];
-            return (
-              <div key={item.title} className="admin-nav-group">
-                <button
-                  onClick={() => toggleMenu(item.title)}
-                  className={`admin-nav-item ${active ? 'admin-nav-item-active' : ''}`}
-                >
-                  <Icon size={20} />
-                  <span>{item.title}</span>
-                  <ChevronDown
-                    size={16}
-                    className={`admin-nav-chevron ${isOpen ? 'admin-nav-chevron-open' : ''}`}
-                  />
-                </button>
-                {isOpen && (
-                  <div className="admin-nav-submenu">
-                    {item.subItems.map((subItem) => {
-                      const SubIcon = subItem.icon;
-                      const subActive = currentPath === subItem.path;
-                      return (
-                        <Link
-                          key={subItem.path}
-                          href={subItem.path}
-                          className={`admin-nav-subitem ${subActive ? 'admin-nav-subitem-active' : ''}`}
-                        >
-                          <SubIcon size={18} />
-                          <span>{subItem.title}</span>
-                        </Link>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            );
-          }
+        {MENU_ITEMS.map((item) => {
+          const count = item.badge ? counts[item.badge] : 0;
 
           return (
             <Link
               key={item.path}
               href={item.path}
-              className={`admin-nav-item ${active ? 'admin-nav-item-active' : ''}`}
+              className={`admin-nav-item ${isActive(item) ? 'admin-nav-item-active' : ''}`}
             >
-              <Icon size={20} />
               <span>{item.title}</span>
-              {item.badge > 0 && <span className="badge">{item.badge}</span>}
+              {count > 0 && <span className="admin-nav-count">{count}</span>}
             </Link>
           );
         })}
       </nav>
 
-      {/* Footer */}
       <div className="admin-sidebar-footer">
-        <Link href="/" className="admin-nav-item">
-          <span>← Retour au site</span>
+        <Link href="/">
+          <span className="admin-sidebar-back-arrow" aria-hidden="true">←</span>
+          <span>Retour au site</span>
         </Link>
-        <button onClick={handleLogout} className="admin-nav-item">
-          <LogOut size={20} />
-          <span>Déconnexion</span>
-        </button>
+        <button type="button" onClick={handleLogout}>Déconnexion</button>
       </div>
     </aside>
   );

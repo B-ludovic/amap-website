@@ -10,6 +10,8 @@
   --surface-forest: #2D3A29;    /* vert forêt, section d'inversion */
   --on-forest: #EFEAE0;         /* texte sur fond forêt */
   --on-forest-muted: #A6B39C;   /* label atténué sur fond forêt */
+  --on-forest-soft: #C7D2BE;    /* lien de navigation au repos sur fond forêt */
+  --on-forest-alert: #E8A020;   /* chiffre à surveiller sur fond forêt */
   --on-forest-rule: rgba(239, 234, 224, 0.18);
   --on-forest-frame: rgba(239, 234, 224, 0.20);  /* cadre d'un bloc sur fond forêt */
   --on-forest-border: rgba(239, 234, 224, 0.32);

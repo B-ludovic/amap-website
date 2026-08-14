@@ -1,309 +1,324 @@
-/* Admin Dashboard - Aux P'tits Pois */
+/* Tableau de bord — report de la vue « dashboard » de mocks/admin.dc.html.
+   Trois étages : une rangée de cinq tuiles chiffrées, un duo « activités
+   récentes / colonne d'action », puis le bandeau des règlements. */
 
 .admin-dashboard {
-  width: 100%;
+  --admin-title-size: 36px;
 }
 
-/* Page Header */
-.admin-page-header {
-  margin-bottom: var(--spacing-2xl);
+.admin-dashboard-head {
+  margin-bottom: 32px;
 }
 
-.admin-page-header h1 {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  font-size: var(--font-size-3xl);
-  font-weight: var(--font-weight-bold);
-  color: var(--text-primary);
-  margin-bottom: var(--spacing-sm);
+.admin-dashboard-head .admin-title {
+  margin-bottom: 10px;
 }
 
-.admin-page-header p {
-  color: var(--text-secondary);
-  font-size: var(--font-size-lg);
-}
+/* TUILES CHIFFRÉES
+   Chaque tuile est un bouton : le chiffre mène à la vue qui le détaille. */
 
-/* Stats Grid */
-.admin-stats-grid {
+.admin-tiles {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: var(--spacing-xl);
-  margin-bottom: var(--spacing-2xl);
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+  margin-bottom: 16px;
 }
 
-.admin-stat-card {
-  background-color: var(--white);
-  border-radius: var(--border-radius-lg);
-  padding: var(--spacing-xl);
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-lg);
-  box-shadow: var(--shadow-sm);
-  transition: all var(--transition-fast);
-}
-
-.admin-stat-card:hover {
-  box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
-}
-
-.admin-stat-icon {
-  width: 56px;
-  height: 56px;
-  border-radius: var(--border-radius-lg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.admin-stat-icon.users {
-  background-color: rgba(251, 146, 60, 0.1);
-  color: #fb923c;
-}
-
-.admin-stat-icon.orders {
-  background-color: rgba(34, 197, 94, 0.1);
-  color: #22c55e;
-}
-
-.admin-stat-icon.producers {
-  background-color: rgba(59, 130, 246, 0.1);
-  color: #3b82f6;
-}
-
-.admin-stat-icon.revenue {
-  background-color: rgba(139, 92, 246, 0.1);
-  color: #8b5cf6;
-}
-
-.admin-stat-icon.warning {
-  background-color: rgba(217, 119, 6, 0.1);
-  color: #d97706;
-}
-
-.admin-stat-card--warning {
-}
-
-.admin-stat-content {
-  flex: 1;
-}
-
-.admin-stat-label {
-  font-size: var(--font-size-sm);
-  color: var(--text-secondary);
-  margin-bottom: var(--spacing-xs);
-}
-
-.admin-stat-value {
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-weight-bold);
-  color: var(--text-primary);
-  margin-bottom: var(--spacing-xs);
-}
-
-.admin-stat-subtitle {
-  font-size: var(--font-size-xs);
-  color: var(--text-muted);
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-/* Section */
-.admin-section {
-  background-color: var(--white);
-  border-radius: var(--border-radius-lg);
-  padding: var(--spacing-xl);
-  box-shadow: var(--shadow-sm);
-  margin-bottom: var(--spacing-xl);
-}
-
-.admin-section h2 {
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-semibold);
-  color: var(--text-primary);
-  margin-bottom: var(--spacing-lg);
-}
-
-/* Table */
-.admin-table-container {
-  overflow-x: auto;
-}
-
-.admin-table {
-  width: 100%;
-  min-width: 700px;
-  border-collapse: collapse;
-}
-
-/* Override pour le tableau dans .admin-section (dashboard) */
-.admin-section .admin-table-container {
-  overflow-x: auto;
-  overflow-y: hidden;
-}
-
-.admin-section .admin-table {
-  min-width: 700px;
-}
-
-.admin-section .admin-table td {
-  white-space: nowrap;
-}
-
-.admin-table thead {
-  background-color: var(--background-color);
-}
-
-.admin-table th {
+.admin-tile {
+  display: block;
+  padding: 20px;
+  border: 1px solid var(--border-card);
+  border-radius: var(--border-radius-md);
+  background-color: var(--surface-page);
   text-align: left;
-  padding: var(--spacing-md) var(--spacing-lg);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color 150ms;
 }
 
-.admin-table td {
-  padding: var(--spacing-md) var(--spacing-lg);
-  border-top: 1px solid var(--border-color);
+.admin-tile:hover {
+  border-color: var(--text-primary);
+}
+
+.admin-tile-label {
+  display: block;
+  margin-bottom: 12px;
+  font-family: var(--font-mono);
+  font-size: var(--label-size);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-light);
+}
+
+.admin-tile-value {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 32px;
+  font-weight: var(--font-weight-medium);
+  letter-spacing: var(--display-tracking);
+  line-height: 1;
   color: var(--text-primary);
-  white-space: nowrap;
 }
 
-.admin-table tbody tr {
-  transition: background-color var(--transition-fast);
+.admin-tile-note {
+  display: block;
+  margin-top: 6px;
+  font-size: 12.5px;
+  color: var(--text-light);
 }
 
-.admin-table tbody tr:hover {
-  background-color: var(--background-color);
+.admin-tile-note-live {
+  color: var(--badge-live-fg);
 }
 
-/* Status Badge */
-.admin-status-badge {
-  display: inline-block;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--border-radius-full);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-semibold);
+/* Tuile d'alerte : la seule à changer de fond, pour que les demandes en
+   attente sautent aux yeux dans la rangée. */
+.admin-tile-notice {
+  background-color: var(--notice-bg);
+  border-color: var(--notice-border);
+}
+
+.admin-tile-notice:hover {
+  border-color: var(--notice-strong);
+}
+
+.admin-tile-notice .admin-tile-label,
+.admin-tile-notice .admin-tile-note {
+  color: var(--notice-strong);
+}
+
+.admin-tile-notice .admin-tile-value {
+  color: var(--notice-text);
+}
+
+/* ÉTAGE CENTRAL */
+
+.admin-dashboard-split {
+  display: grid;
+  grid-template-columns: 1.45fr 0.55fr;
+  gap: 16px;
+  margin-bottom: 16px;
+  align-items: start;
+}
+
+.admin-dashboard-aside {
+  display: grid;
+  gap: 16px;
+  align-content: start;
+}
+
+/* Le tableau des activités reprend le gabarit partagé du kit ; seules les
+   colonnes sont propres à cette vue. */
+.admin-activities {
+  --admin-cols: 1.5fr 1fr 0.8fr 1fr 0.9fr;
+}
+
+.admin-activities .admin-table-head {
+  background-color: var(--surface-page);
+}
+
+/* LISTE D'ACTIONS */
+
+.admin-todo {
+  padding: 20px;
+  border: 1px solid var(--border-card);
+  border-radius: var(--border-radius-md);
+  background-color: var(--surface-page);
+}
+
+.admin-todo-label {
+  display: block;
+  margin-bottom: 16px;
+}
+
+.admin-todo-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 0;
+  border: none;
+  border-bottom: 1px solid var(--border-soft);
+  background: none;
+  text-align: left;
+  text-decoration: none;
+  font-family: inherit;
+  font-size: 13.5px;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: color 150ms;
+}
+
+.admin-todo-item:last-child {
+  border-bottom: none;
+}
+
+.admin-todo-item:hover {
+  color: var(--terracotta);
+}
+
+.admin-todo-arrow {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--terracotta);
+}
+
+.admin-todo-empty {
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--text-light);
+  margin: 0;
+}
+
+/* CARTE DE DISTRIBUTION
+   Seul bloc inversé de la vue : fond forêt, comme la section d'inversion du
+   site public. */
+
+.admin-next {
+  padding: 20px;
+  border: 1px solid var(--border-card);
+  border-radius: var(--border-radius-md);
+  background-color: var(--surface-forest);
+  color: var(--on-forest);
+}
+
+.admin-next-label {
+  display: block;
+  margin-bottom: 14px;
+  font-family: var(--font-mono);
+  font-size: var(--label-size);
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  color: var(--on-forest-muted);
 }
 
-.admin-status-pending {
-  background-color: rgba(251, 146, 60, 0.1);
-  color: #fb923c;
+.admin-next-date {
+  margin: 0 0 16px;
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: 26px;
+  line-height: 1.15;
+  color: var(--surface-page);
 }
 
-.admin-status-confirmed {
-  background-color: rgba(59, 130, 246, 0.1);
-  color: #3b82f6;
+.admin-next-rows {
+  border-top: 1px solid rgba(239, 234, 224, 0.2);
 }
 
-.admin-status-ready {
-  background-color: rgba(34, 197, 94, 0.1);
-  color: #22c55e;
+.admin-next-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(239, 234, 224, 0.2);
 }
 
-.admin-status-completed {
-  background-color: rgba(34, 197, 94, 0.15);
-  color: #16a34a;
+.admin-next-row:last-child {
+  border-bottom: none;
 }
 
-.admin-status-cancelled {
-  background-color: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
+.admin-next-row-label {
+  font-size: 13px;
+  color: var(--on-forest-soft);
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .admin-stats-grid {
+.admin-next-row-value {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: var(--font-weight-medium);
+  color: var(--surface-page);
+}
+
+.admin-next-row-value-alert {
+  color: var(--on-forest-alert);
+}
+
+/* RÈGLEMENTS
+   Quatre colonnes séparées par un filet vertical, sans fond propre. */
+
+.admin-settlements {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  padding: 20px;
+}
+
+.admin-settlement {
+  padding: 0 24px;
+  border-left: 1px solid var(--border-card);
+}
+
+.admin-settlement:first-child {
+  padding-left: 0;
+  border-left: none;
+}
+
+.admin-settlement:last-child {
+  padding-right: 0;
+}
+
+.admin-settlement-label {
+  display: block;
+  margin-bottom: 10px;
+}
+
+.admin-settlement-value {
+  font-family: var(--font-mono);
+  font-size: 24px;
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+}
+
+.admin-settlement-value-due {
+  color: var(--badge-soon-fg);
+}
+
+.admin-settlement-value-alert {
+  color: var(--error-text);
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 1200px) {
+  .admin-tiles {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .admin-dashboard-split {
     grid-template-columns: 1fr;
   }
 
-  .admin-page-header h1 {
-    font-size: var(--font-size-2xl);
+  .admin-settlements {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px 0;
   }
 
-  .admin-stat-value {
-    font-size: var(--font-size-xl);
+  .admin-settlement:nth-child(3) {
+    padding-left: 0;
+    border-left: none;
   }
 }
 
-/* Verrou anti-débordement : toute la chaîne de conteneurs */
-.admin-main,
-.admin-content,
-.admin-page,
-.admin-page-content,
-.admin-section {
-  min-width: 0;
-  max-width: 100%;
-}
-
-/* Transformation table → cartes sous 1060px */
-@media (max-width: 1060px) {
-  .admin-table-container--cards {
-    overflow-x: visible;
-    overflow-y: visible;
+@media (max-width: 700px) {
+  .admin-tiles {
+    grid-template-columns: 1fr;
   }
 
-  .admin-table-container--cards table,
-  .admin-table-container--cards table tbody {
-    display: block;
-    width: 100%;
-    min-width: 0 !important;
+  .admin-activities {
+    --admin-cols: 1fr;
+    --admin-col-gap: 4px;
   }
 
-  .admin-table-container--cards table thead {
+  .admin-activities .admin-table-head {
     display: none;
   }
 
-  .admin-table-container--cards table tr {
-    display: block;
-    background: var(--white);
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius-md);
-    margin-bottom: var(--spacing-lg);
-    padding: 0;
-    box-shadow: var(--shadow-sm);
-    overflow: hidden;
+  .admin-activities .admin-table-row {
+    align-items: flex-start;
   }
 
-  .admin-table-container--cards table tr:hover {
-    box-shadow: var(--shadow-md);
-  }
-
-  .admin-table-container--cards table td {
-    display: grid !important;
-    grid-template-columns: auto 1fr !important;
-    gap: 1rem !important;
-    align-items: center !important;
-    padding: var(--spacing-md) !important;
-    border-bottom: 1px solid var(--border-color);
-    white-space: normal !important;
-  }
-
-  .admin-table-container--cards table td:last-child {
-    border-bottom: none;
-  }
-
-  .admin-table-container--cards table td::before {
-    content: attr(data-label);
-    font-weight: 600;
-    font-size: 0.85rem;
-    color: var(--text-secondary);
-    text-transform: uppercase;
-  }
-
-  .admin-table-container--cards table td .td-content {
-    display: flex !important;
-    justify-content: flex-end !important;
-    align-items: center;
-    text-align: right;
-    width: 100%;
-    min-width: 0;
-    word-break: break-word;
+  .admin-activities .admin-cell-right {
+    text-align: left;
   }
 }

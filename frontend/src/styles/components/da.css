@@ -18,7 +18,8 @@
 .contact-page,
 .basket-page,
 .recipe-page,
-.cookies-page {
+.cookies-page,
+.admin-layout {
   line-height: normal;
 }
 
@@ -38,8 +39,8 @@
 /* Pastille « en direct » : le seul élément animé de la DA. Sert à signaler
    la distribution en cours sur la landing et le panier publié côté adhérent. */
 .live-dot {
-  width: 7px;
-  height: 7px;
+  width: var(--live-dot-size, 7px);
+  height: var(--live-dot-size, 7px);
   border-radius: 50%;
   background-color: var(--leaf);
   animation: pulseLive 1.8s ease-in-out infinite;

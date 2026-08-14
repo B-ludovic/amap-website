@@ -839,11 +839,19 @@ const deleteBlogPost = asyncHandler(async (req, res) => {
 
 // STATISTIQUES //
 
+/* Tableau de bord : tout ce que la vue affiche vient d'ici, en une requête.
+   Les montants sont renvoyés bruts en euros — le formatage se fait côté
+   navigateur, à la main, pour éviter les écarts d'espaces entre Node et le
+   client qui casseraient l'hydratation. */
 const getStats = asyncHandler(async (req, res) => {
   try {
     // Récupérer différentes stats une par une pour identifier laquelle échoue
     const totalUsers = await prisma.user.count({
       where: { deletedAt: null }
+    });
+
+    const volunteers = await prisma.user.count({
+      where: { deletedAt: null, role: 'VOLUNTEER' }
     });
 
     const totalProducers = await prisma.producer.count({
@@ -860,6 +868,10 @@ const getStats = asyncHandler(async (req, res) => {
       where: { status: 'ACTIVE' }
     });
 
+    const pausedSubscriptions = await prisma.subscription.count({
+      where: { status: 'PAUSED' }
+    });
+
     const in30Days = new Date();
     in30Days.setDate(in30Days.getDate() + 30);
     const expiringSoon = await prisma.subscription.count({
@@ -873,6 +885,63 @@ const getStats = asyncHandler(async (req, res) => {
     const producerInquiries = await prisma.producerInquiry.count({
       where: { status: 'PENDING' }
     });
+
+    const unreadMessages = await prisma.contactMessage.count({
+      where: { status: 'UNREAD' }
+    });
+
+    /* Règlements : l'AMAP encaisse des chèques échelonnés, donc le montant
+       encaissé se lit sur `paidAmount` et le reste dû sur l'écart au prix du
+       contrat. Seuls les contrats vivants entrent dans le calcul. */
+    const engagedStatuses = ['ACTIVE', 'PAUSED'];
+    const amounts = await prisma.subscription.aggregate({
+      where: { status: { in: engagedStatuses } },
+      _sum: { price: true, paidAmount: true }
+    });
+
+    const solidarityCount = await prisma.subscription.count({
+      where: { status: { in: engagedStatuses }, pricingType: 'SOLIDARITY' }
+    });
+
+    const withoutPayment = await prisma.subscription.count({
+      where: { status: { in: engagedStatuses }, paidAmount: { lte: 0 } }
+    });
+
+    const collected = amounts._sum.paidAmount || 0;
+    const engagedTotal = amounts._sum.price || 0;
+
+    /* Prochaine distribution : la date de référence est celle du panier publié
+       à venir. La permanence associée n'existe que si un créneau a été créé
+       pour ce jour-là — sinon on ne renvoie rien plutôt qu'un « 0 / 2 » qui
+       laisserait croire qu'un créneau attend des bénévoles. */
+    const nextBasket = await prisma.weeklyBasket.findFirst({
+      where: { isPublished: true, distributionDate: { gte: new Date() } },
+      select: { distributionDate: true, weekNumber: true, year: true },
+      orderBy: { distributionDate: 'asc' }
+    });
+
+    let nextShift = null;
+    if (nextBasket) {
+      const dayStart = new Date(nextBasket.distributionDate);
+      dayStart.setHours(0, 0, 0, 0);
+      const dayEnd = new Date(dayStart);
+      dayEnd.setDate(dayEnd.getDate() + 1);
+
+      const shift = await prisma.shift.findFirst({
+        where: { distributionDate: { gte: dayStart, lt: dayEnd } },
+        select: {
+          volunteersNeeded: true,
+          _count: { select: { volunteers: true } }
+        }
+      });
+
+      if (shift) {
+        nextShift = {
+          needed: shift.volunteersNeeded,
+          registered: shift._count.volunteers
+        };
+      }
+    }
 
     const recentActivities = await prisma.subscription.findMany({
       take: 10,
@@ -898,14 +967,29 @@ const getStats = asyncHandler(async (req, res) => {
       data: {
         stats: {
           users: totalUsers,
+          volunteers: volunteers,
           producers: totalProducers,
           products: totalProducts,
           subscriptions: totalSubscriptions,
           activeSubscriptions: activeSubscriptions,
+          pausedSubscriptions: pausedSubscriptions,
           expiringSoon: expiringSoon,
           pendingRequests: pendingRequests,
-          producerInquiries: producerInquiries
+          producerInquiries: producerInquiries,
+          unreadMessages: unreadMessages,
+          collected: collected,
+          outstanding: Math.max(0, engagedTotal - collected),
+          solidarity: solidarityCount,
+          withoutPayment: withoutPayment
         },
+        nextDistribution: nextBasket
+          ? {
+              date: nextBasket.distributionDate,
+              weekNumber: nextBasket.weekNumber,
+              year: nextBasket.year,
+              shift: nextShift
+            }
+          : null,
         recentActivities: recentActivities
       }
     });

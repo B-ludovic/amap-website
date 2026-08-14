@@ -1,0 +1,378 @@
+/* Vocabulaire partagé de l'administration — report du bloc de constantes de
+   mocks/admin.dc.html (NAV, BADGE_BASE, TONES, *_BTN, *_STYLE, MODAL_PANEL).
+   Ces motifs se règlent par variable CSS sur le conteneur quand ils varient
+   d'une page à l'autre ; la structure ne se redéclare jamais dans le CSS de
+   page. Fichier neuf, à côté de components.css qui porte encore l'ancienne
+   administration le temps que toutes les vues soient reportées. */
+
+/* CHAMPS — l'anneau de focus est commun à toute l'administration */
+
+.admin-layout input:focus-visible,
+.admin-layout select:focus-visible,
+.admin-layout textarea:focus-visible {
+  outline: none;
+  border-color: var(--terracotta);
+  box-shadow: 0 0 0 3px var(--field-focus-ring);
+}
+
+.admin-layout input::placeholder,
+.admin-layout textarea::placeholder {
+  color: var(--field-placeholder);
+}
+
+/* TITRAILLE */
+
+/* Titre de vue : Fraunces 300, chasse resserrée. Le tableau de bord monte à
+   36px, les autres vues restent à 34px — réglable par --admin-title-size. */
+.admin-title {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: var(--admin-title-size, 34px);
+  line-height: 1.1;
+  letter-spacing: var(--display-tracking);
+  color: var(--text-primary);
+  margin: 0 0 8px;
+}
+
+.admin-title-lead {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* Libellé interne de carte : capitales monospace à 0.12em de chasse. */
+.admin-mono-label {
+  font-family: var(--font-mono);
+  font-size: var(--label-size);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-light);
+}
+
+/* En-tête de vue : titre à gauche, action principale alignée sur la ligne de
+   base du texte d'introduction. */
+.admin-page-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 26px;
+}
+
+/* CARTES */
+
+.admin-panel {
+  border: 1px solid var(--border-card);
+  border-radius: var(--border-radius-md);
+  background-color: var(--surface-page);
+  overflow: hidden;
+}
+
+.admin-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-card);
+  background-color: var(--surface-sand);
+}
+
+.admin-panel-title {
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-normal);
+  font-size: 17px;
+  margin: 0;
+}
+
+.admin-panel-body {
+  padding: 20px;
+}
+
+/* BADGES D'ÉTAT */
+
+.admin-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: var(--border-radius-sm);
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  background-color: var(--badge-off-bg);
+  color: var(--text-light);
+}
+
+.admin-badge-green {
+  background-color: var(--badge-live-bg);
+  color: var(--badge-live-fg);
+}
+
+.admin-badge-amber {
+  background-color: var(--notice-bg);
+  color: var(--notice-strong);
+}
+
+.admin-badge-brown {
+  background-color: var(--badge-soon-bg);
+  color: var(--badge-soon-fg);
+}
+
+.admin-badge-red {
+  background-color: var(--error-bg);
+  color: var(--error-text);
+}
+
+.admin-badge-ink {
+  background-color: var(--badge-fixed-bg);
+  color: var(--text-primary);
+}
+
+/* BOUTONS */
+
+.admin-btn-primary,
+.admin-btn-ghost,
+.admin-btn-danger,
+.admin-btn-forest {
+  height: 42px;
+  padding: 0 18px;
+  border-radius: var(--border-radius-md);
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition: background-color 150ms, border-color 150ms, color 150ms;
+}
+
+.admin-btn-primary {
+  border: none;
+  background-color: var(--terracotta);
+  color: var(--surface-page);
+}
+
+.admin-btn-primary:hover {
+  background-color: var(--terracotta-dark);
+}
+
+.admin-btn-ghost {
+  border: 1px solid var(--border-strong);
+  background-color: transparent;
+  color: var(--text-primary);
+}
+
+.admin-btn-ghost:hover {
+  border-color: var(--text-primary);
+}
+
+.admin-btn-danger {
+  border: 1px solid #EDC7BC;
+  background-color: transparent;
+  color: var(--error-text);
+}
+
+.admin-btn-danger:hover {
+  border-color: var(--error-text);
+}
+
+.admin-btn-forest {
+  border: none;
+  background-color: var(--surface-forest);
+  color: var(--surface-page);
+}
+
+.admin-btn-forest:hover {
+  background-color: var(--text-primary);
+}
+
+/* Bouton discret en capitales monospace, posé dans les pieds de carte. */
+.admin-btn-link {
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--terracotta);
+  transition: color 150ms;
+}
+
+.admin-btn-link-publish {
+  color: var(--badge-live-fg);
+}
+
+.admin-btn-link-delete {
+  color: var(--error-text);
+}
+
+.admin-btn-link-muted {
+  color: var(--text-light);
+}
+
+.admin-btn-link-muted:hover {
+  color: var(--text-primary);
+}
+
+/* FILTRES EN PASTILLES */
+
+.admin-pills {
+  display: flex;
+  gap: 8px;
+  width: max-content;
+  padding: 4px;
+  margin-bottom: 20px;
+  border: 1px solid var(--border-card);
+  border-radius: var(--border-radius-full);
+  background-color: var(--surface-sand);
+}
+
+.admin-pill {
+  padding: 8px 16px;
+  border: none;
+  border-radius: var(--border-radius-full);
+  background-color: transparent;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background-color 200ms cubic-bezier(0.2, 0.6, 0.2, 1);
+}
+
+.admin-pill-active {
+  background-color: var(--terracotta);
+  color: var(--surface-page);
+}
+
+/* CHAMPS DE FORMULAIRE ET DE FILTRE */
+
+.admin-search-field {
+  width: 300px;
+  height: 42px;
+  padding: 0 14px;
+  border: 1px solid var(--border-card);
+  border-radius: var(--border-radius-md);
+  background-color: var(--field-bg);
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.admin-select {
+  height: 42px;
+  padding: 0 12px;
+  border: 1px solid var(--border-card);
+  border-radius: var(--border-radius-md);
+  background-color: var(--field-bg);
+  font-size: 14px;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.admin-field-label {
+  display: block;
+  margin-bottom: 8px;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-light);
+}
+
+.admin-input,
+.admin-select-full {
+  width: 100%;
+  height: 46px;
+  padding: 0 14px;
+  border: 1px solid var(--border-card);
+  border-radius: var(--border-radius-md);
+  background-color: var(--field-bg);
+  font-family: inherit;
+  font-size: 14.5px;
+  color: var(--text-primary);
+}
+
+.admin-select-full {
+  cursor: pointer;
+}
+
+.admin-input-mono {
+  font-family: var(--font-mono);
+  font-size: 14px;
+}
+
+.admin-textarea {
+  width: 100%;
+  padding: 13px 14px;
+  border: 1px solid var(--border-card);
+  border-radius: var(--border-radius-md);
+  background-color: var(--field-bg);
+  font-family: inherit;
+  font-size: 14.5px;
+  line-height: 1.65;
+  color: var(--text-primary);
+  resize: vertical;
+}
+
+/* TABLEAUX
+   Les colonnes se règlent par --admin-cols sur le conteneur : une seule grille
+   pour l'en-tête et pour chaque ligne, donc aucun décalage possible. */
+
+.admin-table-head,
+.admin-table-row {
+  display: grid;
+  grid-template-columns: var(--admin-cols);
+  gap: var(--admin-col-gap, 0);
+  align-items: center;
+  padding: var(--admin-row-pad, 13px 20px);
+}
+
+.admin-table-head {
+  padding: 11px 20px;
+  border-bottom: 1px solid var(--border-card);
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-light);
+}
+
+.admin-table-row {
+  border-bottom: 1px solid var(--border-soft);
+  font-size: 13.5px;
+}
+
+.admin-table-row:last-child {
+  border-bottom: none;
+}
+
+.admin-cell-strong {
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+}
+
+.admin-cell-muted {
+  color: var(--text-secondary);
+}
+
+.admin-cell-mono {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-light);
+}
+
+.admin-cell-right {
+  text-align: right;
+}
+
+/* ÉTAT VIDE */
+
+.admin-empty {
+  padding: 40px 20px;
+  text-align: center;
+  font-size: 13.5px;
+  color: var(--text-light);
+}
