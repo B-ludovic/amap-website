@@ -767,3 +767,40 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* CHOIX MULTIPLES COMPACTS
+   Même grammaire que .admin-check, mais en bandes courtes alignées en grille :
+   quatre saisons ou deux formats de panier tiennent sur une ligne au lieu
+   d'empiler autant de bandeaux pleine largeur. */
+
+.admin-choices {
+  display: grid;
+  grid-template-columns: repeat(var(--admin-choices-cols, 4), 1fr);
+  gap: 8px;
+}
+
+.admin-choice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--border-card);
+  border-radius: var(--border-radius-md);
+  background-color: var(--surface-sand);
+  font-size: 13.5px;
+  cursor: pointer;
+}
+
+.admin-choice input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--terracotta);
+  cursor: pointer;
+}
+
+@media (max-width: 700px) {
+  .admin-choices {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

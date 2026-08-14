@@ -1,0 +1,49 @@
+/* Produits — report de la vue « products » de mocks/admin.dc.html. */
+
+.admin-products-table {
+  --admin-cols: 1.3fr 1.4fr 1fr 0.9fr 0.8fr;
+}
+
+.admin-products-table .admin-table-head {
+  background-color: var(--surface-sand);
+  padding: 12px 20px;
+}
+
+/* Saisons et formats de panier : les deux entrées du tirage hebdomadaire.
+   Rappelées en clair sous les cases, pour qu'on voie d'un coup ce que le
+   générateur retiendra du produit. */
+.admin-product-hint {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-light);
+}
+
+@media (max-width: 900px) {
+  .admin-products-table {
+    --admin-cols: 1.3fr 1.4fr 0.9fr 0.8fr;
+  }
+
+  .admin-products-category {
+    display: none;
+  }
+}
+
+@media (max-width: 700px) {
+  .admin-products-table {
+    --admin-cols: 1fr;
+    --admin-col-gap: 4px;
+  }
+
+  .admin-products-table .admin-table-head {
+    display: none;
+  }
+
+  .admin-products-table .admin-table-row {
+    align-items: flex-start;
+  }
+
+  .admin-products-table .admin-cell-right {
+    text-align: left;
+  }
+}

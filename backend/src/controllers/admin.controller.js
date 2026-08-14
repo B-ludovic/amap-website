@@ -303,6 +303,9 @@ const deleteProduct = asyncHandler(async (req, res) => {
 // RÉCUPÉRER TOUS LES PRODUITS
 const getAllProducts = asyncHandler(async (req, res) => {
   const products = await prisma.product.findMany({
+    /* Même filtre que le décompte du tableau de bord : sans lui, un produit
+       retiré resterait listé ici alors qu'il n'est plus compté ailleurs. */
+    where: { deletedAt: null },
     orderBy: {
       name: 'asc'
     },
