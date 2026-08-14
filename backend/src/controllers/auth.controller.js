@@ -125,6 +125,10 @@ const login = asyncHandler(async (req, res) => {
         throw new HttpUnauthorizedError('Ce compte a été supprimé.');
     }
 
+    if (!user.emailVerified) {
+        throw new HttpUnauthorizedError('Veuillez confirmer votre adresse email avant de vous connecter.');
+    }
+
     // Generer un token JWT (avec version pour révocation) et le poser en cookie HttpOnly
     const token = generateToken(user.id, user.tokenVersion);
     res.cookie('authToken', token, cookieOptions);

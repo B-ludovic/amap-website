@@ -42,7 +42,14 @@ async function purgeUnverifiedAccounts() {
   cutoff.setDate(cutoff.getDate() - UNVERIFIED_ACCOUNT_RETENTION_DAYS);
 
   const users = await prisma.user.findMany({
-    where: { emailVerified: false, deletedAt: null, createdAt: { lte: cutoff } },
+    where: {
+      emailVerified: false,
+      deletedAt: null,
+      createdAt: { lte: cutoff },
+      role: 'MEMBER',
+      subscriptions: { none: {} },
+      subscriptionRequests: { none: {} },
+    },
     select: { id: true },
   });
 
