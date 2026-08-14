@@ -1,31 +1,72 @@
 'use client';
 
 import { useState } from 'react';
-import { CheckCircle, XCircle, Mail, MapPin, Clock, Leaf } from 'lucide-react';
+import Link from 'next/link';
 import '../../styles/public/contact.css';
 
+// Suggestions de sujet : elles remplissent le champ, qui reste libre.
+const TOPICS = [
+  'Question sur les abonnements',
+  'Absence ou semaine de pause',
+  'Tarif solidaire',
+  'Devenir bénévole'
+];
+
+const EMPTY_FORM = { name: '', email: '', subject: '', message: '' };
+
 export default function ContactPage() {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    subject: '',
-    message: ''
-  });
-  const [status, setStatus] = useState(''); // 'sending', 'success', 'error'
-  const [errorMessage, setErrorMessage] = useState('');
+  const [formData, setFormData] = useState(EMPTY_FORM);
+  const [errors, setErrors] = useState({});
+  const [status, setStatus] = useState('editing'); // 'editing' | 'sending' | 'sent'
+  const [serverError, setServerError] = useState('');
+
+  const validate = () => {
+    const next = {};
+    if (!formData.name.trim()) next.name = 'Nom requis';
+    if (!formData.email.trim()) next.email = 'Email requis';
+    else if (!/\S+@\S+\.\S+/.test(formData.email)) next.email = 'Email invalide';
+    if (!formData.subject.trim()) next.subject = 'Sujet requis';
+    if (!formData.message.trim()) next.message = 'Message requis';
+    else if (formData.message.trim().length < 10) {
+      next.message = 'Message trop court pour qu\'on puisse répondre';
+    }
+    return next;
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData(prev => ({ ...prev, [name]: value }));
+    setErrors(prev => {
+      if (!prev[name]) return prev;
+      const next = { ...prev };
+      delete next[name];
+      return next;
+    });
+  };
+
+  const pickTopic = (label) => {
+    setFormData(prev => ({ ...prev, subject: label }));
+    setErrors(prev => {
+      if (!prev.subject) return prev;
+      const next = { ...prev };
+      delete next.subject;
+      return next;
+    });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const found = validate();
+    if (Object.keys(found).length > 0) {
+      setErrors(found);
+      setServerError('');
+      return;
+    }
+
+    setErrors({});
+    setServerError('');
     setStatus('sending');
-    setErrorMessage('');
 
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/contact`, {
@@ -42,165 +83,247 @@ export default function ContactPage() {
         throw new Error(data.message || 'Erreur lors de l\'envoi');
       }
 
-      setStatus('success');
-      setFormData({ name: '', email: '', subject: '', message: '' });
+      setStatus('sent');
+      setFormData(EMPTY_FORM);
     } catch (error) {
-      setStatus('error');
-      setErrorMessage(error.message);
+      setStatus('editing');
+      setServerError(error.message || 'Une erreur est survenue. Veuillez réessayer.');
     }
   };
 
+  const resetForm = () => {
+    setFormData(EMPTY_FORM);
+    setErrors({});
+    setServerError('');
+    setStatus('editing');
+  };
+
+  const errorCount = Object.keys(errors).length;
+  const alertMessage = serverError || (
+    errorCount === 1
+      ? 'Un champ demande votre attention avant l\'envoi.'
+      : `${errorCount} champs demandent votre attention avant l'envoi.`
+  );
+
   return (
     <div className="contact-page">
-      <div className="contact-container">
-        {/* En-tête */}
-        <div className="contact-header">
-          <h1>Contactez-nous</h1>
-          <p>Une question ? Une suggestion ? N'hésitez pas à nous écrire !</p>
-        </div>
+      <section className="contact-hero">
+        <div className="eyebrow">Nous écrire</div>
+        <h1 className="contact-title">Une question, une absence, une idée ?</h1>
+        <p className="contact-lede">
+          L&apos;AMAP est tenue par des bénévoles adhérents. Nous lisons tout et répondons
+          sous 48 heures — un peu plus pendant les vacances scolaires.
+        </p>
+      </section>
 
-        <div className="contact-content">
-          {/* Formulaire */}
-          <div className="contact-form-section">
-            <h2>Envoyez-nous un message</h2>
-
-            {status === 'success' && (
-              <div className="alert alert-success" role="alert" aria-live="polite">
-                <CheckCircle size={18} aria-hidden="true" /> Votre message a été envoyé avec succès ! Nous vous répondrons dans les plus brefs délais.
+      <section className="contact-body">
+        <div className="contact-main">
+          {status === 'sent' ? (
+            <div className="contact-sent" role="status" aria-live="polite">
+              <div className="contact-sent-badge">
+                <span className="contact-sent-dot" aria-hidden="true" />
+                <span className="contact-sent-label">Message envoyé</span>
               </div>
-            )}
-
-            {status === 'error' && (
-              <div className="alert alert-error" role="alert" aria-live="assertive">
-                <XCircle size={18} aria-hidden="true" /> {errorMessage || 'Une erreur est survenue. Veuillez réessayer.'}
-              </div>
-            )}
-
-            <form onSubmit={handleSubmit} className="contact-form">
-              <div className="form-group">
-                <label htmlFor="name">Nom complet <span aria-label="obligatoire">*</span></label>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                  aria-required="true"
-                  autoComplete="name"
-                  disabled={status === 'sending'}
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="email">Email <span aria-label="obligatoire">*</span></label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  aria-required="true"
-                  autoComplete="email"
-                  disabled={status === 'sending'}
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="subject">Sujet <span aria-label="obligatoire">*</span></label>
-                <input
-                  type="text"
-                  id="subject"
-                  name="subject"
-                  value={formData.subject}
-                  onChange={handleChange}
-                  required
-                  aria-required="true"
-                  disabled={status === 'sending'}
-                  placeholder="Ex: Question sur les abonnements"
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="message">Message <span aria-label="obligatoire">*</span></label>
-                <textarea
-                  id="message"
-                  name="message"
-                  value={formData.message}
-                  onChange={handleChange}
-                  required
-                  aria-required="true"
-                  disabled={status === 'sending'}
-                  rows="6"
-                  placeholder="Votre message..."
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="btn btn-primary btn-large"
-                disabled={status === 'sending'}
-              >
-                {status === 'sending' ? 'Envoi en cours...' : 'Envoyer le message'}
-              </button>
-            </form>
-          </div>
-
-          {/* Informations de contact */}
-          <div className="contact-info-section">
-            <h2>Informations de contact</h2>
-
-            <div className="info-card">
-              <div className="info-icon"><Mail size={24} aria-hidden="true" /></div>
-              <div className="info-content">
-                <h3>Email</h3>
-                <a href="mailto:auxptitspois@gmail.com">auxptitspois@gmail.com</a>
+              <h2 className="contact-sent-title">C&apos;est parti, on vous lit.</h2>
+              <p className="contact-sent-text">
+                Votre message est arrivé dans la boîte du collectif. Un bénévole vous répond
+                sous 48 heures à l&apos;adresse que vous avez indiquée.
+              </p>
+              <div className="contact-sent-actions">
+                <Link href="/" className="contact-sent-home">Retour à l&apos;accueil</Link>
+                <button type="button" className="contact-sent-again" onClick={resetForm}>
+                  Écrire un autre message
+                </button>
               </div>
             </div>
+          ) : (
+            <div>
+              <h2 className="contact-form-title">Envoyez-nous un message</h2>
+              <p className="contact-form-lede">
+                Les quatre champs sont nécessaires pour pouvoir vous répondre.
+              </p>
 
-            <div className="info-card">
-              <div className="info-icon"><MapPin size={24} aria-hidden="true" /></div>
-              <div className="info-content">
-                <h3>Adresse</h3>
-                <p>
-                  Paroisse Saint François de Sales de Clamart<br />
-                  340 Avenue du Général de Gaulle<br />
+              {(errorCount > 0 || serverError) && (
+                <div className="contact-alert" role="alert" aria-live="assertive">
+                  <span className="contact-alert-dot" aria-hidden="true" />
+                  <span className="contact-alert-text">{alertMessage}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleSubmit} className="contact-form" noValidate>
+                <div className="contact-row">
+                  <div className="contact-field">
+                    <label htmlFor="name" className="contact-label">
+                      Nom complet <span className="contact-required" aria-label="obligatoire">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="name"
+                      name="name"
+                      className={`input ${errors.name ? 'input-error' : ''}`}
+                      value={formData.name}
+                      onChange={handleChange}
+                      maxLength={100}
+                      autoComplete="name"
+                      disabled={status === 'sending'}
+                      aria-invalid={errors.name ? 'true' : undefined}
+                      aria-describedby={errors.name ? 'contact-name-error' : undefined}
+                    />
+                    {errors.name && (
+                      <span id="contact-name-error" className="contact-error">{errors.name}</span>
+                    )}
+                  </div>
+
+                  <div className="contact-field">
+                    <label htmlFor="email" className="contact-label">
+                      Email <span className="contact-required" aria-label="obligatoire">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      inputMode="email"
+                      id="email"
+                      name="email"
+                      className={`input ${errors.email ? 'input-error' : ''}`}
+                      value={formData.email}
+                      onChange={handleChange}
+                      placeholder="votre@email.com"
+                      autoComplete="email"
+                      disabled={status === 'sending'}
+                      aria-invalid={errors.email ? 'true' : undefined}
+                      aria-describedby={errors.email ? 'contact-email-error' : undefined}
+                    />
+                    {errors.email && (
+                      <span id="contact-email-error" className="contact-error">{errors.email}</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="contact-field">
+                  <label htmlFor="subject" className="contact-label">
+                    Sujet <span className="contact-required" aria-label="obligatoire">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="subject"
+                    name="subject"
+                    className={`input ${errors.subject ? 'input-error' : ''}`}
+                    value={formData.subject}
+                    onChange={handleChange}
+                    placeholder="Ex : question sur les abonnements"
+                    maxLength={200}
+                    disabled={status === 'sending'}
+                    aria-invalid={errors.subject ? 'true' : undefined}
+                    aria-describedby={errors.subject ? 'contact-subject-error' : undefined}
+                  />
+                  {errors.subject && (
+                    <span id="contact-subject-error" className="contact-error">{errors.subject}</span>
+                  )}
+                  <div className="contact-topics">
+                    {TOPICS.map(topic => (
+                      <button
+                        key={topic}
+                        type="button"
+                        className="contact-topic"
+                        onClick={() => pickTopic(topic)}
+                        disabled={status === 'sending'}
+                      >
+                        {topic}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="contact-field">
+                  <label htmlFor="message" className="contact-label">
+                    Message <span className="contact-required" aria-label="obligatoire">*</span>
+                  </label>
+                  <textarea
+                    id="message"
+                    name="message"
+                    className={`textarea ${errors.message ? 'input-error' : ''}`}
+                    value={formData.message}
+                    onChange={handleChange}
+                    rows={7}
+                    maxLength={5000}
+                    placeholder="Votre message…"
+                    disabled={status === 'sending'}
+                    aria-invalid={errors.message ? 'true' : undefined}
+                    aria-describedby={errors.message ? 'contact-message-error' : undefined}
+                  />
+                  {errors.message && (
+                    <span id="contact-message-error" className="contact-error">{errors.message}</span>
+                  )}
+                </div>
+
+                <div className="contact-send">
+                  <button type="submit" className="contact-submit" disabled={status === 'sending'}>
+                    {status === 'sending' ? 'Envoi en cours…' : 'Envoyer le message'}
+                  </button>
+                  <p className="contact-privacy">
+                    Vos coordonnées servent uniquement à vous répondre. Elles ne sont ni
+                    revendues, ni utilisées pour la newsletter sans votre accord.
+                  </p>
+                </div>
+              </form>
+            </div>
+          )}
+        </div>
+
+        <aside className="contact-aside">
+          <div className="contact-card">
+            <div className="contact-card-head">
+              <h2 className="contact-card-title">Nous joindre autrement</h2>
+            </div>
+            <div className="contact-card-body">
+              <div className="contact-block">
+                <div className="contact-block-label">Email</div>
+                <a href="mailto:auxptitspois@gmail.com" className="contact-mail">
+                  auxptitspois@gmail.com
+                </a>
+              </div>
+              <div className="contact-block">
+                <div className="contact-block-label">Sur place</div>
+                <p className="contact-address">
+                  Paroisse Saint François de Sales<br />
+                  340 avenue du Général de Gaulle<br />
                   92140 Clamart
                 </p>
+                <p className="contact-address-note">
+                  Le plus simple : venez nous voir pendant une distribution.
+                </p>
               </div>
-            </div>
-
-            <div className="info-card">
-              <div className="info-icon"><Clock size={24} aria-hidden="true" /></div>
-              <div className="info-content">
-                <h3>Horaires de distribution</h3>
-                <p>
+              <div className="contact-block">
+                <div className="contact-block-label">Distribution</div>
+                <p className="contact-address">
                   Chaque mercredi<br />
-                  18h00 - 19h30
+                  <span className="contact-hours-time">18h15 → 19h15</span>
                 </p>
               </div>
             </div>
+          </div>
 
-            <div className="info-card">
-              <div className="info-icon"><Leaf size={24} aria-hidden="true" /></div>
-              <div className="info-content">
-                <h3>Suivez-nous</h3>
-                <div className="social-links">
-                  <span className="social-unavailable">Facebook (bientôt disponible)</span>
-                  <span className="social-unavailable">Instagram (bientôt disponible)</span>
-                </div>
-              </div>
-            </div>
+          <div className="contact-faq">
+            <div className="eyebrow">Avant d&apos;écrire</div>
+            <p className="contact-faq-text">
+              La FAQ regroupe les questions les plus fréquentes : pauses, tarif solidaire,
+              panier non retiré, permanences.
+            </p>
+            <Link href="/faq" className="contact-faq-link">Consulter la FAQ</Link>
+            <p className="contact-faq-note">
+              La question la plus courante — comment poser une semaine de pause — se règle
+              depuis votre espace adhérent.
+            </p>
+          </div>
 
-            <div className="faq-link">
-              <p>
-                Consultez notre <a href="/faq">FAQ</a> pour des réponses rapides aux questions fréquentes. (Bientôt disponible)
-              </p>
+          <div className="contact-social">
+            <div className="eyebrow">Nous suivre</div>
+            <div className="contact-social-list">
+              <span className="contact-social-item">Facebook — bientôt disponible</span>
+              <span className="contact-social-item">Instagram — bientôt disponible</span>
             </div>
           </div>
-        </div>
-      </div>
+        </aside>
+      </section>
     </div>
   );
 }

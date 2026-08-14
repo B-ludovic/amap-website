@@ -10,11 +10,13 @@
   --on-forest: #EFEAE0;         /* texte sur fond forêt */
   --on-forest-muted: #A6B39C;   /* label atténué sur fond forêt */
   --on-forest-rule: rgba(239, 234, 224, 0.18);
+  --on-forest-frame: rgba(239, 234, 224, 0.20);  /* cadre d'un bloc sur fond forêt */
   --on-forest-border: rgba(239, 234, 224, 0.32);
 
   /* ---------- ACCENTS ---------- */
   --terracotta: #C85A32;
   --terracotta-dark: #A8451F;
+  --terracotta-soft: #D98A6B;   /* terracotta atténué : bouton pendant l'envoi */
   --brass: #8F5F37;             /* brun doré : chiffres, mentions solidaires */
   --leaf: #83AB44;              /* pastille « distribution en cours » */
   --gold: #C8912F;
@@ -38,6 +40,8 @@
   --border-rule: #DDD3C4;       /* séparateur interne sur fond sable */
   --border-strong: #C9BFAF;     /* bouton secondaire */
   --border-accent: #E0BFAE;     /* soulignement d'accent */
+  --border-brass: #DDC9B8;      /* soulignement des adresses e-mail */
+  --border-soft: #EDE6DA;       /* filet interne des cartes sur fond crème */
   --border-color: var(--border-card);
   --shadow-color: rgba(31, 36, 33, 0.10);
 
@@ -120,7 +124,9 @@
   --border-width-thick: 2px;
 
   /* ---------- INPUTS ---------- */
-  --input-height: 52px;
+  /* Les maquettes se contredisent (52px sur connexion et contact, 48px sur
+     devenir-producteur) : 48px tranché comme hauteur unique de champ. */
+  --input-height: 48px;
   --input-padding-x: 16px;
   --input-padding-y: 12px;
   --input-border-color: var(--border-card);
@@ -139,6 +145,10 @@
   --error-bg-soft: #FDF5F2;       /* survol des boutons d'annulation en zone rouge */
   --error-strong: #8E2E1A;
   --badge-live-border: #CBDBB0;
+  /* Panneau de confirmation, décliné du vert clair des badges */
+  --success-title: #28361C;
+  --success-border-strong: #B4C899;
+  --success-hover: #E1EAD1;
   --badge-soon-border: #E7D3B4;
   --badge-off-border: var(--border-card);
 
