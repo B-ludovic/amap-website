@@ -7,7 +7,7 @@ import { useModal } from '../../../contexts/ModalContext';
 import api from '../../../lib/api';
 import logger from '../../../lib/logger';
 import { SEASON_LABELS, getCurrentSeason } from '../../../constants/recipes';
-import { isProduce } from '../../../constants/productIcons';
+import { getProduceTerm } from '../../../constants/productIcons';
 import '../../../styles/public/recipes-detail.css';
 
 const season = getCurrentSeason();
@@ -98,10 +98,14 @@ export default function RecipeDetailClient() {
 
     const fetchOthers = async () => {
       try {
-        // Sans panier publié, on part d'un légume de la recette plutôt que du
-        // premier ingrédient venu, souvent une huile ou un condiment.
+        /* Sans panier publié, on part d'un légume de la recette plutôt que du
+           premier ingrédient venu, souvent une huile ou un condiment — et du
+           mot-clé seul, « tomates cerises » ne donnant aucun résultat. */
         const names = (recipe.extendedIngredients || []).map(ing => ing.name);
-        const seed = names.find(isProduce) || names[0] || recipe.title;
+        const seed = getProduceTerm(recipe.title)
+          || names.map(getProduceTerm).find(Boolean)
+          || names[0]
+          || recipe.title;
 
         const response = basket
           ? await api.recipes.getSuggestions(basket.id)

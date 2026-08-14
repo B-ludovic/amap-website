@@ -98,6 +98,13 @@ export const getProductIcon = (name) => {
 // Fruit ou légume reconnu — y compris ceux qui n'ont pas de pictogramme
 export const isProduce = (name) => findEntry(name) !== null;
 
+/* Mot-clé maraîcher contenu dans un libellé : « Tomates cerises » → « tomate ».
+   Utile comme terme de recherche, les noms composés ne donnant aucun résultat. */
+export const getProduceTerm = (name) => {
+  const found = findEntry(name);
+  return found ? found[0] : null;
+};
+
 export const PRODUCT_CATEGORY_LABELS = {
   VEGETABLES: 'Légumes',
   FRUITS: 'Fruits',
