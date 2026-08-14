@@ -1,0 +1,250 @@
+/* Communication — report de la vue « comms » de mocks/admin.dc.html.
+   Quatre compteurs, puis la pile des newsletters. */
+
+.admin-comms-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.admin-comms-stat {
+  padding: 20px;
+  border: 1px solid var(--border-card);
+  border-radius: var(--border-radius-md);
+  background-color: var(--surface-page);
+}
+
+.admin-comms-stat-label {
+  display: block;
+  margin-bottom: 12px;
+}
+
+.admin-comms-stat-value {
+  font-family: var(--font-mono);
+  font-size: 28px;
+  font-weight: var(--font-weight-medium);
+  line-height: 1;
+  color: var(--text-primary);
+}
+
+.admin-comms-stat-value-sent {
+  color: var(--badge-live-fg);
+}
+
+.admin-comms-stat-value-scheduled {
+  color: var(--notice-strong);
+}
+
+.admin-comms-stat-value-draft {
+  color: var(--text-light);
+}
+
+/* PILE DES NEWSLETTERS
+   Chaque envoi tient sur une bande : titre et état à gauche, actions à droite. */
+
+.admin-comms-list {
+  display: grid;
+  gap: 14px;
+}
+
+.admin-newsletter {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 28px;
+  align-items: center;
+  padding: 22px 24px;
+  border: 1px solid var(--border-card);
+  border-radius: var(--border-radius-md);
+  background-color: var(--surface-page);
+}
+
+.admin-newsletter-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.admin-newsletter-subject {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-normal);
+  font-size: 19px;
+}
+
+/* Aperçu du contenu : le corps est stocké en HTML, on n'en affiche que le
+   texte, borné à deux lignes. */
+.admin-newsletter-preview {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  max-width: 70em;
+  margin: 0 0 10px;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.admin-newsletter-meta {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.admin-newsletter-meta span {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--text-light);
+}
+
+.admin-newsletter-author {
+  font-family: var(--font-body) !important;
+  font-size: 12.5px !important;
+}
+
+.admin-newsletter-actions {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+
+/* ÉDITEUR
+   Barre d'outils en boutons texte, comme la maquette : la DA ne pose aucune
+   icône, un libellé lisible remplace le pictogramme. */
+
+.admin-editor {
+  border: 1px solid var(--border-card);
+  border-radius: var(--border-radius-md);
+  background-color: var(--field-bg);
+  overflow: hidden;
+}
+
+.admin-editor:focus-within {
+  border-color: var(--terracotta);
+  box-shadow: 0 0 0 3px var(--field-focus-ring);
+}
+
+.admin-editor-toolbar {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border-card);
+  background-color: var(--surface-sand);
+}
+
+.admin-editor-tool {
+  padding: 6px 10px;
+  border: 1px solid var(--border-card);
+  border-radius: var(--border-radius-sm);
+  background-color: var(--field-bg);
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background-color 150ms, color 150ms, border-color 150ms;
+}
+
+.admin-editor-tool:hover {
+  border-color: var(--border-strong);
+}
+
+.admin-editor-tool-active {
+  background-color: var(--terracotta);
+  border-color: var(--terracotta);
+  color: var(--surface-page);
+}
+
+.admin-editor .tiptap {
+  padding: 14px 16px;
+  min-height: 180px;
+  font-size: 14.5px;
+  line-height: 1.7;
+  color: var(--text-primary);
+  outline: none;
+}
+
+.admin-editor .tiptap p {
+  margin: 0 0 12px;
+}
+
+.admin-editor .tiptap p:last-child {
+  margin-bottom: 0;
+}
+
+.admin-editor .tiptap h2,
+.admin-editor .tiptap h3 {
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-normal);
+  margin: 20px 0 10px;
+}
+
+.admin-editor .tiptap h2 {
+  font-size: 20px;
+}
+
+.admin-editor .tiptap h3 {
+  font-size: 17px;
+}
+
+.admin-editor .tiptap ul,
+.admin-editor .tiptap ol {
+  margin: 0 0 12px;
+  padding-left: 22px;
+}
+
+.admin-editor .tiptap hr {
+  margin: 20px 0;
+  border: none;
+  border-top: 1px solid var(--border-card);
+}
+
+/* Texte de substitution de Tiptap : rendu par un pseudo-élément sur le premier
+   paragraphe vide. */
+.admin-editor .tiptap p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+  color: var(--field-placeholder);
+}
+
+/* CHOIX D'ACTION APRÈS SAUVEGARDE */
+
+.admin-radios {
+  display: grid;
+  gap: 8px;
+}
+
+.admin-radio {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 16px;
+  border: 1px solid var(--border-card);
+  border-radius: var(--border-radius-md);
+  background-color: var(--surface-sand);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.admin-radio input {
+  margin: 0;
+  accent-color: var(--terracotta);
+  cursor: pointer;
+}
+
+@media (max-width: 1100px) {
+  .admin-comms-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .admin-newsletter {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}

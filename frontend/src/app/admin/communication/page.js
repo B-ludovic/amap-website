@@ -1,352 +1,210 @@
 'use client';
 
-import { useEffect, useState } from "react";
-import api from "../../../lib/api";
-import logger from "../../../lib/logger";
-import { useModal } from "../../../contexts/ModalContext";
-import NewsletterModal from "../../../components/admin/NewsletterModal";
-import "../../../styles/admin/components.css";
-import "../../../styles/admin/dashboard.css";
-import "../../../styles/admin/layout.css";
-import "../../../styles/admin/communication.css";
-import {
-    Mail,
-    Send,
-    Clock,
-    Users,
-    Plus,
-    Edit2,
-    Trash2,
-    Eye
-} from "lucide-react";
+import { useCallback, useEffect, useState } from 'react';
+import api from '../../../lib/api';
+import { useModal } from '../../../contexts/ModalContext';
+import NewsletterModal from '../../../components/admin/NewsletterModal';
+import { longDate, plural } from '../../../lib/format';
+import '../../../styles/admin/communication-da.css';
+
+const TYPE_LABELS = {
+  GENERAL: 'Général',
+  WEEKLY_BASKET: 'Panier',
+  RECIPE: 'Recette',
+  ALERT: 'Alerte',
+  PRODUCER_NEWS: 'Producteurs'
+};
+
+const TARGET_LABELS = {
+  ALL: 'Tous les adhérents',
+  ACTIVE_SUBSCRIBERS: 'Abonnés actifs',
+  SOLIDARITY: 'Tarif solidaire',
+  TEST: 'Test'
+};
+
+/* L'état n'est pas une colonne : il se déduit des dates. Une newsletter est
+   envoyée si sentAt est posé, programmée si une date d'envoi l'attend, et
+   brouillon dans tous les autres cas. */
+function stateOf(newsletter) {
+  if (newsletter.sentAt) return { label: 'Envoyée', tone: 'admin-badge-green' };
+  if (newsletter.scheduledFor) return { label: 'Programmée', tone: 'admin-badge-amber' };
+  return { label: 'Brouillon', tone: '' };
+}
+
+/* Le contenu est stocké en HTML : on n'en garde que le texte pour l'aperçu.
+   Certaines newsletters — celles que génère l'annonce de fermeture — sont des
+   emails HTML complets, feuille de style comprise. Retirer les seules balises
+   laisserait apparaître le CSS en clair : on supprime d'abord le contenu des
+   blocs <style> et <script>, puis les balises. */
+function previewOf(html) {
+  return (html ?? '')
+    .replace(/<(style|script|head)\b[^>]*>[\s\S]*?<\/\1>/gi, ' ')
+    .replace(/<!--[\s\S]*?-->/g, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
 
 export default function AdminCommunicationPage() {
-    const [newsletters, setNewsletters] = useState([]);
-    const [stats, setStats] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedNewsletter, setSelectedNewsletter] = useState(null);
-    const [filter, setFilter] = useState('all');
+  const { showConfirm, showSuccess, showError } = useModal();
 
-    const { showSuccess, showError, showConfirm } = useModal();
+  const [newsletters, setNewsletters] = useState([]);
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState(null);
 
-    useEffect(() => {
-        fetchStats();
-    }, []);
-
-    useEffect(() => {
-        fetchNewsletters();
-    }, [filter]);
-
-    const fetchNewsletters = async () => {
+  const fetchAll = useCallback(async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      const params = {};
-      
-      if (filter === 'sent') {
-        params.sent = 'true';
-      } else if (filter === 'draft') {
-        params.sent = 'false';
-      }
-      
-      const response = await api.newsletters.getAll(params);
-      setNewsletters(response.data.newsletters);
+      const [listRes, statsRes] = await Promise.all([
+        api.newsletters.getAll(),
+        api.newsletters.getStats()
+      ]);
+      setNewsletters(listRes.data.newsletters ?? listRes.data);
+      setStats(statsRes.data);
     } catch (error) {
-      showError('Erreur', 'Erreur lors du chargement des newsletters');
+      showError('Erreur', 'Impossible de charger les newsletters.');
     } finally {
       setLoading(false);
     }
-  };
+  }, [showError]);
 
-  const fetchStats = async () => {
-    try {
-      const response = await api.newsletters.getStats();
-      setStats(response.data);
-    } catch (error) {
-      logger.error('Erreur stats:', error);
-    }
-  };
+  useEffect(() => {
+    fetchAll();
+  }, [fetchAll]);
 
-  const handleCreate = () => {
-    setSelectedNewsletter(null);
-    setIsModalOpen(true);
-  };
-
-  const handleEdit = (newsletter) => {
-    setSelectedNewsletter(newsletter);
-    setIsModalOpen(true);
-  };
-
-  const handleDelete = (newsletterId) => {
+  const handleDelete = (newsletter) => {
     showConfirm(
       'Supprimer la newsletter',
-      'Êtes-vous sûr de vouloir supprimer cette newsletter ? Cette action est irréversible.',
+      newsletter.sentAt
+        ? `Supprimer « ${newsletter.subject} » ? Elle a déjà été envoyée, seule la trace en administration disparaîtra.`
+        : `Supprimer « ${newsletter.subject} » ? Cette action est irréversible.`,
       async () => {
         try {
-          await api.newsletters.delete(newsletterId);
-          showSuccess('Succès', 'Newsletter supprimée avec succès');
-          fetchNewsletters();
-          fetchStats();
+          await api.newsletters.delete(newsletter.id);
+          showSuccess('Newsletter supprimée', 'La newsletter a été retirée.');
+          fetchAll();
         } catch (error) {
-          showError('Erreur', error.response?.data?.message || 'Erreur lors de la suppression');
+          showError('Erreur', error.message);
         }
       }
     );
   };
 
-  const handleSend = (newsletterId) => {
-    showConfirm(
-      'Envoyer la newsletter',
-      'Êtes-vous sûr de vouloir envoyer cette newsletter maintenant ? Elle sera envoyée à tous les destinataires ciblés.',
-      async () => {
-        try {
-          const response = await api.newsletters.send(newsletterId);
-          showSuccess('Newsletter envoyée', `Envoyée avec succès à ${response.data.sentCount} destinataire(s)`);
-          fetchNewsletters();
-          fetchStats();
-        } catch (error) {
-          showError('Erreur', error.response?.data?.message || 'Erreur lors de l\'envoi');
-        }
-      }
-    );
+  const closeModal = (shouldRefresh) => {
+    setEditing(null);
+    if (shouldRefresh) fetchAll();
   };
-
-  const handleModalClose = (shouldRefresh) => {
-    setIsModalOpen(false);
-    setSelectedNewsletter(null);
-    if (shouldRefresh) {
-      fetchNewsletters();
-      fetchStats();
-    }
-  };
-
-  const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('fr-FR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  const getTypeBadge = (type) => {
-    const types = {
-      GENERAL: { label: 'Général', color: 'secondary' },
-      WEEKLY_BASKET: { label: 'Panier hebdo', color: 'success' },
-      RECIPE: { label: 'Recette', color: 'warning' },
-      ALERT: { label: 'Alerte', color: 'error' },
-      PRODUCER_NEWS: { label: 'Producteurs', color: 'info' }
-    };
-    
-    const typeInfo = types[type] || types.GENERAL;
-    return <span className={`badge badge-${typeInfo.color}`}>{typeInfo.label}</span>;
-  };
-
-  const getTargetBadge = (target) => {
-    const targets = {
-      ALL: 'Tous',
-      ACTIVE_SUBSCRIBERS: 'Abonnés actifs',
-      SOLIDARITY: 'Tarif solidaire',
-      TEST: 'Test'
-    };
-    
-    return <span className="badge">{targets[target] || target}</span>;
-  };
-
-  if (loading && !stats) {
-    return <div className="loading-state">Chargement...</div>;
-  }
 
   return (
-    <div className="admin-page">
-      <div className="page-header">
+    <div className="admin-comms">
+      <div className="admin-page-head">
         <div>
-          <h1>Communication</h1>
-          <p className="page-subtitle">Gérez vos newsletters et communications</p>
+          <h1 className="admin-title">Communication</h1>
+          <p className="admin-title-lead">
+            Newsletters aux adhérents — envoi immédiat, programmé ou brouillon.
+          </p>
         </div>
-        <button className="btn btn-primary" onClick={handleCreate}>
-          <Plus size={20} />
+        <button type="button" className="admin-btn-primary" onClick={() => setEditing({ id: null })}>
           Nouvelle newsletter
         </button>
       </div>
 
-      {/* Statistiques */}
       {stats && (
-        <div className="communication-stats">
-          <div className="stat-card">
-            <div className="stat-icon primary">
-              <Mail size={24} color="var(--primary-color)" />
-            </div>
-            <div className="stat-content">
-              <div className="stat-value">{stats.total}</div>
-              <div className="stat-label">Total newsletters</div>
-            </div>
+        <div className="admin-comms-stats">
+          <div className="admin-comms-stat">
+            <span className="admin-mono-label admin-comms-stat-label">Total</span>
+            <div className="admin-comms-stat-value">{stats.total}</div>
           </div>
-
-          <div className="stat-card">
-            <div className="stat-icon success">
-              <Send size={24} color="#16a34a" />
-            </div>
-            <div className="stat-content">
-              <div className="stat-value">{stats.sent}</div>
-              <div className="stat-label">Envoyées</div>
-            </div>
+          <div className="admin-comms-stat">
+            <span className="admin-mono-label admin-comms-stat-label">Envoyées</span>
+            <div className="admin-comms-stat-value admin-comms-stat-value-sent">{stats.sent}</div>
           </div>
-
-          <div className="stat-card">
-            <div className="stat-icon warning">
-              <Clock size={24} color="#ca8a04" />
-            </div>
-            <div className="stat-content">
-              <div className="stat-value">{stats.scheduled}</div>
-              <div className="stat-label">Programmées</div>
-            </div>
+          <div className="admin-comms-stat">
+            <span className="admin-mono-label admin-comms-stat-label">Programmées</span>
+            <div className="admin-comms-stat-value admin-comms-stat-value-scheduled">{stats.scheduled}</div>
           </div>
-
-          <div className="stat-card">
-            <div className="stat-icon info">
-              <Edit2 size={24} color="#4f46e5" />
-            </div>
-            <div className="stat-content">
-              <div className="stat-value">{stats.draft}</div>
-              <div className="stat-label">Brouillons</div>
-            </div>
+          <div className="admin-comms-stat">
+            <span className="admin-mono-label admin-comms-stat-label">Brouillons</span>
+            <div className="admin-comms-stat-value admin-comms-stat-value-draft">{stats.draft}</div>
           </div>
         </div>
       )}
 
-      {/* Filtres */}
-      <div className="toolbar">
-        <div className="toolbar-filters">
-          <button
-            className={`btn ${filter === 'all' ? 'btn-primary' : 'btn-secondary'}`}
-            onClick={() => setFilter('all')}
-          >
-            Toutes
-          </button>
-          <button
-            className={`btn ${filter === 'sent' ? 'btn-primary' : 'btn-secondary'}`}
-            onClick={() => setFilter('sent')}
-          >
-            Envoyées
-          </button>
-          <button
-            className={`btn ${filter === 'draft' ? 'btn-primary' : 'btn-secondary'}`}
-            onClick={() => setFilter('draft')}
-          >
-            Brouillons
-          </button>
-        </div>
-      </div>
-
-      {/* Liste des newsletters */}
       {loading ? (
-        <div className="loading-state">Chargement...</div>
+        <p className="admin-empty">Chargement…</p>
       ) : newsletters.length === 0 ? (
-        <div className="empty-state">
-          <Mail size={48} />
-          <h3>Aucune newsletter</h3>
-          <p>Commencez par créer votre première newsletter</p>
-          <button className="btn btn-primary" onClick={handleCreate}>
-            <Plus size={20} />
-            Nouvelle newsletter
-          </button>
+        <div className="admin-empty-card">
+          <p className="admin-empty-card-title">Aucune newsletter</p>
+          <p className="admin-empty-card-note">Rien n&apos;a encore été rédigé.</p>
         </div>
       ) : (
-        <div className="newsletters-list">
-          {newsletters.map((newsletter) => (
-            <div key={newsletter.id} className="newsletter-card">
-              <div className="newsletter-card-header">
-                <div className="newsletter-info">
-                  <h3>{newsletter.subject}</h3>
-                  <div className="newsletter-meta">
-                    {getTypeBadge(newsletter.type)}
-                    {getTargetBadge(newsletter.target)}
+        <div className="admin-comms-list">
+          {newsletters.map((newsletter) => {
+            const state = stateOf(newsletter);
+
+            return (
+              <article key={newsletter.id} className="admin-newsletter">
+                <div>
+                  <div className="admin-newsletter-head">
+                    <h2 className="admin-newsletter-subject">{newsletter.subject}</h2>
+                    <span className={`admin-badge ${state.tone}`}>{state.label}</span>
+                    <span className="admin-badge admin-badge-ink">
+                      {TYPE_LABELS[newsletter.type] ?? newsletter.type}
+                    </span>
+                  </div>
+
+                  <p className="admin-newsletter-preview">{previewOf(newsletter.content)}</p>
+
+                  <div className="admin-newsletter-meta">
+                    <span>{TARGET_LABELS[newsletter.target] ?? newsletter.target}</span>
+                    <span>
+                      {newsletter.sentAt
+                        ? `Envoyée le ${longDate(newsletter.sentAt)}`
+                        : newsletter.scheduledFor
+                          ? `Programmée le ${longDate(newsletter.scheduledFor)}`
+                          : `Créée le ${longDate(newsletter.createdAt)}`}
+                    </span>
                     {newsletter.sentAt && (
-                      <span className="newsletter-date">
-                        Envoyée le {formatDate(newsletter.sentAt)}
+                      <span>
+                        {newsletter.sentCount} {plural(newsletter.sentCount, 'destinataire', 'destinataires')}
+                        {newsletter.openCount > 0 && ` · ${newsletter.openCount} ${plural(newsletter.openCount, 'ouverture', 'ouvertures')}`}
                       </span>
                     )}
-                    {!newsletter.sentAt && newsletter.scheduledFor && (
-                      <span className="newsletter-date scheduled">
-                        <Clock size={14} />
-                        Programmée pour le {formatDate(newsletter.scheduledFor)}
-                      </span>
-                    )}
-                    {!newsletter.sentAt && !newsletter.scheduledFor && (
-                      <span className="newsletter-date draft">
-                        Brouillon
+                    {newsletter.author && (
+                      <span className="admin-newsletter-author">
+                        par {newsletter.author.firstName} {newsletter.author.lastName}
                       </span>
                     )}
                   </div>
                 </div>
 
-                {newsletter.sentAt && newsletter.sentCount > 0 && (
-                  <div className="newsletter-stats">
-                    <div className="stat-item">
-                      <Users size={16} />
-                      <span>{newsletter.sentCount} envois</span>
-                    </div>
-                    {newsletter.openCount > 0 && (
-                      <div className="stat-item">
-                        <Eye size={16} />
-                        <span>{Math.round((newsletter.openCount / newsletter.sentCount) * 100)}% ouverture</span>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              <div className="newsletter-card-body">
-                <p className="newsletter-preview">
-                  {newsletter.content.substring(0, 150)}...
-                </p>
-                <div className="newsletter-author">
-                  Par {newsletter.author.firstName} {newsletter.author.lastName}
+                <div className="admin-newsletter-actions">
+                  <button type="button" className="admin-btn-link" onClick={() => setEditing(newsletter)}>
+                    Ouvrir
+                  </button>
+                  <button
+                    type="button"
+                    className="admin-btn-link admin-btn-link-delete"
+                    onClick={() => handleDelete(newsletter)}
+                  >
+                    Supprimer
+                  </button>
                 </div>
-              </div>
-
-              <div className="newsletter-card-actions">
-                {!newsletter.sentAt && (
-                  <>
-                    <button
-                      className="btn btn-icon"
-                      onClick={() => handleEdit(newsletter)}
-                      title="Modifier"
-                    >
-                      <Edit2 size={18} />
-                    </button>
-                    <button
-                      className="btn btn-success"
-                      onClick={() => handleSend(newsletter.id)}
-                      title="Envoyer maintenant"
-                    >
-                      <Send size={18} />
-                      Envoyer
-                    </button>
-                    <button
-                      className="btn btn-icon btn-danger"
-                      onClick={() => handleDelete(newsletter.id)}
-                      title="Supprimer"
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </>
-                )}
-                {newsletter.sentAt && (
-                  <span className="badge badge-success">✓ Envoyée</span>
-                )}
-              </div>
-            </div>
-          ))}
+              </article>
+            );
+          })}
         </div>
       )}
 
-      {isModalOpen && (
+      {editing && (
         <NewsletterModal
-          newsletter={selectedNewsletter}
-          onClose={handleModalClose}
+          newsletter={editing.id ? editing : null}
+          onClose={closeModal}
         />
       )}
     </div>
