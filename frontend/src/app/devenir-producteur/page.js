@@ -253,18 +253,18 @@ export default function BecomeProducerPage() {
           </p>
         </div>
 
-        <dl className="producer-facts">
-          <div className="producer-fact">
-            <dt className="producer-fact-value">30 km</dt>
-            <dd className="producer-fact-label">rayon maximum autour du point de retrait</dd>
+        <dl className="facts">
+          <div className="fact">
+            <dt className="fact-value">30 km</dt>
+            <dd className="fact-label">rayon maximum autour du point de retrait</dd>
           </div>
-          <div className="producer-fact">
-            <dt className="producer-fact-value">48 h</dt>
-            <dd className="producer-fact-label">délai de réponse à une candidature</dd>
+          <div className="fact">
+            <dt className="fact-value">48 h</dt>
+            <dd className="fact-label">délai de réponse à une candidature</dd>
           </div>
-          <div className="producer-fact">
-            <dt className="producer-fact-value">1 an</dt>
-            <dd className="producer-fact-label">durée d&apos;engagement minimale, de part et d&apos;autre</dd>
+          <div className="fact">
+            <dt className="fact-value">1 an</dt>
+            <dd className="fact-label">durée d&apos;engagement minimale, de part et d&apos;autre</dd>
           </div>
         </dl>
       </section>

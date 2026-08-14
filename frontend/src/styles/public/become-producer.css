@@ -42,46 +42,6 @@
   text-wrap: pretty;
 }
 
-/* Trois chiffres, séparés par des filets, adossés au filet vertical */
-.producer-facts {
-  display: grid;
-  gap: 0;
-  border-left: var(--border-width) solid var(--border-card);
-  padding-left: 36px;
-  margin: 0;
-}
-
-.producer-fact:not(:last-child) {
-  border-bottom: var(--border-width) solid var(--border-card);
-}
-
-.producer-fact:first-child {
-  padding-bottom: 16px;
-}
-
-.producer-fact:not(:first-child):not(:last-child) {
-  padding: 16px 0;
-}
-
-.producer-fact:last-child {
-  padding-top: 16px;
-}
-
-.producer-fact-value {
-  font-family: var(--font-mono);
-  font-size: 26px;
-  font-weight: var(--font-weight-medium);
-  color: var(--brass);
-  margin-bottom: 4px;
-}
-
-.producer-fact-label {
-  font-size: 13px;
-  line-height: 1.45;
-  color: var(--text-light);
-  margin: 0;
-}
-
 /* ---------- Pourquoi nous rejoindre ---------- */
 
 .producer-why {
@@ -680,13 +640,6 @@
 
   .producer-quote-text {
     font-size: 26px;
-  }
-
-  .producer-facts {
-    border-left: none;
-    padding-left: 0;
-    border-top: var(--border-width) solid var(--border-card);
-    padding-top: 16px;
   }
 
   .producer-benefits {

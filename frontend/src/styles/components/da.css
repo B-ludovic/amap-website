@@ -2,6 +2,17 @@
    Nommage volontairement distinct pour ne croiser aucune classe existante. */
 
 /* Sur-titre en capitales monospace, posé au-dessus des titres de section */
+/* Les maquettes ne posent aucun interligne global : chaque bloc porte le sien.
+   Les pages reportées au pixel repartent donc de `normal`, sinon le 1.5 hérité
+   du body gonfle la hauteur de tout élément qui n'en déclare pas — sur-titres,
+   chiffres, badges — et décale le contenu de quelques pixels à chaque bloc. */
+.landing,
+.producer-page,
+.subscriptions-page,
+.login-page {
+  line-height: normal;
+}
+
 .eyebrow {
   font-family: var(--font-mono);
   font-size: var(--label-size);
@@ -9,7 +20,6 @@
   letter-spacing: var(--label-tracking);
   text-transform: uppercase;
   color: var(--text-light);
-  line-height: 1.5;
 }
 
 .eyebrow-on-forest {
@@ -80,8 +90,139 @@
   color: var(--surface-page);
 }
 
+
+/* Colonne de chiffres adossée à un filet vertical (hero des pages internes) */
+/* Trois chiffres, séparés par des filets, adossés au filet vertical */
+.facts {
+  display: grid;
+  gap: 0;
+  border-left: var(--border-width) solid var(--border-card);
+  padding-left: 36px;
+  margin: 0;
+}
+
+.fact:not(:last-child) {
+  border-bottom: var(--border-width) solid var(--border-card);
+}
+
+.fact:first-child {
+  padding-bottom: 16px;
+}
+
+.fact:not(:first-child):not(:last-child) {
+  padding: 16px 0;
+}
+
+.fact:last-child {
+  padding-top: 16px;
+}
+
+.fact-value {
+  font-family: var(--font-mono);
+  font-size: 26px;
+  font-weight: var(--font-weight-medium);
+  color: var(--brass);
+  margin-bottom: 4px;
+}
+
+.fact-label {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-light);
+  margin: 0;
+}
+
+/* Trois colonnes numérotées, séparées par des filets */
+.steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.steps .step {
+  margin: 0;
+}
+
+.step:nth-child(1) {
+  padding-right: 44px;
+}
+
+.step:nth-child(2) {
+  padding: 0 44px;
+  border-left: var(--border-width) solid var(--border-rule);
+}
+
+.step:nth-child(3) {
+  padding-left: 44px;
+  border-left: var(--border-width) solid var(--border-rule);
+}
+
+.step-rule {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.step-number {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: var(--font-weight-medium);
+  color: var(--terracotta);
+}
+
+.step-line {
+  flex: 1;
+  height: 1px;
+  background-color: var(--border-rule);
+}
+
+.step-title {
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-normal);
+  font-size: 22px;
+  line-height: 1.25;
+  letter-spacing: 0;
+  margin: 0 0 12px;
+}
+
+.step-text {
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+@media (max-width: 1100px) {
+  .step:nth-child(1) { padding-right: 28px; }
+  .step:nth-child(2) { padding: 0 28px; }
+  .step:nth-child(3) { padding-left: 28px; }
+}
+
 @media (max-width: 900px) {
   .section-display {
     font-size: 32px;
+  }
+
+  .facts {
+    border-left: none;
+    padding-left: 0;
+    border-top: var(--border-width) solid var(--border-card);
+    padding-top: 16px;
+  }
+
+  .steps {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .step:nth-child(1),
+  .step:nth-child(2),
+  .step:nth-child(3) {
+    padding: 0;
+    border-left: none;
   }
 }

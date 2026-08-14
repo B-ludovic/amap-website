@@ -1,556 +1,503 @@
-/* Hero */
-.subscriptions-hero {
-  background: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)), url('/placeholder/legumes-panier.webp') center/cover no-repeat;
-  color: var(--white);
-  padding: 4rem 0;
-  text-align: center;
-}
+/* Nos abonnements — report au pixel de la maquette. */
 
-.subscriptions-hero h1 {
-  font-size: 3rem;
-  margin: 0 0 1rem 0;
-  font-weight: 700;
-  color: var(--white);
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-}
-
-.subscriptions-hero .hero-subtitle {
-  font-size: 1.25rem;
-  max-width: 700px;
-  margin: 0 auto;
-  opacity: 0.95;
-  line-height: 1.6;
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.4);
-}
-
-/* Solidarity Info */
-.solidarity-info {
-  background: none;
-  padding: 2rem 0;
-}
-
-.solidarity-banner {
-  display: flex;
-  gap: 1rem;
-  align-items: flex-start;
-  padding: 1.5rem;
-  background: var(--white);
-  border-radius: 12px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-  max-width: 900px;
-  margin: 0 auto;
-  border: 2px solid rgba(255, 255, 255, 0.8);
-}
-
-.solidarity-banner svg {
-  color: #ca8a04;
-  flex-shrink: 0;
-}
-
-.solidarity-banner strong {
-  display: block;
-  font-size: 1.125rem;
-  color: var(--text-primary);
-  margin-bottom: 0.5rem;
-}
-
-.solidarity-banner p {
-  margin: 0;
-  color: var(--text-secondary);
-  line-height: 1.6;
-}
-
-/* Content */
-.subscriptions-content {
-  padding: 4rem 0;
-  background: var(--gradient-soft-banner);
-}
-
-/* Size Selector */
-.size-selector {
-  text-align: center;
-  margin-bottom: 3rem;
-}
-
-.size-selector h2 {
-  font-size: 2rem;
-  margin: 0 0 2rem 0;
+.subscriptions-page {
+  background-color: var(--surface-page);
   color: var(--text-primary);
 }
 
-.size-buttons {
+/* ---------- Hero ---------- */
+
+.subs-hero {
+  padding-top: 72px;
+  padding-bottom: 64px;
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1.5rem;
-  max-width: 800px;
-  margin: 0 auto;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 72px;
+  align-items: end;
+  border-bottom: var(--border-width) solid var(--border-section);
 }
 
-.size-button {
+.subs-hero .eyebrow {
+  margin-bottom: 18px;
+}
+
+.subs-title {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-style: italic;
+  font-size: 60px;
+  line-height: 1.04;
+  letter-spacing: -0.025em;
+  margin: 0 0 24px;
+  text-wrap: balance;
+}
+
+.subs-lede {
+  font-size: 17px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  margin: 0;
+  max-width: 32em;
+  text-wrap: pretty;
+}
+
+/* ---------- Bandeau solidaire ---------- */
+
+.subs-solidarity {
+  padding-top: 40px;
+  padding-bottom: 40px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 32px;
+  align-items: center;
+}
+
+.subs-solidarity .eyebrow {
+  white-space: nowrap;
+}
+
+.subs-solidarity-text {
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--on-forest);
+  margin: 0;
+  max-width: 60em;
+}
+
+.subs-solidarity-cta {
+  height: 44px;
+  padding: 0 20px;
+  font-size: 14.5px;
+}
+
+/* ---------- Formules ---------- */
+
+.subs-plans {
+  padding-top: 88px;
+  padding-bottom: 96px;
+}
+
+.subs-plans-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 40px;
+  margin-bottom: 40px;
+  flex-wrap: wrap;
+}
+
+.subs-plans-head .eyebrow {
+  margin-bottom: 14px;
+}
+
+.subs-plans-head .section-display {
+  font-size: 38px;
+  max-width: none;
+}
+
+/* Bascule petit / grand panier */
+.size-switch {
+  display: flex;
+  gap: 8px;
+  padding: 4px;
+  background-color: var(--surface-sand);
+  border: var(--border-width) solid var(--border-card);
+  border-radius: var(--border-radius-full);
+}
+
+.size-pill {
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  font-weight: var(--font-weight-semibold);
+  padding: 10px 20px;
+  border-radius: var(--border-radius-full);
+  background-color: transparent;
+  color: var(--text-secondary);
+  transition: background-color var(--transition-base), color var(--transition-base);
+}
+
+.size-pill:hover {
+  color: var(--text-primary);
+}
+
+.size-pill.is-active {
+  background-color: var(--terracotta);
+  color: var(--surface-page);
+}
+
+/* Récapitulatif de la sélection */
+.subs-summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 20px;
+}
+
+.subs-summary-card {
+  background-color: var(--surface-sand);
+  border: var(--border-width) solid var(--border-card);
+  border-radius: var(--border-radius-md);
+  padding: 24px 26px;
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 1.5rem;
-  background: var(--white);
-  border: 2px solid var(--border-color);
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  text-align: left;
+  gap: 20px;
 }
 
-.size-button:hover {
-  border-color: var(--primary-color);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+.subs-summary-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-light);
+  white-space: nowrap;
 }
 
-.size-button.active {
-  border-color: var(--primary-color);
-  background: var(--success-light);
+.subs-summary-name {
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-normal);
+  font-size: 22px;
+  line-height: 1.2;
 }
 
-.size-button svg {
-  color: var(--primary-color);
-  flex-shrink: 0;
-}
-
-.size-button div {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.size-button strong {
-  font-size: 1.125rem;
-  color: var(--text-primary);
-}
-
-.size-button span {
-  font-size: 0.875rem;
+.subs-summary-meta {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
   color: var(--text-secondary);
+  margin-top: 4px;
 }
 
-.size-hint {
-  font-size: 0.75rem !important;
+.subs-summary-price {
+  font-family: var(--font-mono);
+  font-weight: var(--font-weight-medium);
+  font-size: 22px;
+  line-height: 1.2;
+}
+
+.subs-summary-note {
+  font-size: 12.5px;
   color: var(--text-secondary);
-  font-style: italic;
+  margin-top: 5px;
 }
 
-/* Subscriptions Grid */
-.subscriptions-grid {
+.subs-step-two {
+  margin: 56px 0 20px;
+}
+
+/* ---------- Cartes de formule ---------- */
+
+.subs-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 2rem;
-  max-width: 1000px;
-  margin: 0 auto;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
 }
 
-/* Subscription Card */
-.subscription-card {
-  background: white;
-  border: 2px solid var(--border-color);
-  border-radius: 16px;
-  padding: 2rem;
+.plan-card {
+  position: relative;
+  background-color: var(--surface-page);
+  border: var(--border-width) solid var(--border-card);
+  border-radius: var(--border-radius-md);
+  padding: 34px 32px 32px;
   display: flex;
   flex-direction: column;
-  position: relative;
-  transition: all 0.3s ease;
 }
 
-.subscription-card:hover {
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-  transform: translateY(-4px);
+.plan-card.is-recommended {
+  border-color: var(--text-primary);
 }
 
-.subscription-card.recommended {
-  border-color: var(--primary-color);
-  border-width: 3px;
+.plan-card.is-soon {
+  opacity: 0.62;
 }
 
-.recommended-badge {
+.plan-flag {
   position: absolute;
-  top: -12px;
-  right: 20px;
-  background: var(--primary-color);
-  color: var(--white);
-  padding: 0.375rem 1rem;
-  border-radius: 50px;
-  font-size: 0.875rem;
-  font-weight: 600;
+  top: -11px;
+  left: 32px;
+  background-color: var(--badge-live-bg);
+  color: var(--badge-live-fg);
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 5px 9px;
+  border-radius: var(--border-radius-sm);
 }
 
-.coming-soon-badge {
-  position: absolute;
-  top: -12px;
-  right: 20px;
-  background: #9ca3af;
-  color: var(--white);
-  padding: 0.375rem 1rem;
-  border-radius: 50px;
-  font-size: 0.875rem;
-  font-weight: 600;
+.plan-card.is-recommended .plan-flag {
+  background-color: var(--terracotta);
+  color: var(--surface-page);
 }
 
-.subscription-card.coming-soon {
-  opacity: 0.6;
-  filter: grayscale(0.4);
-  pointer-events: none;
+.plan-card.is-soon .plan-flag {
+  background-color: var(--badge-off-bg);
+  color: var(--badge-off-fg);
 }
 
-.subscription-card.coming-soon:hover {
-  box-shadow: none;
-  transform: none;
+.plan-duration {
+  letter-spacing: 0.12em;
+  margin-bottom: 10px;
 }
 
-.btn-coming-soon {
-  width: 100%;
-  padding: 0.875rem;
-  background: #e5e7eb;
-  color: #9ca3af;
-  border: none;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 600;
+.plan-name {
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-normal);
+  font-size: 27px;
+  line-height: 1.15;
+  letter-spacing: 0;
+  margin: 0 0 26px;
+}
+
+.plan-prices {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  border-top: var(--border-width) solid var(--border-card);
+  border-bottom: var(--border-width) solid var(--border-card);
+  padding: 20px 0;
+  margin-bottom: 26px;
+}
+
+.plan-price {
+  padding-right: 20px;
+}
+
+.plan-price.is-solidarity {
+  padding-right: 0;
+  padding-left: 20px;
+  border-left: var(--border-width) solid var(--border-card);
+}
+
+.plan-price-label {
+  letter-spacing: 0.12em;
+  margin-bottom: 8px;
+}
+
+.plan-price.is-solidarity .plan-price-label {
+  color: var(--brass);
+}
+
+.plan-price-value {
+  font-family: var(--font-mono);
+  font-size: 29px;
+  font-weight: var(--font-weight-medium);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.plan-price.is-solidarity .plan-price-value {
+  color: var(--brass);
+}
+
+.plan-price-weeks {
+  font-size: 12.5px;
+  color: var(--text-light);
+  margin-top: 5px;
+}
+
+.plan-features {
+  display: grid;
+  gap: 11px;
+  margin-bottom: 30px;
+}
+
+.plan-feature {
+  display: grid;
+  grid-template-columns: 16px 1fr;
+  gap: 12px;
+  align-items: start;
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+
+.plan-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background-color: var(--leaf);
+  margin: 8px 0 0 5px;
+}
+
+.plan-cta {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 52px;
+  background-color: var(--terracotta);
+  color: var(--surface-page);
+  border: var(--border-width) solid var(--terracotta);
+  border-radius: var(--border-radius-md);
+  font-size: 15.5px;
+  font-weight: var(--font-weight-semibold);
+  transition: background-color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.plan-cta:hover {
+  background-color: var(--terracotta-dark);
+  border-color: var(--terracotta-dark);
+  color: var(--surface-page);
+}
+
+.plan-cta.is-disabled {
+  background-color: transparent;
+  color: var(--text-light);
+  border-color: var(--border-rule);
   cursor: not-allowed;
 }
 
-/* Subscription Header */
-.subscription-header {
-  margin-bottom: 1.5rem;
+/* ---------- Informations pratiques ---------- */
+
+.subs-practical {
+  padding-top: 80px;
+  padding-bottom: 84px;
 }
 
-.subscription-header h3 {
-  font-size: 1.5rem;
-  margin: 0 0 0.5rem 0;
-  color: var(--text-primary);
+.subs-practical .eyebrow {
+  margin-bottom: 14px;
 }
 
-.basket-info {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
+.subs-practical-title {
+  font-size: 38px;
+  max-width: none;
+  margin: 0 0 48px;
 }
 
-.basket-name {
-  font-weight: 600;
-  color: var(--primary-color);
+.subs-step-text {
+  margin-bottom: 14px;
 }
 
-.basket-weight {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-}
-
-/* Pricing */
-.subscription-pricing {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  padding: 1.5rem;
-  background: var(--background-color);
-  border-radius: 12px;
-  margin-bottom: 1.5rem;
-}
-
-.price-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.price-item.solidarity {
-  padding-top: 1rem;
-  border-top: 1px solid var(--border-color);
-}
-
-.price-label {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-}
-
-.price-label svg {
-  color: #ca8a04;
-}
-
-.price-value {
-  display: flex;
-  align-items: baseline;
-  gap: 0.25rem;
-}
-
-.price-amount {
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.price-duration {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-}
-
-/* Features */
-.subscription-features {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 2rem 0;
-  flex: 1;
-}
-
-.subscription-features li {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-  padding: 0.75rem 0;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.subscription-features li:last-child {
-  border-bottom: none;
-}
-
-.subscription-features svg {
-  color: var(--primary-color);
-  flex-shrink: 0;
-  margin-top: 0.125rem;
-}
-
-.subscription-features span {
-  color: var(--text-secondary);
-  line-height: 1.5;
-}
-
-/* Practical Info */
-.practical-info {
-  background: var(--background-color);
-  padding: 4rem 0;
-}
-
-.practical-info h2 {
-  text-align: center;
-  font-size: 2rem;
-  margin: 0 0 3rem 0;
-  color: var(--text-primary);
-}
-
-.info-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 2rem;
-}
-
-.info-card {
-  text-align: center;
-  padding: 2rem;
-  background: white;
-  border-radius: 12px;
-}
-
-.info-card-icon {
-  width: 56px;
-  height: 56px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-  color: var(--white);
-  border-radius: var(--border-radius-md);
-  margin: 0 auto 1rem;
-}
-
-.info-card h3 {
-  font-size: 1.25rem;
-  margin: 0 0 1rem 0;
-  color: var(--text-primary);
-}
-
-.info-card p {
-  margin: 0;
-  color: var(--text-secondary);
+.subs-address {
+  font-family: var(--font-mono);
+  font-size: 12px;
   line-height: 1.6;
+  color: var(--text-light);
+  margin: 0;
 }
 
-.info-card-address {
-  margin-top: 0.75rem;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 0.4rem;
+/* ---------- Appel à la demande ---------- */
+
+.subs-cta {
+  padding-top: 88px;
+  padding-bottom: 96px;
 }
 
-.info-card-address svg {
-  flex-shrink: 0;
-  margin-top: 3px;
-  margin-bottom: 0;
+.subs-cta-card {
+  border: var(--border-width) solid var(--border-card);
+  border-radius: var(--border-radius-md);
+  background-color: var(--surface-page);
+  padding: 56px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 48px;
+  align-items: center;
 }
 
-/* CTA */
-.subscriptions-cta {
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-  color: var(--white);
-  padding: 5rem 0;
+.subs-cta-title {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-style: italic;
+  font-size: 36px;
+  line-height: 1.12;
+  letter-spacing: var(--display-tracking);
+  margin: 0 0 14px;
 }
 
-
-.cta-card {
-  text-align: center;
-  max-width: 680px;
-  margin: 0 auto;
-  background: rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  border-radius: 24px;
-  padding: 3.5rem;
-  box-shadow:
-    0 20px 60px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.35);
-}
-
-.cta-card h2 {
-  font-size: 2rem;
-  margin: 0 0 1rem 0;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
-}
-
-.cta-card p {
-  font-size: 1.125rem;
-  margin: 0 0 2.5rem 0;
-  opacity: 0.92;
+.subs-cta-text {
+  font-size: 16px;
   line-height: 1.7;
-  color: var(--white);
+  color: var(--text-secondary);
+  margin: 0;
+  max-width: 36em;
 }
 
-.cta-card .btn {
-  background: white;
-  color: var(--primary-color);
-  border: 2px solid rgba(255, 255, 255, 0.8);
-  font-weight: 700;
-  padding: 0.875rem 2.5rem;
-  letter-spacing: 0.01em;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-  transition: all 0.25s ease;
+.subs-cta-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.cta-card .btn:hover {
-  background: transparent;
-  color: var(--white);
-  border-color: var(--white);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+.subs-cta-actions .btn {
+  padding: 0 30px;
+  justify-content: center;
 }
 
-/* RESPONSIVE */
+/* ---------- Responsive ---------- */
 
-/* Tablette et Ecrans intermédiaires (max-width: 1024px) */
-@media (max-width: 1024px) {
-  /* HÉROS */
-  .subscriptions-hero h1 {
-    font-size: 2.5rem; /* Réduction du titre */
+@media (max-width: 1000px) {
+  .subs-solidarity {
+    grid-template-columns: 1fr;
+    gap: 20px;
   }
 
-  /* BANNIÈRE SOLIDARITÉ */
-  .solidarity-banner {
-    /* La bannière reste horizontale mais l'espace est réduit */
-    padding: 1rem;
-    gap: 0.75rem;
-  }
-  
-  .solidarity-content h3 {
-      font-size: 1.1rem;
-  }
-
-  /* GRILLES D'INFORMATION */
-  /* La grille 3 colonnes passe à 2 colonnes */
-  .info-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1.5rem;
-  }
-
-  /* CTA */
-  .subscriptions-cta {
-    padding: 4rem 0;
-  }
-
-  .cta-card {
-    padding: 2.5rem;
-  }
-
-  .cta-card h2 {
-    font-size: 1.8rem;
+  .subs-solidarity-cta {
+    justify-self: start;
   }
 }
 
-/* Mobile (max-width: 768px) */
-@media (max-width: 768px) {
-  /* HÉROS */
-  .subscriptions-hero {
-    padding: 2.5rem 0;
+@media (max-width: 900px) {
+  .subs-hero {
+    grid-template-columns: 1fr;
+    gap: 40px;
+    padding-top: 56px;
+    padding-bottom: 56px;
   }
 
-  .subscriptions-hero h1 {
-    font-size: 2rem;
+  .subs-title {
+    font-size: 40px;
   }
 
-  .subscriptions-hero .hero-subtitle {
-    font-size: 1rem;
+  .subs-plans,
+  .subs-practical,
+  .subs-cta {
+    padding-top: 64px;
+    padding-bottom: 68px;
   }
 
-  /* BANNIÈRE SOLIDARITÉ (Empilement vertical) */
-  .solidarity-info {
-    padding: 1.5rem 0;
+  .subs-plans-head .section-display,
+  .subs-practical-title {
+    font-size: 32px;
   }
 
-  .solidarity-banner {
-    flex-direction: column; /* Empilement vertical */
-    text-align: center;
-    align-items: center;
-    padding: 1.5rem 1rem;
-  }
-  
-  .solidarity-icon {
-    width: 40px;
-    height: 40px;
-    font-size: 2rem;
-  }
-
-  /* GRILLES ABONNEMENTS ET INFORMATION (Empilement vertical) */
-  .subscriptions-grid {
+  .subs-summary,
+  .subs-grid {
     grid-template-columns: 1fr;
   }
 
-  .info-grid {
+  .subs-cta-card {
     grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-  
-  .info-card {
-      padding: 1.5rem;
-  }
-  
-  .info-card svg {
-      font-size: 2.5rem; /* Ajustement de la taille de l'icône */
-  }
-  
-  /* CTA (Appel à l'action) */
-  .subscriptions-cta {
-    padding: 3rem 0;
+    gap: 28px;
+    padding: 36px 32px;
   }
 
-  .cta-card {
-    padding: 2rem 1.5rem;
-    border-radius: 16px;
+  .subs-cta-actions {
+    align-items: stretch;
+  }
+}
+
+@media (max-width: 560px) {
+  .subs-plans-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 24px;
   }
 
-  .cta-card h2 {
-    font-size: 1.5rem;
+  .subs-summary-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
   }
 
-  .cta-card .btn {
-    width: 100%;
-    padding: 0.875rem 1.5rem;
+  .plan-prices {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .plan-price,
+  .plan-price.is-solidarity {
+    padding: 0;
+    border-left: none;
   }
 }

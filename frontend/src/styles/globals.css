@@ -85,7 +85,8 @@ body {
    conserver décollerait le footer du contenu sur les très grands viewports. */
 .main-content:has(.landing),
 .main-content:has(.login-page),
-.main-content:has(.producer-page) {
+.main-content:has(.producer-page),
+.main-content:has(.subscriptions-page) {
   padding: 0;
   min-height: 0;
 }
