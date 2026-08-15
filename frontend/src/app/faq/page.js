@@ -3,7 +3,6 @@
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { spellNumber } from '../../constants/numberWords';
-import JsonLd from '../../components/JsonLd';
 import '../../styles/public/faq.css';
 
 const FAQ_CATEGORIES = [
@@ -140,28 +139,11 @@ export default function FaqPage() {
      répondu, le cacher derrière un clic n'aurait pas de sens. */
   const isOpen = (key) => Boolean(search) || Boolean(openItems[key]);
 
-  const faqSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: FAQ_CATEGORIES.flatMap(category =>
-      category.items.map(item => ({
-        '@type': 'Question',
-        name: item.question,
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: item.answer
-        }
-      }))
-    )
-  };
-
   /* « Dix réponses » suit le nombre de questions réellement présentes. */
   const countInWords = spellNumber(TOTAL_QUESTIONS, { feminine: true });
 
   return (
     <div className="faq-page">
-      <JsonLd data={faqSchema} />
-
       {/* Hero */}
       <section className="faq-hero">
         <div className="eyebrow">Questions fréquentes</div>
