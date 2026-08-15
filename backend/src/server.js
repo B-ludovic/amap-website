@@ -1,6 +1,7 @@
-// Charge les variables d'environnement EN PREMIER
-import dotenv from 'dotenv';
-dotenv.config();
+// Charge et contrôle les variables d'environnement EN PREMIER.
+// Cet import doit rester en tête : il garantit que process.env est complet
+// avant l'évaluation de tous les modules déclarés en dessous.
+import './config/env.js';
 
 import express from 'express';
 import cors from 'cors';
