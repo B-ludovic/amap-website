@@ -1,25 +1,17 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import api from "../../../lib/api";
-import logger from "../../../lib/logger";
-import { longDate } from "../../../lib/format";
-import { useModal } from "../../../contexts/ModalContext";
-import PickupNoteModal from "../../../components/admin/PickupNoteModal";
-import "../../../styles/admin/components.css";
-import "../../../styles/admin/dashboard.css";
-import "../../../styles/admin/layout.css";
-import "../../../styles/admin/distribution.css";
-import {
-    CheckCircle,
-    Circle,
-    Users,
-    Calendar,
-    Download,
-    Search,
-    User,
-    AlertCircle
-} from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import api from '../../../lib/api';
+import logger from '../../../lib/logger';
+import { longDate, phone, plural, time } from '../../../lib/format';
+import { filterMembers } from '../../../lib/memberSearch';
+import { useModal } from '../../../contexts/ModalContext';
+import PickupNoteModal from '../../../components/admin/PickupNoteModal';
+import '../../../styles/admin/distribution-da.css';
+
+function capitalize(text) {
+  return text ? text.charAt(0).toUpperCase() + text.slice(1) : text;
+}
 
 export default function AdminDistributionPage() {
   const [currentBasket, setCurrentBasket] = useState(null);
@@ -32,22 +24,13 @@ export default function AdminDistributionPage() {
   const [noteTarget, setNoteTarget] = useState(null);
 
   const { showError } = useModal();
-  const debounceRef = useRef(null);
 
-  useEffect(() => {
-    fetchCurrentBasket();
-  }, []);
-
-  const fetchCurrentBasket = async () => {
+  const fetchCurrentBasket = useCallback(async () => {
     setLoading(true);
     setBasketError(null);
     try {
       const response = await api.weeklyBaskets.getCurrent();
-      if (response.data) {
-        setCurrentBasket(response.data);
-      } else {
-        setCurrentBasket(null);
-      }
+      setCurrentBasket(response.data ?? null);
     } catch (error) {
       logger.error('Erreur:', error);
       setCurrentBasket(null);
@@ -55,21 +38,28 @@ export default function AdminDistributionPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const fetchDistributionList = useCallback(async (term) => {
+  useEffect(() => {
+    fetchCurrentBasket();
+  }, [fetchCurrentBasket]);
+
+  /* Un seul chargement, au montage puis à chaque changement de panier : la
+     liste complète des abonnés actifs de la semaine. Le serveur ne filtre plus
+     rien, il n'y a donc qu'une seule vérité — et les compteurs qu'il renvoie
+     portent toujours sur l'ensemble, quoi qu'affiche la recherche. */
+  const fetchDistributionList = useCallback(async () => {
     if (!currentBasket) return;
 
     setListLoading(true);
     try {
-      const params = term ? { search: term } : {};
-      const response = await api.distribution.getList(currentBasket.id, params);
+      const response = await api.distribution.getList(currentBasket.id);
 
       setDistributionList(response.data.list);
       setStats({
         totalSubscribers: response.data.totalSubscribers,
         pickedUp: response.data.pickedUp,
-        pending: response.data.pending
+        pending: response.data.pending,
       });
     } catch (error) {
       showError('Erreur', error.message);
@@ -78,17 +68,19 @@ export default function AdminDistributionPage() {
     }
   }, [currentBasket, showError]);
 
-  /* La recherche part vers le serveur après une pause de frappe : le filtrage
-     est fait par l'API, un appel par caractère saturerait la liste et les
-     réponses pourraient revenir dans le désordre. */
   useEffect(() => {
-    clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => {
-      fetchDistributionList(searchTerm);
-    }, searchTerm ? 300 : 0);
+    fetchDistributionList();
+  }, [fetchDistributionList]);
 
-    return () => clearTimeout(debounceRef.current);
-  }, [searchTerm, fetchDistributionList]);
+  /* Filtrage dans le navigateur : la liste entière y est déjà, la réponse est
+     donc immédiate à chaque touche, sans aller-retour réseau ni pause de
+     frappe. C'est ce qui compte le mercredi soir, quand la file avance et que
+     le wifi de la salle est ce qu'il est. La règle de comparaison elle-même vit
+     dans lib/memberSearch.js : c'est du métier, pas de la présentation. */
+  const visibleList = useMemo(
+    () => filterMembers(distributionList, searchTerm),
+    [distributionList, searchTerm]
+  );
 
   // Remplace le retrait d'une seule ligne, sans toucher au reste de la liste.
   const patchRow = (subscriptionId, pickup) => {
@@ -109,8 +101,8 @@ export default function AdminDistributionPage() {
      réseau. On ne recharge pas la liste — le serveur renvoie le retrait
      enregistré, qu'on fond dans la ligne pour récupérer son identifiant (cas
      d'une première coche) et l'heure de retrait dont l'export a besoin.
-     Pas de modale de succès : la ligne qui passe au vert et le compteur qui
-     avance sont déjà l'accusé de réception. */
+     Pas de modale de succès : la bande qui verdit et le compteur qui avance
+     sont déjà l'accusé de réception. */
   const handleTogglePickup = async (item) => {
     const newStatus = !item.pickup?.wasPickedUp;
 
@@ -121,12 +113,12 @@ export default function AdminDistributionPage() {
       const response = item.pickup
         ? await api.distribution.markAsPickedUp(item.pickup.id, {
             wasPickedUp: newStatus,
-            weeklyBasketId: currentBasket.id
+            weeklyBasketId: currentBasket.id,
           })
         : await api.distribution.markAsPickedUp('new', {
             subscriptionId: item.subscriptionId,
             weeklyBasketId: currentBasket.id,
-            wasPickedUp: newStatus
+            wasPickedUp: newStatus,
           });
 
       if (response.data) patchRow(item.subscriptionId, response.data);
@@ -147,8 +139,7 @@ export default function AdminDistributionPage() {
      d'importance : c'est la seule voie journalisée, et un export emporte les
      noms, emails et téléphones des adhérents ; le serveur relit tous les
      abonnements actifs, là où cette page ne détient que la liste filtrée par la
-     recherche en cours — exporter en cours de frappe rendait une feuille
-     amputée sans le dire ; et la taille du panier y est lue au bon endroit. */
+     recherche en cours ; et la taille du panier y est lue au bon endroit. */
   const handleExport = async () => {
     try {
       await api.distribution.export(currentBasket.id);
@@ -157,233 +148,165 @@ export default function AdminDistributionPage() {
     }
   };
 
-  const getBasketSizeLabel = (size) => {
-    return size === 'SMALL' ? 'Petit panier' : 'Grand panier';
-  };
+  const basketLabel = (size) => (size === 'SMALL' ? 'Petit panier' : 'Grand panier');
 
   if (loading) {
-    return <div className="admin-loading">Chargement...</div>;
+    return <p className="admin-empty">Chargement…</p>;
   }
 
   if (basketError) {
     return (
-      <div className="admin-page">
-        <div className="admin-error">
-          <AlertCircle size={48} />
-          <p>{basketError}</p>
-          <button type="button" className="admin-btn-ghost" onClick={fetchCurrentBasket}>
-            Réessayer
-          </button>
-        </div>
+      <div className="admin-empty-card">
+        <p className="admin-empty-card-title">Distribution indisponible</p>
+        <p className="admin-empty-card-note">{basketError}</p>
+        <button type="button" className="admin-btn-ghost" onClick={fetchCurrentBasket}>
+          Réessayer
+        </button>
       </div>
     );
   }
 
   if (!currentBasket) {
     return (
-      <div className="admin-page">
-        <div className="empty-state">
-          <Calendar size={48} />
-          <h3>Aucune distribution en cours</h3>
-          <p>Publiez un panier hebdomadaire pour commencer</p>
-        </div>
+      <div className="admin-empty-card">
+        <p className="admin-empty-card-title">Aucune distribution en cours</p>
+        <p className="admin-empty-card-note">Publiez un panier hebdomadaire pour ouvrir l’émargement.</p>
       </div>
     );
   }
 
+  const rate = stats && stats.totalSubscribers > 0
+    ? Math.round((stats.pickedUp / stats.totalSubscribers) * 100)
+    : 0;
+
   return (
-    <div className="admin-page">
-      <div className="page-header">
+    <div className="admin-distribution">
+      <div className="admin-page-head">
         <div>
-          <h1>Distribution - Émargement</h1>
-          <p className="page-subtitle">
-            {longDate(currentBasket.distributionDate)} • Semaine {currentBasket.weekNumber}
+          <h1 className="admin-title">Distribution</h1>
+          <p className="admin-title-lead">
+            Émargement du {capitalize(longDate(currentBasket.distributionDate))} — semaine {currentBasket.weekNumber}.
+            Chaque panier remis est enregistré aussitôt coché.
           </p>
         </div>
-        <button className="admin-btn-ghost" onClick={handleExport}>
-          <Download size={20} />
+        <button type="button" className="admin-btn-ghost" onClick={handleExport}>
           Exporter la liste
         </button>
       </div>
 
-      {/* Statistiques */}
       {stats && (
-        <div className="stats-grid">
-          <div className="stat-card">
-            <div className="stat-icon primary">
-              <Users size={24} color="var(--primary-color)" />
-            </div>
-            <div className="stat-content">
-              <div className="stat-value">{stats.totalSubscribers}</div>
-              <div className="stat-label">Abonnés attendus</div>
-            </div>
+        <div className="admin-distribution-progress">
+          <div className="admin-distribution-track">
+            <div className="admin-distribution-fill" style={{ width: `${rate}%` }} />
           </div>
-
-          <div className="stat-card">
-            <div className="stat-icon success">
-              <CheckCircle size={24} color="#16a34a" />
-            </div>
-            <div className="stat-content">
-              <div className="stat-value">{stats.pickedUp}</div>
-              <div className="stat-label">Paniers récupérés</div>
-            </div>
-          </div>
-
-          <div className="stat-card">
-            <div className="stat-icon warning">
-              <Circle size={24} color="#ca8a04" />
-            </div>
-            <div className="stat-content">
-              <div className="stat-value">{stats.pending}</div>
-              <div className="stat-label">En attente</div>
-            </div>
-          </div>
-
-          <div className="stat-card">
-            <div className="stat-icon info">
-              <CheckCircle size={24} color="#4f46e5" />
-            </div>
-            <div className="stat-content">
-              <div className="stat-value">
-                {stats.totalSubscribers > 0 
-                  ? Math.round((stats.pickedUp / stats.totalSubscribers) * 100) 
-                  : 0}%
-              </div>
-              <div className="stat-label">Taux de retrait</div>
-            </div>
-          </div>
+          <p className="admin-distribution-rate">{rate}&nbsp;%</p>
+          <p className="admin-distribution-legend">
+            <strong>{stats.pickedUp}</strong> {plural(stats.pickedUp, 'panier remis', 'paniers remis')}
+            {' · '}
+            <strong>{stats.pending}</strong> en attente
+            {' · '}
+            <strong>{stats.totalSubscribers}</strong> {plural(stats.totalSubscribers, 'adhérent attendu', 'adhérents attendus')}
+          </p>
         </div>
       )}
 
-      {/* Barre de recherche */}
-      <div className="toolbar">
-        <div className="search-bar">
-          <label htmlFor="search-distribution" className="sr-only">Rechercher un adhérent</label>
-          <Search size={20} aria-hidden="true" />
-          <input
-            id="search-distribution"
-            type="text"
-            placeholder="Rechercher un adhérent..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
+      <div className="admin-toolbar-da">
+        <label htmlFor="search-distribution" className="sr-only">Rechercher un adhérent</label>
+        <input
+          id="search-distribution"
+          type="search"
+          className="admin-search-field"
+          placeholder="Nom, n° d’abonnement, email, téléphone…"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          autoComplete="off"
+        />
+        {/* Le décompte change sans que le focus quitte le champ : sans role
+            status, un lecteur d’écran ne l’annoncerait jamais. */}
+        <span className="admin-toolbar-count" role="status" aria-live="polite">
+          {searchTerm
+            ? `${visibleList.length} sur ${distributionList.length}`
+            : `${distributionList.length} ${plural(distributionList.length, 'adhérent', 'adhérents')}`}
+        </span>
       </div>
 
-      {/* Liste d'émargement */}
       {listLoading ? (
-        <div className="loading-state">Chargement...</div>
+        <p className="admin-empty">Chargement…</p>
       ) : distributionList.length === 0 ? (
-        <div className="empty-state">
-          <Users size={48} />
-          <h3>Aucun abonné trouvé</h3>
-          <p>Aucun abonnement actif pour cette semaine</p>
+        <div className="admin-empty-card">
+          <p className="admin-empty-card-title">Aucun adhérent attendu</p>
+          <p className="admin-empty-card-note">
+            Aucun abonnement actif ne couvre cette date de distribution.
+          </p>
+        </div>
+      ) : visibleList.length === 0 ? (
+        /* Distinct du cas ci-dessus : « personne cette semaine » et « personne
+           qui corresponde à ma frappe » n’appellent pas la même réaction. */
+        <div className="admin-empty-card">
+          <p className="admin-empty-card-title">Aucun résultat</p>
+          <p className="admin-empty-card-note">Personne ne correspond à «&nbsp;{searchTerm}&nbsp;».</p>
+          <button type="button" className="admin-btn-ghost" onClick={() => setSearchTerm('')}>
+            Effacer la recherche
+          </button>
         </div>
       ) : (
-        <div className="distribution-table-container admin-table-container--cards">
-          <table className="distribution-table">
-            <thead>
-              <tr>
-                <th scope="col">Statut</th>
-                <th scope="col">Adhérent</th>
-                <th scope="col">Panier</th>
-                <th scope="col">Contact</th>
-                <th scope="col">Notes</th>
-                <th scope="col">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {distributionList.map((item) => {
-                const isPickedUp = item.pickup?.wasPickedUp || false;
+        <div className="admin-distribution-list">
+          {visibleList.map((item) => {
+            const done = item.pickup?.wasPickedUp || false;
+            const fullName = `${item.user.firstName} ${item.user.lastName}`;
 
-                return (
-                  <tr
-                    key={item.subscriptionId}
-                    className={isPickedUp ? 'row-picked-up' : 'row-pending'}
+            return (
+              <article
+                key={item.subscriptionId}
+                className={`admin-row-card admin-pickup ${done ? 'admin-pickup-done' : ''}`}
+              >
+                {/* aria-pressed plutôt qu'un simple bouton : l'état coché doit
+                    être lisible par un lecteur d'écran, pas seulement par la
+                    couleur de la bande. */}
+                <button
+                  type="button"
+                  className={`admin-pickup-toggle ${done ? 'admin-pickup-toggle-done' : ''}`}
+                  onClick={() => handleTogglePickup(item)}
+                  aria-pressed={done}
+                  aria-label={done
+                    ? `Annuler le retrait du panier de ${fullName}`
+                    : `Marquer le panier de ${fullName} comme remis`}
+                >
+                  {/* La coche est dessinée par le CSS ; le bouton reste vide,
+                      son sens est porté par aria-pressed et aria-label. */}
+                </button>
+
+                <div>
+                  <p className="admin-pickup-name">{fullName}</p>
+
+                  <div className="admin-pickup-meta">
+                    <span className={`admin-badge ${item.basketSize === 'SMALL' ? 'admin-badge-brown' : 'admin-badge-green'}`}>
+                      {basketLabel(item.basketSize)}
+                    </span>
+                    <span>{item.subscriptionNumber}</span>
+                    {item.user.phone && <span>{phone(item.user.phone)}</span>}
+                    {done && item.pickup?.pickedUpAt && (
+                      <span>Remis à {time(item.pickup.pickedUpAt)}</span>
+                    )}
+                  </div>
+
+                  {item.pickup?.notes && (
+                    <p className="admin-pickup-note">{item.pickup.notes}</p>
+                  )}
+                </div>
+
+                <div className="admin-pickup-actions">
+                  <button
+                    type="button"
+                    className="admin-btn-ghost"
+                    onClick={() => setNoteTarget(item)}
                   >
-                    <td data-label="Statut">
-                      <button
-                        className={`status-toggle ${isPickedUp ? 'status-picked' : 'status-pending'}`}
-                        onClick={() => handleTogglePickup(item)}
-                        title={isPickedUp ? 'Marquer comme non récupéré' : 'Marquer comme récupéré'}
-                      >
-                        {isPickedUp ? (
-                          <CheckCircle size={24} />
-                        ) : (
-                          <Circle size={24} />
-                        )}
-                      </button>
-                    </td>
-
-                    <td data-label="Adhérent">
-                      <div className="subscriber-info">
-                        <div className="subscriber-name">
-                          {item.user.firstName} {item.user.lastName}
-                        </div>
-                        <div className="subscriber-id">
-                          #{item.subscriptionNumber}
-                        </div>
-                      </div>
-                    </td>
-
-                    <td data-label="Panier">
-                      <span className={`basket-badge basket-${item.basketSize.toLowerCase()}`}>
-                        {getBasketSizeLabel(item.basketSize)}
-                      </span>
-                    </td>
-
-                    <td data-label="Contact">
-                      <div className="contact-info">
-                        <div className="contact-email">{item.user.email}</div>
-                        {item.user.phone && (
-                          <div className="contact-phone">{item.user.phone}</div>
-                        )}
-                      </div>
-                    </td>
-
-                    <td data-label="Notes">
-                      {item.pickup?.notes ? (
-                        <div className="pickup-notes">
-                          <span>{item.pickup.notes}</span>
-                        </div>
-                      ) : (
-                        <span className="no-notes">-</span>
-                      )}
-                    </td>
-
-                    <td data-label="Actions">
-                      <button
-                        className="btn btn-sm btn-secondary"
-                        onClick={() => setNoteTarget(item)}
-                        title={item.pickup?.notes ? 'Modifier la note' : 'Ajouter une note'}
-                      >
-                        Note
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {/* Récapitulatif */}
-      {stats && stats.totalSubscribers > 0 && (
-        <div className="distribution-summary">
-          <div className="summary-progress">
-            <div className="progress-bar">
-              <div
-                className="progress-fill"
-                style={{
-                  width: `${(stats.pickedUp / stats.totalSubscribers) * 100}%`
-                }}
-              />
-            </div>
-            <div className="progress-label">
-              {stats.pickedUp} / {stats.totalSubscribers} paniers distribués
-            </div>
-          </div>
+                    {item.pickup?.notes ? 'Modifier la note' : 'Ajouter une note'}
+                  </button>
+                </div>
+              </article>
+            );
+          })}
         </div>
       )}
 

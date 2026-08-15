@@ -48,25 +48,23 @@ async function fetchDistributionData(weeklyBasketId) {
   return { weeklyBasket, activeSubscriptions };
 }
 
-// LISTE D'ÉMARGEMENT
+/* LISTE D'ÉMARGEMENT
+
+   Plus de filtre de recherche ici : l'écran d'émargement charge la liste une
+   fois et filtre dans le navigateur, ce qui répond à la touche sans aller-retour
+   réseau — précieux un mercredi soir, la file qui avance et le wifi de la salle
+   qui faiblit.
+
+   Le filtre serveur faussait de surcroît les compteurs plus bas, calculés sur la
+   liste retournée : rechercher un adhérent faisait afficher « 1 abonné attendu,
+   0 % de retrait » au tableau de bord. La réponse porte désormais toujours sur
+   la semaine entière, et il n'y a plus qu'une seule vérité à lire. */
 const getDistributionList = asyncHandler(async (req, res) => {
   const { weeklyBasketId } = req.params;
-  const { search } = req.query;
 
   const { weeklyBasket, activeSubscriptions } = await fetchDistributionData(weeklyBasketId);
 
-  let filteredList = activeSubscriptions;
-
-  if (search) {
-    const searchLower = search.toLowerCase();
-    filteredList = activeSubscriptions.filter(sub =>
-      sub.user.firstName.toLowerCase().includes(searchLower) ||
-      sub.user.lastName.toLowerCase().includes(searchLower) ||
-      sub.user.email.toLowerCase().includes(searchLower)
-    );
-  }
-
-  const distributionList = filteredList.map(sub => {
+  const distributionList = activeSubscriptions.map(sub => {
     const pickup = sub.pickups[0] || null;
     return {
       subscriptionId: sub.id,
