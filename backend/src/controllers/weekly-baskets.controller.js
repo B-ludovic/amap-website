@@ -8,6 +8,7 @@ import {
 import {
   HttpNotFoundError,
   HttpBadRequestError,
+  HttpConflictError,
   httpStatusCodes
 } from '../utils/httpErrors.js';
 import { logAudit } from '../services/audit.service.js';
