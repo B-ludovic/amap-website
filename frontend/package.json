@@ -11,8 +11,6 @@
     "postinstall": "node scripts/copy-orejime.js"
   },
   "dependencies": {
-    "@stripe/react-stripe-js": "^5.4.1",
-    "@stripe/stripe-js": "^8.5.3",
     "@tiptap/extension-placeholder": "^3.20.1",
     "@tiptap/pm": "^3.20.1",
     "@tiptap/react": "^3.20.1",

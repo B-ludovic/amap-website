@@ -14,6 +14,31 @@ import { normalizeFirstName, normalizeLastName, normalizeTitleCase, normalizeEma
 import { PasswordSchema, RegisterSchema } from '../utils/validation.schemas.js';
 import { logAudit } from '../services/audit.service.js';
 
+/* Coût du hachage des mots de passe.
+
+   Le coût est un exposant : chaque unité double le travail. Passer de 10 à 12
+   quadruple donc le temps qu'il faut pour essayer un mot de passe, ce qui est
+   exactement le but — c'est ce qui sépare un fichier de mots de passe volé d'une
+   liste de mots de passe en clair.
+
+   Mesuré sur cette base de code, avec bcryptjs qui est du JavaScript pur : un
+   hachage passe de 58 à 197 ms. Le vrai coût n'est pas là, il est dans la boucle
+   d'événements — cinq connexions simultanées retardent les autres requêtes de
+   245 ms au coût 10, de 495 ms au coût 12. La version asynchrone de bcryptjs
+   découpe son travail en tranches, mais elle ne le sort pas du processus.
+
+   Le compromis reste bon pour une AMAP : cinq personnes qui se connectent dans
+   la même seconde est un pic rare pour une centaine d'adhérents, et le limiteur
+   d'authentification plafonne déjà les tentatives à dix par quart d'heure. Si un
+   jour cela pèse, la réponse n'est pas de redescendre le coût mais de passer au
+   paquet bcrypt natif, qui travaille dans le pool de threads de libuv et rend la
+   boucle libre pendant le calcul.
+
+   Les mots de passe déjà en base ne bougent pas : bcrypt inscrit le coût dans le
+   hachage lui-même ($2a$10$...), donc les anciens restent vérifiables et se
+   voient rehaussés au prochain changement de mot de passe. */
+const BCRYPT_COST = 12;
+
 // Token JWT
 const generateToken = (userId, tokenVersion) => {
     return jwt.sign({ id: userId, tokenVersion }, process.env.JWT_SECRET, {
@@ -132,7 +157,7 @@ const register = asyncHandler(async (req, res) => {
     }
 
     // Hasher le mot de passe
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, BCRYPT_COST);
 
     // Générer un token de vérification email
     const emailVerifyToken = crypto.randomBytes(32).toString('hex');
@@ -412,7 +437,7 @@ const resetPassword = asyncHandler(async (req, res) => {
     }
 
     // Hasher le nouveau mot de passe
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, BCRYPT_COST);
 
     // Mettre à jour le mot de passe, supprimer le token
     // et révoquer les sessions ouvertes (tokenVersion) : le nouveau mot de passe
