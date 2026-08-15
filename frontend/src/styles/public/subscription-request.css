@@ -1,628 +1,193 @@
-/* DEMANDE D'ABONNEMENT - CSS */
+/* Demande d'abonnement — vue absente de la maquette, composée dans le
+   vocabulaire de components/da.css sur le registre de la page de connexion :
+   sur-titre monospace, titre Fraunces italique, filets fins plutôt qu'encadrés,
+   un seul accent terracotta, aucune icône.
 
-/* LAYOUT PRINCIPAL */
+   La version précédente appartenait à la génération antérieure du site : titres
+   à icônes lucide, sections en cartes blanches arrondies, et un panneau
+   d'informations vert bordé de terracotta qui faisait cohabiter deux accents sur
+   la même page. */
 
-.subscription-request-page {
-  min-height: calc(100vh - 200px);
-  padding: var(--spacing-3xl) 0;
-  background: var(--background-color);
+.subrequest-page {
+  padding: 72px 0 96px;
+  background-color: var(--surface-page);
 }
 
-.subscription-request-page .container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 var(--spacing-lg);
+/* EN-TÊTE
+   Aligné à gauche comme sur la connexion, et non centré : l'œil qui va lire un
+   formulaire en colonne commence déjà au bord gauche, le titre l'y attend. */
+
+.subrequest-head {
+  max-width: 620px;
+  margin-bottom: 48px;
 }
 
-/* EN-TÊTE */
-
-.page-header {
-  text-align: center;
-  margin-bottom: var(--spacing-3xl);
-}
-
-.page-header h1 {
-  font-size: var(--font-size-3xl);
-  font-weight: var(--font-weight-bold);
+.subrequest-title {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-style: italic;
+  font-size: 46px;
+  line-height: 1.05;
+  letter-spacing: -0.025em;
   color: var(--text-primary);
-  margin: 0 0 var(--spacing-md) 0;
+  margin: 0 0 16px;
 }
 
-.page-subtitle {
-  font-size: var(--font-size-lg);
+.subrequest-lede {
+  font-size: 16px;
+  line-height: 1.7;
   color: var(--text-secondary);
-  max-width: 700px;
-  margin: 0 auto;
-  line-height: var(--line-height-relaxed);
-}
-
-/* LAYOUT À 2 COLONNES */
-
-.request-layout {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: var(--spacing-2xl);
-  align-items: flex-start;
-  max-width: 1400px;
-  margin: 0 auto;
-}
-
-/* FORMULAIRE */
-
-.request-form-container {
-  background: var(--white);
-  border-radius: var(--border-radius-lg);
-  padding: var(--spacing-xl);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  border: 1px solid #e5e5e5;
-}
-
-.request-form {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xl);
-}
-
-/* SECTIONS DU FORMULAIRE */
-
-.form-section {
-  padding: var(--spacing-xl);
-  background: #fafafa;
-  border-radius: var(--border-radius-md);
-  margin-bottom: var(--spacing-xl);
-}
-
-.form-section:last-of-type {
-  margin-bottom: 0;
-}
-
-.form-section h2 {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-semibold);
-  color: var(--text-primary);
-  margin: 0 0 var(--spacing-lg) 0;
-}
-
-.form-section h2 svg {
-  color: var(--primary-color);
-  flex-shrink: 0;
-}
-
-/* Section informations user */
-.user-info-section {
-  background: #e8f5e9;
-  border: 1px solid var(--primary-color);
-}
-
-.user-info-display {
-  padding: var(--spacing-md);
-  background: var(--white);
-  border-radius: var(--border-radius-sm);
-  margin-bottom: var(--spacing-md);
-}
-
-.user-info-display p {
-  margin: var(--spacing-xs) 0;
-  color: var(--text-primary);
-  font-size: var(--font-size-base);
-}
-
-.user-info-display a {
-  color: var(--primary-color);
-  text-decoration: underline;
-}
-
-/* CHAMPS DE FORMULAIRE */
-
-.form-group {
-  margin-bottom: var(--spacing-lg);
-}
-
-.form-group:last-child {
-  margin-bottom: 0;
-}
-
-.form-group label {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-  color: var(--text-primary);
-  margin-bottom: var(--spacing-sm);
-}
-
-.form-group label svg {
-  color: var(--text-secondary);
-}
-
-.subscription-request-page input,
-.subscription-request-page select,
-.subscription-request-page textarea {
-  width: 100%;
-  padding: var(--spacing-sm) var(--spacing-md);
-  font-size: var(--font-size-base);
-  color: var(--text-primary);
-  background-color: var(--white);
-  border: 1px solid #ddd;
-  border-radius: var(--border-radius-md);
-  transition: all var(--transition-fast);
-  font-family: inherit;
-}
-
-.subscription-request-page input {
-  height: 48px;
-}
-
-.subscription-request-page select {
-  height: 48px;
-  cursor: pointer;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right var(--spacing-sm) center;
-  padding-right: var(--spacing-xl);
-}
-
-.subscription-request-page textarea {
-  min-height: 120px;
-  resize: vertical;
-  line-height: 1.5;
-}
-
-.subscription-request-page input:focus,
-.subscription-request-page select:focus,
-.subscription-request-page textarea:focus {
-  outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(107, 157, 90, 0.1);
-}
-
-.subscription-request-page input::placeholder,
-.subscription-request-page textarea::placeholder {
-  color: #999;
-}
-
-/* Validation des champs */
-
-.subscription-request-page input.input-error,
-.subscription-request-page select.input-error,
-.subscription-request-page textarea.input-error {
-  border-color: var(--error-color);
-}
-
-.error-message {
-  display: block;
-  margin-top: var(--spacing-xs);
-  font-size: var(--font-size-sm);
-  color: var(--error-color);
-}
-
-/* Row pour 2 champs côte à côte */
-
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--spacing-md);
-}
-
-/* Texte d'aide */
-
-.form-hint {
-  display: block;
-  margin-top: var(--spacing-xs);
-  font-size: var(--font-size-sm);
-  color: var(--text-secondary);
-  line-height: 1.5;
-}
-
-/* ACTIONS DU FORMULAIRE */
-
-.form-actions {
-  margin-top: var(--spacing-lg);
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
-}
-
-.btn-block {
-  width: 100%;
-  justify-content: center;
-}
-
-.form-notice {
-  font-size: var(--font-size-sm);
-  color: var(--text-secondary);
-  text-align: center;
   margin: 0;
-  line-height: 1.5;
+  text-wrap: pretty;
 }
 
-/* RÉCAPITULATIF SIDEBAR */
+/* DEUX COLONNES
+   Le formulaire tient la colonne large, le récapitulatif suit en colonne
+   étroite et reste visible pendant la saisie : c'est lui qui répond à la seule
+   question que se pose l'adhérent en remplissant, « combien ça me coûte ». */
 
-.request-summary {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-lg);
+.subrequest-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 56px;
+  align-items: start;
+}
+
+.subrequest-side {
+  display: grid;
+  gap: 20px;
   position: sticky;
-  top: calc(80px + var(--spacing-lg));
+  top: 24px;
 }
 
-/* Card récapitulatif */
+/* SECTIONS DE FORMULAIRE
+   Un filet et un sur-titre suffisent à séparer deux groupes de champs. La
+   version précédente enfermait chaque groupe dans une carte à fond gris, ce qui
+   ajoutait trois bordures là où une ligne fait le même travail. */
 
-.summary-card {
-  background: linear-gradient(135deg, #f8fdf6, #ffffff);
-  border-radius: var(--border-radius-lg);
-  padding: var(--spacing-xl);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  border: 2px solid var(--primary-color);
-  display: flex;
-  flex-direction: column;
+.subrequest-section + .subrequest-section {
+  margin-top: 40px;
+  padding-top: 36px;
+  border-top: var(--border-width) solid var(--border-card);
 }
 
-.summary-card h3 {
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-bold);
+/* Titre de section en capitales monospace, comme les légendes de « Devenir
+   producteur » : c'est un repère de lecture, pas un niveau de titre à mettre en
+   avant. La balise reste un h2 — la hiérarchie du document ne se règle pas à
+   l'apparence. */
+.subrequest-section > .eyebrow {
+  margin-bottom: 22px;
+}
+
+.subrequest-fields {
+  display: grid;
+  gap: 22px;
+}
+
+/* VOS INFORMATIONS
+   Les données du compte sont en lecture seule : une liste intitulé/valeur, pas
+   un encadré de couleur. Rien n'y est actionnable, rien ne doit donc attirer
+   l'œil davantage que les champs qui, eux, attendent une réponse. */
+
+.subrequest-identity {
+  --split-pad: 12px;
+}
+
+.subrequest-identity .split-value {
   color: var(--text-primary);
-  margin: 0 0 var(--spacing-md) 0;
-  padding-bottom: var(--spacing-sm);
-  border-bottom: 2px solid var(--primary-color);
 }
 
-.summary-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  padding: var(--spacing-sm) 0;
-  gap: var(--spacing-md);
-  width: 100%;
+/* Grille, comme la zone d'envoi de « Devenir producteur » : c'est elle qui
+   étire le bouton sur toute la colonne. En bloc simple, .form-submit reste à la
+   largeur de son texte et le déborde, faute de largeur déclarée sur la
+   primitive elle-même. */
+.subrequest-submit-zone {
+  display: grid;
+  gap: 14px;
+  margin-top: 40px;
+  padding-top: 32px;
+  border-top: var(--border-width) solid var(--border-card);
 }
 
-.summary-label {
-  font-size: var(--font-size-sm);
-  color: var(--text-secondary);
+.subrequest-identity-note {
+  margin-top: 14px;
+}
+
+.subrequest-done-steps {
+  margin-top: 36px;
+}
+
+/* RÉCAPITULATIF */
+
+.subrequest-price-row {
+  --split-label-size: 15px;
+  --split-value-size: 17px;
+}
+
+.subrequest-price-row .split-value {
+  color: var(--terracotta);
   font-weight: var(--font-weight-medium);
 }
 
-.summary-value {
-  font-size: var(--font-size-base);
-  color: var(--text-primary);
-  font-weight: var(--font-weight-semibold);
-  text-align: right;
+/* Le détail de l'échelonnement suit le choix de modalité : « 3 × 261€ + 1 ×
+   260,40€ ». Sans lui, choisir « 4 chèques » n'affiche aucune conséquence. */
+.subrequest-breakdown {
+  margin: 10px 0 0;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  color: var(--text-light);
 }
 
-.summary-value.price {
-  font-size: var(--font-size-3xl);
-  color: var(--primary-color);
-  font-weight: var(--font-weight-bold);
-}
-
-.summary-item.solidarity {
-  background: linear-gradient(135deg, rgba(107, 157, 90, 0.15), rgba(212, 165, 116, 0.15));
-  padding: var(--spacing-md);
-  border-radius: var(--border-radius-md);
-  margin: var(--spacing-md) 0;
-  box-shadow: var(--shadow-lg);
-}
-
-.summary-item.solidarity .summary-label {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  color: var(--primary-color);
-  font-weight: var(--font-weight-semibold);
-}
-
-.summary-divider {
-  height: 2px;
-  background: linear-gradient(to right, var(--primary-color), transparent);
-  margin: var(--spacing-lg) 0;
-}
-
-.summary-payment {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-md);
-  background: var(--background-color);
-  border-radius: var(--border-radius-md);
-  border: 1px solid var(--border-color);
-  margin-top: var(--spacing-md);
-}
-
-.summary-payment-label {
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-  color: var(--text-secondary);
-}
-
-.summary-payment-select {
-  width: 100%;
-  padding: var(--spacing-sm) var(--spacing-md);
-  font-size: var(--font-size-sm);
-  font-family: inherit;
-  color: var(--text-primary);
-  background: var(--white);
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius-sm);
-  cursor: pointer;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right var(--spacing-sm) center;
-  padding-right: var(--spacing-xl);
-}
-
-.summary-payment-select:focus {
-  outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(107, 157, 90, 0.1);
-}
-
-.summary-payment-detail {
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-  color: var(--primary-color);
-  text-align: center;
-  padding: var(--spacing-xs) 0;
-}
-
-.summary-note {
-  font-size: var(--font-size-sm);
-  color: var(--text-secondary);
-  background: #f8f9fa;
-  padding: var(--spacing-md);
-  border-radius: var(--border-radius-md);
-  margin-top: var(--spacing-lg);
-  line-height: 1.6;
-  box-shadow: var(--shadow-lg);
-}
-
-/* Cards d'information */
-
-.request-summary .info-card {
-  background: var(--white);
-  border-radius: var(--border-radius-lg);
-  padding: var(--spacing-lg);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  border: 1px solid #e5e5e5;
-}
-
-.request-summary .info-card h4 {
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-bold);
-  color: var(--primary-color);
-  margin: 0 0 var(--spacing-md) 0;
-}
-
-.request-summary .info-card p {
-  font-size: var(--font-size-sm);
-  color: var(--text-secondary);
-  margin: 0 0 var(--spacing-sm) 0;
-  line-height: 1.5;
-}
-
-.request-summary .info-card p:last-child {
-  margin-bottom: 0;
-}
-
-.info-detail {
-  padding-top: var(--spacing-sm);
-  border-top: 1px solid var(--border-color);
-  margin-top: var(--spacing-sm) !important;
-}
-
-.steps-list {
-  list-style: none;
-  counter-reset: steps-counter;
-  padding: 0;
+.subrequest-note {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-light);
   margin: 0;
 }
 
-.steps-list li {
-  counter-increment: steps-counter;
-  position: relative;
-  padding-left: var(--spacing-xl);
-  margin-bottom: var(--spacing-sm);
-  font-size: var(--font-size-sm);
-  color: var(--text-secondary);
+.subrequest-info-text {
+  font-size: 14.5px;
   line-height: 1.6;
-}
-
-.steps-list li:last-child {
-  margin-bottom: 0;
-}
-
-.steps-list li::before {
-  content: counter(steps-counter);
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 24px;
-  height: 24px;
-  background: var(--primary-color);
-  color: var(--white);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-bold);
-}
-
-/* PAGE DE SUCCÈS */
-
-.success-card {
-  background: var(--white);
-  border-radius: var(--border-radius-xl);
-  padding: var(--spacing-3xl);
-  box-shadow: var(--shadow-lg);
-  text-align: center;
-  max-width: 700px;
-  margin: 0 auto;
-}
-
-.success-icon {
-  width: 80px;
-  height: 80px;
-  margin: 0 auto var(--spacing-xl) auto;
-  background: linear-gradient(135deg, var(--success-color), var(--success-color-dark));
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--white);
-}
-
-.success-card h1 {
-  font-size: var(--font-size-3xl);
-  font-weight: var(--font-weight-bold);
-  color: var(--success-color-dark);
-  margin: 0 0 var(--spacing-lg) 0;
-}
-
-.success-message {
-  font-size: var(--font-size-lg);
-  color: var(--text-secondary);
-  line-height: var(--line-height-relaxed);
-  margin: 0 0 var(--spacing-2xl) 0;
-}
-
-.next-steps {
-  background: var(--background-color);
-  border-radius: var(--border-radius-lg);
-  padding: var(--spacing-xl);
-  margin-bottom: var(--spacing-2xl);
-}
-
-.next-steps h2 {
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-bold);
   color: var(--text-primary);
-  margin: 0 0 var(--spacing-lg) 0;
-}
-
-.next-steps ol {
-  text-align: left;
-  padding-left: var(--spacing-xl);
   margin: 0;
 }
 
-.next-steps li {
-  font-size: var(--font-size-base);
+.subrequest-info-text + .subrequest-info-text {
+  margin-top: 10px;
   color: var(--text-secondary);
-  margin-bottom: var(--spacing-sm);
-  line-height: 1.6;
+  font-size: 13.5px;
 }
 
-.next-steps li:last-child {
-  margin-bottom: 0;
+/* CONFIRMATION D'ENVOI */
+
+.subrequest-done {
+  max-width: 620px;
 }
 
-.success-actions {
+.subrequest-done-actions {
   display: flex;
-  gap: var(--spacing-md);
-  justify-content: center;
   flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 36px;
 }
 
-/* RESPONSIVE */
-
-/* Tablette et Ecrans intermédiaires (max-width: 1024px) */
-@media (max-width: 1024px) {
-  /* La disposition principale à 2 colonnes (2fr 1fr) passe à 1 colonne */
-  .request-layout {
+@media (max-width: 1000px) {
+  .subrequest-layout {
     grid-template-columns: 1fr;
-    gap: var(--spacing-xl);
+    gap: 40px;
   }
 
-  /* Le résumé de commande est affiché au-dessus du formulaire */
-  .request-summary {
-    position: static; /* Retire le positionnement sticky */
-    order: -1; /* Place le résumé en haut (avant le formulaire) */
-    width: 100%;
-  }
-
-  .summary-card {
-    /* Sur tablette, la carte du résumé est simplifiée */
-    border: none;
-    box-shadow: var(--shadow-sm);
-  }
-  
-  /* Ajustement du titre de la page */
-  .page-header h1 {
-    font-size: var(--font-size-3xl);
-  }
-  
-  .subscription-request-page {
-      padding: var(--spacing-2xl) 0;
+  .subrequest-side {
+    position: static;
   }
 }
 
-/* Mobile (max-width: 768px) */
-@media (max-width: 768px) {
-  /* Réduction du rembourrage global */
-  .subscription-request-page {
-    padding: var(--spacing-xl) 0;
+@media (max-width: 640px) {
+  .subrequest-page {
+    padding: 48px 0 72px;
   }
 
-  /* Titre de la page réduit */
-  .page-header h1 {
-    font-size: var(--font-size-2xl);
-    margin-bottom: var(--spacing-sm);
-  }
-
-  .page-subtitle {
-    font-size: var(--font-size-base);
-  }
-
-  /* Conteneur du formulaire plus compact */
-  .request-form-container {
-    padding: var(--spacing-lg);
-  }
-
-  /* Titres de section du formulaire */
-  .form-section h2 {
-    font-size: var(--font-size-lg);
-    margin-bottom: var(--spacing-md);
-  }
-
-  /* Les lignes de formulaire à plusieurs colonnes passent à 1 colonne */
-  .form-row {
-    grid-template-columns: 1fr;
-  }
-
-  /* Ajustement du rembourrage des cartes pour le mobile */
-  .summary-card,
-  .info-card {
-    padding: var(--spacing-md);
-  }
-
-  /* Carte de succès post-soumission (si elle est affichée) */
-  .success-card {
-    padding: var(--spacing-xl);
-  }
-
-  .success-icon {
-    width: 64px;
-    height: 64px;
-  }
-
-  .success-icon svg {
-    width: 32px;
-    height: 32px;
-  }
-
-  .success-actions {
-    /* Les boutons d'action de succès s'empilent */
-    flex-direction: column;
-    gap: var(--spacing-sm);
-  }
-  
-  .success-actions .btn {
-      width: 100%;
+  .subrequest-title {
+    font-size: 34px;
   }
 }

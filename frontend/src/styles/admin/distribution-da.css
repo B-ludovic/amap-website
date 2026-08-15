@@ -85,15 +85,19 @@
 }
 
 /* PASTILLE DE POINTAGE
-   52px de côté : c'est la cible qu'un doigt trouve du premier coup sur une
-   tablette, sans zoomer ni s'y reprendre. Tout le reste de la bande peut être
-   petit, pas ce bouton — c'est le seul geste répété soixante fois dans la
-   soirée. */
+   44px de côté, soit exactement le seuil de cible tactile du critère WCAG 2.5.5
+   (niveau AAA) : un doigt la trouve du premier coup sur une tablette, ce qui
+   compte pour le seul geste répété soixante fois dans la soirée.
+
+   Pas davantage, en revanche. Essayée à 52px, la pastille dépassait en hauteur
+   le bloc nom + métadonnées et devenait l'objet principal de la bande, reléguant
+   l'adhérent au second plan. À 44 elle s'aligne sur ce bloc et redevient ce
+   qu'elle est : un marqueur d'état, à côté d'une personne. */
 .admin-pickup-toggle {
   display: grid;
   place-items: center;
-  width: 52px;
-  height: 52px;
+  width: 44px;
+  height: 44px;
   padding: 0;
   border: 1px solid var(--border-card);
   border-radius: var(--border-radius-full);
@@ -123,11 +127,11 @@
    d'un huitième de tour. */
 .admin-pickup-toggle-done::after {
   content: '';
-  width: 11px;
-  height: 19px;
-  margin-top: -5px;
+  width: 9px;
+  height: 16px;
+  margin-top: -4px;
   border: solid currentColor;
-  border-width: 0 2.5px 2.5px 0;
+  border-width: 0 2.2px 2.2px 0;
   transform: rotate(45deg);
 }
 

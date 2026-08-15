@@ -2,23 +2,34 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { ShoppingBasket, MessageSquare, CheckCircle, Heart, LogIn } from 'lucide-react';
+import Link from 'next/link';
 import { useModal } from '../../contexts/ModalContext';
 import { useAuth } from '../../contexts/AuthContext';
 import api from '../../lib/api';
 import logger from '../../lib/logger';
 import '../../styles/public/subscription-request.css';
 
+/* Les paramètres d'URL sont des entrées comme les autres : « ?size=EXEMPLE »
+   entrait tel quel dans l'état, le <select> retombait silencieusement sur sa
+   première option — l'adhérent lisait donc « Petit panier » pendant que le
+   formulaire portait une valeur inconnue — et la grille tarifaire, interrogée
+   sur pricing.ANNUAL.EXEMPLE, ne renvoyait rien : tout le récapitulatif
+   s'affichait en « … ». On ne retient donc que les valeurs connues. */
+const TYPES = ['ANNUAL', 'DISCOVERY'];
+const SIZES = ['SMALL', 'LARGE'];
+
+const readParam = (value, allowed, fallback) =>
+  (allowed.includes(value) ? value : fallback);
 
 function SubscriptionRequestPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { showSuccess, showError } = useModal();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, loading: authLoading } = useAuth();
 
   const [formData, setFormData] = useState({
-    type: searchParams.get('type') || 'ANNUAL',
-    basketSize: searchParams.get('size') || 'SMALL',
+    type: readParam(searchParams.get('type'), TYPES, 'ANNUAL'),
+    basketSize: readParam(searchParams.get('size'), SIZES, 'SMALL'),
     pricingType: 'NORMAL',
     paymentType: '',
     message: ''
@@ -50,10 +61,18 @@ function SubscriptionRequestPage() {
       .catch((error) => logger.error('Erreur récupération grille tarifaire:', error));
   }, []);
 
-  // Vérifier si user connecté au chargement
+  /* Vérifier si user connecté au chargement.
+
+     Le garde attend que le contexte ait tranché. Sans authLoading, le premier
+     rendu voit user à null — non pas parce que personne n'est connecté, mais
+     parce que la vérification n'est pas revenue — et renvoie au login un adhérent
+     parfaitement authentifié. Le défaut ne se voyait pas en navigation interne,
+     où le contexte est déjà hydraté ; il frappait les arrivées directes :
+     rafraîchir la page, coller l'URL, ouvrir dans un nouvel onglet. */
   useEffect(() => {
+    if (authLoading) return;
+
     if (!isAuthenticated) {
-      // Sauvegarder les données du formulaire
       const pendingRequest = {
         type: formData.type,
         basketSize: formData.basketSize,
@@ -61,16 +80,15 @@ function SubscriptionRequestPage() {
         message: formData.message
       };
       sessionStorage.setItem('pendingSubscriptionRequest', JSON.stringify(pendingRequest));
-      
+
       showError(
         'Connexion requise',
         'Vous devez être connecté pour faire une demande d\'abonnement. Vos choix seront sauvegardés.'
       );
-      
-      // Rediriger vers login avec redirect
+
       router.push('/auth/login?redirect=/demande-abonnement');
     }
-  }, [isAuthenticated]);
+  }, [authLoading, isAuthenticated]);
 
   // Récupérer les données sauvegardées si elles existent
   useEffect(() => {
@@ -90,25 +108,11 @@ function SubscriptionRequestPage() {
   }, [isAuthenticated]);
 
   const currentSubscription = pricing?.[formData.type]?.[formData.basketSize] ?? null;
-
-  const validate = () => {
-    const newErrors = {};
-
-    if (!formData.type) {
-      newErrors.type = 'Type d\'abonnement requis';
-    }
-
-    if (!formData.basketSize) {
-      newErrors.basketSize = 'Taille de panier requise';
-    }
-
-    if (!formData.pricingType) {
-      newErrors.pricingType = 'Type de tarification requis';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+  const displayedPrice = currentSubscription
+    ? (formData.pricingType === 'SOLIDARITY'
+        ? currentSubscription.priceSolidarity
+        : currentSubscription.price)
+    : null;
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -121,7 +125,6 @@ function SubscriptionRequestPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validation
     const newErrors = {};
 
     if (!formData.type) newErrors.type = 'Veuillez sélectionner un type d\'abonnement';
@@ -143,7 +146,6 @@ function SubscriptionRequestPage() {
     try {
       setLoading(true);
 
-      // Appeler l'API (l'utilisateur est connecté, le backend récupère ses infos)
       await api.subscriptionRequests.submitRequest({
         type: formData.type,
         basketSize: formData.basketSize,
@@ -166,41 +168,40 @@ function SubscriptionRequestPage() {
 
   if (submitted) {
     return (
-      <div className="subscription-request-page">
+      <div className="subrequest-page">
         <div className="container">
-          <div className="success-card">
-            <div className="success-icon">
-              <CheckCircle size={64} aria-hidden="true" />
-            </div>
-            <h1>Demande envoyée avec succès !</h1>
-            <p className="success-message">
-              Merci pour votre demande d'abonnement à Aux P'tits Pois. 
-              Nous avons bien reçu votre formulaire et nous vous recontacterons 
-              très prochainement par email ou téléphone pour finaliser votre inscription.
+          <div className="subrequest-done">
+            <p className="eyebrow">Demande enregistrée</p>
+            <h1 className="subrequest-title">C’est envoyé.</h1>
+            <p className="subrequest-lede">
+              Nous avons bien reçu votre demande d’abonnement. L’équipe vous recontacte
+              par email ou par téléphone pour finaliser votre inscription.
             </p>
 
-            <div className="next-steps">
-              <h2>Prochaines étapes</h2>
-              <ol>
-                <li>Nous étudions votre demande (sous 48h)</li>
-                <li>Nous vous contactons pour valider les informations</li>
-                <li>Vous effectuez le paiement (chèque, virement ou espèces)</li>
-                <li>Votre abonnement est activé</li>
-                <li>Vous recevez votre premier panier le mercredi suivant !</li>
-              </ol>
-            </div>
+            <ol className="numbered-steps numbered-steps-ruled subrequest-done-steps">
+              <li className="numbered-step">
+                <span className="numbered-step-number">01</span>
+                <span className="numbered-step-text">Nous étudions votre demande, sous 48 heures.</span>
+              </li>
+              <li className="numbered-step">
+                <span className="numbered-step-number">02</span>
+                <span className="numbered-step-text">Nous vous contactons pour valider les informations.</span>
+              </li>
+              <li className="numbered-step">
+                <span className="numbered-step-number">03</span>
+                <span className="numbered-step-text">Vous remettez votre règlement par chèque.</span>
+              </li>
+              <li className="numbered-step">
+                <span className="numbered-step-number">04</span>
+                <span className="numbered-step-text">Votre abonnement est activé, et vous recevez votre premier panier le mercredi suivant.</span>
+              </li>
+            </ol>
 
-            <div className="success-actions">
-              <button 
-                className="btn btn-primary"
-                onClick={() => router.push('/')}
-              >
-                Retour à l'accueil
+            <div className="subrequest-done-actions">
+              <button type="button" className="btn btn-primary btn-lg" onClick={() => router.push('/')}>
+                Retour à l’accueil
               </button>
-              <button 
-                className="btn btn-secondary"
-                onClick={() => router.push('/panier-semaine')}
-              >
+              <button type="button" className="btn btn-secondary btn-lg" onClick={() => router.push('/panier-semaine')}>
                 Voir le panier de la semaine
               </button>
             </div>
@@ -211,233 +212,236 @@ function SubscriptionRequestPage() {
   }
 
   return (
-    <div className="subscription-request-page">
+    <div className="subrequest-page">
       <div className="container">
-        {/* En-tête */}
-        <div className="page-header">
-          <h1>Demande d'abonnement</h1>
-          <p className="page-subtitle">
-            Remplissez ce formulaire et nous vous recontacterons pour finaliser votre inscription
+        <div className="subrequest-head">
+          <p className="eyebrow">Rejoindre l’AMAP</p>
+          <h1 className="subrequest-title">Demande d’abonnement.</h1>
+          <p className="subrequest-lede">
+            Choisissez votre formule et votre modalité de règlement. Nous vous
+            recontactons ensuite pour finaliser l’inscription — rien n’est prélevé
+            à cette étape.
           </p>
         </div>
 
-        <div className="request-layout">
-          {/* Formulaire */}
-          <div className="request-form-container">
-            <form onSubmit={handleSubmit} className="request-form">
-              {/* Type d'abonnement */}
-              <div className="form-section">
-                <h2>
-                  <ShoppingBasket size={24} aria-hidden="true" />
-                  Votre abonnement
-                </h2>
+        <div className="subrequest-layout">
+          <form onSubmit={handleSubmit} noValidate>
+            <section className="subrequest-section">
+              <h2 className="eyebrow">Votre formule</h2>
 
-                <div className="form-group">
-                  <label htmlFor="type">Type d'abonnement *</label>
-                  <select
-                    id="type"
-                    name="type"
-                    value={formData.type}
-                    onChange={handleChange}
-                    required
-                  >
-                    <option value="ANNUAL">Abonnement Annuel</option>
-                    <option value="DISCOVERY" disabled>Abonnement Découverte (3 mois) — Bientôt disponible</option>
-                  </select>
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="basketSize">Taille du panier *</label>
-                  <select
-                    id="basketSize"
-                    name="basketSize"
-                    value={formData.basketSize}
-                    onChange={handleChange}
-                    required
-                  >
-                    <option value="SMALL">Petit panier (2-4 kg)</option>
-                    <option value="LARGE">Grand panier (6-8 kg)</option>
-                  </select>
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="pricingType">Tarification *</label>
-                  <select
-                    id="pricingType"
-                    name="pricingType"
-                    value={formData.pricingType}
-                    onChange={handleChange}
-                    required
-                  >
-                    <option value="NORMAL">Tarif normal (100%)</option>
-                    <option value="SOLIDARITY">Tarif solidaire (20%)</option>
-                  </select>
-                  <small className="form-hint">
-                    Le tarif solidaire est proposé en partenariat avec le Secours Catholique. 
-                    Votre demande sera étudiée après réception du formulaire.
-                  </small>
-                </div>
-              </div>
-
-              {/* Informations utilisateur (lecture seule) */}
-              {user && (
-                <div className="form-section user-info-section">
-                  <h2>
-                    <CheckCircle size={24} aria-hidden="true" />
-                    Vos informations
-                  </h2>
-                  <div className="user-info-display">
-                    <p><strong>Nom :</strong> {user.firstName} {user.lastName}</p>
-                    <p><strong>Email :</strong> {user.email}</p>
-                    {user.phone && <p><strong>Téléphone :</strong> {user.phone}</p>}
-                  </div>
-                  <small className="form-hint">
-                    Ces informations proviennent de votre compte. Pour les modifier, 
-                    rendez-vous dans <a href="/compte">Mon Compte</a>.
-                  </small>
-                </div>
-              )}
-
-              {/* Message */}
-              <div className="form-section">
-                <h2>
-                  <MessageSquare size={24} aria-hidden="true" />
-                  Message (optionnel)
-                </h2>
-
-                <div className="form-group">
-                  <label htmlFor="message">
-                    Informations complémentaires, questions...
+              <div className="subrequest-fields">
+                <div className="field">
+                  <label className="field-label" htmlFor="type">
+                    Type d’abonnement <span className="field-required">*</span>
                   </label>
-                  <textarea
-                    id="message"
-                    name="message"
-                    value={formData.message}
-                    onChange={handleChange}
-                    rows="4"
-                    placeholder="Ex: Allergies, préférences, disponibilités..."
-                  />
+                  <select id="type" name="type" className="select" value={formData.type} onChange={handleChange}>
+                    <option value="ANNUAL">Abonnement annuel</option>
+                    <option value="DISCOVERY" disabled>Abonnement découverte (3 mois) — bientôt disponible</option>
+                  </select>
+                  {errors.type && <span className="field-error">{errors.type}</span>}
+                </div>
+
+                <div className="field">
+                  <label className="field-label" htmlFor="basketSize">
+                    Taille du panier <span className="field-required">*</span>
+                  </label>
+                  <select id="basketSize" name="basketSize" className="select" value={formData.basketSize} onChange={handleChange}>
+                    <option value="SMALL">Petit panier — 2 à 4 kg</option>
+                    <option value="LARGE">Grand panier — 6 à 8 kg</option>
+                  </select>
+                  {errors.basketSize && <span className="field-error">{errors.basketSize}</span>}
+                </div>
+
+                <div className="field">
+                  <label className="field-label" htmlFor="pricingType">
+                    Tarification <span className="field-required">*</span>
+                  </label>
+                  <select id="pricingType" name="pricingType" className="select" value={formData.pricingType} onChange={handleChange}>
+                    <option value="NORMAL">Tarif normal — 100 %</option>
+                    <option value="SOLIDARITY">Tarif solidaire — 20 %</option>
+                  </select>
+                  <span className="field-hint">
+                    Le tarif solidaire est proposé en partenariat avec le Secours Catholique.
+                    Votre demande est étudiée après réception du formulaire.
+                  </span>
+                  {errors.pricingType && <span className="field-error">{errors.pricingType}</span>}
                 </div>
               </div>
+            </section>
 
-              {/* Submit */}
-              <div className="form-actions">
-                <button
-                  type="submit"
-                  className="btn btn-primary btn-lg btn-block"
-                  disabled={loading}
-                >
-                  {loading ? 'Envoi en cours...' : 'Envoyer ma demande'}
-                </button>
-                <p className="form-notice">
-                  * Champs obligatoires. Vos données sont uniquement utilisées pour 
-                  le traitement de votre demande d'abonnement.
-                </p>
-              </div>
-            </form>
-          </div>
+            {user && (
+              <section className="subrequest-section">
+                <h2 className="eyebrow">Vos informations</h2>
 
-          {/* Récapitulatif */}
-          <div className="request-summary">
-            <div className="summary-card">
-              <h3>Récapitulatif</h3>
-
-              <div className="summary-item">
-                <span className="summary-label">Abonnement</span>
-                <span className="summary-value">{currentSubscription?.name ?? '…'}</span>
-              </div>
-
-              <div className="summary-item">
-                <span className="summary-label">Poids</span>
-                <span className="summary-value">{currentSubscription?.weight ?? '…'}</span>
-              </div>
-
-              <div className="summary-item">
-                <span className="summary-label">Livraisons</span>
-                <span className="summary-value">
-                  {currentSubscription ? `${currentSubscription.weeks} paniers` : '…'}
-                </span>
-              </div>
-
-              <div className="summary-divider" />
-
-              <div className="summary-item">
-                <span className="summary-label">Tarif normal</span>
-                <span className="summary-value price">
-                  {currentSubscription ? `${currentSubscription.price}€` : '…'}
-                </span>
-              </div>
-
-              {formData.pricingType === 'SOLIDARITY' && (
-                <div className="summary-item solidarity">
-                  <span className="summary-label">
-                    <Heart size={16} aria-hidden="true" />
-                    Tarif solidaire
-                  </span>
-                  <span className="summary-value price">
-                    {currentSubscription ? `${currentSubscription.priceSolidarity}€` : '…'}
-                  </span>
-                </div>
-              )}
-
-              <div className="summary-payment">
-                <label className="summary-payment-label">Modalité de paiement</label>
-                <select
-                  className={`summary-payment-select ${errors.paymentType ? 'input-error' : ''}`}
-                  name="paymentType"
-                  value={formData.paymentType}
-                  onChange={handleChange}
-                >
-                  <option value="" disabled>-- Choisissez une modalité *</option>
-                  <option value="1">1 chèque — paiement intégral</option>
-                  <option value="2">2 chèques — 2 mois d'intervalle</option>
-                  <option value="4">4 chèques — 2 mois d'intervalle</option>
-                </select>
-                {errors.paymentType && (
-                  <span className="form-error">{errors.paymentType}</span>
-                )}
-                <div className="summary-payment-detail">
-                  {currentSubscription && getPaymentBreakdown(
-                    formData.pricingType === 'SOLIDARITY'
-                      ? currentSubscription.priceSolidarity
-                      : currentSubscription.price,
-                    formData.paymentType
+                <div className="split-list subrequest-identity">
+                  <div className="split-row">
+                    <span className="split-label">Nom</span>
+                    <span className="split-value">{user.firstName} {user.lastName}</span>
+                  </div>
+                  <div className="split-row">
+                    <span className="split-label">Email</span>
+                    <span className="split-value">{user.email}</span>
+                  </div>
+                  {user.phone && (
+                    <div className="split-row">
+                      <span className="split-label">Téléphone</span>
+                      <span className="split-value">{user.phone}</span>
+                    </div>
                   )}
                 </div>
+
+                <p className="field-hint subrequest-identity-note">
+                  Ces informations viennent de votre compte. Pour les modifier,
+                  rendez-vous dans <Link href="/compte" className="link-underline">Mon compte</Link>.
+                </p>
+              </section>
+            )}
+
+            <section className="subrequest-section">
+              <h2 className="eyebrow">Message</h2>
+
+              <div className="field">
+                <label className="field-label" htmlFor="message">
+                  Informations complémentaires, questions
+                </label>
+                <textarea
+                  id="message"
+                  name="message"
+                  className="textarea"
+                  value={formData.message}
+                  onChange={handleChange}
+                  rows="4"
+                  placeholder="Allergies, préférences, disponibilités…"
+                />
               </div>
+            </section>
 
-              <div className="summary-note">
-                Le paiement se fera après validation de votre demande, par chèque à l'ordre de « Aux P'tits Pois ».
+            <div className="subrequest-submit-zone">
+              <button type="submit" className="form-submit" disabled={loading}>
+                {loading ? 'Envoi en cours…' : 'Envoyer ma demande'}
+              </button>
+              <p className="form-note">
+                Les champs marqués d’une astérisque sont obligatoires. Vos données servent
+                uniquement au traitement de votre demande d’abonnement.
+              </p>
+            </div>
+          </form>
+
+          <aside className="subrequest-side">
+            <div className="side-card">
+              <div className="side-card-head">
+                <h2 className="side-card-title">Récapitulatif</h2>
+              </div>
+              <div className="side-card-body">
+                <div className="side-block">
+                  <div className="split-list">
+                    <div className="split-row">
+                      <span className="split-label">Formule</span>
+                      <span className="split-value">{currentSubscription?.name ?? '—'}</span>
+                    </div>
+                    <div className="split-row">
+                      <span className="split-label">Poids</span>
+                      <span className="split-value">{currentSubscription?.weight ?? '—'}</span>
+                    </div>
+                    <div className="split-row">
+                      <span className="split-label">Livraisons</span>
+                      <span className="split-value">
+                        {currentSubscription ? `${currentSubscription.weeks} paniers` : '—'}
+                      </span>
+                    </div>
+                    <div className="split-row subrequest-price-row">
+                      <span className="split-label">
+                        {formData.pricingType === 'SOLIDARITY' ? 'Tarif solidaire' : 'Tarif normal'}
+                      </span>
+                      <span className="split-value">
+                        {displayedPrice !== null ? `${displayedPrice} €` : '—'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="side-block">
+                  <p className="side-block-label">Modalité de règlement</p>
+                  <select
+                    id="paymentType"
+                    name="paymentType"
+                    className="select"
+                    value={formData.paymentType}
+                    onChange={handleChange}
+                    aria-label="Modalité de règlement"
+                  >
+                    <option value="" disabled>Choisissez une modalité *</option>
+                    <option value="1">1 chèque — règlement intégral</option>
+                    <option value="2">2 chèques — 2 mois d’intervalle</option>
+                    <option value="4">4 chèques — 2 mois d’intervalle</option>
+                  </select>
+                  {errors.paymentType && <span className="field-error">{errors.paymentType}</span>}
+                  {displayedPrice !== null && formData.paymentType && (
+                    <p className="subrequest-breakdown">
+                      {getPaymentBreakdown(displayedPrice, formData.paymentType)}
+                    </p>
+                  )}
+                </div>
+
+                <div className="side-block">
+                  <p className="subrequest-note">
+                    Le règlement se fait après validation de votre demande, par chèque
+                    à l’ordre de « Aux P’tits Pois ».
+                  </p>
+                </div>
               </div>
             </div>
 
-            <div className="info-card">
-              <h4>Distribution</h4>
-              <p>
-                <strong>Chaque mercredi</strong><br />
-                18h15 - 19h15
-              </p>
-              <p className="info-detail">
-                Vous composez vous-même votre panier parmi les légumes disponibles 
-                selon votre formule.
-              </p>
+            <div className="side-card">
+              <div className="side-card-head">
+                <h2 className="side-card-title">Distribution</h2>
+              </div>
+              <div className="side-card-body">
+                <div className="side-block">
+                  <p className="side-block-label">Chaque mercredi</p>
+                  <p className="subrequest-info-text">18h15 — 19h15</p>
+                  <p className="subrequest-info-text">
+                    Vous composez vous-même votre panier parmi les légumes disponibles
+                    selon votre formule.
+                  </p>
+                </div>
+              </div>
             </div>
 
-            <div className="info-card">
-              <h4>Prochaines étapes</h4>
-              <ol className="steps-list">
-                <li>Validation de votre demande</li>
-                <li>Contact par email/téléphone</li>
-                <li>Paiement de l'abonnement</li>
-                <li>Activation et premier panier !</li>
-              </ol>
+            <div className="side-card">
+              <div className="side-card-head">
+                <h2 className="side-card-title">Prochaines étapes</h2>
+              </div>
+              <div className="side-card-body">
+                <div className="side-block">
+                  <ol className="numbered-steps numbered-steps-flush">
+                    <li className="numbered-step">
+                      <span className="numbered-step-number">01</span>
+                      <span className="numbered-step-text">Validation de votre demande</span>
+                    </li>
+                    <li className="numbered-step">
+                      <span className="numbered-step-number">02</span>
+                      <span className="numbered-step-text">Contact par email ou téléphone</span>
+                    </li>
+                    <li className="numbered-step">
+                      <span className="numbered-step-number">03</span>
+                      <span className="numbered-step-text">Règlement de l’abonnement</span>
+                    </li>
+                    <li className="numbered-step">
+                      <span className="numbered-step-number">04</span>
+                      <span className="numbered-step-text">Activation et premier panier</span>
+                    </li>
+                  </ol>
+                </div>
+              </div>
             </div>
-          </div>
+          </aside>
         </div>
       </div>
     </div>
   );
 }
+
 export default function Page() {
   return (
     <Suspense>
