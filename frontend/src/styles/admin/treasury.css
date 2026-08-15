@@ -1,0 +1,231 @@
+/* Trésorerie — la vue d'ensemble des chèques, dans la DA admin.
+
+   Quatre chiffres en tête, puis une seule carte-tableau où les mois se suivent,
+   séparés par une bande de sable. Un seul en-tête de colonnes pour tous les
+   mois : deux tableaux côte à côte se décalent toujours d'un pixel, et l'œil du
+   trésorier passe son temps à recaler les colonnes au lieu de lire. */
+
+.admin-treasury-tiles {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.admin-treasury-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 18px 20px;
+  border: 1px solid var(--border-card);
+  border-radius: var(--border-radius-md);
+  background-color: var(--surface-page);
+}
+
+/* Le retard est le seul chiffre qui appelle un geste : il se distingue par sa
+   bordure, sans virer au rouge d'alarme tant qu'il vaut zéro. */
+.admin-treasury-tile.is-alert {
+  border-color: var(--error-bg-border);
+  background-color: var(--error-bg);
+}
+
+.admin-treasury-tile-label {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-light);
+}
+
+.admin-treasury-tile-value {
+  font-family: var(--font-display);
+  font-size: 24px;
+  color: var(--text-primary);
+}
+
+.admin-treasury-tile.is-alert .admin-treasury-tile-value {
+  color: var(--error-strong);
+}
+
+.admin-treasury-tile-note {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}
+
+/* Bandeau des rejets : un chèque sans provision retire de l'argent à un contrat
+   déjà signé, c'est la seule chose de cette page qui ne peut pas attendre. */
+.admin-treasury-alert {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 14px 18px;
+  margin-bottom: 22px;
+  border: 1px solid var(--error-bg-border);
+  border-left: 3px solid var(--error-text);
+  border-radius: var(--border-radius-md);
+  background-color: var(--error-bg);
+  font-size: 13.5px;
+  color: var(--error-strong);
+}
+
+.admin-treasury-alert .admin-btn-link {
+  margin-left: auto;
+}
+
+/* Barre d'actions groupées, visible seulement quand quelque chose est coché. */
+.admin-treasury-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 14px 18px;
+  margin-bottom: 16px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--border-radius-md);
+  background-color: var(--surface-sand);
+  font-size: 13.5px;
+  color: var(--text-primary);
+}
+
+.admin-treasury-bar-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* Le montant est calé à droite, l'échéance à gauche : sans gouttière, les deux
+   se touchent et « 222,00 €01/07/2026 » se lit d'un seul tenant. */
+.admin-treasury-table {
+  --admin-cols: 30px 1.7fr 0.8fr 1fr 0.9fr 0.8fr 0.9fr;
+  --admin-col-gap: 18px;
+}
+
+.admin-treasury-table .admin-table-head {
+  background-color: var(--surface-sand);
+  padding: 12px 20px;
+}
+
+/* Séparateur de mois : il traverse la carte de part en part, hors grille, pour
+   que la remise se lise comme un bloc et non comme des lignes voisines. */
+.admin-treasury-month {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 11px 20px;
+  border-top: 1px solid var(--border-card);
+  border-bottom: 1px solid var(--border-card);
+  background-color: var(--surface-hover);
+}
+
+.admin-treasury-month:first-of-type {
+  border-top: none;
+}
+
+.admin-treasury-month-title {
+  font-family: var(--font-display);
+  font-size: 15px;
+  color: var(--text-primary);
+  text-transform: capitalize;
+}
+
+.admin-treasury-month-total {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.admin-treasury-check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.admin-treasury-check input {
+  width: 14px;
+  height: 14px;
+  accent-color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.admin-treasury-member {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.admin-treasury-ref {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--badge-soon-fg);
+  text-decoration: none;
+}
+
+.admin-treasury-ref:hover {
+  text-decoration: underline;
+}
+
+.admin-treasury-amount {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  text-align: right;
+  color: var(--text-primary);
+}
+
+.admin-treasury-date {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.admin-treasury-late {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--error-text);
+}
+
+.admin-treasury-number {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-light);
+}
+
+/* La ligne en retard se teinte au lieu de crier : elle reste une ligne de
+   tableau, lisible à côté des autres, mais l'œil la trouve en balayant. */
+.admin-table-row.is-late {
+  background-color: var(--error-bg-soft);
+}
+
+@media (max-width: 1200px) {
+  .admin-treasury-tiles {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .admin-treasury-table {
+    --admin-cols: 30px 1.7fr 0.9fr 1fr 0.8fr 0.9fr;
+  }
+
+  .admin-treasury-number-cell {
+    display: none;
+  }
+}
+
+@media (max-width: 700px) {
+  .admin-treasury-tiles {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-treasury-bar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

@@ -6,6 +6,7 @@ import {
   updateSubscription,
   recordChequesReceived,
   updatePayment,
+  getTreasuryCheques,
   cancelSubscription,
   pauseSubscription,
   resumeSubscription,
@@ -48,6 +49,9 @@ router.get('/:id/contract', authMiddleware, generateContractFromSubscription);
 router.get('/', authMiddleware, adminOnly, getAllSubscriptions);
 router.get('/stats', authMiddleware, adminOnly, getSubscriptionStats);
 router.get('/requests', authMiddleware, adminOnly, getSubscriptionRequests);
+// Comme '/pricing' plus haut : avant '/:id', qui prendrait « cheques » pour un
+// identifiant d'abonnement et répondrait 404.
+router.get('/cheques', authMiddleware, adminOnly, getTreasuryCheques);
 router.get('/:id', authMiddleware, adminOnly, getSubscriptionById);
 router.post('/', authMiddleware, adminOnly, createSubscription);
 router.put('/:id', authMiddleware, adminOnly, updateSubscription);

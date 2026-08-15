@@ -694,6 +694,15 @@ const api = {
       });
     },
 
+    /* Tous les chèques de l'association, pour la page de trésorerie. La fiche
+       d'abonnement répond « où en est ce contrat » ; celle-ci répond « qu'est-ce
+       que je porte à la banque lundi ». */
+    getTreasuryCheques: async () => {
+      return fetchAPI('/subscriptions/cheques', {
+        requiresAuth: true,
+      });
+    },
+
     /* Déplacer un chèque. Avancer — pochette vers banque, banque vers compte —
        ne demande rien. Revenir en arrière, constater un rejet ou rendre le
        chèque exige le mot de passe : ces mouvements retirent de l'argent au

@@ -738,6 +738,76 @@ const updatePayment = asyncHandler(async (req, res) => {
   });
 });
 
+/* VUE TRÉSORERIE (ADMIN)
+
+   La fiche d'abonnement montre les chèques d'un adhérent ; cette vue-ci montre
+   tous les chèques de l'association, du plus proche au plus lointain. Ce sont
+   deux questions différentes : « où en est le contrat de Claire » d'un côté,
+   « qu'est-ce que je porte à la banque lundi » de l'autre.
+
+   Même matière que le récapitulatif envoyé au trésorier par chequeReminder.job,
+   à ceci près que l'email pousse les échéances imminentes tandis que l'écran
+   laisse tout consulter. Le regroupement par mois est fait côté navigateur :
+   c'est de la présentation, la base n'a pas à la connaître.
+
+   Pas de pagination. Une AMAP compte quelques dizaines d'adhérents et un à
+   quatre chèques chacun ; le tout tient dans une réponse, et le trésorier a
+   besoin de la vue d'ensemble, pas d'une page sur trois. */
+const getTreasuryCheques = asyncHandler(async (req, res) => {
+  const payments = await prisma.payment.findMany({
+    include: {
+      subscription: {
+        select: {
+          id: true,
+          subscriptionNumber: true,
+          status: true,
+          user: { select: { firstName: true, lastName: true, email: true } }
+        }
+      }
+    },
+    orderBy: [{ dueDate: 'asc' }, { createdAt: 'asc' }]
+  });
+
+  const debutDuJour = new Date();
+  debutDuJour.setHours(0, 0, 0, 0);
+
+  /* Le total est calculé sur les lignes qu'on renvoie, et non par un groupBy
+     séparé : deux requêtes, ce sont deux instants, et l'écran finirait par
+     afficher un chiffre que sa propre liste contredit. */
+  const summary = {};
+  const compter = (cle, montant) => {
+    const seau = summary[cle] ?? (summary[cle] = { count: 0, amount: 0 });
+    seau.count += 1;
+    seau.amount = Number((seau.amount + montant).toFixed(2));
+  };
+
+  const cheques = payments.map((payment) => {
+    const enRetard = payment.status === 'RECEIVED' && payment.dueDate < debutDuJour;
+
+    compter(payment.status, payment.amount);
+    if (enRetard) compter('LATE', payment.amount);
+
+    return {
+      id: payment.id,
+      subscriptionId: payment.subscriptionId,
+      subscriptionNumber: payment.subscription.subscriptionNumber,
+      subscriptionStatus: payment.subscription.status,
+      member: `${payment.subscription.user.firstName} ${payment.subscription.user.lastName}`,
+      email: payment.subscription.user.email,
+      amount: payment.amount,
+      status: payment.status,
+      dueDate: payment.dueDate,
+      receivedAt: payment.receivedAt,
+      depositedAt: payment.depositedAt,
+      paidAt: payment.paidAt,
+      checkNumber: payment.checkNumber,
+      enRetard
+    };
+  });
+
+  res.json({ success: true, data: { cheques, summary } });
+});
+
 // ANNULER UN ABONNEMENT (ADMIN)
 const cancelSubscription = asyncHandler(async (req, res) => {
   const { id } = req.params;
@@ -1055,6 +1125,7 @@ export {
   updateSubscription,
   recordChequesReceived,
   updatePayment,
+  getTreasuryCheques,
   cancelSubscription,
   pauseSubscription,
   resumeSubscription,

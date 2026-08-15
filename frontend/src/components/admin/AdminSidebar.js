@@ -13,6 +13,7 @@ const MENU_ITEMS = [
   { title: 'Utilisateurs', path: '/admin/utilisateurs' },
   { title: 'Demandes abonnements', path: '/admin/demandes-abonnements', badge: 'subscriptions' },
   { title: 'Abonnements', path: '/admin/abonnements' },
+  { title: 'Trésorerie', path: '/admin/tresorerie' },
   { title: 'Demandes producteurs', path: '/admin/demandes-producteurs', badge: 'producers' },
   { title: 'Producteurs', path: '/admin/producteurs' },
   { title: 'Produits', path: '/admin/produits' },
