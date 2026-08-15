@@ -12,7 +12,7 @@ import {
 } from '../utils/httpErrors.js';
 import { logAudit } from '../services/audit.service.js';
 import { computeRemainingPickups } from '../utils/subscriptionSchedule.js';
-import { computeSubscriptionPrice } from '../utils/subscriptionPricing.js';
+import { computeSubscriptionPrice, getPricingGrid } from '../utils/subscriptionPricing.js';
 
 const SubscriptionTypeSchema = z.enum(['ANNUAL', 'DISCOVERY']);
 const BasketSizeSchema = z.enum(['SMALL', 'LARGE']);
@@ -59,6 +59,17 @@ const generateSubscriptionNumber = async () => {
   const number = (count + 1).toString().padStart(3, '0');
   return `SUB-${year}-${number}`;
 };
+
+// GRILLE TARIFAIRE (PUBLIC)
+// Le formulaire d'abonnement affichait sa propre copie des prix, qui a fini par
+// diverger de celle du serveur. Il la lit désormais ici : une seule table décide
+// à la fois de ce qu'on annonce et de ce qui est facturé.
+const getPricing = asyncHandler(async (_req, res) => {
+  res.json({
+    success: true,
+    data: { pricing: getPricingGrid() }
+  });
+});
 
 // RÉCUPÉRER TOUTES LES DEMANDES D'ABONNEMENT (ADMIN)
 const getSubscriptionRequests = asyncHandler(async (req, res) => {
@@ -757,6 +768,7 @@ export {
   pauseSubscription,
   resumeSubscription,
   getMySubscription,
+  getPricing,
   getSubscriptionRequests,
   getSubscriptionStats,
   generateContractFromSubscription

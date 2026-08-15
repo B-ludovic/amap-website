@@ -9,6 +9,7 @@ import {
   pauseSubscription,
   resumeSubscription,
   getMySubscription,
+  getPricing,
   getSubscriptionRequests,
   getSubscriptionStats,
   generateContractFromSubscription
@@ -17,6 +18,11 @@ import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { adminOnly } from '../middlewares/role.middleware.js';
 
 const router = express.Router();
+
+// Route publique — grille tarifaire affichée par le formulaire d'abonnement.
+// Déclarée avant '/:id' : Express sert la première route qui correspond, et
+// '/:id' capturerait « pricing » comme un identifiant.
+router.get('/pricing', getPricing);
 
 // Routes adhérents
 router.get('/me', authMiddleware, getMySubscription);

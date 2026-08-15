@@ -3,6 +3,13 @@ import handlebars from 'handlebars';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { WEEKLY_PRICE, DELIVERED_WEEKS } from '../utils/subscriptionPricing.js';
+
+/* Écriture française d'un montant, telle qu'elle figurait en dur dans le
+   gabarit : « 19 » sans décimale inutile, « 29,80 » avec la virgule. */
+const formatEuro = (value) => (
+  Number.isInteger(value) ? String(value) : value.toFixed(2).replace('.', ',')
+);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -105,16 +112,16 @@ class ContractService {
       ? 'Tarif solidaire (20%)'
       : 'Tarif normal (100%)';
 
-    // Nombre de semaines fixe selon le type d'abonnement
-    const numberOfWeeks = subscription.type === 'ANNUAL' ? 49 : 12;
-
-    // Prix fixes par panier
-    const smallBasketPrice = 19;
-    const largeBasketPrice = 29.80;
+    // Semaines livrées et prix du panier : lus dans la grille tarifaire, jamais
+    // recopiés ici. Le PDF est le document que les deux parties signent, il ne
+    // peut pas annoncer d'autres montants que ceux qui créent le contrat en base.
+    const numberOfWeeks = DELIVERED_WEEKS[subscription.type];
+    const smallBasketPrice = WEEKLY_PRICE.SMALL;
+    const largeBasketPrice = WEEKLY_PRICE.LARGE;
 
     // Calculs des prix totaux
-    const totalSmall = smallBasketPrice * numberOfWeeks;   // 931 ou 228
-    const totalLarge = largeBasketPrice * numberOfWeeks;   // 1460.20 ou 357.60
+    const totalSmall = smallBasketPrice * numberOfWeeks;
+    const totalLarge = largeBasketPrice * numberOfWeeks;
 
     const totalSmallPrice = totalSmall.toFixed(2);
     const totalLargePrice = totalLarge.toFixed(2);
@@ -170,6 +177,8 @@ class ContractService {
       permanences: permanences,
 
       // Prix et paiements
+      smallBasketPrice: formatEuro(smallBasketPrice),
+      largeBasketPrice: formatEuro(largeBasketPrice),
       totalSmallPrice: totalSmallPrice,
       totalLargePrice: totalLargePrice,
       halfSmallPrice: halfSmallPrice,

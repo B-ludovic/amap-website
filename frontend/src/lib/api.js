@@ -602,6 +602,11 @@ const api = {
   },
 
   subscriptions: {
+    // Public - grille tarifaire, calculée et servie par le serveur
+    getPricing: async () => {
+      return fetchAPI('/subscriptions/pricing');
+    },
+
     getAll: async (params = {}) => {
       const queryString = new URLSearchParams(params).toString();
       return fetchAPI(`/subscriptions${queryString ? `?${queryString}` : ''}`, {

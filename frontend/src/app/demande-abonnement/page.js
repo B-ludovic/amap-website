@@ -40,6 +40,15 @@ function SubscriptionRequestPage() {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [pricing, setPricing] = useState(null);
+
+  // La grille tarifaire vient du serveur, jamais d'une copie locale : c'est la
+  // même table qui calcule le prix du contrat et qui l'annonce ici.
+  useEffect(() => {
+    api.subscriptions.getPricing()
+      .then((data) => setPricing(data.data.pricing))
+      .catch((error) => logger.error('Erreur récupération grille tarifaire:', error));
+  }, []);
 
   // Vérifier si user connecté au chargement
   useEffect(() => {
@@ -80,18 +89,7 @@ function SubscriptionRequestPage() {
     }
   }, [isAuthenticated]);
 
-  const subscriptionInfo = {
-    ANNUAL: {
-      SMALL: { name: 'Annuel - Petit Panier', price: 931, priceSolidarity: 186.20, weight: '2-4 kg', weeks: 49 },
-      LARGE: { name: 'Annuel - Grand Panier', price: 1460.20, priceSolidarity: 292.04, weight: '6-8 kg', weeks: 49 }
-    },
-    DISCOVERY: {
-      SMALL: { name: 'Découverte - Petit Panier', price: 228, priceSolidarity: 45.60, weight: '2-4 kg', weeks: 12 },
-      LARGE: { name: 'Découverte - Grand Panier', price: 357.60, priceSolidarity: 71.52, weight: '6-8 kg', weeks: 12 }
-    }
-  };
-
-  const currentSubscription = subscriptionInfo[formData.type][formData.basketSize];
+  const currentSubscription = pricing?.[formData.type]?.[formData.basketSize] ?? null;
 
   const validate = () => {
     const newErrors = {};
@@ -346,26 +344,28 @@ function SubscriptionRequestPage() {
 
               <div className="summary-item">
                 <span className="summary-label">Abonnement</span>
-                <span className="summary-value">{currentSubscription.name}</span>
+                <span className="summary-value">{currentSubscription?.name ?? '…'}</span>
               </div>
 
               <div className="summary-item">
                 <span className="summary-label">Poids</span>
-                <span className="summary-value">{currentSubscription.weight}</span>
+                <span className="summary-value">{currentSubscription?.weight ?? '…'}</span>
               </div>
 
-              {currentSubscription.duration && (
-                <div className="summary-item">
-                  <span className="summary-label">Durée</span>
-                  <span className="summary-value">{currentSubscription.duration}</span>
-                </div>
-              )}
+              <div className="summary-item">
+                <span className="summary-label">Livraisons</span>
+                <span className="summary-value">
+                  {currentSubscription ? `${currentSubscription.weeks} paniers` : '…'}
+                </span>
+              </div>
 
               <div className="summary-divider" />
 
               <div className="summary-item">
                 <span className="summary-label">Tarif normal</span>
-                <span className="summary-value price">{currentSubscription.price}€</span>
+                <span className="summary-value price">
+                  {currentSubscription ? `${currentSubscription.price}€` : '…'}
+                </span>
               </div>
 
               {formData.pricingType === 'SOLIDARITY' && (
@@ -374,7 +374,9 @@ function SubscriptionRequestPage() {
                     <Heart size={16} aria-hidden="true" />
                     Tarif solidaire
                   </span>
-                  <span className="summary-value price">{currentSubscription.priceSolidarity}€</span>
+                  <span className="summary-value price">
+                    {currentSubscription ? `${currentSubscription.priceSolidarity}€` : '…'}
+                  </span>
                 </div>
               )}
 
@@ -395,7 +397,7 @@ function SubscriptionRequestPage() {
                   <span className="form-error">{errors.paymentType}</span>
                 )}
                 <div className="summary-payment-detail">
-                  {getPaymentBreakdown(
+                  {currentSubscription && getPaymentBreakdown(
                     formData.pricingType === 'SOLIDARITY'
                       ? currentSubscription.priceSolidarity
                       : currentSubscription.price,
