@@ -1,5 +1,6 @@
 import nodemailer from 'nodemailer';
 import DOMPurify from 'isomorphic-dompurify';
+import { prisma } from '../config/database.js';
 import { euroAmount } from '../utils/subscriptionPricing.js';
 import { overridesOptOut } from './newsletterAudience.service.js';
 import { unsubscribePageUrl, unsubscribeHeaders } from '../utils/unsubscribeToken.js';
@@ -72,16 +73,83 @@ const rgpdNoteSansCompte = (email, raison) =>
 
 class EmailService {
 
+  /* Le point de passage unique de tout message sortant.
+
+     Avant, chaque méthode portait sa propre copie du même try/catch : dix-neuf
+     copies, dont six seulement journalisaient quelque chose. Les treize autres
+     avalaient l'échec en silence et rendaient un { success: false } que quinze
+     appelants sur dix-huit jetaient sans le lire. Un mardi soir, quatre
+     bénévoles à prévenir de l'annulation d'une permanence, une erreur de quota
+     sur le deuxième message : l'interface affichait « supprimée avec succès » et
+     rien nulle part ne disait lesquels avaient été prévenus.
+
+     Une seule porte, donc, par laquelle tout passe. Ce qui en sort est double :
+     une ligne de log pour l'équipe technique, et une ligne en base pour tous les
+     autres — c'est celle-là qui répond à « l'adhérente Machin a-t-elle reçu sa
+     confirmation le 12 mars ? », une question qu'aucun log rotatif ne sait
+     tenir. La valeur de retour ne change pas de forme : les appelants qui la
+     lisaient déjà continuent de fonctionner à l'identique. */
+  async #send(mailOptions, { kind, ref = null }) {
+    try {
+      const info = await transporter.sendMail(mailOptions);
+      await this.#trace({ kind, ref, mailOptions, status: 'SENT', messageId: info?.messageId ?? null });
+
+      if (process.env.NODE_ENV !== 'production') console.log(`[Email:${kind}] envoyé à ${mailOptions.to}`);
+
+      return { success: true };
+    } catch (error) {
+      /* L'adresse du destinataire reste hors du flux de logs en production :
+         c'est une donnée personnelle, et les journaux de l'hébergeur se
+         conservent sans être une base de données (même règle que
+         error.middleware.js). Elle est enregistrée juste en dessous, dans
+         EmailLog, qui est purgé et dont l'accès est contrôlé. */
+      const destinataire = process.env.NODE_ENV === 'production' ? '[adresse en base]' : mailOptions.to;
+      console.error(`[Email:${kind}] échec d'envoi vers ${destinataire} : ${error.message}`);
+
+      await this.#trace({ kind, ref, mailOptions, status: 'FAILED', error: error.message });
+
+      return { success: false, error: error.message };
+    }
+  }
+
+  /* La trace ne doit jamais faire tomber l'envoi qu'elle décrit.
+
+     Si la base est injoignable au moment où l'on veut écrire la ligne, laisser
+     l'exception remonter transformerait un email parti avec succès en erreur
+     500 pour l'administratrice — et, sur l'appel non attendu des paniers
+     hebdomadaires, en rejet de promesse non capturé, ce qui arrête le processus
+     Node. L'échec d'écriture se journalise donc et s'arrête là.
+
+     On n'enregistre que l'enveloppe. Le HTML rendu porte le prénom, l'adresse de
+     retrait, le contenu du panier : le garder reviendrait à tenir une copie de
+     la boîte mail de chaque adhérent, ce qu'aucune finalité ne justifie. */
+  async #trace({ kind, ref, mailOptions, status, messageId = null, error = null }) {
+    try {
+      await prisma.emailLog.create({
+        data: {
+          kind,
+          ref: ref ?? null,
+          to: String(mailOptions.to),
+          subject: String(mailOptions.subject ?? ''),
+          status,
+          messageId,
+          error,
+        },
+      });
+    } catch (traceError) {
+      console.error(`[Email:${kind}] trace non enregistrée : ${traceError.message}`);
+    }
+  }
+
   /* Envoie un email de bienvenue après inscription */
   async sendWelcomeEmail(user) {
-    try {
-      await transporter.sendMail({
-        from: EMAIL_FROM,
-        to: user.email,
-        subject: 'Bienvenue chez Aux P\'tits Pois',
-        html: renderEmail({
-          title: 'Bienvenue chez Aux P\'tits Pois',
-          content: `
+    return this.#send({
+      from: EMAIL_FROM,
+      to: user.email,
+      subject: 'Bienvenue chez Aux P\'tits Pois',
+      html: renderEmail({
+        title: 'Bienvenue chez Aux P\'tits Pois',
+        content: `
             <p>Bonjour ${escapeHtml(user.firstName)},</p>
             <p>Merci d'avoir créé votre compte sur Aux P'tits Pois, votre AMAP locale pour des produits frais, bio et de saison.</p>
             <p>Votre compte est maintenant actif et vous pouvez :</p>
@@ -93,28 +161,22 @@ class EmailService {
             ${emailButton(`${process.env.FRONTEND_URL}/nos-abonnements`, 'Découvrir nos abonnements')}
             <p>Si vous avez des questions, n'hésitez pas à nous écrire à <a href="mailto:${AMAP_EMAIL}">${AMAP_EMAIL}</a>.</p>
             <p>À très bientôt,<br>L'équipe Aux P'tits Pois</p>`,
-          footerNote: rgpdNote(user.email, 'car vous êtes inscrit(e) sur notre plateforme'),
-        }),
-      });
-      if (process.env.NODE_ENV !== 'production') console.log('[DEV] Email bienvenue envoyé');
-      return { success: true };
-    } catch (error) {
-      console.error('Erreur envoi email bienvenue:', error);
-      return { success: false, error: error.message };
-    }
+        footerNote: rgpdNote(user.email, 'car vous êtes inscrit(e) sur notre plateforme'),
+      }),
+    }, { kind: 'WELCOME', ref: user.id });
   }
 
   /* Envoie un email de vérification d'adresse email */
   async sendEmailVerification(user, verifyToken) {
-    try {
-      const verifyUrl = `${process.env.FRONTEND_URL}/auth/confirm-email/${verifyToken}`;
-      await transporter.sendMail({
-        from: EMAIL_FROM,
-        to: user.email,
-        subject: 'Confirmez votre adresse email - Aux P\'tits Pois',
-        html: renderEmail({
-          title: 'Confirmez votre email',
-          content: `
+    const verifyUrl = `${process.env.FRONTEND_URL}/auth/confirm-email/${verifyToken}`;
+
+    return this.#send({
+      from: EMAIL_FROM,
+      to: user.email,
+      subject: 'Confirmez votre adresse email - Aux P\'tits Pois',
+      html: renderEmail({
+        title: 'Confirmez votre email',
+        content: `
             <p>Bonjour ${escapeHtml(user.firstName)},</p>
             <p>Merci de vous être inscrit sur Aux P'tits Pois. Cliquez sur le bouton ci-dessous pour confirmer votre adresse email :</p>
             ${emailButton(verifyUrl, 'Confirmer mon email')}
@@ -125,15 +187,9 @@ class EmailService {
               <a href="${verifyUrl}" style="word-break:break-all;">${verifyUrl}</a>
             </p>
             <p>L'équipe Aux P'tits Pois</p>`,
-          footerNote: rgpdNote(user.email, 'dans le cadre de votre inscription'),
-        }),
-      });
-      if (process.env.NODE_ENV !== 'production') console.log('[DEV] Email vérification envoyé');
-      return { success: true };
-    } catch (error) {
-      console.error('Erreur envoi email vérification:', error);
-      return { success: false, error: error.message };
-    }
+        footerNote: rgpdNote(user.email, 'dans le cadre de votre inscription'),
+      }),
+    }, { kind: 'EMAIL_VERIFICATION', ref: user.id });
   }
 
   /* Prévient qu'une inscription a été tentée sur une adresse déjà enregistrée.
@@ -143,14 +199,13 @@ class EmailService {
      sinon n'importe qui pourrait faire arriver le texte de son choix dans la
      boîte mail de l'adhérent. */
   async sendAccountAlreadyExists(user) {
-    try {
-      await transporter.sendMail({
-        from: EMAIL_FROM,
-        to: user.email,
-        subject: 'Tentative de création de compte - Aux P\'tits Pois',
-        html: renderEmail({
-          title: 'Vous avez déjà un compte',
-          content: `
+    return this.#send({
+      from: EMAIL_FROM,
+      to: user.email,
+      subject: 'Tentative de création de compte - Aux P\'tits Pois',
+      html: renderEmail({
+        title: 'Vous avez déjà un compte',
+        content: `
             <p>Bonjour ${escapeHtml(user.firstName)},</p>
             <p>Quelqu'un vient de tenter de créer un compte sur Aux P'tits Pois avec votre adresse email. Un compte existe déjà à cette adresse : aucun nouveau compte n'a été créé et votre mot de passe n'a pas été modifié.</p>
             <p><strong>Si c'était vous</strong>, connectez-vous simplement avec votre mot de passe habituel :</p>
@@ -158,28 +213,22 @@ class EmailService {
             <p>Vous l'avez oublié ? <a href="${process.env.FRONTEND_URL}/auth/forgot-password">Réinitialisez-le en deux minutes</a>.</p>
             <div class="warning"><strong>Si ce n'était pas vous :</strong> il n'y a rien à faire, votre compte n'a pas été touché. Si ces messages se répètent, écrivez-nous à <a href="mailto:${AMAP_EMAIL}">${AMAP_EMAIL}</a>.</div>
             <p>L'équipe Aux P'tits Pois</p>`,
-          footerNote: rgpdNote(user.email, 'car un compte existe à cette adresse'),
-        }),
-      });
-      if (process.env.NODE_ENV !== 'production') console.log('[DEV] Email compte déjà existant envoyé');
-      return { success: true };
-    } catch (error) {
-      console.error('Erreur envoi email compte déjà existant:', error);
-      return { success: false, error: error.message };
-    }
+        footerNote: rgpdNote(user.email, 'car un compte existe à cette adresse'),
+      }),
+    }, { kind: 'ACCOUNT_ALREADY_EXISTS', ref: user.id });
   }
 
   /* Envoie un email de récupération de mot de passe */
   async sendPasswordResetEmail(user, resetToken) {
-    try {
-      const resetUrl = `${process.env.FRONTEND_URL}/auth/reset-password?token=${resetToken}`;
-      await transporter.sendMail({
-        from: EMAIL_FROM,
-        to: user.email,
-        subject: 'Réinitialisation de votre mot de passe',
-        html: renderEmail({
-          title: 'Réinitialisation de mot de passe',
-          content: `
+    const resetUrl = `${process.env.FRONTEND_URL}/auth/reset-password?token=${resetToken}`;
+
+    return this.#send({
+      from: EMAIL_FROM,
+      to: user.email,
+      subject: 'Réinitialisation de votre mot de passe',
+      html: renderEmail({
+        title: 'Réinitialisation de mot de passe',
+        content: `
             <p>Bonjour ${escapeHtml(user.firstName)},</p>
             <p>Vous avez demandé à réinitialiser votre mot de passe pour votre compte Aux P'tits Pois.</p>
             <p>Cliquez sur le bouton ci-dessous pour en créer un nouveau :</p>
@@ -187,27 +236,20 @@ class EmailService {
             <div class="warning"><strong>Ce lien est valable une heure.</strong> Au-delà, il faudra refaire une demande depuis la page de connexion.</div>
             <p>Si vous n'avez pas demandé cette réinitialisation, ignorez simplement cet email : votre mot de passe reste inchangé.</p>
             <p>L'équipe Aux P'tits Pois</p>`,
-          footerNote: rgpdNote(user.email, 'suite à une demande de réinitialisation faite sur notre site'),
-        }),
-      });
-      if (process.env.NODE_ENV !== 'production') console.log('[DEV] Email reset password envoyé');
-      return { success: true };
-    } catch (error) {
-      console.error('Erreur envoi email reset password:', error);
-      return { success: false, error: error.message };
-    }
+        footerNote: rgpdNote(user.email, 'suite à une demande de réinitialisation faite sur notre site'),
+      }),
+    }, { kind: 'PASSWORD_RESET', ref: user.id });
   }
 
   /* Envoie un email de confirmation de demande d'abonnement */
   async sendSubscriptionRequestConfirmation(request) {
-    try {
-      await transporter.sendMail({
-        from: EMAIL_FROM,
-        to: request.email,
-        subject: 'Demande d\'abonnement reçue - Aux P\'tits Pois',
-        html: renderEmail({
-          title: 'Demande d\'abonnement reçue',
-          content: `
+    return this.#send({
+      from: EMAIL_FROM,
+      to: request.email,
+      subject: 'Demande d\'abonnement reçue - Aux P\'tits Pois',
+      html: renderEmail({
+        title: 'Demande d\'abonnement reçue',
+        content: `
             <p>Bonjour ${escapeHtml(request.firstName)},</p>
             <p>Nous avons bien reçu votre demande d'abonnement à Aux P'tits Pois.</p>
             <div class="info-box">
@@ -224,62 +266,51 @@ class EmailService {
               <li>Votre abonnement est activé</li>
             </ol>
             <p>À très bientôt,<br>L'équipe Aux P'tits Pois</p>`,
-          /* Seul message dont la porte dépend de la donnée reçue. La route
-             actuelle exige d'être connecté, donc userId est toujours là ; mais
-             le modèle le déclare optionnel et la purge RGPD compte déjà des
-             « demandes d'abonnement sans compte ». Le jour où un formulaire
-             public rouvrira ce chemin, la mention suivra d'elle-même au lieu
-             d'envoyer vers un espace adhérent qui n'existe pas. */
-          footerNote: request.userId
-            ? rgpdNote(request.email, 'suite à votre demande d\'abonnement')
-            : rgpdNoteSansCompte(request.email, 'suite à votre demande d\'abonnement'),
-        }),
-      });
-      if (process.env.NODE_ENV !== 'production') console.log('[DEV] Email confirmation demande envoyé');
-      return { success: true };
-    } catch (error) {
-      console.error('Erreur envoi email confirmation demande:', error);
-      return { success: false, error: error.message };
-    }
+        /* Seul message dont la porte dépend de la donnée reçue. La route
+           actuelle exige d'être connecté, donc userId est toujours là ; mais
+           le modèle le déclare optionnel et la purge RGPD compte déjà des
+           « demandes d'abonnement sans compte ». Le jour où un formulaire
+           public rouvrira ce chemin, la mention suivra d'elle-même au lieu
+           d'envoyer vers un espace adhérent qui n'existe pas. */
+        footerNote: request.userId
+          ? rgpdNote(request.email, 'suite à votre demande d\'abonnement')
+          : rgpdNoteSansCompte(request.email, 'suite à votre demande d\'abonnement'),
+      }),
+    }, { kind: 'SUBSCRIPTION_REQUEST_CONFIRMATION', ref: request.id });
   }
 
   /* Envoie un email de confirmation de demande producteur */
   async sendProducerInquiryConfirmation(inquiry) {
-    try {
-      await transporter.sendMail({
-        from: EMAIL_FROM,
-        to: inquiry.email,
-        subject: 'Candidature reçue - Aux P\'tits Pois',
-        html: renderEmail({
-          title: 'Candidature reçue',
-          content: `
+    return this.#send({
+      from: EMAIL_FROM,
+      to: inquiry.email,
+      subject: 'Candidature reçue - Aux P\'tits Pois',
+      html: renderEmail({
+        title: 'Candidature reçue',
+        content: `
             <p>Bonjour ${escapeHtml(inquiry.firstName)},</p>
             <p>Nous avons bien reçu votre candidature pour <strong>${escapeHtml(inquiry.farmName)}</strong> et nous vous recontacterons très prochainement.</p>
             <p>À très bientôt,<br>L'équipe Aux P'tits Pois</p>`,
-          footerNote: rgpdNoteSansCompte(inquiry.email, 'suite à votre candidature de producteur'),
-        }),
-      });
-      return { success: true };
-    } catch (error) {
-      return { success: false, error: error.message };
-    }
+        footerNote: rgpdNoteSansCompte(inquiry.email, 'suite à votre candidature de producteur'),
+      }),
+    }, { kind: 'PRODUCER_INQUIRY_CONFIRMATION', ref: inquiry.id });
   }
 
   /* Envoie un message de contact à l'adresse de l'AMAP */
   async sendContactMessage({ name, email, subject, message }) {
-    try {
-      const safeName = escapeHtml(name);
-      const safeEmail = escapeHtml(email);
-      const safeSubject = escapeHtml(subject);
-      await transporter.sendMail({
-        from: EMAIL_FROM,
-        to: AMAP_EMAIL,
-        replyTo: email,
-        subject: `[Contact] ${String(subject).replace(/[\r\n]+/g, ' ')}`,
-        html: renderEmail({
-          title: 'Nouveau message de contact',
-          eyebrow: 'Formulaire du site',
-          content: `
+    const safeName = escapeHtml(name);
+    const safeEmail = escapeHtml(email);
+    const safeSubject = escapeHtml(subject);
+
+    return this.#send({
+      from: EMAIL_FROM,
+      to: AMAP_EMAIL,
+      replyTo: email,
+      subject: `[Contact] ${String(subject).replace(/[\r\n]+/g, ' ')}`,
+      html: renderEmail({
+        title: 'Nouveau message de contact',
+        eyebrow: 'Formulaire du site',
+        content: `
             <div class="info-box">
               <p><strong>Nom :</strong> ${safeName}</p>
               <p><strong>Email :</strong> <a href="mailto:${safeEmail}">${safeEmail}</a></p>
@@ -287,16 +318,12 @@ class EmailService {
             </div>
             <p><strong>Message :</strong></p>
             <div class="message-box">${DOMPurify.sanitize(message, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] })}</div>`,
-          /* Seul message, avec la remise de chèques, à ne porter aucune mention
-             RGPD — et c'est volontaire : il arrive dans la boîte de
-             l'association, pas dans celle de la personne dont il parle. */
-          footerNote: 'Message automatique émis par le formulaire de contact du site. Répondre à cet email écrit directement à son auteur.',
-        }),
-      });
-      return { success: true };
-    } catch (error) {
-      return { success: false, error: error.message };
-    }
+        /* Seul message, avec la remise de chèques, à ne porter aucune mention
+           RGPD — et c'est volontaire : il arrive dans la boîte de
+           l'association, pas dans celle de la personne dont il parle. */
+        footerNote: 'Message automatique émis par le formulaire de contact du site. Répondre à cet email écrit directement à son auteur.',
+      }),
+    }, { kind: 'CONTACT_MESSAGE', ref: null });
   }
 
   /* Mise en forme du corps d'une newsletter.
@@ -380,30 +407,36 @@ class EmailService {
         for (const recipient of batch) {
           const footer = EmailService.newsletterFooter(recipient.id, respectsOptOut);
 
-          try {
-            await transporter.sendMail({
-              from: EMAIL_FROM,
-              to: recipient.email,
-              subject: newsletter.subject,
-              ...(footer.headers && { headers: footer.headers }),
-              /* Le sujet coiffe le message : le lecteur sait de quoi il s'agit
-                 avant d'avoir lu la première ligne. Échappé, parce qu'il est
-                 saisi à la main dans l'écran d'administration et qu'il entre
-                 ici dans du HTML — un chevron mal placé casserait la page. */
-              html: renderEmail({
-                title: escapeHtml(newsletter.subject),
-                /* Le sur-titre doit dire la même chose que le pied de page :
-                   une alerte n'est pas la lettre d'information, puisqu'elle
-                   arrive même à qui s'en est désabonné. */
-                eyebrow: respectsOptOut ? 'Lettre d\'information' : 'Information de service',
-                content: DOMPurify.sanitize(EmailService.formatNewsletterBody(newsletter.content)),
-                footerNote: footer.html,
-              }),
-            });
+          /* Un envoi de masse ne s'arrête pas au premier refus : #send ne lève
+             jamais, on lit donc son verdict et on continue la liste. Chaque
+             destinataire laisse sa propre ligne dans EmailLog, ce qui permet de
+             répondre après coup à « qui n'a pas reçu l'annonce ? » sans avoir à
+             conserver ce tableau d'erreurs. */
+          const envoi = await this.#send({
+            from: EMAIL_FROM,
+            to: recipient.email,
+            subject: newsletter.subject,
+            ...(footer.headers && { headers: footer.headers }),
+            /* Le sujet coiffe le message : le lecteur sait de quoi il s'agit
+               avant d'avoir lu la première ligne. Échappé, parce qu'il est
+               saisi à la main dans l'écran d'administration et qu'il entre
+               ici dans du HTML — un chevron mal placé casserait la page. */
+            html: renderEmail({
+              title: escapeHtml(newsletter.subject),
+              /* Le sur-titre doit dire la même chose que le pied de page :
+                 une alerte n'est pas la lettre d'information, puisqu'elle
+                 arrive même à qui s'en est désabonné. */
+              eyebrow: respectsOptOut ? 'Lettre d\'information' : 'Information de service',
+              content: DOMPurify.sanitize(EmailService.formatNewsletterBody(newsletter.content)),
+              footerNote: footer.html,
+            }),
+          }, { kind: 'NEWSLETTER', ref: newsletter.id });
+
+          if (envoi.success) {
             results.sent++;
-          } catch (emailError) {
+          } else {
             results.failed++;
-            results.errors.push({ email: recipient.email, error: emailError.message });
+            results.errors.push({ email: recipient.email, error: envoi.error });
           }
         }
         if (i + batchSize < recipients.length) await new Promise(resolve => setTimeout(resolve, 1000));
@@ -416,14 +449,13 @@ class EmailService {
 
   /* Envoie un email de confirmation d'abonnement créé */
   async sendSubscriptionConfirmation(subscription, user) {
-    try {
-      await transporter.sendMail({
-        from: EMAIL_FROM,
-        to: user.email,
-        subject: 'Votre abonnement est activé !',
-        html: renderEmail({
-          title: 'Bienvenue dans l\'aventure',
-          content: `
+    return this.#send({
+      from: EMAIL_FROM,
+      to: user.email,
+      subject: 'Votre abonnement est activé !',
+      html: renderEmail({
+        title: 'Bienvenue dans l\'aventure',
+        content: `
             <p>Bonjour ${escapeHtml(user.firstName)},</p>
             <p>Félicitations ! Votre abonnement Aux P'tits Pois est maintenant <strong>activé</strong>.</p>
             <div class="info-box">
@@ -439,26 +471,22 @@ class EmailService {
               ${escapeHtml(subscription.pickupLocation.address)}</p>
             </div>
             <p>À très bientôt,<br>L'équipe Aux P'tits Pois</p>`,
-          footerNote: rgpdNote(user.email, 'suite à l\'activation de votre contrat'),
-        }),
-      });
-      return { success: true };
-    } catch (error) {
-      return { success: false, error: error.message };
-    }
+        footerNote: rgpdNote(user.email, 'suite à l\'activation de votre contrat'),
+      }),
+    }, { kind: 'SUBSCRIPTION_CONFIRMATION', ref: subscription.id });
   }
 
   /* Envoie un rappel de renouvellement */
   async sendRenewalReminderEmail(subscription, user) {
-    try {
-      const type = subscription.type === 'ANNUAL' ? 'Annuel' : 'Découverte';
-      await transporter.sendMail({
-        from: EMAIL_FROM,
-        to: user.email,
-        subject: 'Votre abonnement Aux P\'tits Pois expire bientôt',
-        html: renderEmail({
-          title: 'Votre abonnement expire bientôt',
-          content: `
+    const type = subscription.type === 'ANNUAL' ? 'Annuel' : 'Découverte';
+
+    return this.#send({
+      from: EMAIL_FROM,
+      to: user.email,
+      subject: 'Votre abonnement Aux P\'tits Pois expire bientôt',
+      html: renderEmail({
+        title: 'Votre abonnement expire bientôt',
+        content: `
             <p>Bonjour ${escapeHtml(user.firstName)},</p>
             <p>Votre abonnement Aux P'tits Pois arrive à échéance dans <strong>30 jours</strong>.</p>
             <div class="info-box">
@@ -471,13 +499,9 @@ class EmailService {
             </div>
             ${emailButton(`${process.env.FRONTEND_URL}/nos-abonnements`, 'Renouveler mon abonnement')}
             <p>À bientôt,<br>L'équipe Aux P'tits Pois</p>`,
-          footerNote: rgpdNote(user.email, 'parce que votre contrat arrive à échéance'),
-        }),
-      });
-      return { success: true };
-    } catch (error) {
-      return { success: false, error: error.message };
-    }
+        footerNote: rgpdNote(user.email, 'parce que votre contrat arrive à échéance'),
+      }),
+    }, { kind: 'RENEWAL_REMINDER', ref: subscription.id });
   }
 
   /* Chèque : avis d'encaissement à venir, envoyé un mois avant le dépôt.
@@ -490,20 +514,19 @@ class EmailService {
      Le rang du chèque (« 3ᵉ sur 4 ») compte autant que le montant : c'est ce
      qui lui dit combien il en reste après celui-là. */
   async sendChequeDepositNotice({ payment, subscription, user, rang, total }) {
-    try {
-      const montant = euroAmount(payment.amount);
-      const echeance = longDate(payment.dueDate);
-      const rangTexte = rang === total
-        ? 'Dernier chèque de votre contrat'
-        : `${rang}${rang === 1 ? 'er' : 'e'} chèque sur ${total}`;
+    const montant = euroAmount(payment.amount);
+    const echeance = longDate(payment.dueDate);
+    const rangTexte = rang === total
+      ? 'Dernier chèque de votre contrat'
+      : `${rang}${rang === 1 ? 'er' : 'e'} chèque sur ${total}`;
 
-      await transporter.sendMail({
-        from: EMAIL_FROM,
-        to: user.email,
-        subject: `Votre chèque de ${montant} sera déposé le ${echeance}`,
-        html: renderEmail({
-          title: 'Un chèque va être déposé',
-          content: `
+    return this.#send({
+      from: EMAIL_FROM,
+      to: user.email,
+      subject: `Votre chèque de ${montant} sera déposé le ${echeance}`,
+      html: renderEmail({
+        title: 'Un chèque va être déposé',
+        content: `
             <p>Bonjour ${escapeHtml(user.firstName)},</p>
             <p>Nous vous informons qu'un des chèques remis pour votre abonnement sera porté en banque le <strong>${echeance}</strong>.</p>
             <div class="info-box">
@@ -516,13 +539,9 @@ class EmailService {
             </div>
             ${emailButton(`${process.env.FRONTEND_URL}/compte`, 'Voir mes chèques')}
             <p>Merci de votre soutien,<br>L'équipe Aux P'tits Pois</p>`,
-          footerNote: rgpdNote(user.email, 'parce qu\'un chèque de votre contrat arrive à échéance'),
-        }),
-      });
-      return { success: true };
-    } catch (error) {
-      return { success: false, error: error.message };
-    }
+        footerNote: rgpdNote(user.email, 'parce qu\'un chèque de votre contrat arrive à échéance'),
+      }),
+    }, { kind: 'CHEQUE_DEPOSIT_NOTICE', ref: payment.id });
   }
 
   /* Chèques : récapitulatif des dépôts à faire, pour le trésorier.
@@ -534,14 +553,19 @@ class EmailService {
      Les chèques en retard ouvrent la liste et sont marqués : ce sont les seuls
      sur lesquels une action est déjà due. */
   async sendTreasurerChequeDigest(lignes) {
-    try {
-      const destinataire = process.env.TREASURER_EMAIL;
-      if (!destinataire) return { success: false, error: 'TREASURER_EMAIL non configurée' };
+    const destinataire = process.env.TREASURER_EMAIL;
+    if (!destinataire) {
+      /* Rien ne part, donc rien à tracer — mais l'absence de configuration doit
+         s'entendre : sans cette ligne, une remise de chèques jamais annoncée
+         ressemblerait à une remise sans chèque à déposer. */
+      console.error('[Email:TREASURER_CHEQUE_DIGEST] TREASURER_EMAIL non configurée, récapitulatif non envoyé');
+      return { success: false, error: 'TREASURER_EMAIL non configurée' };
+    }
 
-      const total = lignes.reduce((somme, ligne) => somme + ligne.amount, 0);
-      const retards = lignes.filter((ligne) => ligne.enRetard).length;
+    const total = lignes.reduce((somme, ligne) => somme + ligne.amount, 0);
+    const retards = lignes.filter((ligne) => ligne.enRetard).length;
 
-      const rangs = lignes.map((ligne) => `
+    const rangs = lignes.map((ligne) => `
         <tr${ligne.enRetard ? ' class="row-late"' : ''}>
           <td>
             ${escapeHtml(ligne.nom)}<br>
@@ -560,14 +584,14 @@ class EmailService {
         </tr>
       `).join('');
 
-      await transporter.sendMail({
-        from: EMAIL_FROM,
-        to: destinataire,
-        subject: `${lignes.length} chèque${lignes.length > 1 ? 's' : ''} à déposer en banque${retards > 0 ? ` (dont ${retards} en retard)` : ''}`,
-        html: renderEmail({
-          title: 'Chèques à porter en banque',
-          eyebrow: 'Trésorerie',
-          content: `
+    return this.#send({
+      from: EMAIL_FROM,
+      to: destinataire,
+      subject: `${lignes.length} chèque${lignes.length > 1 ? 's' : ''} à déposer en banque${retards > 0 ? ` (dont ${retards} en retard)` : ''}`,
+      html: renderEmail({
+        title: 'Chèques à porter en banque',
+        eyebrow: 'Trésorerie',
+        content: `
             <p>Bonjour,</p>
             <p>${lignes.length} chèque${lignes.length > 1 ? 's arrivent' : ' arrive'} à échéance. Voici la remise à préparer :</p>
             <table class="listing">
@@ -585,28 +609,24 @@ class EmailService {
             </table>
             <p>Une fois la remise déposée, marquez ces chèques « remis en banque » depuis la fiche de chaque abonnement : c'est ce qui met à jour l'espace de l'adhérent et arrête ce rappel.</p>
             ${emailButton(`${process.env.FRONTEND_URL}/admin/abonnements`, 'Ouvrir les abonnements')}`,
-          /* Destinataire interne, comme le formulaire de contact : rien à
-             mentionner à quelqu'un sur ses propres données. */
-          footerNote: 'Message automatique destiné à la trésorerie de l\'association.',
-        }),
-      });
-      return { success: true };
-    } catch (error) {
-      return { success: false, error: error.message };
-    }
+        /* Destinataire interne, comme le formulaire de contact : rien à
+           mentionner à quelqu'un sur ses propres données. */
+        footerNote: 'Message automatique destiné à la trésorerie de l\'association.',
+      }),
+    }, { kind: 'TREASURER_CHEQUE_DIGEST', ref: null });
   }
 
   /* Permanence : Confirmation */
   async sendShiftConfirmation(shift, user) {
-    try {
-      const date = new Date(shift.distributionDate).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-      await transporter.sendMail({
-        from: EMAIL_FROM,
-        to: user.email,
-        subject: 'Confirmation d\'inscription à une permanence - Aux P\'tits Pois',
-        html: renderEmail({
-          title: 'Inscription confirmée',
-          content: `
+    const date = new Date(shift.distributionDate).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+    return this.#send({
+      from: EMAIL_FROM,
+      to: user.email,
+      subject: 'Confirmation d\'inscription à une permanence - Aux P\'tits Pois',
+      html: renderEmail({
+        title: 'Inscription confirmée',
+        content: `
             <p>Bonjour ${escapeHtml(user.firstName)},</p>
             <p>Votre inscription à la permanence est <strong>confirmée</strong>.</p>
             <div class="info-box">
@@ -616,26 +636,22 @@ class EmailService {
             </div>
             <p>Merci pour votre engagement dans l'AMAP !</p>
             <p>À bientôt,<br>L'équipe Aux P'tits Pois</p>`,
-          footerNote: rgpdNote(user.email, 'suite à votre inscription à une permanence'),
-        }),
-      });
-      return { success: true };
-    } catch (error) {
-      return { success: false, error: error.message };
-    }
+        footerNote: rgpdNote(user.email, 'suite à votre inscription à une permanence'),
+      }),
+    }, { kind: 'SHIFT_CONFIRMATION', ref: shift.id });
   }
 
   /* Permanence : Annulation */
   async sendShiftCancellation(shift, user) {
-    try {
-      const date = new Date(shift.distributionDate).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-      await transporter.sendMail({
-        from: EMAIL_FROM,
-        to: user.email,
-        subject: 'Permanence annulée - Aux P\'tits Pois',
-        html: renderEmail({
-          title: 'Permanence annulée',
-          content: `
+    const date = new Date(shift.distributionDate).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+    return this.#send({
+      from: EMAIL_FROM,
+      to: user.email,
+      subject: 'Permanence annulée - Aux P\'tits Pois',
+      html: renderEmail({
+        title: 'Permanence annulée',
+        content: `
             <p>Bonjour ${escapeHtml(user.firstName)},</p>
             <p>Nous vous informons que la permanence à laquelle vous étiez inscrit(e) a été <strong>annulée</strong>.</p>
             <div class="info-box">
@@ -643,27 +659,23 @@ class EmailService {
               <p><strong>Date :</strong> ${date}</p>
             </div>
             <p>À bientôt,<br>L'équipe Aux P'tits Pois</p>`,
-          footerNote: rgpdNote(user.email, 'parce que vous étiez inscrit(e) à cette permanence'),
-        }),
-      });
-      return { success: true };
-    } catch (error) {
-      return { success: false, error: error.message };
-    }
+        footerNote: rgpdNote(user.email, 'parce que vous étiez inscrit(e) à cette permanence'),
+      }),
+    }, { kind: 'SHIFT_CANCELLATION', ref: shift.id });
   }
 
   /* Abonnement : Annulation */
   async sendSubscriptionCancellation(subscription, user) {
-    try {
-      const type = subscription.type === 'ANNUAL' ? 'Annuel' : 'Découverte';
-      const basket = subscription.basketSize === 'SMALL' ? 'Petit panier (2-4 kg)' : 'Grand panier (6-8 kg)';
-      await transporter.sendMail({
-        from: EMAIL_FROM,
-        to: user.email,
-        subject: 'Votre abonnement Aux P\'tits Pois a été annulé',
-        html: renderEmail({
-          title: 'Abonnement annulé',
-          content: `
+    const type = subscription.type === 'ANNUAL' ? 'Annuel' : 'Découverte';
+    const basket = subscription.basketSize === 'SMALL' ? 'Petit panier (2-4 kg)' : 'Grand panier (6-8 kg)';
+
+    return this.#send({
+      from: EMAIL_FROM,
+      to: user.email,
+      subject: 'Votre abonnement Aux P\'tits Pois a été annulé',
+      html: renderEmail({
+        title: 'Abonnement annulé',
+        content: `
             <p>Bonjour ${escapeHtml(user.firstName)},</p>
             <p>Nous vous informons que votre abonnement Aux P'tits Pois a été <strong>annulé</strong>.</p>
             <div class="info-box">
@@ -674,25 +686,20 @@ class EmailService {
             </div>
             <p>Si vous avez des questions ou souhaitez vous réabonner, écrivez-nous à <a href="mailto:${AMAP_EMAIL}">${AMAP_EMAIL}</a>.</p>
             <p>À bientôt,<br>L'équipe Aux P'tits Pois</p>`,
-          footerNote: rgpdNote(user.email, 'suite à l\'annulation de votre contrat'),
-        }),
-      });
-      return { success: true };
-    } catch (error) {
-      return { success: false, error: error.message };
-    }
+        footerNote: rgpdNote(user.email, 'suite à l\'annulation de votre contrat'),
+      }),
+    }, { kind: 'SUBSCRIPTION_CANCELLATION', ref: subscription.id });
   }
 
   /* Candidature producteur : Acceptée */
   async sendProducerInquiryAccepted(inquiry) {
-    try {
-      await transporter.sendMail({
-        from: EMAIL_FROM,
-        to: inquiry.email,
-        subject: 'Votre candidature a été acceptée - Aux P\'tits Pois',
-        html: renderEmail({
-          title: 'Candidature acceptée',
-          content: `
+    return this.#send({
+      from: EMAIL_FROM,
+      to: inquiry.email,
+      subject: 'Votre candidature a été acceptée - Aux P\'tits Pois',
+      html: renderEmail({
+        title: 'Candidature acceptée',
+        content: `
             <p>Bonjour ${escapeHtml(inquiry.firstName)},</p>
             <p>Nous avons le plaisir de vous informer que la candidature de <strong>${escapeHtml(inquiry.farmName)}</strong> a été <strong>acceptée</strong> par l'AMAP Aux P'tits Pois.</p>
             <div class="info-box">
@@ -705,37 +712,28 @@ class EmailService {
             </div>
             <p>Pour toute question, écrivez-nous à <a href="mailto:${AMAP_EMAIL}">${AMAP_EMAIL}</a>.</p>
             <p>À très bientôt,<br>L'équipe Aux P'tits Pois</p>`,
-          footerNote: rgpdNoteSansCompte(inquiry.email, 'suite à votre candidature de producteur'),
-        }),
-      });
-      return { success: true };
-    } catch (error) {
-      return { success: false, error: error.message };
-    }
+        footerNote: rgpdNoteSansCompte(inquiry.email, 'suite à votre candidature de producteur'),
+      }),
+    }, { kind: 'PRODUCER_INQUIRY_ACCEPTED', ref: inquiry.id });
   }
 
   /* Candidature producteur : Rejetée */
   async sendProducerInquiryRejected(inquiry) {
-    try {
-      await transporter.sendMail({
-        from: EMAIL_FROM,
-        to: inquiry.email,
-        subject: 'Votre candidature - Aux P\'tits Pois',
-        html: renderEmail({
-          title: 'Réponse à votre candidature',
-          content: `
+    return this.#send({
+      from: EMAIL_FROM,
+      to: inquiry.email,
+      subject: 'Votre candidature - Aux P\'tits Pois',
+      html: renderEmail({
+        title: 'Réponse à votre candidature',
+        content: `
             <p>Bonjour ${escapeHtml(inquiry.firstName)},</p>
             <p>Nous avons bien étudié la candidature de <strong>${escapeHtml(inquiry.farmName)}</strong> et nous vous remercions de l'intérêt que vous portez à notre AMAP.</p>
             <p>Après examen, nous ne sommes malheureusement pas en mesure de donner suite à votre candidature pour le moment.</p>
             <p>Pour toute question, n'hésitez pas à nous écrire à <a href="mailto:${AMAP_EMAIL}">${AMAP_EMAIL}</a>.</p>
             <p>Cordialement,<br>L'équipe Aux P'tits Pois</p>`,
-          footerNote: rgpdNoteSansCompte(inquiry.email, 'suite à votre candidature de producteur'),
-        }),
-      });
-      return { success: true };
-    } catch (error) {
-      return { success: false, error: error.message };
-    }
+        footerNote: rgpdNoteSansCompte(inquiry.email, 'suite à votre candidature de producteur'),
+      }),
+    }, { kind: 'PRODUCER_INQUIRY_REJECTED', ref: inquiry.id });
   }
 
   /* Panier hebdomadaire : Notification aux abonnés actifs (avec batching) */
@@ -757,15 +755,14 @@ class EmailService {
         const batch = recipients.slice(i, i + batchSize);
 
         for (const recipient of batch) {
-          try {
-            await transporter.sendMail({
-              from: EMAIL_FROM,
-              to: recipient.email,
-              subject: `Votre panier de la semaine - ${distDate}`,
-              html: renderEmail({
-                title: 'Au menu cette semaine',
-                eyebrow: 'Panier de la semaine',
-                content: `
+          const envoi = await this.#send({
+            from: EMAIL_FROM,
+            to: recipient.email,
+            subject: `Votre panier de la semaine - ${distDate}`,
+            html: renderEmail({
+              title: 'Au menu cette semaine',
+              eyebrow: 'Panier de la semaine',
+              content: `
                   <p>Bonjour ${escapeHtml(recipient.firstName)},</p>
                   <p>Le panier de la semaine est prêt. Voici ce que nos producteurs ont récolté pour votre distribution du <strong>${distDate}</strong> :</p>
                   <div class="basket-box">
@@ -779,13 +776,15 @@ class EmailService {
                   </p>
                   <p>N'oubliez pas vos sacs et cabas pour rapporter vos légumes.</p>
                   <p>À mercredi,<br>L'équipe Aux P'tits Pois</p>`,
-                footerNote: rgpdNote(recipient.email, 'parce que vous avez un abonnement actif'),
-              }),
-            });
+              footerNote: rgpdNote(recipient.email, 'parce que vous avez un abonnement actif'),
+            }),
+          }, { kind: 'WEEKLY_BASKET', ref: basket.id });
+
+          if (envoi.success) {
             results.sent++;
-          } catch (emailError) {
+          } else {
             results.failed++;
-            results.errors.push({ email: recipient.email, error: emailError.message });
+            results.errors.push({ email: recipient.email, error: envoi.error });
           }
         }
 
@@ -802,15 +801,15 @@ class EmailService {
 
   /* Permanence : Confirmation de désistement (adhérent) */
   async sendShiftWithdrawal(shift, user) {
-    try {
-      const date = new Date(shift.distributionDate).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-      await transporter.sendMail({
-        from: EMAIL_FROM,
-        to: user.email,
-        subject: 'Désinscription confirmée - Aux P\'tits Pois',
-        html: renderEmail({
-          title: 'Désinscription confirmée',
-          content: `
+    const date = new Date(shift.distributionDate).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+    return this.#send({
+      from: EMAIL_FROM,
+      to: user.email,
+      subject: 'Désinscription confirmée - Aux P\'tits Pois',
+      html: renderEmail({
+        title: 'Désinscription confirmée',
+        content: `
             <p>Bonjour ${escapeHtml(user.firstName)},</p>
             <p>Votre désinscription de la permanence a bien été enregistrée.</p>
             <div class="info-box">
@@ -819,13 +818,9 @@ class EmailService {
             </div>
             <p>Si vous souhaitez vous inscrire à une autre permanence, rendez-vous sur <a href="${process.env.FRONTEND_URL}/permanences">votre espace adhérent</a>.</p>
             <p>À bientôt,<br>L'équipe Aux P'tits Pois</p>`,
-          footerNote: rgpdNote(user.email, 'suite à votre désinscription d\'une permanence'),
-        }),
-      });
-      return { success: true };
-    } catch (error) {
-      return { success: false, error: error.message };
-    }
+        footerNote: rgpdNote(user.email, 'suite à votre désinscription d\'une permanence'),
+      }),
+    }, { kind: 'SHIFT_WITHDRAWAL', ref: shift.id });
   }
 }
 

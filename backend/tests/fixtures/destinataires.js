@@ -23,6 +23,7 @@ export const candidateProductrice = {
 };
 
 export const contrat = {
+  id: 'contrat-de-test-0001',
   subscriptionNumber: 'AMAP-2026-0142',
   type: 'ANNUAL',
   basketSize: 'SMALL',
@@ -37,6 +38,7 @@ export const contrat = {
    proposée dans le pied de page. La variante sans compte est construite dans le
    test lui-même, pour que le contraste se lise sur place. */
 export const demandeAbonnement = {
+  id: 'demande-de-test-0001',
   userId: adherente.id,
   firstName: adherente.firstName,
   email: adherente.email,
@@ -46,12 +48,14 @@ export const demandeAbonnement = {
 };
 
 export const permanence = {
+  id: 'permanence-de-test-0001',
   distributionDate: '2026-09-02T16:00:00.000Z',
   startTime: '18h00',
   endTime: '19h30',
 };
 
 export const cheque = {
+  id: 'cheque-de-test-0001',
   amount: 365,
   dueDate: '2026-10-01T00:00:00.000Z',
 };
@@ -66,6 +70,7 @@ export const ligneDeRemise = {
 };
 
 export const panierHebdomadaire = {
+  id: 'panier-de-test-0001',
   distributionDate: '2026-09-02T16:00:00.000Z',
   items: [
     { customProductName: 'Courgettes' },
@@ -74,12 +79,14 @@ export const panierHebdomadaire = {
 };
 
 export const lettreDInformation = {
+  id: 'newsletter-de-test-0001',
   subject: 'Les nouvelles du mois',
   type: 'NEWSLETTER',
   content: 'Bonjour à toutes et à tous,\nLa distribution de mercredi est maintenue.',
 };
 
 export const annonceDeService = {
+  id: 'newsletter-de-test-0002',
   subject: 'Distribution annulée mercredi',
   type: 'ALERT',
   content: '<p>La distribution de mercredi est annulée.</p>',

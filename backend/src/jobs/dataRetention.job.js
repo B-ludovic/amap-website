@@ -26,6 +26,20 @@ const PRODUCER_INQUIRY_RETENTION_DAYS = 2 * 365;
    leur propre échéance, comptée depuis leur traitement. */
 const ORPHAN_REQUEST_RETENTION_DAYS = 365;
 
+/* La trace des emails porte une adresse, donc une donnée personnelle, et une
+   table qui grossit d'une ligne par message finirait par tenir l'historique de
+   correspondance de toute l'AMAP. Un an : c'est la durée pendant laquelle la
+   question « l'adhérente Machin a-t-elle reçu sa confirmation le 12 mars ? » se
+   pose encore — un contrat court sur une saison, un litige de distribution se
+   règle dans les semaines qui suivent.
+
+   Ces lignes ne sont pas rattachées aux comptes, et une purge de compte ne les
+   emporte donc pas. C'est délibéré : les relier obligerait à lire les adresses
+   concernées avant d'ouvrir la transaction, ce que tout ce job refuse par
+   ailleurs (voir plus bas). Elles s'effacent d'elles-mêmes sur leur propre
+   horloge, au plus tard un an après l'envoi. */
+const EMAIL_LOG_RETENTION_DAYS = 365;
+
 const daysAgo = (days) => {
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - days);
@@ -200,6 +214,22 @@ async function purgeOrphanSubscriptionRequests() {
   await warnAboutUntreated('demande(s) d\'abonnement sans compte non traitée(s)', untreated, ORPHAN_REQUEST_RETENTION_DAYS);
 }
 
+/* Pas de garde-fou « non traité » ici, contrairement aux messages de contact et
+   aux candidatures : une trace d'email n'attend de geste de personne. Elle
+   constate, elle ne demande rien. */
+async function purgeEmailLogs() {
+  const cutoff = daysAgo(EMAIL_LOG_RETENTION_DAYS);
+
+  const { count } = await prisma.emailLog.deleteMany({
+    where: { sentAt: { lte: cutoff } },
+  });
+
+  if (count > 0) {
+    await logAudit(null, 'PURGE_USER_DATA', 'IMPORTANT', { type: 'EMAIL_LOG', label: 'Traces d\'envoi d\'emails' }, { count, retentionDays: EMAIL_LOG_RETENTION_DAYS });
+    console.log(`[RetentionJob] ${count} trace(s) d'email purgée(s) (>${EMAIL_LOG_RETENTION_DAYS}j)`);
+  }
+}
+
 async function runRetentionJob() {
   try {
     await purgeDeletedAccounts();
@@ -207,6 +237,7 @@ async function runRetentionJob() {
     await purgeContactMessages();
     await purgeProducerInquiries();
     await purgeOrphanSubscriptionRequests();
+    await purgeEmailLogs();
   } catch (error) {
     console.error('[RetentionJob] Erreur lors de la purge des données:', error);
   }

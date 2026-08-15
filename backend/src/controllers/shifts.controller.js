@@ -318,14 +318,32 @@ const deleteShift = asyncHandler(async (req, res) => {
     label: shift.distributionDate.toISOString()
   }, { volunteersCount: shift.volunteers.length });
 
-  // Notifier les bénévoles inscrits
-  for (const volunteer of shift.volunteers) {
-    await emailService.sendShiftCancellation(shift, volunteer.user);
+  /* Prévenir les bénévoles, et dire ce qui a réellement été prévenu.
+
+     La suppression, elle, est déjà faite et ne se rejoue pas : on ne remonte
+     donc pas d'erreur HTTP si un message n'est pas parti, ce serait annoncer
+     l'échec d'une opération qui a réussi. Mais annoncer « supprimée avec
+     succès » sans réserve n'est pas mieux — c'est ce qui envoyait deux
+     bénévoles devant un local fermé un mercredi soir. Le décompte remonte donc
+     jusqu'à l'écran, et le détail de qui n'a pas été joint se relit dans
+     EmailLog, tracé par le service. */
+  const envois = await Promise.all(
+    shift.volunteers.map((volunteer) => emailService.sendShiftCancellation(shift, volunteer.user))
+  );
+
+  const echecs = envois.filter((envoi) => !envoi.success).length;
+
+  if (echecs > 0) {
+    console.error(`[Shifts] Permanence ${id} supprimée, ${echecs}/${envois.length} bénévole(s) non prévenu(s) — voir EmailLog`);
   }
 
   res.json({
     success: true,
-    message: 'Permanence supprimée avec succès'
+    message: echecs === 0
+      ? 'Permanence supprimée avec succès'
+      : `Permanence supprimée, mais ${echecs} bénévole${echecs > 1 ? 's n\'ont' : ' n\'a'} pas pu être prévenu${echecs > 1 ? 's' : ''} par email. À contacter autrement.`,
+    notified: envois.length - echecs,
+    notificationFailures: echecs
   });
 });
 

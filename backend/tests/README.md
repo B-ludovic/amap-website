@@ -36,6 +36,12 @@ devienne lente et capricieuse sans que personne l'ait décidé.
 | Fichier | Ce qu'il verrouille |
 | --- | --- |
 | `unit/email.mentions.test.js` | Les mentions obligatoires du pied de page des emails : adresse postale, motif de réception, exercice des droits RGPD. Défaut m7. |
+| `unit/email.tracabilite.test.js` | La trace laissée par chaque envoi, réussi ou raté : ligne en base, log qui ne recopie pas l'adresse en production, envoi de masse qui ne s'arrête pas au premier refus. Défaut C2. |
+
+Les deux fichiers partagent `fixtures/messagesSortants.js`, le catalogue des
+dix-huit messages du site. Un test de complétude compare ce catalogue à la liste
+réelle des expéditeurs du service : un dix-neuvième email ajouté sans entrée au
+catalogue fait rougir la suite au lieu de passer inaperçu.
 
 ## Conventions
 

@@ -1,0 +1,32 @@
+-- CreateEnum
+CREATE TYPE "EmailStatus" AS ENUM ('SENT', 'FAILED');
+
+-- CreateEnum
+CREATE TYPE "EmailKind" AS ENUM ('WELCOME', 'EMAIL_VERIFICATION', 'ACCOUNT_ALREADY_EXISTS', 'PASSWORD_RESET', 'SUBSCRIPTION_REQUEST_CONFIRMATION', 'SUBSCRIPTION_CONFIRMATION', 'RENEWAL_REMINDER', 'SUBSCRIPTION_CANCELLATION', 'CHEQUE_DEPOSIT_NOTICE', 'TREASURER_CHEQUE_DIGEST', 'SHIFT_CONFIRMATION', 'SHIFT_CANCELLATION', 'SHIFT_WITHDRAWAL', 'WEEKLY_BASKET', 'NEWSLETTER', 'PRODUCER_INQUIRY_CONFIRMATION', 'PRODUCER_INQUIRY_ACCEPTED', 'PRODUCER_INQUIRY_REJECTED', 'CONTACT_MESSAGE');
+
+-- CreateTable
+CREATE TABLE "EmailLog" (
+    "id" TEXT NOT NULL,
+    "kind" "EmailKind" NOT NULL,
+    "ref" TEXT,
+    "to" TEXT NOT NULL,
+    "subject" TEXT NOT NULL,
+    "status" "EmailStatus" NOT NULL,
+    "messageId" TEXT,
+    "error" TEXT,
+    "sentAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "EmailLog_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateIndex
+CREATE INDEX "EmailLog_to_idx" ON "EmailLog"("to");
+
+-- CreateIndex
+CREATE INDEX "EmailLog_kind_idx" ON "EmailLog"("kind");
+
+-- CreateIndex
+CREATE INDEX "EmailLog_status_idx" ON "EmailLog"("status");
+
+-- CreateIndex
+CREATE INDEX "EmailLog_sentAt_idx" ON "EmailLog"("sentAt");

@@ -256,7 +256,15 @@ const publishWeeklyBasket = asyncHandler(async (req, res) => {
     }
   });
   const recipients = activeSubscribers.map(s => s.user);
-  emailService.sendWeeklyBasketNotification(published, recipients);
+
+  /* Envoi délibérément non attendu : une centaine de messages, une seconde de
+     pause entre chaque paquet de cinquante, l'administratrice n'a pas à
+     regarder tourner sa page pendant ce temps. La contrepartie, c'est qu'aucun
+     appelant ne lira le compte-rendu — le détail par destinataire se relit dans
+     EmailLog, et le .catch() est ici pour qu'une promesse rejetée n'emporte pas
+     le processus Node au passage. */
+  emailService.sendWeeklyBasketNotification(published, recipients)
+    .catch((error) => console.error('[WeeklyBaskets] Notification des abonnés interrompue :', error.message));
 
   await logAudit(req, 'PUBLISH_WEEKLY_BASKET', 'IMPORTANT', {
     type: 'WEEKLY_BASKET',

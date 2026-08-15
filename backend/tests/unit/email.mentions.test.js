@@ -14,47 +14,36 @@
    vaut pas mieux que se taire. Les tests vérifient donc les deux : que la
    mention est là, et qu'elle mène quelque part.
 
-   Comment on teste sans envoyer un seul email : nodemailer est remplacé par une
-   fausse fabrique de transporteur (voir tests/helpers/boiteDEnvoi.js). Le
-   service compose son HTML comme en production, et c'est ce HTML que les
-   assertions lisent. */
+   La trace laissée en base par ces mêmes envois est vérifiée à côté, dans
+   email.tracabilite.test.js. */
 
 import { describe, it, expect, beforeAll, beforeEach, afterAll, vi } from 'vitest';
 import {
   boiteDEnvoi,
   viderBoite,
+  viderRegistre,
   dernierMessage,
   piedDePage,
 } from '../helpers/boiteDEnvoi.js';
-import {
-  adherente,
-  candidateProductrice,
-  contrat,
-  demandeAbonnement,
-  permanence,
-  cheque,
-  ligneDeRemise,
-  panierHebdomadaire,
-  lettreDInformation,
-  annonceDeService,
-} from '../fixtures/destinataires.js';
+import { messagesSortants } from '../fixtures/messagesSortants.js';
+import { adherente, demandeAbonnement } from '../fixtures/destinataires.js';
 
 /* Les deux remplacements doivent être en place avant que le service ne soit
-   chargé : il fabrique son transporteur, et entraîne Prisma dans son sillage,
+   chargé : il fabrique son transporteur, et instancie Prisma dans son sillage,
    dès la première ligne de son module. vi.mock est hissé en tête de fichier par
-   Vitest, ce qui garantit cet ordre quelle que soit la position de ces lignes. */
+   Vitest, donc au-dessus de l'import qui suit, quelle que soit sa position. */
 vi.mock('nodemailer', async () => (await import('../helpers/boiteDEnvoi.js')).fauxNodemailer);
 vi.mock('../../src/config/database.js', async () => (await import('../helpers/boiteDEnvoi.js')).fausseBase);
+
+const emails = (await import('../../src/services/email.service.js')).default;
+const MESSAGES = messagesSortants(emails);
 
 const ADRESSE_POSTALE = '14, rue du Château, 45300 Yèvre-la-Ville';
 const PHRASE_DES_DROITS = 'consulter, modifier ou supprimer vos données';
 const ESPACE_ADHERENT = 'https://auxptitspois.test/compte';
 const ADRESSE_AMAP = 'auxptitspois@gmail.com';
 
-let emails;
-
-beforeAll(async () => {
-  emails = (await import('../../src/services/email.service.js')).default;
+beforeAll(() => {
   /* Le service annonce chaque envoi sur la console hors production ; la suite
      n'a pas à en hériter. */
   vi.spyOn(console, 'log').mockImplementation(() => {});
@@ -66,54 +55,21 @@ afterAll(() => {
 
 beforeEach(() => {
   viderBoite();
+  viderRegistre();
 });
-
-/* Le catalogue des messages sortants.
-
-   `public` dit à quelle porte la mention des droits doit conduire :
-     · adherent — l'espace adhérent, où l'export et la suppression sont en libre
-       service ;
-     · candidat — l'adresse de l'association, seule voie pour qui n'a pas de
-       compte ;
-     · interne — aucune, le destinataire étant l'association elle-même. */
-const MESSAGES = [
-  { nom: 'bienvenue', public: 'adherent', envoyer: () => emails.sendWelcomeEmail(adherente) },
-  { nom: 'vérification d\'adresse', public: 'adherent', envoyer: () => emails.sendEmailVerification(adherente, 'jeton-de-test') },
-  { nom: 'compte déjà existant', public: 'adherent', envoyer: () => emails.sendAccountAlreadyExists(adherente) },
-  { nom: 'mot de passe oublié', public: 'adherent', envoyer: () => emails.sendPasswordResetEmail(adherente, 'jeton-de-test') },
-  { nom: 'demande d\'abonnement reçue', public: 'adherent', envoyer: () => emails.sendSubscriptionRequestConfirmation(demandeAbonnement) },
-  { nom: 'contrat activé', public: 'adherent', envoyer: () => emails.sendSubscriptionConfirmation(contrat, adherente) },
-  { nom: 'contrat bientôt échu', public: 'adherent', envoyer: () => emails.sendRenewalReminderEmail(contrat, adherente) },
-  { nom: 'contrat annulé', public: 'adherent', envoyer: () => emails.sendSubscriptionCancellation(contrat, adherente) },
-  { nom: 'chèque bientôt déposé', public: 'adherent', envoyer: () => emails.sendChequeDepositNotice({ payment: cheque, subscription: contrat, user: adherente, rang: 3, total: 4 }) },
-  { nom: 'permanence confirmée', public: 'adherent', envoyer: () => emails.sendShiftConfirmation(permanence, adherente) },
-  { nom: 'permanence annulée', public: 'adherent', envoyer: () => emails.sendShiftCancellation(permanence, adherente) },
-  { nom: 'désinscription d\'une permanence', public: 'adherent', envoyer: () => emails.sendShiftWithdrawal(permanence, adherente) },
-  { nom: 'panier de la semaine', public: 'adherent', envoyer: () => emails.sendWeeklyBasketNotification(panierHebdomadaire, [{ ...adherente }]) },
-  { nom: 'lettre d\'information', public: 'adherent', envoyer: () => emails.sendNewsletter(lettreDInformation, [{ ...adherente }]) },
-  { nom: 'annonce de service', public: 'adherent', envoyer: () => emails.sendNewsletter(annonceDeService, [{ ...adherente }]) },
-  { nom: 'candidature reçue', public: 'candidat', envoyer: () => emails.sendProducerInquiryConfirmation(candidateProductrice) },
-  { nom: 'candidature acceptée', public: 'candidat', envoyer: () => emails.sendProducerInquiryAccepted(candidateProductrice) },
-  { nom: 'candidature refusée', public: 'candidat', envoyer: () => emails.sendProducerInquiryRejected(candidateProductrice) },
-  { nom: 'message de contact', public: 'interne', envoyer: () => emails.sendContactMessage({ name: 'Paul Girard', email: 'paul@example.org', subject: 'Une question', message: 'Bonjour' }) },
-  { nom: 'remise de chèques', public: 'interne', envoyer: () => emails.sendTreasurerChequeDigest([ligneDeRemise]) },
-];
 
 describe('Le catalogue des messages est complet', () => {
   /* Sans ce test, ajouter un dix-neuvième email sans pied de page passerait
      inaperçu : la suite resterait verte en ne testant que les dix-huit
      précédents. Ici, tout `send…` du service doit figurer au catalogue. */
-  it('couvre chaque expéditeur du service', async () => {
+  it('couvre chaque expéditeur du service', () => {
     const expediteurs = Object.getOwnPropertyNames(Object.getPrototypeOf(emails))
       .filter((nom) => nom.startsWith('send'))
       .sort();
 
-    const couverts = new Set();
-    for (const { envoyer } of MESSAGES) {
-      couverts.add(envoyer.toString().match(/emails\.(send\w+)/)[1]);
-    }
+    const couverts = [...new Set(MESSAGES.map((m) => m.methode))].sort();
 
-    expect([...couverts].sort()).toEqual(expediteurs);
+    expect(couverts).toEqual(expediteurs);
   });
 });
 
@@ -169,9 +125,8 @@ describe('La mention des droits mène à une porte ouverte', () => {
 describe('La demande d\'abonnement suit la donnée, pas une supposition', () => {
   it('renvoie vers l\'espace adhérent quand la demande porte un compte', async () => {
     await emails.sendSubscriptionRequestConfirmation(demandeAbonnement);
-    const pied = piedDePage(dernierMessage().html);
 
-    expect(pied).toContain(ESPACE_ADHERENT);
+    expect(piedDePage(dernierMessage().html)).toContain(ESPACE_ADHERENT);
   });
 
   it('renvoie vers l\'adresse de l\'association quand la demande n\'a pas de compte', async () => {

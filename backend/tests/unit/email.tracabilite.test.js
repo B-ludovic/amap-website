@@ -1,0 +1,238 @@
+/* La trace de ce qui est parti, et de ce qui n'est pas parti — défaut C2.
+
+   La scène qui a motivé ce fichier. Mardi soir, l'administratrice supprime la
+   permanence du mercredi, gel annoncé. Quatre bénévoles à prévenir. Brevo
+   refuse le deuxième message : le quota du jour est atteint, le panier de la
+   semaine est déjà parti le matin. Avant, l'échec était avalé sans un mot, la
+   valeur de retour jetée par l'appelant, et l'interface affichait « Permanence
+   supprimée avec succès ». Mercredi 18 h, deux bénévoles devant un local fermé,
+   et personne — ni dans les logs, ni dans AuditLog, ni dans l'interface — ne
+   pouvait dire lesquels des quatre avaient été prévenus.
+
+   Ce que ces tests verrouillent, c'est la réponse à cette question-là : chaque
+   envoi, réussi ou raté, laisse une ligne relisible dans EmailLog. Le reste
+   suit — un log qui ne recopie pas l'adresse en production, une trace qui ne
+   fait jamais tomber l'envoi qu'elle décrit, et une méthode d'envoi de masse
+   qui ne s'arrête pas au premier refus. */
+
+import { describe, it, expect, beforeAll, beforeEach, afterEach, afterAll, vi } from 'vitest';
+import {
+  boiteDEnvoi,
+  viderBoite,
+  registreEmails,
+  viderRegistre,
+  tracesDe,
+  simulerRefusSmtp,
+  retablirSmtp,
+  simulerPanneDeBase,
+} from '../helpers/boiteDEnvoi.js';
+import { messagesSortants } from '../fixtures/messagesSortants.js';
+import { adherente, permanence, panierHebdomadaire, lettreDInformation } from '../fixtures/destinataires.js';
+
+vi.mock('nodemailer', async () => (await import('../helpers/boiteDEnvoi.js')).fauxNodemailer);
+vi.mock('../../src/config/database.js', async () => (await import('../helpers/boiteDEnvoi.js')).fausseBase);
+
+const emails = (await import('../../src/services/email.service.js')).default;
+const MESSAGES = messagesSortants(emails);
+
+let erreursConsole;
+
+beforeAll(() => {
+  vi.spyOn(console, 'log').mockImplementation(() => {});
+});
+
+beforeEach(() => {
+  viderBoite();
+  viderRegistre();
+  retablirSmtp();
+  simulerPanneDeBase(false);
+  erreursConsole = [];
+  vi.spyOn(console, 'error').mockImplementation((...args) => { erreursConsole.push(args.join(' ')); });
+});
+
+afterEach(() => {
+  vi.mocked(console.error).mockRestore();
+});
+
+afterAll(() => {
+  vi.restoreAllMocks();
+});
+
+describe('Un envoi réussi laisse une trace exploitable', () => {
+  it.each(MESSAGES)('$nom', async ({ envoyer, kind }) => {
+    await envoyer();
+
+    expect(registreEmails).toHaveLength(1);
+
+    const trace = registreEmails[0];
+    expect(trace.kind).toBe(kind);
+    expect(trace.status).toBe('SENT');
+    expect(trace.to).toBe(boiteDEnvoi[0].to);
+    expect(trace.subject).toBe(boiteDEnvoi[0].subject);
+    expect(trace.messageId).toBe('message-de-test');
+    expect(trace.error).toBeNull();
+  });
+});
+
+describe('Un envoi refusé laisse une trace, et se fait entendre', () => {
+  it.each(MESSAGES)('$nom', async ({ envoyer, kind }) => {
+    simulerRefusSmtp();
+
+    const resultat = await envoyer();
+
+    /* Les envois de masse rendent un compte-rendu agrégé plutôt qu'un booléen :
+       c'est leur contrat, et il ne change pas ici. */
+    if (resultat.results) {
+      expect(resultat.results.failed).toBe(1);
+      expect(resultat.results.sent).toBe(0);
+    } else {
+      expect(resultat.success).toBe(false);
+      expect(resultat.error).toContain('quota exceeded');
+    }
+
+    expect(tracesDe(kind)).toHaveLength(1);
+
+    const trace = tracesDe(kind)[0];
+    expect(trace.status).toBe('FAILED');
+    expect(trace.error).toContain('quota exceeded');
+    expect(trace.messageId).toBeNull();
+
+    /* Le silence était la moitié du défaut : treize méthodes sur dix-neuf
+       n'écrivaient rien du tout. */
+    expect(erreursConsole.join('\n')).toContain(`[Email:${kind}]`);
+  });
+});
+
+describe('La scène du mardi soir', () => {
+  const benevoles = [
+    { firstName: 'Awa', email: 'awa@example.org' },
+    { firstName: 'Bruno', email: 'bruno@example.org' },
+    { firstName: 'Chloé', email: 'chloe@example.org' },
+    { firstName: 'Dimitri', email: 'dimitri@example.org' },
+  ];
+
+  it('permet de dire lesquels des quatre bénévoles ont été prévenus', async () => {
+    const verdicts = [];
+
+    for (const [rang, benevole] of benevoles.entries()) {
+      /* Le quota tombe sur le deuxième message, puis tout repart : c'est le
+         scénario de l'audit, et le plus embarrassant — un échec au milieu
+         d'une liste, encadré de succès. */
+      if (rang === 1) simulerRefusSmtp(); else retablirSmtp();
+
+      verdicts.push(await emails.sendShiftCancellation(permanence, benevole));
+    }
+
+    expect(verdicts.map((v) => v.success)).toEqual([true, false, true, true]);
+
+    /* La question que personne ne savait trancher, désormais lisible d'un
+       coup d'œil — c'est l'équivalent du SELECT de l'audit. */
+    const prevenus = registreEmails.filter((t) => t.status === 'SENT').map((t) => t.to);
+    const oublies = registreEmails.filter((t) => t.status === 'FAILED').map((t) => t.to);
+
+    expect(prevenus).toEqual(['awa@example.org', 'chloe@example.org', 'dimitri@example.org']);
+    expect(oublies).toEqual(['bruno@example.org']);
+  });
+
+  it('rattache chaque trace à la permanence concernée', async () => {
+    await emails.sendShiftCancellation(permanence, benevoles[0]);
+
+    expect(registreEmails[0].ref).toBe(permanence.id);
+  });
+});
+
+describe('Un envoi de masse ne s\'arrête pas au premier refus', () => {
+  it('compte les échecs et continue la liste', async () => {
+    const destinataires = benevolesDeMasse();
+
+    /* Le refus vaut pour toute la série : on vérifie qu'aucun destinataire
+       n'est sauté, pas qu'un seul échoue. */
+    simulerRefusSmtp();
+
+    const resultat = await emails.sendNewsletter(lettreDInformation, destinataires);
+
+    expect(resultat.success).toBe(true);
+    expect(resultat.results.failed).toBe(destinataires.length);
+    expect(resultat.results.errors).toHaveLength(destinataires.length);
+    expect(registreEmails).toHaveLength(destinataires.length);
+    expect(registreEmails.every((t) => t.status === 'FAILED')).toBe(true);
+  });
+
+  it('laisse une trace par destinataire du panier de la semaine', async () => {
+    const destinataires = benevolesDeMasse();
+
+    await emails.sendWeeklyBasketNotification(panierHebdomadaire, destinataires);
+
+    expect(tracesDe('WEEKLY_BASKET')).toHaveLength(destinataires.length);
+    expect(tracesDe('WEEKLY_BASKET').map((t) => t.to)).toEqual(destinataires.map((d) => d.email));
+  });
+
+  function benevolesDeMasse() {
+    return [
+      { id: 'u1', firstName: 'Awa', email: 'awa@example.org' },
+      { id: 'u2', firstName: 'Bruno', email: 'bruno@example.org' },
+      { id: 'u3', firstName: 'Chloé', email: 'chloe@example.org' },
+    ];
+  }
+});
+
+describe('La trace ne fait jamais tomber l\'envoi qu\'elle décrit', () => {
+  it('rend l\'envoi pour réussi même si la base est injoignable', async () => {
+    simulerPanneDeBase();
+
+    const resultat = await emails.sendWelcomeEmail(adherente);
+
+    /* Le message est bel et bien parti : le dire raté serait mentir, et faire
+       remonter l'exception transformerait une base indisponible en erreur 500
+       — voire, sur l'appel non attendu des paniers, en arrêt du processus. */
+    expect(resultat.success).toBe(true);
+    expect(boiteDEnvoi).toHaveLength(1);
+    expect(registreEmails).toHaveLength(0);
+    expect(erreursConsole.join('\n')).toContain('trace non enregistrée');
+  });
+});
+
+describe('Les logs de production ne recopient pas les adresses', () => {
+  const NODE_ENV = process.env.NODE_ENV;
+
+  afterEach(() => { process.env.NODE_ENV = NODE_ENV; });
+
+  it('remplace l\'adresse par un renvoi vers la base', async () => {
+    process.env.NODE_ENV = 'production';
+    simulerRefusSmtp();
+
+    await emails.sendWelcomeEmail(adherente);
+
+    const journal = erreursConsole.join('\n');
+    expect(journal).not.toContain(adherente.email);
+    expect(journal).toContain('[adresse en base]');
+    /* Elle n'est pas perdue pour autant : la trace, elle, la porte. */
+    expect(registreEmails[0].to).toBe(adherente.email);
+  });
+
+  it('la garde en développement, là où elle sert au diagnostic', async () => {
+    process.env.NODE_ENV = 'test';
+    simulerRefusSmtp();
+
+    await emails.sendWelcomeEmail(adherente);
+
+    expect(erreursConsole.join('\n')).toContain(adherente.email);
+  });
+});
+
+describe('Le récapitulatif du trésorier sans destinataire configuré', () => {
+  const TREASURER_EMAIL = process.env.TREASURER_EMAIL;
+
+  afterEach(() => { process.env.TREASURER_EMAIL = TREASURER_EMAIL; });
+
+  it('ne part pas, ne trace rien, mais le dit', async () => {
+    delete process.env.TREASURER_EMAIL;
+
+    const resultat = await emails.sendTreasurerChequeDigest([]);
+
+    expect(resultat.success).toBe(false);
+    expect(boiteDEnvoi).toHaveLength(0);
+    expect(registreEmails).toHaveLength(0);
+    expect(erreursConsole.join('\n')).toContain('TREASURER_EMAIL non configurée');
+  });
+});

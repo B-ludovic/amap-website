@@ -352,6 +352,12 @@ export default function MentionsLegalesPage() {
                 <dt className="split-label">Candidature producteur, une fois traitée</dt>
                 <dd className="split-value">2 ans</dd>
               </div>
+              <div className="split-row">
+                <dt className="split-label">
+                  Trace d&apos;envoi d&apos;un email (destinataire, objet, date)
+                </dt>
+                <dd className="split-value">1 an</dd>
+              </div>
             </dl>
             <p className="legal-text legal-text-loose">
               Les données liées à un abonnement en cours sont conservées le temps de la

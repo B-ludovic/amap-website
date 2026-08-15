@@ -34,12 +34,27 @@ export function piedDePage(html) {
   return bloc.split('</div>')[0].replace(/\s+/g, ' ').trim();
 }
 
+/* Fait refuser le prochain envoi, pour rejouer la scène du mardi soir : Brevo
+   répond 429, le quota du jour est atteint, et il faut pouvoir dire ensuite
+   lesquels des bénévoles ont été prévenus. */
+let refusDEnvoi = null;
+
+export function simulerRefusSmtp(message = 'Message rejected: quota exceeded') {
+  refusDEnvoi = message;
+}
+
+export function retablirSmtp() {
+  refusDEnvoi = null;
+}
+
 /* Ce que verra `import nodemailer from 'nodemailer'` une fois le module
    remplacé. La forme compte : le service utilise l'export par défaut. */
 export const fauxNodemailer = {
   default: {
     createTransport: () => ({
       sendMail: async (options) => {
+        if (refusDEnvoi) throw new Error(refusDEnvoi);
+
         boiteDEnvoi.push(options);
         return { messageId: 'message-de-test', accepted: [options.to] };
       },
@@ -47,11 +62,48 @@ export const fauxNodemailer = {
   },
 };
 
+/* La table EmailLog, en mémoire.
+
+   Le service écrit une ligne par message — partie ou non — et c'est cette trace
+   qui répond après coup à « qui a été prévenu ? ». La tenir ici plutôt que de
+   se contenter d'un objet vide permet aux tests de la relire, donc de vérifier
+   ce qui compte vraiment : non pas que le code appelle Prisma, mais qu'une
+   trace exploitable existe pour chaque envoi. */
+export const registreEmails = [];
+
+export function viderRegistre() {
+  registreEmails.length = 0;
+}
+
+export function tracesDe(kind) {
+  return registreEmails.filter((ligne) => ligne.kind === kind);
+}
+
+/* Fait échouer la prochaine écriture de trace, pour éprouver le cas « la base
+   est tombée mais le message, lui, est bien parti ». */
+let panneDeBase = false;
+
+export function simulerPanneDeBase(actif = true) {
+  panneDeBase = actif;
+}
+
 /* config/database.js instancie un client Prisma dès son import, et le service
-   d'emails l'entraîne dans son sillage par newsletterAudience. Un test unitaire
-   n'a rien à faire avec une base : on rend ce module inerte. */
+   d'emails l'entraîne dans son sillage. Un test unitaire n'a rien à faire avec
+   une vraie base : ce double en tient lieu, et n'implémente que ce que le
+   service utilise réellement. */
 export const fausseBase = {
-  prisma: {},
+  prisma: {
+    emailLog: {
+      create: async ({ data }) => {
+        if (panneDeBase) throw new Error('base injoignable');
+
+        const ligne = { id: `trace-${registreEmails.length + 1}`, sentAt: new Date(), ...data };
+        registreEmails.push(ligne);
+
+        return ligne;
+      },
+    },
+  },
   connectDB: async () => {},
   disconnectDB: async () => {},
 };

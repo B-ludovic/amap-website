@@ -716,3 +716,74 @@ model ThemeConfig {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
+
+// TRACE DES EMAILS //
+
+/* Ce que le site a réellement posté, et ce qu'il n'a pas réussi à poster.
+
+   La question qui a fait naître cette table : « l'adhérente Machin a-t-elle reçu
+   sa confirmation le 12 mars ? ». AuditLog enregistre l'acte administratif —
+   l'abonnement approuvé — jamais le sort du message parti derrière. Les logs de
+   l'hébergeur tournent et personne n'ouvre le tableau de bord Brevo. Sans cette
+   table, la réponse honnête était : on ne sait pas.
+
+   On n'y garde que l'enveloppe, jamais le corps du message. Le HTML rendu
+   contient le prénom, l'adresse de retrait, le contenu du panier — le conserver
+   reviendrait à tenir une copie de la boîte mail de chaque adhérent. Le
+   destinataire, le sujet et le sort de l'envoi suffisent à répondre à la
+   question ; le reste se relit dans le gabarit. */
+
+model EmailLog {
+  id        String   @id @default(uuid())
+
+  kind      EmailKind
+  // L'objet métier concerné — la permanence, le contrat, la candidature —
+  // quand il y en a un. Volontairement sans relation ni contrainte : la trace
+  // doit survivre à la purge de ce qu'elle décrit, sinon la preuve qu'on a
+  // prévenu quelqu'un disparaîtrait avec la permanence annulée.
+  ref       String?
+
+  to        String
+  subject   String
+
+  status    EmailStatus
+  messageId String?
+  error     String?  @db.Text
+
+  sentAt    DateTime @default(now())
+
+  @@index([to])
+  @@index([kind])
+  @@index([status])
+  @@index([sentAt])
+}
+
+enum EmailStatus {
+  SENT
+  FAILED
+}
+
+// Un membre par expéditeur du service. L'énumération plutôt qu'une chaîne
+// libre : une faute de frappe dans un kind rendrait la ligne introuvable au
+// moment précis où on la cherche.
+enum EmailKind {
+  WELCOME
+  EMAIL_VERIFICATION
+  ACCOUNT_ALREADY_EXISTS
+  PASSWORD_RESET
+  SUBSCRIPTION_REQUEST_CONFIRMATION
+  SUBSCRIPTION_CONFIRMATION
+  RENEWAL_REMINDER
+  SUBSCRIPTION_CANCELLATION
+  CHEQUE_DEPOSIT_NOTICE
+  TREASURER_CHEQUE_DIGEST
+  SHIFT_CONFIRMATION
+  SHIFT_CANCELLATION
+  SHIFT_WITHDRAWAL
+  WEEKLY_BASKET
+  NEWSLETTER
+  PRODUCER_INQUIRY_CONFIRMATION
+  PRODUCER_INQUIRY_ACCEPTED
+  PRODUCER_INQUIRY_REJECTED
+  CONTACT_MESSAGE
+}
