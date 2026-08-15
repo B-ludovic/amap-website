@@ -6,7 +6,7 @@ import {
   HttpConflictError,
   httpStatusCodes
 } from '../utils/httpErrors.js';
-import { ProducerSchema, UpdateProducerSchema, ProductSchema, UpdateProductSchema, BasketTypeSchema, BlogPostSchema, ThemeSchema } from '../utils/validation.schemas.js';
+import { ProducerSchema, UpdateProducerSchema, ProductSchema, UpdateProductSchema, BasketTypeSchema, BlogPostSchema } from '../utils/validation.schemas.js';
 import { logAudit } from '../services/audit.service.js';
 import { normalizeTitleCase } from '../utils/normalize.js';
 
@@ -677,69 +677,6 @@ const deleteUser = asyncHandler(async (req, res) => {
   });
 });
 
-// GESTION DES THÈMES SAISONNIERS //
-
-// METTRE À JOUR LE THÈME ACTIF 
-const updateTheme = asyncHandler(async (req, res) => {
-  const parsed = ThemeSchema.safeParse(req.body);
-  if (!parsed.success) {
-    throw new HttpBadRequestError(parsed.error.errors[0].message);
-  }
-  const { season, primaryColor, secondaryColor, accentColor, backgroundColor, backgroundImage } = parsed.data;
-
-  const theme = await prisma.$transaction(async (tx) => {
-    await tx.themeConfig.updateMany({ data: { isActive: false } });
-
-    return tx.themeConfig.upsert({
-      where: { season },
-      update: { primaryColor, secondaryColor, accentColor, backgroundColor, backgroundImage, isActive: true },
-      create: { season, primaryColor, secondaryColor, accentColor, backgroundColor, backgroundImage, isActive: true }
-    });
-  });
-
-  await logAudit(req, 'UPDATE_THEME', 'IMPORTANT', {
-    type: 'THEME_CONFIG',
-    id: theme.id,
-    label: theme.season
-  });
-
-  res.json({
-    success: true,
-    message: 'Thème activé avec succès',
-    data: { theme }
-  });
-});
-
-// RÉCUPÉRER LE THÈME ACTIF
-const getActiveTheme = asyncHandler(async (req, res) => {
-  const theme = await prisma.themeConfig.findFirst({
-    where: { isActive: true }
-  });
-
-  if (!theme) {
-    // Renvoyer un thème par défaut si aucun n'est actif
-    return res.json({
-      success: true,
-      data: {
-        theme: {
-          season: 'SPRING',
-          primaryColor: '#a7f3d0',     // Vert menthe pastel
-          secondaryColor: '#fcd34d',   // Jaune doux
-          accentColor: '#fb923c',      // Pêche
-          backgroundColor: '#fef3f9',  // Rose très pâle
-          backgroundImage: null
-        }
-      }
-    });
-  }
-
-  res.json({
-    success: true,
-    data: { theme }
-  });
-});
-
-
 // GESTION DU BLOG //
 
 // CRÉER UN ARTICLE DE BLOG 
@@ -1224,8 +1161,6 @@ export {
   getAllUsers,
   changeUserRole,
   deleteUser,
-  updateTheme,
-  getActiveTheme,
   createBlogPost,
   updateBlogPost,
   deleteBlogPost,

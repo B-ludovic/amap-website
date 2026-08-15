@@ -187,6 +187,15 @@
   max-width: 100%;
 }
 
+/* Le kit pose les paragraphes de carte vide à marge nulle, ce qui convient tant
+   que la carte ne contient que du texte. Cette page est la seule à y ajouter une
+   action — « Réessayer », « Effacer la recherche » — qui se retrouve alors collée
+   à la dernière ligne. Réglé ici plutôt que dans kit.css tant que le motif
+   n'existe que sur cet écran. */
+.admin-distribution .admin-empty-card .admin-btn-ghost {
+  margin-top: 20px;
+}
+
 /* La liste elle-même */
 
 .admin-distribution-list {

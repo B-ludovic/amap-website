@@ -3,7 +3,7 @@ import { asyncHandler } from '../middlewares/error.middleware.js';
 import emailService from '../services/email.service.js';
 import {
   generateWeeklyBasket,
-  getActiveSeason
+  getSeasonFromDate
 } from '../services/weeklyBasketGenerator.service.js';
 import {
   HttpNotFoundError,
@@ -140,7 +140,7 @@ const createWeeklyBasket = asyncHandler(async (req, res) => {
     throw new HttpBadRequestError('Date de distribution invalide');
   }
 
-  const season = await getActiveSeason(parsedDistributionDate);
+  const season = getSeasonFromDate(parsedDistributionDate);
   const basket = await generateWeeklyBasket({
     distributionDate: parsedDistributionDate,
     season,
@@ -290,7 +290,7 @@ const duplicateWeeklyBasket = asyncHandler(async (req, res) => {
     throw new HttpBadRequestError('Date de distribution invalide');
   }
 
-  const season = await getActiveSeason(parsedDistributionDate);
+  const season = getSeasonFromDate(parsedDistributionDate);
   const duplicated = await generateWeeklyBasket({
     distributionDate: parsedDistributionDate,
     season,

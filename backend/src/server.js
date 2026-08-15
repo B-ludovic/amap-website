@@ -24,7 +24,6 @@ import weeklyBasketsRoutes from './routes/weekly-baskets.routes.js';
 import subscriptionsRoutes from './routes/subscriptions.routes.js';
 import subscriptionRequestsRoutes from './routes/subscription-requests.routes.js';
 import distributionRoutes from './routes/distribution.routes.js';
-import themeRoutes from './routes/theme.routes.js';
 import recipesRoutes from './routes/recipes.routes.js';
 import contactRoutes from './routes/contact.routes.js';
 import closuresRoutes from './routes/closures.routes.js';
@@ -157,7 +156,6 @@ app.get('/api/health', (_req, res) => {
 });
 
 // Routes de l'application
-app.use('/api/theme', themeRoutes);
 app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/forgot-password', authLimiter);
 app.use('/api/auth/register', publicLimiter);

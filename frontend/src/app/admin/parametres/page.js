@@ -1,483 +1,148 @@
 'use client';
 
-import { useEffect, useState } from "react";
-import api from "../../../lib/api";
-import logger from "../../../lib/logger";
-import { useModal } from "../../../contexts/ModalContext";
-import { useTheme } from "../../../contexts/ThemeContext";
-import "../../../styles/admin/parametres.css";
-import {
-    Trash2,
-    Palette,
-    Save,
-    Tractor,
-    Carrot,
-    MapPin,
-    CheckCircle,
-    Flower2,
-    Sun,
-    Leaf,
-    Snowflake,
-    BarChart3,
-    Beaker
-} from "lucide-react";
-
-
-const SEASONS = [
-    { value: 'SPRING', label: 'Printemps', icon: Flower2 },
-    { value: 'SUMMER', label: 'Été', icon: Sun },
-    { value: 'AUTUMN', label: 'Automne', icon: Leaf },
-    { value: 'WINTER', label: 'Hiver', icon: Snowflake },
-];
-
-const SEASON_COLORS = {
-    SPRING: {
-        primaryColor: '#4a7a3a',
-        secondaryColor: '#d4a574',
-        accentColor: '#b04535',
-        backgroundColor: '#f9f7f4',
-    },
-    SUMMER: {
-        primaryColor: '#c47d0a',
-        secondaryColor: '#fcd34d',
-        accentColor: '#a85508',
-        backgroundColor: '#fffbeb',
-    },
-    AUTUMN: {
-        primaryColor: '#c2410c',
-        secondaryColor: '#d97706',
-        accentColor: '#b91c1c',
-        backgroundColor: '#fff7ed',
-    },
-    WINTER: {
-        primaryColor: '#0e7490',
-        secondaryColor: '#06b6d4',
-        accentColor: '#1d4ed8',
-        backgroundColor: '#f0f9ff',
-    },
-};
+import { useCallback, useEffect, useState } from 'react';
+import api from '../../../lib/api';
+import logger from '../../../lib/logger';
+import { plural } from '../../../lib/format';
+import { useModal } from '../../../contexts/ModalContext';
+import '../../../styles/admin/parametres-da.css';
 
 export default function AdminParametresPage() {
-    const { showConfirm, showSuccess, showError } = useModal();
-    const { loadTheme } = useTheme();
+  const { showConfirm, showSuccess, showError } = useModal();
 
-    const [loading, setLoading] = useState(true);
-    const [saving, setSaving] = useState(false);
-    const [exampleStats, setExampleStats] = useState(null);
-    const [totalStats, setTotalStats] = useState(null);
-    // Onglet actif — le thème est le seul réglage permanent de cet écran.
-    const [activeTab, setActiveTab] = useState('theme');
-    const hasExamples = (exampleStats?.total ?? 0) > 0;
+  const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState(false);
+  const [loadError, setLoadError] = useState(null);
+  const [examples, setExamples] = useState(null);
+  const [totals, setTotals] = useState(null);
 
-    // Form data pour les differentes sections
-    const [themeData, setThemeData] = useState({
-        season: 'SPRING',
-        primaryColor: '#4a7a3a',
-        secondaryColor: '#d4a574',
-        accentColor: '#b04535',
-        backgroundColor: '#f9f7f4',
-    });
-
-
-    useEffect(() => {
-        fetchData();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    const fetchData = async () => {
-        setLoading(true);
-        try {
-            // Charger les stats exemples si disponibles
-            try {
-                const examplesRes = await api.admin.examples.getStats();
-                setExampleStats(examplesRes.data.examples);
-                setTotalStats(examplesRes.data.totals);
-            } catch (error) {
-                logger.log('Pas de stats exemples disponibles');
-                setExampleStats({ total: 0, producers: 0, products: 0, pickupLocations: 0 });
-                setTotalStats({ total: 0, producers: 0, products: 0, pickupLocations: 0 });
-            }
-
-            // Charger le thème actif si disponible
-            try {
-                const themeRes = await api.admin.theme.getActive();
-                if (themeRes.data.theme) {
-                    setThemeData({
-                        season: themeRes.data.theme.season,
-                        primaryColor: themeRes.data.theme.primaryColor,
-                        secondaryColor: themeRes.data.theme.secondaryColor,
-                        accentColor: themeRes.data.theme.accentColor,
-                        backgroundColor: themeRes.data.theme.backgroundColor,
-                    });
-                }
-            } catch (error) {
-                logger.log('Pas de thème actif, utilisation du thème par défaut');
-            }
-
-        } catch (error) {
-            logger.error('Erreur lors du chargement:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleDeleteExamples = () => {
-        showConfirm(
-            'Supprimer tous les exemples',
-            `Cette action supprimera définitivement ${exampleStats.total} exemple(s) : ${exampleStats.producers} producteur(s), ${exampleStats.products} produit(s), ${exampleStats.baskets} panier(s) et ${exampleStats.pickupLocations} point(s) de retrait. Cette action est irréversible. Continuer ?`,
-            async () => {
-                try {
-                    await api.admin.examples.deleteAll();
-                    showSuccess(
-                        'Exemples supprimés',
-                        'Tous les exemples ont été supprimés avec succès.'
-                    );
-                    // L'onglet disparaît avec son contenu : on revient au thème.
-                    setActiveTab('theme');
-                    fetchData();
-                } catch (error) {
-                    showError('Erreur', error.message);
-                }
-            }
-        );
-    };
-
-    const handleSaveTheme = async () => {
-        setSaving(true);
-        try {
-            await api.admin.theme.update(themeData);
-            showSuccess('Thème sauvegardé', 'Le thème a été mis à jour avec succès.');
-            await loadTheme(); // Recharger et appliquer le thème immédiatement
-            fetchData();
-        } catch (error) {
-            showError('Erreur', error.message);
-        } finally {
-            setSaving(false);
-        }
-    };
-
-
-    const handleThemeChange = (field, value) => {
-        if (field === 'season') {
-            // Quand on change de saison, appliquer les couleurs correspondantes
-            setThemeData(prev => ({
-                ...prev,
-                season: value,
-                ...SEASON_COLORS[value]
-            }));
-        } else {
-            setThemeData(prev => ({ ...prev, [field]: value }));
-        }
-    };
-
-    if (loading) {
-        return (
-            <div className="admin-page">
-                <div className="admin-loading">
-                    <p>Chargement des paramètres...</p>
-                </div>
-            </div>
-        );
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setLoadError(null);
+    try {
+      const response = await api.admin.examples.getStats();
+      setExamples(response.data.examples);
+      setTotals(response.data.totals);
+    } catch (error) {
+      logger.error('Erreur lors du chargement des paramètres:', error);
+      /* Distinguer l'échec du vide : sans cet état, une API injoignable
+         afficherait « aucun réglage » et laisserait croire que tout va bien. */
+      setLoadError(error.message || 'Impossible de charger les paramètres.');
+      setExamples(null);
+      setTotals(null);
+    } finally {
+      setLoading(false);
     }
+  }, []);
 
-    return (
-        <div className="admin-page">
-            <div className="admin-page-header">
-                <div>
-                    <h1 className="admin-page-title">Paramètres</h1>
-                    <p className="admin-page-description">
-                        Configurez votre plateforme AMAP
-                    </p>
-                </div>
-            </div>
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
-            <div className="admin-page-content">
-                {/* Tabs */}
-                <div className="admin-tabs">
-                    <button
-                        onClick={() => setActiveTab('theme')}
-                        className={`admin-tab ${activeTab === 'theme' ? 'admin-tab-active' : ''}`}
-                    >
-                        <Palette size={18} />
-                        Thème
-                    </button>
-                    {/* Outil de mise en service : l'onglet ne s'affiche que tant
-                        qu'il reste des exemples à purger. Rien n'est perdu en le
-                        masquant, les exemples ne se créent que par prisma/seed.js. */}
-                    {hasExamples && (
-                        <button
-                            onClick={() => setActiveTab('examples')}
-                            className={`admin-tab ${activeTab === 'examples' ? 'admin-tab-active' : ''}`}
-                        >
-                            <Trash2 size={18} />
-                            Données d'exemple
-                        </button>
-                    )}
-                </div>
+  const hasExamples = (examples?.total ?? 0) > 0;
 
-                {/* Tab Content */}
-                <div className="admin-tab-content">
-                    {/* DONNÉES D'EXEMPLE */}
-                    {activeTab === 'examples' && (
-                        <div className="admin-section">
-                            <h2 className="admin-section-title">Données d'exemple</h2>
-                            <p className="admin-section-description">
-                                Ces données ont été créées automatiquement pour tester la plateforme.
-                                Vous pouvez les supprimer une fois que vous avez ajouté vos propres données.
-                            </p>
-
-                            {/* Stats totales */}
-                            {totalStats && (
-                                <>
-                                    <h3 className="examples-section-title">
-                                        <BarChart3 size={20} /> Données totales en base
-                                    </h3>
-                                    <div className="examples-stats-grid">
-                                        <div className="examples-stat-card">
-                                            <div className="examples-stat-icon">
-                                                <Tractor size={24} />
-                                            </div>
-                                            <div>
-                                                <p className="examples-stat-value">{totalStats.producers}</p>
-                                                <p className="examples-stat-label">Producteur(s)</p>
-                                            </div>
-                                        </div>
-
-                                        <div className="examples-stat-card">
-                                            <div className="examples-stat-icon">
-                                                <Carrot size={24} />
-                                            </div>
-                                            <div>
-                                                <p className="examples-stat-value">{totalStats.products}</p>
-                                                <p className="examples-stat-label">Produit(s)</p>
-                                            </div>
-                                        </div>
-
-                                        <div className="examples-stat-card">
-                                            <div className="examples-stat-icon">
-                                                <MapPin size={24} />
-                                            </div>
-                                            <div>
-                                                <p className="examples-stat-value">{totalStats.pickupLocations}</p>
-                                                <p className="examples-stat-label">Point(s) de retrait</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </>
-                            )}
-
-                            {/* Stats exemples */}
-                            {exampleStats && exampleStats.total > 0 ? (
-                                <>
-                                    <h3 className="examples-section-title">
-                                        <Beaker size={20} /> Données d'exemple uniquement
-                                    </h3>
-                                    <div className="examples-stats-grid">
-                                        <div className="examples-stat-card">
-                                            <div className="examples-stat-icon">
-                                                <Tractor size={24} />
-                                            </div>
-                                            <div>
-                                                <p className="examples-stat-value">{exampleStats.producers}</p>
-                                                <p className="examples-stat-label">Producteur(s)</p>
-                                            </div>
-                                        </div>
-
-                                        <div className="examples-stat-card">
-                                            <div className="examples-stat-icon">
-                                                <Carrot size={24} />
-                                            </div>
-                                            <div>
-                                                <p className="examples-stat-value">{exampleStats.products}</p>
-                                                <p className="examples-stat-label">Produit(s)</p>
-                                            </div>
-                                        </div>
-
-                                        <div className="examples-stat-card">
-                                            <div className="examples-stat-icon">
-                                                <MapPin size={24} />
-                                            </div>
-                                            <div>
-                                                <p className="examples-stat-value">{exampleStats.pickupLocations}</p>
-                                                <p className="examples-stat-label">Point(s) de retrait</p>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="examples-actions">
-                                        <button
-                                            onClick={handleDeleteExamples}
-                                            className="btn btn-error"
-                                        >
-                                            <Trash2 size={20} />
-                                            Supprimer tous les exemples ({exampleStats.total})
-                                        </button>
-                                    </div>
-                                </>
-                            ) : (
-                                <div className="admin-empty-state">
-                                    <CheckCircle size={48} className="admin-empty-icon" />
-                                    <p>Aucun exemple détecté</p>
-                                    <p className="text-secondary">Vous avez supprimé tous les exemples ou vous utilisez vos propres données.</p>
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                    {/* THÈME */}
-                    {activeTab === 'theme' && (
-                        <div className="admin-section">
-                            <h2 className="admin-section-title">Thème saisonnier</h2>
-                            <p className="admin-section-description">
-                                Personnalisez les couleurs de votre site selon les saisons.
-                            </p>
-
-                            <div className="theme-form">
-                                <div className="form-group">
-                                    <label className="form-label">Saison active</label>
-                                    <div className="season-selector">
-                                        {SEASONS.map(season => {
-                                            const Icon = season.icon;
-                                            return (
-                                                <button
-                                                    key={season.value}
-                                                    type="button"
-                                                    onClick={() => handleThemeChange('season', season.value)}
-                                                    className={`season-btn ${themeData.season === season.value ? 'season-btn-active' : ''}`}
-                                                >
-                                                    <Icon size={20} />
-                                                    <span>{season.label}</span>
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-
-                                <div className="form-grid">
-                                    <div className="form-group">
-                                        <label htmlFor="primaryColor" className="form-label">
-                                            Couleur primaire
-                                        </label>
-                                        <div className="color-input-group">
-                                            <input
-                                                type="color"
-                                                id="primaryColor"
-                                                value={themeData.primaryColor}
-                                                onChange={(e) => handleThemeChange('primaryColor', e.target.value)}
-                                                className="color-input"
-                                            />
-                                            <input
-                                                type="text"
-                                                value={themeData.primaryColor}
-                                                onChange={(e) => handleThemeChange('primaryColor', e.target.value)}
-                                                className="input"
-                                                placeholder="#6b9d5a"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="form-group">
-                                        <label htmlFor="secondaryColor" className="form-label">
-                                            Couleur secondaire
-                                        </label>
-                                        <div className="color-input-group">
-                                            <input
-                                                type="color"
-                                                id="secondaryColor"
-                                                value={themeData.secondaryColor}
-                                                onChange={(e) => handleThemeChange('secondaryColor', e.target.value)}
-                                                className="color-input"
-                                            />
-                                            <input
-                                                type="text"
-                                                value={themeData.secondaryColor}
-                                                onChange={(e) => handleThemeChange('secondaryColor', e.target.value)}
-                                                className="input"
-                                                placeholder="#d4a574"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="form-group">
-                                        <label htmlFor="accentColor" className="form-label">
-                                            Couleur d'accent
-                                        </label>
-                                        <div className="color-input-group">
-                                            <input
-                                                type="color"
-                                                id="accentColor"
-                                                value={themeData.accentColor}
-                                                onChange={(e) => handleThemeChange('accentColor', e.target.value)}
-                                                className="color-input"
-                                            />
-                                            <input
-                                                type="text"
-                                                value={themeData.accentColor}
-                                                onChange={(e) => handleThemeChange('accentColor', e.target.value)}
-                                                className="input"
-                                                placeholder="#c85a3f"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="form-group">
-                                        <label htmlFor="backgroundColor" className="form-label">
-                                            Couleur de fond
-                                        </label>
-                                        <div className="color-input-group">
-                                            <input
-                                                type="color"
-                                                id="backgroundColor"
-                                                value={themeData.backgroundColor}
-                                                onChange={(e) => handleThemeChange('backgroundColor', e.target.value)}
-                                                className="color-input"
-                                            />
-                                            <input
-                                                type="text"
-                                                value={themeData.backgroundColor}
-                                                onChange={(e) => handleThemeChange('backgroundColor', e.target.value)}
-                                                className="input"
-                                                placeholder="#f9f7f4"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Aperçu */}
-                                <div className="theme-preview">
-                                    <p className="form-label">Aperçu</p>
-                                    <div
-                                        className="theme-preview-box"
-                                        style={{
-                                            background: `linear-gradient(135deg, ${themeData.primaryColor} 0%, ${themeData.secondaryColor} 100%)`,
-                                        }}
-                                    >
-                                        <div
-                                            className="theme-preview-card"
-                                            style={{ backgroundColor: themeData.backgroundColor }}
-                                        >
-                                            <h3 style={{ color: themeData.accentColor }}>Aux P'tits Pois</h3>
-                                            <p>Aperçu du thème sélectionné</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <button
-                                    onClick={handleSaveTheme}
-                                    disabled={saving}
-                                    className="admin-btn-primary"
-                                >
-                                    <Save size={20} />
-                                    {saving ? 'Enregistrement...' : 'Sauvegarder le thème'}
-                                </button>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* INFORMATIONS GÉNÉRALES */}
-
-                </div>
-            </div>
-        </div>
+  const handleDeleteExamples = () => {
+    /* Le récapitulatif énumère les trois familles que l'API supprime réellement.
+       Il annonçait auparavant un nombre de paniers que la réponse ne contient
+       pas, et affichait donc « undefined panier(s) » juste avant une action
+       irréversible. */
+    showConfirm(
+      'Supprimer les données d’exemple',
+      `Cette action supprimera définitivement ${examples.producers} ${plural(examples.producers, 'producteur', 'producteurs')}, ` +
+      `${examples.products} ${plural(examples.products, 'produit', 'produits')} et ` +
+      `${examples.pickupLocations} ${plural(examples.pickupLocations, 'point de retrait', 'points de retrait')} ` +
+      `marqués comme exemples. Elle est irréversible. Continuer ?`,
+      async () => {
+        setDeleting(true);
+        try {
+          await api.admin.examples.deleteAll();
+          showSuccess('Exemples supprimés', 'Les jeux d’essai ont été retirés de la base.');
+          await fetchData();
+        } catch (error) {
+          showError('Erreur', error.message);
+        } finally {
+          setDeleting(false);
+        }
+      }
     );
+  };
+
+  return (
+    <div className="admin-parametres">
+      <div className="admin-page-head">
+        <div>
+          <h1 className="admin-title">Paramètres</h1>
+          <p className="admin-title-lead">
+            Les réglages apparaissent ici au fil des besoins de l’équipe. Rien qui
+            engage les données des adhérents, les tarifs ou la facturation n’y est
+            exposé sans demande explicite.
+          </p>
+        </div>
+      </div>
+
+      {loading ? (
+        <p className="admin-empty">Chargement…</p>
+      ) : loadError ? (
+        <div className="admin-empty-card">
+          <p className="admin-empty-card-title">Paramètres indisponibles</p>
+          <p className="admin-empty-card-note">{loadError}</p>
+          <button type="button" className="admin-btn-ghost" onClick={fetchData}>
+            Réessayer
+          </button>
+        </div>
+      ) : hasExamples ? (
+        <section className="admin-panel">
+          <div className="admin-panel-head">
+            <h2 className="admin-panel-title">Données d’exemple</h2>
+            <button
+              type="button"
+              className="admin-btn-danger"
+              onClick={handleDeleteExamples}
+              disabled={deleting}
+            >
+              {deleting ? 'Suppression…' : `Supprimer les ${examples.total} exemples`}
+            </button>
+          </div>
+
+          <div className="admin-panel-body">
+            <p className="admin-parametres-note">
+              Ces enregistrements portent le marqueur <code>isExample</code>, posé par{' '}
+              <code>prisma/seed.js</code> pour éprouver la plateforme avant sa mise en
+              service. Les supprimer ne touche à rien d’autre : seuls les
+              enregistrements marqués partent, vos propres données restent en place.
+            </p>
+
+            <div className="admin-parametres-facts">
+              <div>
+                <p className="admin-parametres-count">
+                  {examples.producers} <span>sur {totals.producers}</span>
+                </p>
+                <p className="admin-mono-label">Producteurs</p>
+              </div>
+              <div>
+                <p className="admin-parametres-count">
+                  {examples.products} <span>sur {totals.products}</span>
+                </p>
+                <p className="admin-mono-label">Produits</p>
+              </div>
+              <div>
+                <p className="admin-parametres-count">
+                  {examples.pickupLocations} <span>sur {totals.pickupLocations}</span>
+                </p>
+                <p className="admin-mono-label">Points de retrait</p>
+              </div>
+            </div>
+          </div>
+        </section>
+      ) : (
+        <div className="admin-empty-card">
+          <p className="admin-empty-card-title">Aucun réglage pour l’instant</p>
+          <p className="admin-empty-card-note">
+            Les jeux d’essai ont déjà été retirés de la base. Cet écran se remplira
+            au fil des demandes de l’équipe.
+          </p>
+        </div>
+      )}
+    </div>
+  );
 }

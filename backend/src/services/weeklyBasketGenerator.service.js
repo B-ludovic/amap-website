@@ -43,22 +43,24 @@ export function getIsoWeekParts(date) {
   return { year, weekNumber };
 }
 
-function getSeasonFromDate(date) {
+/* La saison se déduit de la date de distribution, et d'elle seule.
+
+   Elle décidait auparavant d'une ligne ThemeConfig marquée active, réglée depuis
+   un écran d'administration intitulé « Thème saisonnier — personnalisez les
+   couleurs de votre site ». Or cette saison ne colore rien : elle filtre les
+   produits éligibles au panier, plus bas dans ce fichier. Un administrateur
+   croyant choisir une palette changeait en réalité les légumes distribués, et la
+   surcharge survivait ensuite à toutes les saisons suivantes. La base portait
+   ainsi SPRING depuis mars : les paniers d'août sortaient des poireaux et des
+   oranges pendant que tomates et melons restaient exclus.
+
+   Le calendrier ne se trompe pas et ne se règle pas. */
+export function getSeasonFromDate(date) {
   const month = date.getMonth() + 1;
   if (month >= 3 && month <= 5) return 'SPRING';
   if (month >= 6 && month <= 8) return 'SUMMER';
   if (month >= 9 && month <= 11) return 'AUTUMN';
   return 'WINTER';
-}
-
-export async function getActiveSeason(distributionDate) {
-  const activeTheme = await prisma.themeConfig.findFirst({
-    where: { isActive: true },
-    select: { season: true },
-    orderBy: { updatedAt: 'desc' }
-  });
-
-  return activeTheme?.season || getSeasonFromDate(distributionDate);
 }
 
 function createItemsByBasketSize(products) {

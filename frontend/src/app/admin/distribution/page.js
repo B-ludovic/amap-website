@@ -154,23 +154,30 @@ export default function AdminDistributionPage() {
     return <p className="admin-empty">Chargement…</p>;
   }
 
+  /* Les états de repli portent le même conteneur racine que la vue complète :
+     sans lui, le CSS de cette page ne pourrait pas les atteindre sans écrire
+     une règle non scopée qui déborderait sur toute l'administration. */
   if (basketError) {
     return (
-      <div className="admin-empty-card">
-        <p className="admin-empty-card-title">Distribution indisponible</p>
-        <p className="admin-empty-card-note">{basketError}</p>
-        <button type="button" className="admin-btn-ghost" onClick={fetchCurrentBasket}>
-          Réessayer
-        </button>
+      <div className="admin-distribution">
+        <div className="admin-empty-card">
+          <p className="admin-empty-card-title">Distribution indisponible</p>
+          <p className="admin-empty-card-note">{basketError}</p>
+          <button type="button" className="admin-btn-ghost" onClick={fetchCurrentBasket}>
+            Réessayer
+          </button>
+        </div>
       </div>
     );
   }
 
   if (!currentBasket) {
     return (
-      <div className="admin-empty-card">
-        <p className="admin-empty-card-title">Aucune distribution en cours</p>
-        <p className="admin-empty-card-note">Publiez un panier hebdomadaire pour ouvrir l’émargement.</p>
+      <div className="admin-distribution">
+        <div className="admin-empty-card">
+          <p className="admin-empty-card-title">Aucune distribution en cours</p>
+          <p className="admin-empty-card-note">Publiez un panier hebdomadaire pour ouvrir l’émargement.</p>
+        </div>
       </div>
     );
   }

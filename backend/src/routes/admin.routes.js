@@ -12,8 +12,6 @@ import {
   getAllUsers,
   changeUserRole,
   deleteUser,
-  updateTheme,
-  getActiveTheme,
   getExampleStats,
   deleteAllExamples,
   globalSearch,
@@ -50,8 +48,6 @@ router.put('/users/:userId/role', changeUserRole);
 router.delete('/users/:userId', deleteUser);
 
 // GESTION DES THÈMES SAISONNIERS
-router.put('/theme', updateTheme);
-router.get('/theme/active', getActiveTheme);
 
 // STATISTIQUES
 router.get('/stats', getStats);

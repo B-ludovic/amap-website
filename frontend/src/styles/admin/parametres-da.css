@@ -1,0 +1,74 @@
+/* Paramètres — vue absente de la maquette (« built: false » dans le registre NAV
+   de mocks/admin.dc.html), composée dans le vocabulaire de la DA sur le
+   précédent des permanences et de la distribution.
+
+   L'écran ne porte plus qu'un seul outil, la purge des jeux d'essai. Les
+   onglets ont donc disparu avec la section Thème : un onglet unique n'est pas
+   une navigation, c'est un titre déguisé. */
+
+.admin-parametres-note {
+  margin: 0 0 22px;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--text-secondary);
+  max-width: 68ch;
+}
+
+.admin-parametres-note code {
+  padding: 1px 5px;
+  border-radius: var(--border-radius-sm);
+  background-color: var(--surface-sand);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  color: var(--text-primary);
+}
+
+/* COMPTES
+   « 3 sur 8 » plutôt que deux tableaux de chiffres côte à côte : la question
+   qu'on se pose devant cet écran n'est pas « combien d'exemples » ni « combien
+   au total », c'est « quelle part de ma base est encore factice ». Le rapport
+   répond directement. */
+
+.admin-parametres-facts {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-top: 1px solid var(--border-card);
+}
+
+.admin-parametres-facts > div {
+  padding: 16px 24px 16px 0;
+  border-bottom: 1px solid var(--border-card);
+}
+
+.admin-parametres-facts > div + div {
+  padding-left: 24px;
+  border-left: 1px solid var(--border-card);
+}
+
+.admin-parametres-count {
+  margin: 0 0 4px;
+  font-family: var(--font-mono);
+  font-size: 21px;
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+}
+
+/* Le dénominateur est du contexte, pas la valeur : il s'efface pour que l'œil
+   attrape d'abord le nombre d'exemples restants. */
+.admin-parametres-count span {
+  font-size: 14px;
+  font-weight: var(--font-weight-normal);
+  color: var(--text-light);
+}
+
+@media (max-width: 900px) {
+  .admin-parametres-facts {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-parametres-facts > div,
+  .admin-parametres-facts > div + div {
+    padding: 14px 0;
+    border-left: none;
+  }
+}

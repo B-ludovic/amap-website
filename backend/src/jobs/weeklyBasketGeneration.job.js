@@ -1,6 +1,6 @@
 import {
   generateWeeklyBasket,
-  getActiveSeason,
+  getSeasonFromDate,
   getIsoWeekParts
 } from '../services/weeklyBasketGenerator.service.js';
 import { findClosureCovering } from '../services/closure.service.js';
@@ -75,7 +75,7 @@ export async function generateNextWeeklyBasket(now = new Date()) {
     return null;
   }
 
-  const season = await getActiveSeason(distributionDate);
+  const season = getSeasonFromDate(distributionDate);
   const basket = await generateWeeklyBasket({ distributionDate, season });
   const { year, weekNumber } = getIsoWeekParts(distributionDate);
 

@@ -197,17 +197,6 @@ export const admin = {
     },
   },
 
-  // Thèmes
-  theme: {
-    update: async (themeData) => {
-      return fetchAPI('/admin/theme', {
-        method: 'PUT',
-        body: themeData,
-        requiresAuth: true,
-      });
-    },
-  },
-
   // Blog
   blog: {
     create: async (postData) => {
@@ -382,13 +371,6 @@ const api = {
   admin,
   auth,
 
-  // Thèmes (public)
-  getActiveTheme: async () => {
-    return fetchAPI('/theme/active', {
-      requiresAuth: false,
-    });
-  },
-  
   newsletters: {
     getAll: async (params = {}) => {
       const queryString = new URLSearchParams(params).toString();
