@@ -310,6 +310,12 @@ model Payment {
   // le modèle de Subscription.renewalReminderSentAt.
   reminderSentAt    DateTime?
 
+  // Même garde, côté trésorier. Deux colonnes et non une : les deux rappels ne
+  // partent pas au même moment (30 jours avant pour l'adhérent, 7 jours avant
+  // pour le dépôt) et l'un ne doit pas éteindre l'autre. Cette date-ci est
+  // relevée à chaque relance, ce qui espace les rappels d'un chèque oublié.
+  treasurerNotifiedAt DateTime?
+
   subscription      Subscription @relation(fields: [subscriptionId], references: [id])
 
   createdAt         DateTime @default(now())

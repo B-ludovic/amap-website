@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import DOMPurify from 'isomorphic-dompurify';
+import { euroAmount } from '../utils/subscriptionPricing.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const logoPath = path.join(__dirname, '../assets/logo.png');
@@ -32,6 +33,20 @@ const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (character
   '"': '&quot;',
   "'": '&#39;',
 }[character]));
+
+/* « 1er juillet 2026 ».
+   toLocaleDateString écrit « 1 juillet » : le détail passe inaperçu sur une
+   date quelconque, mais toutes les échéances de chèques tombent au premier du
+   mois, la faute serait donc sur chaque ligne de chaque rappel. Même règle que
+   dayMonthYearLong côté frontend, pour que l'email et l'espace adhérent
+   disent la même chose de la même façon. */
+const MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+
+const longDate = (value) => {
+  const date = new Date(value);
+  const jour = date.getDate();
+  return `${jour === 1 ? '1er' : jour} ${MOIS[date.getMonth()]} ${date.getFullYear()}`;
+};
 
 /* TEMPLATE CSS COMMUN POUR LE FOOTER RGPD */
 const footerCSS = `
@@ -638,6 +653,179 @@ class EmailService {
                 <p><strong>Aux P'tits Pois - AMAP Solidaire</strong><br>14, rue du Château, 45300 Yèvre-la-Ville</p>
                 <p>Cet email a été envoyé à ${escapeHtml(user.email)}.<br>
                 <a href="${process.env.FRONTEND_URL}/compte">Accédez à votre espace membre</a>.</p>
+              </div>
+            </div>
+          </body>
+          </html>
+        `,
+      });
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  /* Chèque : avis d'encaissement à venir, envoyé un mois avant le dépôt.
+
+     L'adhérent a signé son contrat en février et remis quatre chèques d'un
+     coup ; en juin il ne sait plus lequel part quand, ni s'il en reste. Cet
+     avis lui rend cette information au moment où elle sert : avant que la
+     banque ne prélève, assez tôt pour approvisionner le compte.
+
+     Le rang du chèque (« 3ᵉ sur 4 ») compte autant que le montant : c'est ce
+     qui lui dit combien il en reste après celui-là. */
+  async sendChequeDepositNotice({ payment, subscription, user, rang, total }) {
+    try {
+      const montant = euroAmount(payment.amount);
+      const echeance = longDate(payment.dueDate);
+      const rangTexte = rang === total
+        ? 'Dernier chèque de votre contrat'
+        : `${rang}${rang === 1 ? 'er' : 'e'} chèque sur ${total}`;
+
+      await transporter.sendMail({
+        from: EMAIL_FROM,
+        to: user.email,
+        subject: `Votre chèque de ${montant} sera déposé le ${echeance}`,
+        html: `
+          <!DOCTYPE html>
+          <html lang="fr">
+          <head>
+            <meta charset="utf-8">
+            <style>
+              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+              .header { background: linear-gradient(135deg, #6b9d5a 0%, #4d7a3d 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+              .content { background: #f9f7f4; padding: 30px; border-radius: 0 0 8px 8px; }
+              .info-box { background: white; border: 1px solid #e2e8f0; padding: 20px; border-radius: 6px; margin: 20px 0; }
+              .amount { font-size: 26px; font-weight: bold; color: #4d7a3d; }
+              .note { background: #fffbeb; border-left: 4px solid #d97706; padding: 14px 18px; border-radius: 4px; margin: 20px 0; }
+              .button { display: inline-block; background: #6b9d5a; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; margin: 20px 0; }
+              ${footerCSS}
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                ${logoImg}
+                <h1>Un chèque va être déposé</h1>
+              </div>
+              <div class="content">
+                <p>Bonjour ${escapeHtml(user.firstName)},</p>
+                <p>Nous vous informons qu'un des chèques remis pour votre abonnement sera porté en banque le <strong>${echeance}</strong>.</p>
+                <div class="info-box">
+                  <p class="amount" style="margin:0 0 6px;">${montant}</p>
+                  <p style="margin:0;">${rangTexte}, abonnement n° ${escapeHtml(subscription.subscriptionNumber)}.</p>
+                </div>
+                <p>Merci de vérifier que votre compte est approvisionné à cette date. Un chèque rejeté nous oblige à vous recontacter, et engendre des frais pour l'association comme pour vous.</p>
+                <div class="note">
+                  Ce montant est celui inscrit sur votre contrat. Une suspension de panier ne le modifie pas : l'engagement porte sur la saison entière.
+                </div>
+                <div style="text-align:center;">
+                  <a href="${process.env.FRONTEND_URL}/compte" class="button">Voir mes chèques</a>
+                </div>
+                <p>Merci de votre soutien,<br>L'équipe Aux P'tits Pois</p>
+              </div>
+              <div class="footer">
+                <p><strong>Aux P'tits Pois - AMAP Solidaire</strong><br>14, rue du Château, 45300 Yèvre-la-Ville</p>
+                <p>Cet email a été envoyé à ${escapeHtml(user.email)}.<br>
+                <a href="${process.env.FRONTEND_URL}/compte">Accédez à votre espace membre</a>.</p>
+              </div>
+            </div>
+          </body>
+          </html>
+        `,
+      });
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  /* Chèques : récapitulatif des dépôts à faire, pour le trésorier.
+
+     Un seul email pour toute la remise, et non un par chèque : la boîte du
+     trésorier reçoit une liste qu'il emporte à la banque, pas trente messages
+     qu'il finirait par archiver sans lire.
+
+     Les chèques en retard ouvrent la liste et sont marqués : ce sont les seuls
+     sur lesquels une action est déjà due. */
+  async sendTreasurerChequeDigest(lignes) {
+    try {
+      const destinataire = process.env.TREASURER_EMAIL;
+      if (!destinataire) return { success: false, error: 'TREASURER_EMAIL non configurée' };
+
+      const total = lignes.reduce((somme, ligne) => somme + ligne.amount, 0);
+      const retards = lignes.filter((ligne) => ligne.enRetard).length;
+
+      const rangs = lignes.map((ligne) => `
+        <tr style="${ligne.enRetard ? 'background:#fef2f2;' : ''}">
+          <td style="padding:10px 12px; border-bottom:1px solid #e2e8f0;">
+            ${escapeHtml(ligne.nom)}<br>
+            <span style="color:#6b7280; font-size:12px;">${escapeHtml(ligne.subscriptionNumber)}</span>
+          </td>
+          <td style="padding:10px 12px; border-bottom:1px solid #e2e8f0; text-align:right; white-space:nowrap;">
+            <strong>${euroAmount(ligne.amount)}</strong>
+          </td>
+          <td style="padding:10px 12px; border-bottom:1px solid #e2e8f0; white-space:nowrap;">
+            ${longDate(ligne.dueDate)}
+            ${ligne.enRetard ? '<br><span style="color:#b91c1c; font-size:12px; font-weight:bold;">en retard</span>' : ''}
+          </td>
+          <td style="padding:10px 12px; border-bottom:1px solid #e2e8f0; color:#6b7280; font-size:13px;">
+            ${ligne.checkNumber ? `n° ${escapeHtml(ligne.checkNumber)}` : '—'}
+          </td>
+        </tr>
+      `).join('');
+
+      await transporter.sendMail({
+        from: EMAIL_FROM,
+        to: destinataire,
+        subject: `${lignes.length} chèque${lignes.length > 1 ? 's' : ''} à déposer en banque${retards > 0 ? ` (dont ${retards} en retard)` : ''}`,
+        html: `
+          <!DOCTYPE html>
+          <html lang="fr">
+          <head>
+            <meta charset="utf-8">
+            <style>
+              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+              .container { max-width: 700px; margin: 0 auto; padding: 20px; }
+              .header { background: linear-gradient(135deg, #d97706 0%, #b45309 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+              .content { background: #f9f7f4; padding: 30px; border-radius: 0 0 8px 8px; }
+              table { width: 100%; border-collapse: collapse; background: white; border-radius: 6px; overflow: hidden; margin: 20px 0; }
+              th { background: #f3f4f6; padding: 10px 12px; text-align: left; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: #4b5563; }
+              .button { display: inline-block; background: #6b9d5a; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; margin: 20px 0; }
+              ${footerCSS}
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                ${logoImg}
+                <h1>Chèques à porter en banque</h1>
+              </div>
+              <div class="content">
+                <p>Bonjour,</p>
+                <p>${lignes.length} chèque${lignes.length > 1 ? 's arrivent' : ' arrive'} à échéance. Voici la remise à préparer :</p>
+                <table>
+                  <thead>
+                    <tr><th>Adhérent</th><th style="text-align:right;">Montant</th><th>Échéance</th><th>Chèque</th></tr>
+                  </thead>
+                  <tbody>${rangs}</tbody>
+                  <tfoot>
+                    <tr>
+                      <td style="padding:12px;"><strong>Total</strong></td>
+                      <td style="padding:12px; text-align:right;"><strong>${euroAmount(total)}</strong></td>
+                      <td colspan="2"></td>
+                    </tr>
+                  </tfoot>
+                </table>
+                <p>Une fois la remise déposée, marquez ces chèques « remis en banque » depuis la fiche de chaque abonnement : c'est ce qui met à jour l'espace de l'adhérent et arrête ce rappel.</p>
+                <div style="text-align:center;">
+                  <a href="${process.env.FRONTEND_URL}/admin/abonnements" class="button">Ouvrir les abonnements</a>
+                </div>
+              </div>
+              <div class="footer">
+                <p><strong>Aux P'tits Pois - AMAP Solidaire</strong><br>14, rue du Château, 45300 Yèvre-la-Ville</p>
+                <p>Message automatique destiné à la trésorerie de l'association.</p>
               </div>
             </div>
           </body>

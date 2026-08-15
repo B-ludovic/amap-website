@@ -48,3 +48,19 @@ if (missingMail.length > 0) {
   console.warn(`⚠️  Identifiants SMTP manquants : ${missingMail.join(', ')}`);
   console.warn('   Aucun email ne sera envoyé. Voir .env.example pour les récupérer.');
 }
+
+/* Adresse du trésorier, destinataire du rappel de dépôt des chèques.
+   Même logique que ci-dessus : sans elle le job tourne, trouve les chèques à
+   déposer, et envoie son récapitulatif à personne. Personne ne s'en aperçoit
+   avant qu'un chèque périmé revienne de la banque six mois plus tard.
+
+   Volontairement pas de repli sur EMAIL_FROM : c'est une adresse d'envoi
+   (noreply), écrire au trésorier dessus revient à ne rien envoyer. */
+if (!process.env.TREASURER_EMAIL) {
+  if (process.env.NODE_ENV === 'production') {
+    console.error('❌ TREASURER_EMAIL manquante.');
+    console.error('   Le serveur refuse de démarrer : les rappels de dépôt de chèques n\'arriveraient nulle part.');
+    process.exit(1);
+  }
+  console.warn('⚠️  TREASURER_EMAIL manquante : aucun rappel de dépôt de chèques ne partira.');
+}
