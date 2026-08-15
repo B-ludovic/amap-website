@@ -67,6 +67,40 @@ async function fetchAPI(endpoint, options = {}) {
   return response.json();
 }
 
+/* Déclenche le téléchargement d'un fichier renvoyé par l'API. Le nom vient de
+   l'en-tête Content-Disposition posé par le serveur et n'est reconstruit ici que
+   s'il manque : c'est le serveur qui sait ce qu'il envoie, le navigateur ne fait
+   que le ranger. Le lien est créé, cliqué, puis retiré du document — sans ce
+   nettoyage, chaque export laisserait une ancre morte et une URL blob non
+   révoquée, donc son contenu en mémoire jusqu'au rechargement de la page. */
+async function downloadResponse(response, { mimeType, fallbackName }) {
+  const raw = await response.blob();
+  const blob = new Blob([raw], { type: mimeType });
+
+  const contentDisposition = response.headers.get('Content-Disposition');
+  let filename = fallbackName;
+
+  if (contentDisposition) {
+    const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+    if (filenameMatch && filenameMatch[1]) {
+      filename = filenameMatch[1].replace(/['"]/g, '');
+    }
+  }
+
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+
+  setTimeout(() => {
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  }, 100);
+}
+
 export const admin = {
   // Producteurs
   producers: {
@@ -594,9 +628,33 @@ const api = {
       });
     },
 
+    /* L'API renvoie un CSV, pas du JSON : fetchAPI ne convient pas puisqu'il
+       termine par response.json(). On récupère donc la réponse brute et on la
+       remet au navigateur. Passer par le serveur plutôt que fabriquer le CSV
+       ici n'est pas un détail de forme : c'est là que l'export est journalisé
+       et que la liste est complète, indépendamment du filtre de recherche
+       affiché à l'écran. */
     export: async (weeklyBasketId) => {
-      return fetchAPI(`/distribution/export/${weeklyBasketId}`, {
-        requiresAuth: true,
+      const response = await safeFetch(`${API_URL}/distribution/export/${weeklyBasketId}`, {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        const error = new ApiError(
+          payload.error?.message || payload.message || 'Erreur lors de l\'export de la liste',
+          response.status
+        );
+        if (response.status === 401) {
+          redirectToExpiredSessionLogin();
+        }
+        throw error;
+      }
+
+      await downloadResponse(response, {
+        mimeType: 'text/csv;charset=utf-8;',
+        fallbackName: 'distribution.csv',
       });
     },
   },
@@ -769,35 +827,10 @@ const api = {
         throw error;
       }
 
-      // Récupérer le blob PDF avec le type MIME correct
-      const blob = await response.blob();
-      const pdfBlob = new Blob([blob], { type: 'application/pdf' });
-      
-      // Récupérer le nom du fichier depuis les headers
-      const contentDisposition = response.headers.get('Content-Disposition');
-      let filename = 'contrat.pdf';
-      
-      if (contentDisposition) {
-        const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
-        if (filenameMatch && filenameMatch[1]) {
-          filename = filenameMatch[1].replace(/['"]/g, '');
-        }
-      }
-
-      // Créer un lien de téléchargement
-      const url = window.URL.createObjectURL(pdfBlob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      a.style.display = 'none';
-      document.body.appendChild(a);
-      a.click();
-      
-      // Nettoyage après un délai
-      setTimeout(() => {
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-      }, 100);
+      await downloadResponse(response, {
+        mimeType: 'application/pdf',
+        fallbackName: 'contrat.pdf',
+      });
     }
   },
 

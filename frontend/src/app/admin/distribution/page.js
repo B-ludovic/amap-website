@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import api from "../../../lib/api";
 import logger from "../../../lib/logger";
-import { longDate, time } from "../../../lib/format";
+import { longDate } from "../../../lib/format";
 import { useModal } from "../../../contexts/ModalContext";
 import PickupNoteModal from "../../../components/admin/PickupNoteModal";
 import "../../../styles/admin/components.css";
@@ -143,31 +143,17 @@ export default function AdminDistributionPage() {
     setNoteTarget(null);
   };
 
-  const handleExport = () => {
+  /* L'export est fabriqué par le serveur, pas ici. Trois raisons, dans l'ordre
+     d'importance : c'est la seule voie journalisée, et un export emporte les
+     noms, emails et téléphones des adhérents ; le serveur relit tous les
+     abonnements actifs, là où cette page ne détient que la liste filtrée par la
+     recherche en cours — exporter en cours de frappe rendait une feuille
+     amputée sans le dire ; et la taille du panier y est lue au bon endroit. */
+  const handleExport = async () => {
     try {
-      const rows = [
-        ['Nom', 'Prénom', 'Email', 'Taille panier', 'Retiré', 'Heure retrait', 'Note'],
-        ...distributionList.map(item => [
-          item.user?.lastName ?? '',
-          item.user?.firstName ?? '',
-          item.user?.email ?? '',
-          getBasketSizeLabel(item.subscription?.basketSize),
-          item.pickup?.wasPickedUp ? 'Oui' : 'Non',
-          item.pickup?.pickedUpAt ? time(item.pickup.pickedUpAt) : '',
-          item.pickup?.notes ?? '',
-        ]),
-      ];
-
-      const csv = rows.map(row => row.map(v => `"${String(v).replace(/"/g, '""')}"`).join(';')).join('\n');
-      const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `distribution-semaine-${currentBasket?.weekNumber ?? ''}.csv`;
-      a.click();
-      URL.revokeObjectURL(url);
+      await api.distribution.export(currentBasket.id);
     } catch (error) {
-      showError('Erreur', 'Erreur lors de l\'export');
+      showError('Erreur', error.message);
     }
   };
 
