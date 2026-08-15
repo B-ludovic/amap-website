@@ -259,9 +259,14 @@ export default function MentionsLegalesPage() {
               <div className="def-row">
                 <dt className="def-label-strong">Brevo</dt>
                 <dd className="def-value">
-                  Envoi des emails transactionnels — confirmation d&apos;abonnement,
-                  notifications de panier. Votre adresse email est transmise à ce service
-                  dans le cadre de l&apos;exécution du contrat.
+                  Acheminement de tous les emails partis du site : messages liés au compte
+                  et au contrat, lettre d&apos;information, annonces de service, réponses
+                  aux candidatures de producteurs. Votre adresse email et le contenu du
+                  message sont transmis à ce sous-traitant pour le seul besoin de
+                  l&apos;envoi, sans réutilisation à d&apos;autres fins.{' '}
+                  <a href="https://www.brevo.com" target="_blank" rel="noopener noreferrer">
+                    brevo.com
+                  </a>
                 </dd>
               </div>
             </dl>

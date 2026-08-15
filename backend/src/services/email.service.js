@@ -39,11 +39,36 @@ const longDate = (value) => {
   return `${jour === 1 ? '1er' : jour} ${MOIS[date.getMonth()]} ${date.getFullYear()}`;
 };
 
-/* La mention RGPD du pied de page, identique dans presque tous les messages :
-   pourquoi cette adresse reçoit ceci, et où aller pour reprendre la main. */
+/* L'adresse de l'association : boîte de réception du formulaire de contact,
+   et porte de sortie pour qui n'a pas d'espace adhérent. Elle était recopiée
+   dans six messages ; le jour où l'AMAP en changera, c'est ici que ça se
+   passera. */
+const AMAP_EMAIL = 'auxptitspois@gmail.com';
+
+/* La mention RGPD du pied de page : pourquoi cette adresse précise reçoit ce
+   message précis, et par quelle porte reprendre la main sur ses données.
+
+   Deux portes, parce qu'il y a deux publics. L'adhérent a un espace où tout se
+   consulte, s'exporte et s'efface en quelques clics. Le candidat producteur,
+   lui, n'a pas de compte : l'envoyer vers « votre espace adhérent » serait le
+   diriger vers une porte fermée, et un droit qu'on ne peut pas exercer ne vaut
+   guère mieux qu'un droit qu'on ne mentionne pas. Sa porte à lui est l'adresse
+   de l'association — celle-là même que le corps du message lui donne déjà pour
+   toute question.
+
+   La phrase est volontairement identique des deux côtés : c'est la destination
+   qui change, jamais la promesse. */
+const droitsViaEspace = () =>
+  `Pour consulter, modifier ou supprimer vos données, <a href="${escapeHtml(`${process.env.FRONTEND_URL}/compte`)}">ouvrez votre espace adhérent</a>.`;
+
+const droitsViaEmail = () =>
+  `Pour consulter, modifier ou supprimer vos données, écrivez-nous à <a href="mailto:${AMAP_EMAIL}">${AMAP_EMAIL}</a>.`;
+
 const rgpdNote = (email, raison) =>
-  `Cet email a été envoyé à ${escapeHtml(email)} ${raison}.<br>
-   Pour consulter, modifier ou supprimer vos données, <a href="${process.env.FRONTEND_URL}/compte">ouvrez votre espace adhérent</a>.`;
+  `Cet email a été envoyé à ${escapeHtml(email)} ${raison}.<br>${droitsViaEspace()}`;
+
+const rgpdNoteSansCompte = (email, raison) =>
+  `Cet email a été envoyé à ${escapeHtml(email)} ${raison}.<br>${droitsViaEmail()}`;
 
 class EmailService {
 
@@ -66,7 +91,7 @@ class EmailService {
               <li>Découvrir nos producteurs locaux</li>
             </ul>
             ${emailButton(`${process.env.FRONTEND_URL}/nos-abonnements`, 'Découvrir nos abonnements')}
-            <p>Si vous avez des questions, n'hésitez pas à nous écrire à <a href="mailto:auxptitspois@gmail.com">auxptitspois@gmail.com</a>.</p>
+            <p>Si vous avez des questions, n'hésitez pas à nous écrire à <a href="mailto:${AMAP_EMAIL}">${AMAP_EMAIL}</a>.</p>
             <p>À très bientôt,<br>L'équipe Aux P'tits Pois</p>`,
           footerNote: rgpdNote(user.email, 'car vous êtes inscrit(e) sur notre plateforme'),
         }),
@@ -131,7 +156,7 @@ class EmailService {
             <p><strong>Si c'était vous</strong>, connectez-vous simplement avec votre mot de passe habituel :</p>
             ${emailButton(`${process.env.FRONTEND_URL}/auth/login`, 'Me connecter')}
             <p>Vous l'avez oublié ? <a href="${process.env.FRONTEND_URL}/auth/forgot-password">Réinitialisez-le en deux minutes</a>.</p>
-            <div class="warning"><strong>Si ce n'était pas vous :</strong> il n'y a rien à faire, votre compte n'a pas été touché. Si ces messages se répètent, écrivez-nous à <a href="mailto:auxptitspois@gmail.com">auxptitspois@gmail.com</a>.</div>
+            <div class="warning"><strong>Si ce n'était pas vous :</strong> il n'y a rien à faire, votre compte n'a pas été touché. Si ces messages se répètent, écrivez-nous à <a href="mailto:${AMAP_EMAIL}">${AMAP_EMAIL}</a>.</div>
             <p>L'équipe Aux P'tits Pois</p>`,
           footerNote: rgpdNote(user.email, 'car un compte existe à cette adresse'),
         }),
@@ -162,7 +187,7 @@ class EmailService {
             <div class="warning"><strong>Ce lien est valable une heure.</strong> Au-delà, il faudra refaire une demande depuis la page de connexion.</div>
             <p>Si vous n'avez pas demandé cette réinitialisation, ignorez simplement cet email : votre mot de passe reste inchangé.</p>
             <p>L'équipe Aux P'tits Pois</p>`,
-          footerNote: `Cet email a été envoyé à ${escapeHtml(user.email)} suite à une demande faite sur notre site.`,
+          footerNote: rgpdNote(user.email, 'suite à une demande de réinitialisation faite sur notre site'),
         }),
       });
       if (process.env.NODE_ENV !== 'production') console.log('[DEV] Email reset password envoyé');
@@ -199,7 +224,15 @@ class EmailService {
               <li>Votre abonnement est activé</li>
             </ol>
             <p>À très bientôt,<br>L'équipe Aux P'tits Pois</p>`,
-          footerNote: rgpdNote(request.email, 'suite à votre demande d\'abonnement'),
+          /* Seul message dont la porte dépend de la donnée reçue. La route
+             actuelle exige d'être connecté, donc userId est toujours là ; mais
+             le modèle le déclare optionnel et la purge RGPD compte déjà des
+             « demandes d'abonnement sans compte ». Le jour où un formulaire
+             public rouvrira ce chemin, la mention suivra d'elle-même au lieu
+             d'envoyer vers un espace adhérent qui n'existe pas. */
+          footerNote: request.userId
+            ? rgpdNote(request.email, 'suite à votre demande d\'abonnement')
+            : rgpdNoteSansCompte(request.email, 'suite à votre demande d\'abonnement'),
         }),
       });
       if (process.env.NODE_ENV !== 'production') console.log('[DEV] Email confirmation demande envoyé');
@@ -223,7 +256,7 @@ class EmailService {
             <p>Bonjour ${escapeHtml(inquiry.firstName)},</p>
             <p>Nous avons bien reçu votre candidature pour <strong>${escapeHtml(inquiry.farmName)}</strong> et nous vous recontacterons très prochainement.</p>
             <p>À très bientôt,<br>L'équipe Aux P'tits Pois</p>`,
-          footerNote: `Cet email a été envoyé à ${escapeHtml(inquiry.email)} suite à votre candidature.`,
+          footerNote: rgpdNoteSansCompte(inquiry.email, 'suite à votre candidature de producteur'),
         }),
       });
       return { success: true };
@@ -240,7 +273,7 @@ class EmailService {
       const safeSubject = escapeHtml(subject);
       await transporter.sendMail({
         from: EMAIL_FROM,
-        to: 'auxptitspois@gmail.com',
+        to: AMAP_EMAIL,
         replyTo: email,
         subject: `[Contact] ${String(subject).replace(/[\r\n]+/g, ' ')}`,
         html: renderEmail({
@@ -254,6 +287,9 @@ class EmailService {
             </div>
             <p><strong>Message :</strong></p>
             <div class="message-box">${DOMPurify.sanitize(message, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] })}</div>`,
+          /* Seul message, avec la remise de chèques, à ne porter aucune mention
+             RGPD — et c'est volontaire : il arrive dans la boîte de
+             l'association, pas dans celle de la personne dont il parle. */
           footerNote: 'Message automatique émis par le formulaire de contact du site. Répondre à cet email écrit directement à son auteur.',
         }),
       });
@@ -301,11 +337,15 @@ class EmailService {
      signable : on renvoie alors vers l'espace adhérent plutôt que d'afficher un
      lien mort. */
   static newsletterFooter(recipientId, respectsOptOut) {
-    const accountLink = `<a href="${escapeHtml(`${process.env.FRONTEND_URL}/compte`)}">Gérer mes préférences</a>`;
+    /* Le même ordre et les mêmes mots que dans les dix-sept autres messages :
+       le motif, puis les droits, puis le désabonnement. Le lien « Gérer mes
+       préférences » d'avant menait déjà à /compte : la phrase des droits mène
+       au même endroit, en disant ce qu'on y trouve. */
+    const motif = 'Vous recevez cet email parce que vous êtes adhérent(e) de l\'AMAP Aux P\'tits Pois.';
 
     if (!recipientId) {
       return {
-        html: `Vous recevez cet email parce que vous êtes adhérent(e) de l'AMAP Aux P'tits Pois.<br>${accountLink}`,
+        html: `${motif}<br>${droitsViaEspace()}`,
       };
     }
 
@@ -314,14 +354,16 @@ class EmailService {
     if (!respectsOptOut) {
       return {
         html: `Ce message concerne votre contrat en cours : il vous parvient même si vous avez quitté la lettre d'information.<br>
+               ${droitsViaEspace()}<br>
                <a href="${unsubLink}">Gérer mes emails</a>`,
       };
     }
 
     return {
       headers: unsubscribeHeaders(recipientId),
-      html: `Vous recevez cet email parce que vous êtes adhérent(e) de l'AMAP Aux P'tits Pois.<br>
-             ${accountLink} | <a href="${unsubLink}">Me désabonner</a>`,
+      html: `${motif}<br>
+             ${droitsViaEspace()}<br>
+             <a href="${unsubLink}">Me désabonner</a>`,
     };
   }
 
@@ -543,6 +585,8 @@ class EmailService {
             </table>
             <p>Une fois la remise déposée, marquez ces chèques « remis en banque » depuis la fiche de chaque abonnement : c'est ce qui met à jour l'espace de l'adhérent et arrête ce rappel.</p>
             ${emailButton(`${process.env.FRONTEND_URL}/admin/abonnements`, 'Ouvrir les abonnements')}`,
+          /* Destinataire interne, comme le formulaire de contact : rien à
+             mentionner à quelqu'un sur ses propres données. */
           footerNote: 'Message automatique destiné à la trésorerie de l\'association.',
         }),
       });
@@ -628,7 +672,7 @@ class EmailService {
               <p><strong>Type :</strong> ${type}</p>
               <p><strong>Panier :</strong> ${basket}</p>
             </div>
-            <p>Si vous avez des questions ou souhaitez vous réabonner, écrivez-nous à <a href="mailto:auxptitspois@gmail.com">auxptitspois@gmail.com</a>.</p>
+            <p>Si vous avez des questions ou souhaitez vous réabonner, écrivez-nous à <a href="mailto:${AMAP_EMAIL}">${AMAP_EMAIL}</a>.</p>
             <p>À bientôt,<br>L'équipe Aux P'tits Pois</p>`,
           footerNote: rgpdNote(user.email, 'suite à l\'annulation de votre contrat'),
         }),
@@ -659,9 +703,9 @@ class EmailService {
                 <li>Votre exploitation sera présentée à nos adhérents</li>
               </ol>
             </div>
-            <p>Pour toute question, écrivez-nous à <a href="mailto:auxptitspois@gmail.com">auxptitspois@gmail.com</a>.</p>
+            <p>Pour toute question, écrivez-nous à <a href="mailto:${AMAP_EMAIL}">${AMAP_EMAIL}</a>.</p>
             <p>À très bientôt,<br>L'équipe Aux P'tits Pois</p>`,
-          footerNote: `Cet email a été envoyé à ${escapeHtml(inquiry.email)} suite à votre candidature.`,
+          footerNote: rgpdNoteSansCompte(inquiry.email, 'suite à votre candidature de producteur'),
         }),
       });
       return { success: true };
@@ -683,9 +727,9 @@ class EmailService {
             <p>Bonjour ${escapeHtml(inquiry.firstName)},</p>
             <p>Nous avons bien étudié la candidature de <strong>${escapeHtml(inquiry.farmName)}</strong> et nous vous remercions de l'intérêt que vous portez à notre AMAP.</p>
             <p>Après examen, nous ne sommes malheureusement pas en mesure de donner suite à votre candidature pour le moment.</p>
-            <p>Pour toute question, n'hésitez pas à nous écrire à <a href="mailto:auxptitspois@gmail.com">auxptitspois@gmail.com</a>.</p>
+            <p>Pour toute question, n'hésitez pas à nous écrire à <a href="mailto:${AMAP_EMAIL}">${AMAP_EMAIL}</a>.</p>
             <p>Cordialement,<br>L'équipe Aux P'tits Pois</p>`,
-          footerNote: `Cet email a été envoyé à ${escapeHtml(inquiry.email)} suite à votre candidature.`,
+          footerNote: rgpdNoteSansCompte(inquiry.email, 'suite à votre candidature de producteur'),
         }),
       });
       return { success: true };
