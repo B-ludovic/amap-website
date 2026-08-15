@@ -244,18 +244,10 @@ const getAllSubscriptions = asyncHandler(async (req, res) => {
     prisma.subscription.count({ where })
   ]);
 
-  // Auto-reprise : passer ACTIVE les abonnements dont la pause est expirée
-  const now = new Date();
-  const toResume = subscriptions.filter(s =>
-    s.status === 'PAUSED' && s.pauses.length > 0 && new Date(s.pauses[0].endDate) < now
-  );
-  if (toResume.length > 0) {
-    await prisma.subscription.updateMany({
-      where: { id: { in: toResume.map(s => s.id) } },
-      data: { status: 'ACTIVE' }
-    });
-    toResume.forEach(s => { s.status = 'ACTIVE'; });
-  }
+  /* La reprise des pauses expirées se faisait ici, sur les seuls abonnements que
+     la page venait de charger. Elle appartient au job quotidien
+     (jobs/pauseResume.job.js), qui voit toute la base et journalise la
+     transition : consulter une liste ne change pas l'état des contrats. */
 
   const subscriptionsWithRemaining = subscriptions.map(sub => ({
     ...sub,

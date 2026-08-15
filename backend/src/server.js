@@ -31,6 +31,7 @@ import { startRenewalReminderJob } from './jobs/renewalReminder.job.js';
 import { startDataRetentionJob } from './jobs/dataRetention.job.js';
 import { startWeeklyBasketGenerationJob } from './jobs/weeklyBasketGeneration.job.js';
 import { startChequeReminderJob } from './jobs/chequeReminder.job.js';
+import { startPauseResumeJob } from './jobs/pauseResume.job.js';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -204,6 +205,7 @@ const startServer = async () => {
     startDataRetentionJob();
     startWeeklyBasketGenerationJob();
     startChequeReminderJob();
+    startPauseResumeJob();
 
     app.listen(PORT, () => {
       console.log(`✅ Serveur backend démarré sur http://localhost:${PORT}`);
