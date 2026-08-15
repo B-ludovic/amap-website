@@ -238,7 +238,22 @@ const exportDistributionList = asyncHandler(async (req, res) => {
     label: weeklyBasket.distributionDate.toISOString()
   }, { subscribersCount: activeSubscriptions.length });
 
-  const escape = (val) => `"${String(val ?? '').replace(/"/g, '""')}"`;
+  /* Un tableur ne lit pas une cellule, il l'évalue : tout ce qui commence par
+     =, +, - ou @ est traité comme une formule, y compris entre guillemets CSV.
+     Le numéro au format international +33612345678 — que la validation autorise
+     explicitement — ressort donc en #NOM? dans la colonne téléphone, le jour où
+     le bénévole imprime sa liste pour joindre un adhérent absent.
+
+     L'apostrophe initiale est le garde-fou standard : Excel et LibreOffice la
+     lisent comme « ceci est du texte » et ne l'affichent pas. Elle reste en
+     revanche visible pour un programme qui relirait le fichier, ce qui est le
+     bon compromis pour un export destiné à être ouvert et imprimé. */
+  const escape = (val) => {
+    const raw = String(val ?? '');
+    const safe = /^[=+\-@\t\r]/.test(raw) ? `'${raw}` : raw;
+
+    return `"${safe.replace(/"/g, '""')}"`;
+  };
 
   const header = ['N° abonnement', 'Nom', 'Prénom', 'Email', 'Téléphone', 'Panier', 'Récupéré', 'Heure de récupération', 'Notes'];
 
