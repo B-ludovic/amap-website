@@ -210,8 +210,25 @@ describe('Une newsletter bloquée en cours d\'envoi', () => {
     /* Deux adhérents ont reçu la lettre : la renvoyer leur écrirait deux fois.
        Elle est donc close, sur le compte qu'EmailLog a mémorisé — plus fiable
        que le compteur figé au moment de la panne. */
-    expect(base.newsletters[0]).toMatchObject({ status: 'SENT', sentCount: 2 });
+    expect(base.newsletters[0]).toMatchObject({ status: 'SENT', sentCount: 2, failedCount: 1 });
     expect(base.newsletters[0].sentAt).not.toBeNull();
+  });
+
+  /* Le troisième destinataire a été refusé, les suivants n'ont jamais été
+     tentés : le compteur porte le refus, pas l'absence. Confondre les deux
+     ferait afficher un chiffre inventé à côté de « Envoyée ». */
+  it('ne compte que les refus tracés, pas les destinataires jamais atteints', async () => {
+    poserBase({
+      newsletters: [{ id: 'lettre-2', subject: 'Fermeture', status: 'SENDING', sentAt: ilYA(3 * HEURES), sentCount: 0 }],
+      emailLogs: [
+        { kind: 'NEWSLETTER', status: 'SENT', ref: 'lettre-2' },
+        { kind: 'NEWSLETTER', status: 'FAILED', ref: 'lettre-2' },
+      ],
+    });
+
+    await releaseOrphanFlags();
+
+    expect(base.newsletters[0]).toMatchObject({ status: 'SENT', sentCount: 1, failedCount: 1 });
   });
 
   it('laisse tourner une diffusion partie il y a dix minutes', async () => {

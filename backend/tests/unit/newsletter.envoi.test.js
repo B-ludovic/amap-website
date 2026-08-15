@@ -258,6 +258,50 @@ describe('Un envoi partiel se verrouille, mais le dit', () => {
     expect(etat.lettre.sentCount).toBe(118);
     expect(journal.join('\n')).toContain('2 destinataire(s) non joint(s)');
   });
+
+  /* Le journal ne sort pas de la console du serveur. Sans ce compteur en base,
+     l'écran de communication affiche « Envoyée · 118 destinataires » et rien ne
+     distingue cet envoi d'un envoi complet à cent dix-huit personnes. */
+  it('écrit le nombre de refus là où l\'écran peut le lire', async () => {
+    poserScenario({ sent: 118, failed: 2 });
+
+    await appeler(sendNewsletter, requete);
+    await attendreFin();
+
+    expect(etat.lettre.failedCount).toBe(2);
+  });
+
+  it('remet le compteur à zéro quand la lettre repart', async () => {
+    poserScenario({ sent: 118, failed: 2 });
+    await appeler(sendNewsletter, requete);
+    await attendreFin();
+
+    // Second départ : les refus de la tentative d'avant ne décrivent plus rien.
+    poserScenario({ sent: 120, failed: 0 });
+    etat.lettre.status = 'DRAFT';
+    etat.lettre.sentAt = null;
+
+    await appeler(sendNewsletter, requete);
+    await attendreFin();
+
+    expect(etat.lettre.failedCount).toBe(0);
+    expect(etat.lettre.sentCount).toBe(120);
+  });
+});
+
+describe('Un échec total ne laisse pas de compteur derrière lui', () => {
+  it('remet les deux à zéro, le statut portant seul l\'information', async () => {
+    poserScenario({ sent: 0, failed: 120 });
+
+    await appeler(sendNewsletter, requete);
+    await attendreFin();
+
+    /* La lettre redevient renvoyable : un compteur de refus survivant
+       décrirait la tentative précédente, pas celle qu'on regarde. */
+    expect(etat.lettre.status).toBe('FAILED');
+    expect(etat.lettre.sentCount).toBe(0);
+    expect(etat.lettre.failedCount).toBe(0);
+  });
 });
 
 describe('Une liste vide n\'est pas un échec', () => {

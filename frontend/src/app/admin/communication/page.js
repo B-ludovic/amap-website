@@ -192,7 +192,15 @@ export default function AdminCommunicationPage() {
                       <span>
                         {newsletter.sentCount} {plural(newsletter.sentCount, 'destinataire', 'destinataires')}
                         {newsletter.status === 'SENDING' && ' pour l\'instant'}
-                        {newsletter.openCount > 0 && ` · ${newsletter.openCount} ${plural(newsletter.openCount, 'ouverture', 'ouvertures')}`}
+                      </span>
+                    )}
+                    {/* Sans cette mention, un envoi à moitié refusé — quota du
+                        relais atteint, adresses mortes — a exactement l'allure
+                        d'un envoi complet : « Envoyée », et le seul compte des
+                        réussites. */}
+                    {newsletter.failedCount > 0 && (
+                      <span className="admin-newsletter-failed">
+                        {newsletter.failedCount} non {plural(newsletter.failedCount, 'joint', 'joints')}
                       </span>
                     )}
                     {newsletter.author && (

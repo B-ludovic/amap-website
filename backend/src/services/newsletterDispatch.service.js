@@ -24,7 +24,9 @@ const ETATS_DE_DEPART = ['DRAFT', 'FAILED'];
 export async function reserverNewsletter(id) {
   const { count } = await prisma.newsletter.updateMany({
     where: { id, status: { in: ETATS_DE_DEPART } },
-    data: { status: 'SENDING', sentAt: new Date(), sentCount: 0 },
+    // Les deux compteurs repartent de zéro : ceux d'une tentative précédente
+    // décriraient un envoi qui n'est plus celui qu'on regarde.
+    data: { status: 'SENDING', sentAt: new Date(), sentCount: 0, failedCount: 0 },
   });
 
   return count === 1;
@@ -32,15 +34,19 @@ export async function reserverNewsletter(id) {
 
 /* sentAt garde l'heure du départ : le redater serait faux, l'envoi a commencé
    plusieurs minutes plus tôt. Une liste vide n'est pas un échec — il n'y avait
-   personne à qui écrire. */
+   personne à qui écrire.
+
+   failedCount reste à zéro sur la branche d'échec total : le statut le dit
+   déjà, et la newsletter y redevient renvoyable — un compteur survivant
+   décrirait la tentative d'avant. */
 async function finaliser({ id, sent, failed, recipientsCount }) {
   const rienNEstParti = sent === 0 && recipientsCount > 0;
 
   await prisma.newsletter.update({
     where: { id },
     data: rienNEstParti
-      ? { status: 'FAILED', sentAt: null, sentCount: 0 }
-      : { status: 'SENT', sentCount: sent },
+      ? { status: 'FAILED', sentAt: null, sentCount: 0, failedCount: 0 }
+      : { status: 'SENT', sentCount: sent, failedCount: failed },
   });
 
   // Le détail par destinataire est dans EmailLog, pas dans ces lignes.

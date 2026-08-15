@@ -66,15 +66,20 @@ async function refermerNewslettersBloquees() {
   });
 
   for (const newsletter of bloquees) {
-    const servis = await prisma.emailLog.count({
-      where: { kind: 'NEWSLETTER', status: 'SENT', ref: newsletter.id },
-    });
+    /* Les refus comptés ici sont ceux que le relais a rejetés avant que le
+       processus meure. Les destinataires jamais atteints n'ont pas de ligne :
+       ce ne sont pas des échecs, ce sont des absences, et c'est le message
+       ci-dessous qui les signale. */
+    const [servis, refuses] = await Promise.all([
+      prisma.emailLog.count({ where: { kind: 'NEWSLETTER', status: 'SENT', ref: newsletter.id } }),
+      prisma.emailLog.count({ where: { kind: 'NEWSLETTER', status: 'FAILED', ref: newsletter.id } }),
+    ]);
 
     await prisma.newsletter.update({
       where: { id: newsletter.id },
       data: servis > 0
-        ? { status: 'SENT', sentCount: servis }
-        : { status: 'FAILED', sentAt: null, sentCount: 0 },
+        ? { status: 'SENT', sentCount: servis, failedCount: refuses }
+        : { status: 'FAILED', sentAt: null, sentCount: 0, failedCount: 0 },
     });
 
     console.warn(

@@ -98,6 +98,13 @@
   font-size: 12.5px !important;
 }
 
+/* Le seul chiffre de cette ligne qui appelle un geste : il sort du gris des
+   autres, sans passer par un encadré qui ferait de chaque envoi une alerte. */
+.admin-newsletter-failed {
+  color: var(--error-text) !important;
+  font-weight: var(--font-weight-medium);
+}
+
 .admin-newsletter-actions {
   display: flex;
   gap: 14px;

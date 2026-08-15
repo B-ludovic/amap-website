@@ -477,8 +477,15 @@ model Newsletter {
   // réservée, et c'est ce début qui fait foi pour refuser un second départ.
   sentAt      DateTime?
   sentCount   Int      @default(0)
-  openCount   Int      @default(0)
-  
+
+  // Le pendant de sentCount, sans lequel un envoi partiel ressemble trait pour
+  // trait à un envoi complet : le relais refuse au-delà de son quota du jour,
+  // la moitié de la liste reste sur le carreau, et l'écran affiche « Envoyée »
+  // suivi du seul compte des réussites. Le détail par destinataire est dans
+  // EmailLog ; ce compteur est là pour qu'on ait une raison d'aller l'y lire.
+  failedCount Int      @default(0)
+
+
   // L'auteur signe la newsletter, il ne la possède pas : l'archive de
   // communication de l'association survit au départ du bénévole qui l'a écrite.
   // La purge RGPD coupe le lien nominatif, la base ne détruit pas le contenu.
