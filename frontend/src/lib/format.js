@@ -25,6 +25,20 @@ export function numericDate(value) {
   return `${pad(date.getDate())}/${pad(date.getMonth() + 1)}/${date.getFullYear()}`;
 }
 
+/* « 2026-08-19 » — valeur d'un champ <input type="date"> en heure locale. */
+export function inputDate(value) {
+  const date = toDate(value);
+  if (!date) return '';
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+/* « 18:15 » — heure locale sans dépendre des espaces ou options d'Intl. */
+export function time(value) {
+  const date = toDate(value);
+  if (!date) return '—';
+  return `${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
 /* « mercredi 19 août 2026 » */
 export function longDate(value) {
   const date = toDate(value);

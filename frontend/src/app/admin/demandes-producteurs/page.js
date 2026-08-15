@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import api from '../../../lib/api';
 import { useModal } from '../../../contexts/ModalContext';
 import AdminModal from '../../../components/admin/AdminModal';
+import AdminPagination from '../../../components/admin/AdminPagination';
 import { dayMonthYear, phone, plural } from '../../../lib/format';
 
 const STATUS = {
@@ -43,29 +44,33 @@ export default function AdminProducerInquiriesPage() {
   const { showConfirm, showSuccess, showError } = useModal();
 
   const [inquiries, setInquiries] = useState([]);
+  const [pagination, setPagination] = useState({ total: 0, page: 1, totalPages: 1 });
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('PENDING');
   const [selected, setSelected] = useState(null);
   const [notes, setNotes] = useState('');
   const [busy, setBusy] = useState(false);
 
-  const fetchInquiries = useCallback(async (status) => {
+  const fetchInquiries = useCallback(async (status, wanted) => {
     setLoading(true);
     try {
-      const response = await api.producerInquiries.getAll(
-        status === 'ALL' ? {} : { status }
-      );
+      const response = await api.producerInquiries.getAll({
+        page: wanted,
+        ...(status === 'ALL' ? {} : { status })
+      });
       setInquiries(response.data.inquiries);
+      setPagination(response.data.pagination);
     } catch (error) {
-      showError('Erreur', 'Impossible de charger les candidatures.');
+      showError('Erreur', error.message);
     } finally {
       setLoading(false);
     }
   }, [showError]);
 
   useEffect(() => {
-    fetchInquiries(filter);
-  }, [filter, fetchInquiries]);
+    fetchInquiries(filter, page);
+  }, [filter, page, fetchInquiries]);
 
   const openInquiry = (inquiry) => {
     setSelected(inquiry);
@@ -82,7 +87,7 @@ export default function AdminProducerInquiriesPage() {
       });
       showSuccess('Candidature mise à jour', options.successMessage ?? 'Le statut a été enregistré.');
       setSelected(null);
-      fetchInquiries(filter);
+      fetchInquiries(filter, page);
     } catch (error) {
       showError('Erreur', error.message);
     } finally {
@@ -130,7 +135,7 @@ export default function AdminProducerInquiriesPage() {
             key={item.key}
             type="button"
             className={`admin-pill ${filter === item.key ? 'admin-pill-active' : ''}`}
-            onClick={() => setFilter(item.key)}
+            onClick={() => { setFilter(item.key); setPage(1); }}
           >
             {item.label}
           </button>
@@ -203,6 +208,12 @@ export default function AdminProducerInquiriesPage() {
           })}
         </div>
       )}
+
+      <AdminPagination
+        page={pagination.page}
+        totalPages={pagination.totalPages}
+        onPageChange={setPage}
+      />
 
       {selected && (
         <AdminModal title="Demande de producteur" width="720px" onClose={() => setSelected(null)}>

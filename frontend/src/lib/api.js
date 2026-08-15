@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
 
 export class ApiError extends Error {
   constructor(message, status) {
@@ -127,29 +127,6 @@ export const admin = {
     delete: async (id) => {
       return fetchAPI(`/admin/products/${id}`, {
         method: 'DELETE',
-        requiresAuth: true,
-      });
-    },
-  },
-
-  // Commandes
-  orders: {
-    getAll: async (params = {}) => {
-      const queryParams = new URLSearchParams();
-      if (params.page) queryParams.append('page', params.page);
-      if (params.limit) queryParams.append('limit', params.limit);
-      if (params.status) queryParams.append('status', params.status);
-
-      const query = queryParams.toString() ? `?${queryParams.toString()}` : '';
-      return fetchAPI(`/admin/orders${query}`, {
-        requiresAuth: true,
-      });
-    },
-
-    updateStatus: async (id, status) => {
-      return fetchAPI(`/admin/orders/${id}/status`, {
-        method: 'PUT',
-        body: { status },
         requiresAuth: true,
       });
     },

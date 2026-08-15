@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { X, ShoppingBasket } from 'lucide-react';
 import { useModal } from '../../contexts/ModalContext';
+import { inputDate } from '../../lib/format';
 
 // Prochain jour de distribution fixe (mercredi = 3)
 const DISTRIBUTION_DAY = 3;
@@ -12,7 +13,7 @@ const getNextDistributionDate = () => {
   const daysUntil = (DISTRIBUTION_DAY - today.getDay() + 7) % 7 || 7;
   const next = new Date(today);
   next.setDate(today.getDate() + daysUntil);
-  return next.toISOString().split('T')[0];
+  return inputDate(next);
 };
 
 // Calcul du numéro de semaine ISO (lundi = début de semaine)
@@ -47,8 +48,7 @@ export default function WeeklyBasketModal({ basket, onClose }) {
 
   useEffect(() => {
     if (basket) {
-      const date = new Date(basket.distributionDate);
-      const formattedDate = date.toISOString().split('T')[0];
+      const formattedDate = inputDate(basket.distributionDate);
 
       setFormData({
         weekNumber: basket.weekNumber.toString(),
@@ -205,7 +205,7 @@ export default function WeeklyBasketModal({ basket, onClose }) {
           <div className="modal-footer">
             <button
               type="button"
-              className="btn btn-secondary"
+              className="admin-btn-ghost"
               onClick={() => onClose(false)}
               disabled={loading}
             >
@@ -213,7 +213,7 @@ export default function WeeklyBasketModal({ basket, onClose }) {
             </button>
             <button
               type="submit"
-              className="btn btn-primary"
+              className="admin-btn-primary"
               disabled={loading}
             >
               {loading ? 'Enregistrement...' : basket ? 'Modifier' : 'Créer'}

@@ -55,16 +55,3 @@
   color: var(--text-secondary);
   padding: var(--spacing-2xl);
 }
-
-.journal-pagination {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: var(--spacing-sm);
-  margin-top: var(--spacing-lg);
-}
-
-.journal-pagination-info {
-  padding: var(--spacing-sm) var(--spacing-lg);
-  color: var(--text-secondary);
-}

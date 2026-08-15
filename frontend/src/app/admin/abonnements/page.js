@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import api from '../../../lib/api';
 import { useModal } from '../../../contexts/ModalContext';
 import AdminModal from '../../../components/admin/AdminModal';
+import AdminPagination from '../../../components/admin/AdminPagination';
 import { monthYear, numericDate, euro, plural } from '../../../lib/format';
 import '../../../styles/admin/subscriptions.css';
 
@@ -264,31 +265,11 @@ export default function AdminSubscriptionsPage() {
           })
         )}
 
-        {pagination.totalPages > 1 && (
-          <div className="admin-pager">
-            <span className="admin-pager-state">
-              Page {pagination.page} sur {pagination.totalPages}
-            </span>
-            <div className="admin-pager-controls">
-              <button
-                type="button"
-                className="admin-btn-link"
-                disabled={pagination.page <= 1}
-                onClick={() => setPage(current => Math.max(1, current - 1))}
-              >
-                ← Précédent
-              </button>
-              <button
-                type="button"
-                className="admin-btn-link"
-                disabled={pagination.page >= pagination.totalPages}
-                onClick={() => setPage(current => current + 1)}
-              >
-                Suivant →
-              </button>
-            </div>
-          </div>
-        )}
+        <AdminPagination
+          page={pagination.page}
+          totalPages={pagination.totalPages}
+          onPageChange={setPage}
+        />
       </div>
 
       {selected && (

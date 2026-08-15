@@ -6,6 +6,8 @@ import { ShieldCheck, ShieldAlert, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../../contexts/AuthContext';
 import api from '../../../lib/api';
 import logger from '../../../lib/logger';
+import AdminPagination from '../../../components/admin/AdminPagination';
+import { numericDate, time } from '../../../lib/format';
 import '../../../styles/admin/components.css';
 import '../../../styles/admin/dashboard.css';
 import '../../../styles/admin/layout.css';
@@ -66,14 +68,6 @@ export default function AdminJournalPage() {
     }
   };
 
-  const formatDate = (dateStr) => {
-    const d = new Date(dateStr);
-    return d.toLocaleDateString('fr-FR', {
-      day: '2-digit', month: '2-digit', year: 'numeric',
-      hour: '2-digit', minute: '2-digit'
-    });
-  };
-
   const formatDetails = (details) => {
     if (!details) return '—';
     return Object.entries(details)
@@ -91,7 +85,7 @@ export default function AdminJournalPage() {
         <div className="admin-error">
           <AlertCircle size={48} />
           <p>{loadError}</p>
-          <button type="button" className="btn btn-secondary" onClick={loadLogs}>
+          <button type="button" className="admin-btn-ghost" onClick={loadLogs}>
             Réessayer
           </button>
         </div>
@@ -118,7 +112,7 @@ export default function AdminJournalPage() {
         {['ALL', 'CRITICAL', 'IMPORTANT'].map((s) => (
           <button
             key={s}
-            className={`btn ${severityFilter === s ? 'btn-primary' : 'btn-secondary'}`}
+            className={severityFilter === s ? 'admin-btn-primary' : 'admin-btn-ghost'}
             onClick={() => { setSeverityFilter(s); setPage(1); }}
           >
             {s === 'ALL' ? 'Toutes' : s === 'CRITICAL' ? 'Critiques' : 'Importantes'}
@@ -131,13 +125,13 @@ export default function AdminJournalPage() {
         <table className="admin-table">
           <thead>
             <tr>
-              <th>Date</th>
-              <th>Niveau</th>
-              <th>Action</th>
-              <th>Cible</th>
-              <th>Admin</th>
-              <th>Détails</th>
-              <th>IP</th>
+              <th scope="col">Date</th>
+              <th scope="col">Niveau</th>
+              <th scope="col">Action</th>
+              <th scope="col">Cible</th>
+              <th scope="col">Admin</th>
+              <th scope="col">Détails</th>
+              <th scope="col">IP</th>
             </tr>
           </thead>
           <tbody>
@@ -150,7 +144,7 @@ export default function AdminJournalPage() {
             ) : (
               logs.map((log) => (
                 <tr key={log.id}>
-                  <td className="journal-date">{formatDate(log.createdAt)}</td>
+                  <td className="journal-date">{numericDate(log.createdAt)} {time(log.createdAt)}</td>
                   <td>
                     {log.severity === 'CRITICAL' ? (
                       <span className="status-badge status-cancelled journal-severity-critical">
@@ -188,28 +182,11 @@ export default function AdminJournalPage() {
         </table>
       </div>
 
-      {/* Pagination */}
-      {pagination && pagination.totalPages > 1 && (
-        <div className="journal-pagination">
-          <button
-            className="btn btn-secondary"
-            disabled={page <= 1}
-            onClick={() => setPage(p => p - 1)}
-          >
-            Précédent
-          </button>
-          <span className="journal-pagination-info">
-            Page {pagination.page} / {pagination.totalPages}
-          </span>
-          <button
-            className="btn btn-secondary"
-            disabled={page >= pagination.totalPages}
-            onClick={() => setPage(p => p + 1)}
-          >
-            Suivant
-          </button>
-        </div>
-      )}
+      <AdminPagination
+        page={pagination?.page ?? 1}
+        totalPages={pagination?.totalPages}
+        onPageChange={setPage}
+      />
     </div>
   );
 }

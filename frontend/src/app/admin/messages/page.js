@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import api from '../../../lib/api';
 import { useModal } from '../../../contexts/ModalContext';
+import AdminPagination from '../../../components/admin/AdminPagination';
 import { numericDate, longDate, plural } from '../../../lib/format';
 import '../../../styles/admin/messages-da.css';
 
@@ -30,32 +31,38 @@ export default function AdminMessagesPage() {
   const [selected, setSelected] = useState(null);
   const [total, setTotal] = useState(0);
   const [unread, setUnread] = useState(0);
+  const [pagination, setPagination] = useState({ total: 0, page: 1, totalPages: 1 });
+  const [page, setPage] = useState(1);
 
-  const fetchMessages = useCallback(async (status) => {
+  /* Les compteurs viennent du serveur. Ils étaient auparavant déduits d'un
+     second appel qui rapatriait la boîte entière pour la compter en mémoire :
+     sur une liste désormais paginée, ce compte n'aurait porté que sur la page
+     affichée. */
+  const fetchMessages = useCallback(async (status, wanted) => {
     setLoading(true);
     try {
-      const [listRes, allRes] = await Promise.all([
-        api.contactMessages.getAll(status === 'ALL' ? {} : { status }),
-        status === 'ALL' ? Promise.resolve(null) : api.contactMessages.getAll({})
-      ]);
+      const response = await api.contactMessages.getAll({
+        page: wanted,
+        ...(status === 'ALL' ? {} : { status })
+      });
 
-      const list = listRes.data.messages;
-      const all = allRes ? allRes.data.messages : list;
+      const list = response.data.messages;
 
       setMessages(list);
-      setTotal(all.length);
-      setUnread(all.filter(message => message.status === 'UNREAD').length);
+      setPagination(response.data.pagination);
+      setTotal(response.data.pagination.total);
+      setUnread(response.data.unread);
       setSelected(current => list.find(message => message.id === current?.id) ?? list[0] ?? null);
     } catch (error) {
-      showError('Erreur', 'Impossible de charger les messages.');
+      showError('Erreur', error.message);
     } finally {
       setLoading(false);
     }
   }, [showError]);
 
   useEffect(() => {
-    fetchMessages(filter);
-  }, [filter, fetchMessages]);
+    fetchMessages(filter, page);
+  }, [filter, page, fetchMessages]);
 
   const changeStatus = async (message, status) => {
     try {
@@ -63,7 +70,7 @@ export default function AdminMessagesPage() {
       /* La barre latérale porte le compteur de non-lus : elle écoute cet
          événement pour se rafraîchir sans recharger la page. */
       window.dispatchEvent(new CustomEvent('contact-unread-changed'));
-      fetchMessages(filter);
+      fetchMessages(filter, page);
     } catch (error) {
       showError('Erreur', error.message);
     }
@@ -89,7 +96,7 @@ export default function AdminMessagesPage() {
           window.dispatchEvent(new CustomEvent('contact-unread-changed'));
           showSuccess('Message supprimé', 'Le message a été retiré.');
           setSelected(null);
-          fetchMessages(filter);
+          fetchMessages(filter, page);
         } catch (error) {
           showError('Erreur', error.message);
         }
@@ -114,7 +121,7 @@ export default function AdminMessagesPage() {
             key={item.key}
             type="button"
             className={`admin-pill ${filter === item.key ? 'admin-pill-active' : ''}`}
-            onClick={() => setFilter(item.key)}
+            onClick={() => { setFilter(item.key); setPage(1); }}
           >
             {item.label}
           </button>
@@ -198,6 +205,12 @@ export default function AdminMessagesPage() {
           )}
         </div>
       )}
+
+      <AdminPagination
+        page={pagination.page}
+        totalPages={pagination.totalPages}
+        onPageChange={setPage}
+      />
     </div>
   );
 }

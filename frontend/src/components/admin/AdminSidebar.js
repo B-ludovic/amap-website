@@ -35,7 +35,10 @@ export default function AdminSidebar({ currentPath }) {
   useEffect(() => {
     const fetchUnreadCount = () => {
       api.contactMessages.getAll({ status: 'UNREAD' })
-        .then(data => setCounts(prev => ({ ...prev, messages: data.data.messages.length ?? 0 })))
+        .then(data => setCounts(prev => ({
+          ...prev,
+          messages: data.data.pagination?.total ?? data.data.messages?.length ?? 0
+        })))
         .catch(() => {});
     };
 
@@ -81,7 +84,7 @@ export default function AdminSidebar({ currentPath }) {
         </Link>
       </div>
 
-      <nav className="admin-sidebar-nav">
+      <nav className="admin-sidebar-nav" aria-label="Navigation de l'administration">
         {MENU_ITEMS.map((item) => {
           const count = item.badge ? counts[item.badge] : 0;
 
@@ -90,6 +93,7 @@ export default function AdminSidebar({ currentPath }) {
               key={item.path}
               href={item.path}
               className={`admin-nav-item ${isActive(item) ? 'admin-nav-item-active' : ''}`}
+              aria-current={isActive(item) ? 'page' : undefined}
             >
               <span>{item.title}</span>
               {count > 0 && <span className="admin-nav-count">{count}</span>}

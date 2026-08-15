@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import api from "../../../lib/api";
 import logger from "../../../lib/logger";
+import { longDate, time } from "../../../lib/format";
 import { useModal } from "../../../contexts/ModalContext";
 import PickupNoteModal from "../../../components/admin/PickupNoteModal";
 import "../../../styles/admin/components.css";
@@ -152,7 +153,7 @@ export default function AdminDistributionPage() {
           item.user?.email ?? '',
           getBasketSizeLabel(item.subscription?.basketSize),
           item.pickup?.wasPickedUp ? 'Oui' : 'Non',
-          item.pickup?.pickedUpAt ? new Date(item.pickup.pickedUpAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '',
+          item.pickup?.pickedUpAt ? time(item.pickup.pickedUpAt) : '',
           item.pickup?.notes ?? '',
         ]),
       ];
@@ -170,15 +171,6 @@ export default function AdminDistributionPage() {
     }
   };
 
-  const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('fr-FR', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
-
   const getBasketSizeLabel = (size) => {
     return size === 'SMALL' ? 'Petit panier' : 'Grand panier';
   };
@@ -193,7 +185,7 @@ export default function AdminDistributionPage() {
         <div className="admin-error">
           <AlertCircle size={48} />
           <p>{basketError}</p>
-          <button type="button" className="btn btn-secondary" onClick={fetchCurrentBasket}>
+          <button type="button" className="admin-btn-ghost" onClick={fetchCurrentBasket}>
             Réessayer
           </button>
         </div>
@@ -219,10 +211,10 @@ export default function AdminDistributionPage() {
         <div>
           <h1>Distribution - Émargement</h1>
           <p className="page-subtitle">
-            {formatDate(currentBasket.distributionDate)} • Semaine {currentBasket.weekNumber}
+            {longDate(currentBasket.distributionDate)} • Semaine {currentBasket.weekNumber}
           </p>
         </div>
-        <button className="btn btn-secondary" onClick={handleExport}>
+        <button className="admin-btn-ghost" onClick={handleExport}>
           <Download size={20} />
           Exporter la liste
         </button>
@@ -306,12 +298,12 @@ export default function AdminDistributionPage() {
           <table className="distribution-table">
             <thead>
               <tr>
-                <th>Statut</th>
-                <th>Adhérent</th>
-                <th>Panier</th>
-                <th>Contact</th>
-                <th>Notes</th>
-                <th>Actions</th>
+                <th scope="col">Statut</th>
+                <th scope="col">Adhérent</th>
+                <th scope="col">Panier</th>
+                <th scope="col">Contact</th>
+                <th scope="col">Notes</th>
+                <th scope="col">Actions</th>
               </tr>
             </thead>
             <tbody>

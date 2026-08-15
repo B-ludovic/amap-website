@@ -392,7 +392,7 @@ export default function ProducerModal({ producer, onClose }) {
           </button>
           <button
             type="submit"
-            className="btn btn-primary"
+            className="admin-btn-primary"
             disabled={loading}
           >
             {loading ? 'Enregistrement...' : producer ? 'Modifier' : 'Créer'}

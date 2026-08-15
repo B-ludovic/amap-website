@@ -1,10 +1,11 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import api from '../../../lib/api';
 import { useModal } from '../../../contexts/ModalContext';
 import AdminModal from '../../../components/admin/AdminModal';
-import { longDate, dayMonthYear, plural } from '../../../lib/format';
+import AdminPagination from '../../../components/admin/AdminPagination';
+import { inputDate, longDate, dayMonthYear, plural } from '../../../lib/format';
 import '../../../styles/admin/weekly-basket-da.css';
 
 const FILTERS = [
@@ -26,7 +27,7 @@ function nextWednesday() {
   const date = new Date();
   const shift = (3 - date.getDay() + 7) % 7 || 7;
   date.setDate(date.getDate() + shift);
-  return date.toISOString().slice(0, 10);
+  return inputDate(date);
 }
 
 export default function AdminWeeklyBasketPage() {
@@ -46,37 +47,41 @@ export default function AdminWeeklyBasketPage() {
   const [drawDate, setDrawDate] = useState(null);
   const [isDrawDirty, setIsDrawDirty] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [pagination, setPagination] = useState({ total: 0, page: 1, totalPages: 1 });
+  const [page, setPage] = useState(1);
 
-  const fetchAll = useCallback(async () => {
+  /* Le filtre part au serveur avec la page : trier côté client ne trierait que
+     les trente paniers de la page courante, et « Brouillons » afficherait vide
+     alors que la page suivante en contient. */
+  const fetchAll = useCallback(async (wanted, currentFilter) => {
     setLoading(true);
     try {
+      const listParams = { page: wanted, limit: 30 };
+      if (currentFilter === 'PUBLISHED') listParams.published = 'true';
+      if (currentFilter === 'DRAFT') listParams.published = 'false';
+
       const [listRes, currentRes] = await Promise.all([
-        api.weeklyBaskets.getAll({ limit: 30 }),
+        api.weeklyBaskets.getAll(listParams),
         api.weeklyBaskets.getCurrent()
       ]);
-      setBaskets(listRes.data);
+      setBaskets(listRes.data.baskets);
+      setPagination(listRes.data.pagination);
       setCurrent(currentRes.data);
     } catch (error) {
-      showError('Erreur', 'Impossible de charger les paniers.');
+      showError('Erreur', error.message);
     } finally {
       setLoading(false);
     }
   }, [showError]);
 
   useEffect(() => {
-    fetchAll();
+    fetchAll(page, filter);
     /* Le nombre de paniers à préparer est le nombre de contrats actifs : il ne
        vit pas sur le panier, on le lit sur les statistiques. */
     api.admin.stats.get()
       .then(res => setActiveSubscriptions(res.data.stats.activeSubscriptions))
       .catch(() => {});
-  }, [fetchAll]);
-
-  const filtered = useMemo(() => baskets.filter(basket => {
-    if (filter === 'PUBLISHED') return basket.isPublished;
-    if (filter === 'DRAFT') return !basket.isPublished;
-    return true;
-  }), [baskets, filter]);
+  }, [page, filter, fetchAll]);
 
   const openComposition = async (basket) => {
     try {
@@ -94,7 +99,7 @@ export default function AdminWeeklyBasketPage() {
   const reloadInspected = async (basketId) => {
     const response = await api.weeklyBaskets.getById(basketId);
     setInspected(response.data);
-    fetchAll();
+    fetchAll(page, filter);
   };
 
   const handlePublish = (basket) => {
@@ -105,7 +110,7 @@ export default function AdminWeeklyBasketPage() {
         try {
           await api.weeklyBaskets.publish(basket.id);
           showSuccess('Panier publié', 'Les adhérents ont été prévenus.');
-          fetchAll();
+          fetchAll(page, filter);
         } catch (error) {
           showError('Erreur', error.message);
         }
@@ -122,7 +127,7 @@ export default function AdminWeeklyBasketPage() {
           await api.weeklyBaskets.delete(basket.id);
           showSuccess('Panier supprimé', 'Le panier a été retiré.');
           setInspected(null);
-          fetchAll();
+          fetchAll(page, filter);
         } catch (error) {
           showError('Erreur', error.message);
         }
@@ -136,7 +141,7 @@ export default function AdminWeeklyBasketPage() {
       await api.weeklyBaskets.update(notesTarget.id, { notes: notesDraft });
       showSuccess('Message enregistré', 'Le message de la semaine a été mis à jour.');
       setNotesTarget(null);
-      fetchAll();
+      fetchAll(page, filter);
     } catch (error) {
       showError('Erreur', error.message);
     } finally {
@@ -153,7 +158,7 @@ export default function AdminWeeklyBasketPage() {
       await api.weeklyBaskets.create({ distributionDate: new Date(drawDate).toISOString() });
       showSuccess('Tirage effectué', 'Le panier de cette semaine est prêt.');
       setDrawDate(null);
-      fetchAll();
+      fetchAll(page, filter);
     } catch (error) {
       showError('Erreur', error.message);
     } finally {
@@ -277,21 +282,21 @@ export default function AdminWeeklyBasketPage() {
                 key={item.key}
                 type="button"
                 className={`admin-pill ${filter === item.key ? 'admin-pill-active' : ''}`}
-                onClick={() => setFilter(item.key)}
+                onClick={() => { setFilter(item.key); setPage(1); }}
               >
                 {item.label}
               </button>
             ))}
           </div>
 
-          {filtered.length === 0 ? (
+          {baskets.length === 0 ? (
             <div className="admin-empty-card">
               <p className="admin-empty-card-title">Aucun panier</p>
               <p className="admin-empty-card-note">Rien à afficher avec ce filtre.</p>
             </div>
           ) : (
             <div className="admin-grid-3">
-              {filtered.map((basket) => (
+              {baskets.map((basket) => (
                 <article key={basket.id} className="admin-panel">
                   <div className="admin-item-head">
                     <div>
@@ -351,6 +356,12 @@ export default function AdminWeeklyBasketPage() {
               ))}
             </div>
           )}
+
+          <AdminPagination
+            page={pagination.page}
+            totalPages={pagination.totalPages}
+            onPageChange={setPage}
+          />
         </>
       )}
 

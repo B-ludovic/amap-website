@@ -63,7 +63,7 @@ export default function ContractModal({ subscription, onClose }) {
           </div>
           <div className="contract-modal-header-actions">
             {blobUrl && (
-              <button className="btn btn-secondary" onClick={handleDownload}>
+              <button className="admin-btn-ghost" onClick={handleDownload}>
                 <Download size={16} />
                 Télécharger
               </button>

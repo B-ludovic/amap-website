@@ -267,7 +267,7 @@ export default function ProductModal({ product, producers, onClose }) {
           <button
             type="submit"
             onClick={handleSubmit}
-            className="btn btn-primary"
+            className="admin-btn-primary"
             disabled={loading}
           >
             {loading ? 'Enregistrement...' : product ? 'Modifier' : 'Créer'}

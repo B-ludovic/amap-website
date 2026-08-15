@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import api from '../../../lib/api';
 import { useModal } from '../../../contexts/ModalContext';
 import AdminModal from '../../../components/admin/AdminModal';
+import AdminPagination from '../../../components/admin/AdminPagination';
 import { dayMonthYear, longDate, euro, phone, plural } from '../../../lib/format';
 
 /* Les cinq statuts de l'enum RequestStatus. La maquette n'en montrait que
@@ -45,29 +46,33 @@ export default function AdminSubscriptionRequestsPage() {
   const { showConfirm, showSuccess, showError } = useModal();
 
   const [requests, setRequests] = useState([]);
+  const [pagination, setPagination] = useState({ total: 0, page: 1, totalPages: 1 });
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('PENDING');
   const [selected, setSelected] = useState(null);
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
 
-  const fetchRequests = useCallback(async (status) => {
+  const fetchRequests = useCallback(async (status, wanted) => {
     setLoading(true);
     try {
-      const response = await api.subscriptionRequests.getAll(
-        status === 'ALL' ? {} : { status }
-      );
+      const response = await api.subscriptionRequests.getAll({
+        page: wanted,
+        ...(status === 'ALL' ? {} : { status })
+      });
       setRequests(response.data.requests);
+      setPagination(response.data.pagination);
     } catch (error) {
-      showError('Erreur', 'Impossible de charger les demandes.');
+      showError('Erreur', error.message);
     } finally {
       setLoading(false);
     }
   }, [showError]);
 
   useEffect(() => {
-    fetchRequests(filter);
-  }, [filter, fetchRequests]);
+    fetchRequests(filter, page);
+  }, [filter, page, fetchRequests]);
 
   const openRequest = (request) => {
     setSelected(request);
@@ -76,7 +81,7 @@ export default function AdminSubscriptionRequestsPage() {
 
   const closeAndRefresh = () => {
     setSelected(null);
-    fetchRequests(filter);
+    fetchRequests(filter, page);
   };
 
   /* L'approbation crée le contrat : elle échoue si le demandeur n'a pas encore
@@ -144,7 +149,7 @@ export default function AdminSubscriptionRequestsPage() {
             key={item.key}
             type="button"
             className={`admin-pill ${filter === item.key ? 'admin-pill-active' : ''}`}
-            onClick={() => setFilter(item.key)}
+            onClick={() => { setFilter(item.key); setPage(1); }}
           >
             {item.label}
           </button>
@@ -222,6 +227,12 @@ export default function AdminSubscriptionRequestsPage() {
           })}
         </div>
       )}
+
+      <AdminPagination
+        page={pagination.page}
+        totalPages={pagination.totalPages}
+        onPageChange={setPage}
+      />
 
       {selected && (
         <AdminModal title="Demande d'abonnement" width="720px" onClose={() => setSelected(null)}>

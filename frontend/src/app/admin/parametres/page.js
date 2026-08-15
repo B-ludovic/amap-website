@@ -9,7 +9,6 @@ import "../../../styles/admin/parametres.css";
 import {
     Trash2,
     Palette,
-    Info,
     Save,
     Tractor,
     Carrot,
@@ -66,8 +65,9 @@ export default function AdminParametresPage() {
     const [saving, setSaving] = useState(false);
     const [exampleStats, setExampleStats] = useState(null);
     const [totalStats, setTotalStats] = useState(null);
-    // Onglet actif
-    const [activeTab, setActiveTab] = useState('examples');
+    // Onglet actif — le thème est le seul réglage permanent de cet écran.
+    const [activeTab, setActiveTab] = useState('theme');
+    const hasExamples = (exampleStats?.total ?? 0) > 0;
 
     // Form data pour les differentes sections
     const [themeData, setThemeData] = useState({
@@ -78,13 +78,6 @@ export default function AdminParametresPage() {
         backgroundColor: '#f9f7f4',
     });
 
-    const [generalData, setGeneralData] = useState({
-        amapName: 'Aux P\'tits Pois',
-        contactEmail: 'contact@auxptitspois.fr',
-        contactPhone: '06 12 34 56 78',
-        address: '12 rue de la République, 75001 Paris',
-        description: 'AMAP locale proposant des paniers de produits bio et de saison',
-    });
 
     useEffect(() => {
         fetchData();
@@ -139,6 +132,8 @@ export default function AdminParametresPage() {
                         'Exemples supprimés',
                         'Tous les exemples ont été supprimés avec succès.'
                     );
+                    // L'onglet disparaît avec son contenu : on revient au thème.
+                    setActiveTab('theme');
                     fetchData();
                 } catch (error) {
                     showError('Erreur', error.message);
@@ -161,9 +156,6 @@ export default function AdminParametresPage() {
         }
     };
 
-    const handleSaveGeneral = () => {
-        showError('Non disponible', 'La sauvegarde des informations générales n\'est pas encore prise en charge par le serveur.');
-    };
 
     const handleThemeChange = (field, value) => {
         if (field === 'season') {
@@ -203,26 +195,24 @@ export default function AdminParametresPage() {
                 {/* Tabs */}
                 <div className="admin-tabs">
                     <button
-                        onClick={() => setActiveTab('examples')}
-                        className={`admin-tab ${activeTab === 'examples' ? 'admin-tab-active' : ''}`}
-                    >
-                        <Trash2 size={18} />
-                        Données d'exemple
-                    </button>
-                    <button
                         onClick={() => setActiveTab('theme')}
                         className={`admin-tab ${activeTab === 'theme' ? 'admin-tab-active' : ''}`}
                     >
                         <Palette size={18} />
                         Thème
                     </button>
-                    <button
-                        onClick={() => setActiveTab('general')}
-                        className={`admin-tab ${activeTab === 'general' ? 'admin-tab-active' : ''}`}
-                    >
-                        <Info size={18} />
-                        Informations générales
-                    </button>
+                    {/* Outil de mise en service : l'onglet ne s'affiche que tant
+                        qu'il reste des exemples à purger. Rien n'est perdu en le
+                        masquant, les exemples ne se créent que par prisma/seed.js. */}
+                    {hasExamples && (
+                        <button
+                            onClick={() => setActiveTab('examples')}
+                            className={`admin-tab ${activeTab === 'examples' ? 'admin-tab-active' : ''}`}
+                        >
+                            <Trash2 size={18} />
+                            Données d'exemple
+                        </button>
+                    )}
                 </div>
 
                 {/* Tab Content */}
@@ -475,7 +465,7 @@ export default function AdminParametresPage() {
                                 <button
                                     onClick={handleSaveTheme}
                                     disabled={saving}
-                                    className="btn btn-primary"
+                                    className="admin-btn-primary"
                                 >
                                     <Save size={20} />
                                     {saving ? 'Enregistrement...' : 'Sauvegarder le thème'}
@@ -485,95 +475,6 @@ export default function AdminParametresPage() {
                     )}
 
                     {/* INFORMATIONS GÉNÉRALES */}
-                    {activeTab === 'general' && (
-                        <div className="admin-section">
-                            <h2 className="admin-section-title">Informations générales</h2>
-                            <p className="admin-section-description">
-                                Informations de contact et présentation de votre AMAP.
-                            </p>
-
-                            <div className="form-grid">
-                                <div className="form-group">
-                                    <label htmlFor="amapName" className="form-label">
-                                        Nom de l'AMAP
-                                    </label>
-                                    <input
-                                        type="text"
-                                        id="amapName"
-                                        value={generalData.amapName}
-                                        onChange={(e) => setGeneralData({ ...generalData, amapName: e.target.value })}
-                                        className="input"
-                                        placeholder="Aux P'tits Pois"
-                                    />
-                                </div>
-
-                                <div className="form-group">
-                                    <label htmlFor="contactEmail" className="form-label">
-                                        Email de contact
-                                    </label>
-                                    <input
-                                        type="email"
-                                        id="contactEmail"
-                                        value={generalData.contactEmail}
-                                        onChange={(e) => setGeneralData({ ...generalData, contactEmail: e.target.value })}
-                                        className="input"
-                                        placeholder="contact@auxptitspois.fr"
-                                    />
-                                </div>
-
-                                <div className="form-group">
-                                    <label htmlFor="contactPhone" className="form-label">
-                                        Téléphone
-                                    </label>
-                                    <input
-                                        type="tel"
-                                        id="contactPhone"
-                                        value={generalData.contactPhone}
-                                        onChange={(e) => setGeneralData({ ...generalData, contactPhone: e.target.value })}
-                                        className="input"
-                                        placeholder="06 12 34 56 78"
-                                    />
-                                </div>
-
-                                <div className="form-group">
-                                    <label htmlFor="address" className="form-label">
-                                        Adresse
-                                    </label>
-                                    <input
-                                        type="text"
-                                        id="address"
-                                        value={generalData.address}
-                                        onChange={(e) => setGeneralData({ ...generalData, address: e.target.value })}
-                                        className="input"
-                                        placeholder="12 rue de la République, 75001 Paris"
-                                    />
-                                </div>
-
-                                <div className="form-group form-group-full">
-                                    <label htmlFor="description" className="form-label">
-                                        Description
-                                    </label>
-                                    <textarea
-                                        id="description"
-                                        value={generalData.description}
-                                        onChange={(e) => setGeneralData({ ...generalData, description: e.target.value })}
-                                        className="textarea"
-                                        rows="4"
-                                        placeholder="Décrivez votre AMAP..."
-                                    />
-                                </div>
-                            </div>
-
-                            <button
-                                onClick={handleSaveGeneral}
-                                disabled={saving}
-                                className="btn btn-primary"
-                            >
-                                <Save size={20} />
-                                {saving ? 'Enregistrement...' : 'Sauvegarder'}
-                            </button>
-                        </div>
-                    )}
 
                 </div>
             </div>

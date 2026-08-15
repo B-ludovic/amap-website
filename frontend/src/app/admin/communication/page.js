@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import api from '../../../lib/api';
 import { useModal } from '../../../contexts/ModalContext';
 import NewsletterModal from '../../../components/admin/NewsletterModal';
+import AdminPagination from '../../../components/admin/AdminPagination';
 import { longDate, plural } from '../../../lib/format';
 import '../../../styles/admin/communication-da.css';
 
@@ -53,29 +54,32 @@ export default function AdminCommunicationPage() {
   const { showConfirm, showSuccess, showError } = useModal();
 
   const [newsletters, setNewsletters] = useState([]);
+  const [pagination, setPagination] = useState({ total: 0, page: 1, totalPages: 1 });
+  const [page, setPage] = useState(1);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(null);
 
-  const fetchAll = useCallback(async () => {
+  const fetchAll = useCallback(async (wanted) => {
     setLoading(true);
     try {
       const [listRes, statsRes] = await Promise.all([
-        api.newsletters.getAll(),
+        api.newsletters.getAll({ page: wanted }),
         api.newsletters.getStats()
       ]);
       setNewsletters(listRes.data.newsletters ?? listRes.data);
+      if (listRes.data.pagination) setPagination(listRes.data.pagination);
       setStats(statsRes.data);
     } catch (error) {
-      showError('Erreur', 'Impossible de charger les newsletters.');
+      showError('Erreur', error.message);
     } finally {
       setLoading(false);
     }
   }, [showError]);
 
   useEffect(() => {
-    fetchAll();
-  }, [fetchAll]);
+    fetchAll(page);
+  }, [page, fetchAll]);
 
   const handleDelete = (newsletter) => {
     showConfirm(
@@ -87,7 +91,7 @@ export default function AdminCommunicationPage() {
         try {
           await api.newsletters.delete(newsletter.id);
           showSuccess('Newsletter supprimée', 'La newsletter a été retirée.');
-          fetchAll();
+          fetchAll(page);
         } catch (error) {
           showError('Erreur', error.message);
         }
@@ -97,7 +101,7 @@ export default function AdminCommunicationPage() {
 
   const closeModal = (shouldRefresh) => {
     setEditing(null);
-    if (shouldRefresh) fetchAll();
+    if (shouldRefresh) fetchAll(page);
   };
 
   return (
@@ -200,6 +204,12 @@ export default function AdminCommunicationPage() {
           })}
         </div>
       )}
+
+      <AdminPagination
+        page={pagination.page}
+        totalPages={pagination.totalPages}
+        onPageChange={setPage}
+      />
 
       {editing && (
         <NewsletterModal

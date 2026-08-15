@@ -29,17 +29,42 @@ const sendContactMessage = asyncHandler(async (req, res) => {
 });
 
 // GET /api/admin/contact — Liste des messages (admin)
+/* Les messages s'accumulent sans jamais être purgés : sans plafond, cette route
+   renvoyait un jour l'intégralité de la boîte de réception en une réponse.
+   Le compte des non-lus est calculé ici, indépendamment du filtre courant, pour
+   que les pastilles de l'en-tête et du menu n'aient plus à rapatrier toute la
+   liste pour la compter. */
 const getAllContactMessages = asyncHandler(async (req, res) => {
-  const { status } = req.query;
+  const { status, page = 1, limit = 20 } = req.query;
 
+  const parsedPage = Math.max(parseInt(page) || 1, 1);
+  const parsedLimit = Math.min(parseInt(limit) || 20, 100);
   const where = status ? { status } : {};
 
-  const messages = await prisma.contactMessage.findMany({
-    where,
-    orderBy: { createdAt: 'desc' }
-  });
+  const [messages, total, unread] = await Promise.all([
+    prisma.contactMessage.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      skip: (parsedPage - 1) * parsedLimit,
+      take: parsedLimit
+    }),
+    prisma.contactMessage.count({ where }),
+    prisma.contactMessage.count({ where: { status: 'UNREAD' } })
+  ]);
 
-  res.json({ success: true, data: { messages } });
+  res.json({
+    success: true,
+    data: {
+      messages,
+      unread,
+      pagination: {
+        total,
+        page: parsedPage,
+        limit: parsedLimit,
+        totalPages: Math.ceil(total / parsedLimit)
+      }
+    }
+  });
 });
 
 // PUT /api/admin/contact/:id/status — Mettre à jour le statut (admin)

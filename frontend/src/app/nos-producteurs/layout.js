@@ -8,7 +8,7 @@ export const metadata = {
 
 async function fetchProducers() {
   try {
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
     const res = await fetch(`${API_URL}/producers`, { next: { revalidate: 3600 } });
     if (!res.ok) return [];
     const json = await res.json();

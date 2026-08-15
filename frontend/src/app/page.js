@@ -24,7 +24,7 @@ const FALLBACK_BASKET = {
 async function fetchCurrentBasket() {
   try {
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/weekly-baskets/current`,
+      `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api'}/weekly-baskets/current`,
       { next: { revalidate: 3600 } }
     );
     if (!res.ok) return null;

@@ -5,6 +5,7 @@ import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { X, User, CreditCard, Calendar, MapPin, Package, CheckCircle, PauseCircle, PlayCircle, XCircle } from 'lucide-react';
 import { useModal } from '../../contexts/ModalContext';
 import api from '../../lib/api';
+import { dayMonthYearLong, euro } from '../../lib/format';
 import PauseModal from './PauseModal';
 import '../../styles/admin/components.css';
 
@@ -72,14 +73,6 @@ export default function SubscriptionDetailModal({ subscription, onClose, onUpdat
       onUpdate();
       onClose();
     }
-  };
-
-  const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('fr-FR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
   };
 
   const getStatusBadge = (status) => {
@@ -226,16 +219,16 @@ export default function SubscriptionDetailModal({ subscription, onClose, onUpdat
             <div className="detail-grid">
               <div className="detail-item">
                 <span className="detail-label">Prix</span>
-                <span className="detail-value">{subscription.price.toFixed(2)} €</span>
+                <span className="detail-value">{euro(subscription.price)}</span>
               </div>
               <div className="detail-item">
                 <span className="detail-label">Montant payé</span>
-                <span className="detail-value">{subscription.paidAmount.toFixed(2)} €</span>
+                <span className="detail-value">{euro(subscription.paidAmount)}</span>
               </div>
               <div className="detail-item">
                 <span className="detail-label">Reste à payer</span>
                 <span className="detail-value">
-                  {(subscription.price - subscription.paidAmount).toFixed(2)} €
+                  {euro(subscription.price - subscription.paidAmount)}
                 </span>
               </div>
             </div>
@@ -300,7 +293,7 @@ export default function SubscriptionDetailModal({ subscription, onClose, onUpdat
             )}
 
             {subscription.status === 'ACTIVE' && (
-              <button className="btn btn-secondary" onClick={() => setIsPauseModalOpen(true)}>
+              <button className="admin-btn-ghost" onClick={() => setIsPauseModalOpen(true)}>
                 <PauseCircle size={16} />
                 Mettre en pause
               </button>

@@ -4,23 +4,20 @@ import { useState, useMemo, useEffect, useRef } from 'react';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { X, PauseCircle, AlertTriangle } from 'lucide-react';
 import { useModal } from '../../contexts/ModalContext';
+import { dayMonthYearLong, inputDate } from '../../lib/format';
 
 function formatDateFR(dateStr) {
-  return new Date(dateStr).toLocaleDateString('fr-FR', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric'
-  });
+  return dayMonthYearLong(dateStr);
 }
 
 function addDays(dateStr, days) {
-  const d = new Date(dateStr);
+  const d = new Date(`${dateStr}T00:00:00`);
   d.setDate(d.getDate() + days);
-  return d.toISOString().split('T')[0];
+  return inputDate(d);
 }
 
 function todayISO() {
-  return new Date().toISOString().split('T')[0];
+  return inputDate(new Date());
 }
 
 export default function PauseModal({ subscription, onClose }) {
@@ -180,11 +177,11 @@ export default function PauseModal({ subscription, onClose }) {
         </div>
 
         <div className="modal-footer">
-          <button className="btn btn-secondary" onClick={() => onClose(false)} disabled={loading}>
+          <button className="admin-btn-ghost" onClick={() => onClose(false)} disabled={loading}>
             Annuler
           </button>
           {weeksRemaining > 0 && (
-            <button className="btn btn-primary" onClick={handleConfirm} disabled={loading}>
+            <button className="admin-btn-primary" onClick={handleConfirm} disabled={loading}>
               {loading ? 'En cours…' : 'Confirmer la pause'}
             </button>
           )}

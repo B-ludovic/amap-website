@@ -5,6 +5,7 @@ import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { X, User, Mail, Phone, MapPin, Package, MessageSquare, Check, X as XIcon, FileText, Sprout } from 'lucide-react';
 import { useModal } from '../../contexts/ModalContext';
 import api from '../../lib/api';
+import { longDate, time } from '../../lib/format';
 import '../../styles/admin/components.css';
 
 export default function ProducerInquiryModal({ inquiry, onClose }) {
@@ -49,13 +50,7 @@ export default function ProducerInquiryModal({ inquiry, onClose }) {
   };
 
   const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('fr-FR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    return `${longDate(date)} ${time(date)}`;
   };
 
   useEffect(() => {
@@ -300,7 +295,7 @@ export default function ProducerInquiryModal({ inquiry, onClose }) {
           {(inquiry.status !== 'PENDING' && inquiry.status !== 'IN_PROGRESS') && (
             <button
               type="button"
-              className="btn btn-primary"
+              className="admin-btn-primary"
               onClick={() => handleUpdateStatus(inquiry.status)}
               disabled={loading}
             >

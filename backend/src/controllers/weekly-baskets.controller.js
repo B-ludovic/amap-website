@@ -38,7 +38,10 @@ const filterItemsByBasketSize = (basket, basketSize) => {
 
 // RÉCUPÉRER TOUS LES PANIERS HEBDOMADAIRES
 const getAllWeeklyBaskets = asyncHandler(async (req, res) => {
-  const { year, published, limit = 20 } = req.query;
+  const { year, published, page = 1, limit = 20 } = req.query;
+
+  const parsedPage = Math.max(parseInt(page) || 1, 1);
+  const parsedLimit = Math.min(parseInt(limit) || 20, 100);
 
   let where = {};
 
@@ -52,14 +55,32 @@ const getAllWeeklyBaskets = asyncHandler(async (req, res) => {
     where.isPublished = false;
   }
 
-  const baskets = await prisma.weeklyBasket.findMany({
-    where,
-    take: parseInt(limit),
-    include: itemsInclude,
-    orderBy: { distributionDate: 'desc' }
-  });
+  /* La route tronquait à 20 sans le dire et sans offrir de suite : ni skip, ni
+     total. Les paniers plus anciens existaient en base et restaient hors de
+     portée de l'écran. */
+  const [baskets, total] = await Promise.all([
+    prisma.weeklyBasket.findMany({
+      where,
+      skip: (parsedPage - 1) * parsedLimit,
+      take: parsedLimit,
+      include: itemsInclude,
+      orderBy: { distributionDate: 'desc' }
+    }),
+    prisma.weeklyBasket.count({ where })
+  ]);
 
-  res.json({ success: true, data: baskets });
+  res.json({
+    success: true,
+    data: {
+      baskets,
+      pagination: {
+        total,
+        page: parsedPage,
+        limit: parsedLimit,
+        totalPages: Math.ceil(total / parsedLimit)
+      }
+    }
+  });
 });
 
 // RÉCUPÉRER UN PANIER HEBDOMADAIRE

@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 export function middleware(request) {
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64');
 
-  const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.auxptitspois.fr';
+  const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
   const apiOrigin = new URL(rawApiUrl).origin;
 
   const isProd = process.env.NODE_ENV === 'production';

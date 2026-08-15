@@ -44,7 +44,8 @@ function Header() {
         setNotifs({
           requests: pendingRequests,
           producers: producerInquiries,
-          messages: messagesRes.data.messages.length ?? 0,
+          // Compte global des non-lus, indépendant de la pagination de la liste.
+          messages: messagesRes.data.unread ?? 0,
         });
       } catch { /* silencieux */ }
     }
