@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { PAYMENT_TYPES } from './subscriptionPricing.js';
 
 /* Un champ numérique laissé vide dans un formulaire arrive en « » : sans ce
    filtre, la coercition le transformerait en 0 au lieu de le laisser vide. */
@@ -63,7 +64,7 @@ export const SubscriptionRequestSchema = z.object({
   type:        z.enum(['ANNUAL', 'DISCOVERY'], { message: 'Type d\'abonnement invalide' }),
   basketSize:  z.enum(['SMALL', 'LARGE'], { message: 'Taille de panier invalide' }),
   pricingType: z.enum(['NORMAL', 'SOLIDARITY'], { message: 'Type de tarification invalide' }),
-  paymentType: z.enum(['1', '2', '4'], { message: 'Modalité de paiement invalide' }),
+  paymentType: z.enum(PAYMENT_TYPES, { message: 'Modalité de paiement invalide' }),
   message:     z.string().max(1000, 'Message : 1000 caractères maximum').optional(),
 });
 

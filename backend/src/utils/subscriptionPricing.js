@@ -38,6 +38,40 @@ export function computeSubscriptionPrice({ type, basketSize, pricingType = 'NORM
   return toCents(pricingType === 'SOLIDARITY' ? total * SOLIDARITY_SHARE : total);
 }
 
+/* Les trois seules modalités de règlement. Un chèque, deux, ou quatre — il n'y
+   en a pas d'autres, et cette liste est l'endroit qui le dit. */
+export const PAYMENT_TYPES = ['1', '2', '4'];
+
+/* Répartition d'un montant en chèques.
+
+   La convention n'est pas « diviser », c'est « arrondir sauf le dernier ». Un
+   adhérent debout devant son chéquier n'écrit pas 365,05 € quatre fois : il
+   écrit trois chèques ronds et un dernier qui absorbe la monnaie. Les trois
+   premiers sont donc arrondis à l'euro, le quatrième reçoit tout le reliquat.
+
+   Cette règle existait déjà, mais en deux exemplaires — dans le contrat PDF et
+   dans le formulaire public — qui se trouvaient d'accord par chance. Le
+   générateur de lignes de paiement aurait fait un troisième exemplaire. On la
+   remonte donc ici, à côté du prix dont elle dérive, sans toucher à un centime :
+   les montants imprimés sur le contrat signé restent ceux d'aujourd'hui.
+
+   Le dernier chèque est toujours calculé par soustraction et jamais par
+   division : c'est ce qui garantit que la somme des chèques égale exactement le
+   prix, quel que soit l'arrondi appliqué aux précédents. */
+export function splitPayment(price, paymentType = '1') {
+  if (paymentType === '2') {
+    const half = toCents(price / 2);
+    return [half, toCents(price - half)];
+  }
+
+  if (paymentType === '4') {
+    const quarter = Math.round(price / 4);
+    return [quarter, quarter, quarter, toCents(price - quarter * 3)];
+  }
+
+  return [toCents(price)];
+}
+
 /* Grille complète, telle que le formulaire public et l'administration doivent
    l'afficher. Le serveur l'expose au lieu de laisser le navigateur recopier les
    nombres : c'est la même table qui décide de l'affichage et du contrat. */

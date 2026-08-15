@@ -3,7 +3,7 @@ import handlebars from 'handlebars';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { WEEKLY_PRICE, DELIVERED_WEEKS } from '../utils/subscriptionPricing.js';
+import { WEEKLY_PRICE, DELIVERED_WEEKS, splitPayment } from '../utils/subscriptionPricing.js';
 
 /* Écriture française d'un montant, telle qu'elle figurait en dur dans le
    gabarit : « 19 » sans décimale inutile, « 29,80 » avec la virgule. */
@@ -126,16 +126,30 @@ class ContractService {
     const totalSmallPrice = totalSmall.toFixed(2);
     const totalLargePrice = totalLarge.toFixed(2);
 
-    // Paiement en 2 fois
-    const halfSmallPrice = (totalSmall / 2).toFixed(2);
-    const halfLargePrice = (totalLarge / 2).toFixed(2);
+    /* Le fractionnement vient de la grille tarifaire, au même titre que le prix :
+       le PDF n'a pas à savoir comment on répartit un montant en chèques, il n'a
+       qu'à imprimer le résultat.
+
+       Le tableau du contrat est une carte de tarifs — il présente les deux
+       tailles de panier et les trois modalités, l'adhérent coche sa ligne. D'où
+       le fractionnement calculé pour les deux tailles, indépendamment de la
+       formule choisie. */
+
+    // Paiement en 2 fois. Le gabarit n'affiche qu'un montant, « 2 chèques de X »,
+    // ce qui suppose les deux moitiés égales — vrai pour toute la grille
+    // actuelle. Si un prix devenait indivisible au centime, c'est le gabarit
+    // qu'il faudrait ouvrir, pas ce calcul : la ventilation, elle, reste juste.
+    const [halfSmall] = splitPayment(totalSmall, '2');
+    const [halfLarge] = splitPayment(totalLarge, '2');
+    const halfSmallPrice = halfSmall.toFixed(2);
+    const halfLargePrice = halfLarge.toFixed(2);
 
     // Paiement en 4 fois (3 chèques identiques + 1 chèque ajusté)
-    const quarterSmall = Math.round(totalSmall / 4);
-    const quarterLarge = Math.round(totalLarge / 4);
-    const lastQuarterSmall = (totalSmall - quarterSmall * 3).toFixed(2);
-    const lastQuarterLarge = (totalLarge - quarterLarge * 3).toFixed(2);
-    
+    const [quarterSmall, , , lastSmall] = splitPayment(totalSmall, '4');
+    const [quarterLarge, , , lastLarge] = splitPayment(totalLarge, '4');
+    const lastQuarterSmall = lastSmall.toFixed(2);
+    const lastQuarterLarge = lastLarge.toFixed(2);
+
     const quarterPaymentSmallText = `3 chèques de ${quarterSmall}€<br>et 1 chèque de ${lastQuarterSmall}€`;
     const quarterPaymentLargeText = `3 chèques de ${quarterLarge}€<br>et 1 chèque de ${lastQuarterLarge}€`;
 
