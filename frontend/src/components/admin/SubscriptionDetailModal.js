@@ -25,7 +25,7 @@ export default function SubscriptionDetailModal({ subscription, onClose, onUpdat
           onUpdate();
           onClose();
         } catch (err) {
-          showError('Erreur', err.response?.data?.message || 'Erreur lors de l\'activation');
+          showError('Erreur', err.message);
         }
       }
     );
@@ -42,7 +42,7 @@ export default function SubscriptionDetailModal({ subscription, onClose, onUpdat
           onUpdate();
           onClose();
         } catch (err) {
-          showError('Erreur', err.response?.data?.message || 'Erreur lors de la résiliation');
+          showError('Erreur', err.message);
         }
       }
     );
@@ -59,7 +59,7 @@ export default function SubscriptionDetailModal({ subscription, onClose, onUpdat
           onUpdate();
           onClose();
         } catch (err) {
-          showError('Erreur', err.response?.data?.message || 'Erreur lors de la reprise');
+          showError('Erreur', err.message);
         }
       }
     );

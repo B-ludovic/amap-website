@@ -172,10 +172,7 @@ export default function BecomeProducerPage() {
 
       setSubmitted(true);
     } catch (error) {
-      showError(
-        'Erreur',
-        error.response?.data?.message || 'Une erreur est survenue'
-      );
+      showError('Erreur', error.message);
     } finally {
       setLoading(false);
     }

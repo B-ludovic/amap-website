@@ -96,10 +96,7 @@ export default function AdminDistributionPage() {
       
       fetchDistributionList();
     } catch (error) {
-      showError(
-        'Erreur',
-        error.response?.data?.message || 'Erreur lors de la mise à jour'
-      );
+      showError('Erreur', error.message);
     }
   };
 

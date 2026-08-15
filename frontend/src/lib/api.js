@@ -1,7 +1,38 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
+export class ApiError extends Error {
+  constructor(message, status) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+  }
+}
+
+/* fetch ne rejette que sur échec réseau : serveur éteint, DNS, CORS bloqué.
+   C'est alors le TypeError du navigateur qui remonte, dont le message varie
+   selon le moteur (« Failed to fetch », « Load failed », « NetworkError… ») et
+   s'affiche tel quel à l'utilisateur. On le remplace ici, une fois pour toutes,
+   pour que le message porté par l'erreur soit toujours présentable.
+   Statut 0 : convention pour « la réponse n'a jamais existé ». */
+async function safeFetch(url, config) {
+  try {
+    return await fetch(url, config);
+  } catch {
+    throw new ApiError('Serveur injoignable. Vérifiez votre connexion et réessayez.', 0);
+  }
+}
+
+function redirectToExpiredSessionLogin() {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  localStorage.removeItem('auth_known');
+  window.location.href = '/auth/login?expired=1';
+}
+
 async function fetchAPI(endpoint, options = {}) {
-  const { method = 'GET', body } = options;
+  const { method = 'GET', body, requiresAuth = false } = options;
 
   const headers = {
     'Content-Type': 'application/json',
@@ -17,11 +48,20 @@ async function fetchAPI(endpoint, options = {}) {
     config.body = JSON.stringify(body);
   }
 
-  const response = await fetch(`${API_URL}${endpoint}`, config);
+  const response = await safeFetch(`${API_URL}${endpoint}`, config);
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    throw new Error(error.error?.message || error.message || 'Une erreur est survenue');
+    const payload = await response.json().catch(() => ({}));
+    const error = new ApiError(
+      payload.error?.message || payload.message || 'Une erreur est survenue',
+      response.status
+    );
+
+    if (response.status === 401 && requiresAuth) {
+      redirectToExpiredSessionLogin();
+    }
+
+    throw error;
   }
 
   return response.json();
@@ -656,13 +696,20 @@ const api = {
     },
 
     getContractBlobUrl: async (id) => {
-      const response = await fetch(`${API_URL}/subscriptions/${id}/contract`, {
+      const response = await safeFetch(`${API_URL}/subscriptions/${id}/contract`, {
         method: 'GET',
         credentials: 'include',
       });
       if (!response.ok) {
-        const error = await response.json().catch(() => ({}));
-        throw new Error(error.error?.message || error.message || 'Erreur lors de la génération du contrat');
+        const payload = await response.json().catch(() => ({}));
+        const error = new ApiError(
+          payload.error?.message || payload.message || 'Erreur lors de la génération du contrat',
+          response.status
+        );
+        if (response.status === 401) {
+          redirectToExpiredSessionLogin();
+        }
+        throw error;
       }
       const blob = await response.blob();
       return URL.createObjectURL(blob);
@@ -723,14 +770,21 @@ const api = {
     },
 
     downloadContract: async (id) => {
-      const response = await fetch(`${API_URL}/subscription-requests/${id}/contract`, {
+      const response = await safeFetch(`${API_URL}/subscription-requests/${id}/contract`, {
         method: 'GET',
         credentials: 'include',
       });
 
       if (!response.ok) {
-        const error = await response.json().catch(() => ({}));
-        throw new Error(error.error?.message || error.message || 'Erreur lors de la génération du contrat');
+        const payload = await response.json().catch(() => ({}));
+        const error = new ApiError(
+          payload.error?.message || payload.message || 'Erreur lors de la génération du contrat',
+          response.status
+        );
+        if (response.status === 401) {
+          redirectToExpiredSessionLogin();
+        }
+        throw error;
       }
 
       // Récupérer le blob PDF avec le type MIME correct

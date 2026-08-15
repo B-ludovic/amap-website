@@ -56,7 +56,7 @@ export default function PauseModal({ subscription, onClose }) {
           await api.subscriptions.pause(subscription.id, { startDate, endDate, reason: reason || undefined });
           onClose(true);
         } catch (err) {
-          setError(err.response?.data?.message || 'Erreur lors de la mise en pause');
+          setError(err.message);
         } finally {
           setLoading(false);
         }

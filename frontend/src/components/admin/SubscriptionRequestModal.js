@@ -28,10 +28,7 @@ export default function SubscriptionRequestModal({ request, onClose }) {
       showSuccess('Succès', 'Statut mis à jour avec succès');
       onClose(true);
     } catch (error) {
-      showError(
-        'Erreur',
-        error.response?.data?.message || 'Erreur lors de la mise à jour'
-      );
+      showError('Erreur', error.message);
     } finally {
       setLoading(false);
     }

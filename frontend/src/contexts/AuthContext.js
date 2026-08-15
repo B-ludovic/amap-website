@@ -14,11 +14,6 @@ export function AuthProvider({ children }) {
   }, []);
 
   const loadUser = async () => {
-    // Si aucune session connue, on ne fait pas la requête (évite un 401 en console)
-    if (!localStorage.getItem('auth_known')) {
-      setLoading(false);
-      return;
-    }
     try {
       const data = await authApi.me();
       setUser(data.data.user);
