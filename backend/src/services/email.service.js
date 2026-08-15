@@ -6,6 +6,27 @@ import { overridesOptOut } from './newsletterAudience.service.js';
 import { unsubscribePageUrl, unsubscribeHeaders } from '../utils/unsubscribeToken.js';
 import { renderEmail, emailButton } from './emailTheme.js';
 
+/* Le lien vers le relais de Brevo.
+
+   Trois réglages absents jusqu'ici, et trois conséquences bien réelles.
+
+   Le pool. Sans lui, chaque message rouvrait une connexion TCP, négociait TLS et
+   se réauthentifiait — pour cinq cents adhérents, cinq cents fois la même
+   cérémonie avant même d'écrire la première ligne du message. Les connexions
+   sont désormais gardées et réutilisées. Trois suffisent : la boucle d'envoi est
+   séquentielle, elle n'en occupe qu'une à la fois, les deux autres sont là pour
+   les messages transactionnels qui partent pendant qu'une newsletter s'écoule.
+   maxMessages ferme la connexion tous les cent messages, ce qu'attendent la
+   plupart des relais plutôt que de voir un socket vivre indéfiniment.
+
+   Les délais de garde. Nodemailer laisse dix minutes à un socket muet. Dix
+   minutes pendant lesquelles un envoi bloqué immobilisait la boucle — et, avant
+   que celle-ci ne quitte la requête, la page de l'administratrice avec elle.
+   Vingt secondes suffisent largement à un relais qui répond ; au-delà, il ne
+   répond pas, et l'échec est une information plus utile que l'attente.
+
+   Ces valeurs valent pour Brevo depuis un hébergement européen. Un relais plus
+   lent demanderait de les relever plutôt que de les retirer. */
 const transporter = nodemailer.createTransport({
   host: 'smtp-relay.brevo.com',
   port: 587,
@@ -14,7 +35,43 @@ const transporter = nodemailer.createTransport({
     user: process.env.BREVO_SMTP_USER,
     pass: process.env.BREVO_SMTP_KEY,
   },
+
+  pool: true,
+  maxConnections: 3,
+  maxMessages: 100,
+
+  connectionTimeout: 10_000,
+  greetingTimeout: 10_000,
+  socketTimeout: 20_000,
 });
+
+/* Savoir au démarrage si le relais répond.
+
+   Une clé Brevo révoquée ne se découvrait qu'au premier envoi raté. Depuis que
+   chaque échec laisse une trace (voir #send), ce n'est plus le trou noir
+   d'autrefois — mais l'apprendre au moment où une adhérente attend sa
+   confirmation d'inscription reste tard. Cette poignée de main le dit au
+   déploiement.
+
+   Un avertissement, jamais un arrêt : une coupure passagère chez Brevo ne doit
+   pas empêcher les adhérents de consulter le panier de la semaine. Le site vit
+   très bien sans e-mail pendant une heure.
+
+   En développement, on s'en abstient — la boîte de test n'est pas toujours
+   configurée, et un rouge au démarrage qui ne veut rien dire finit par ne plus
+   être lu du tout. */
+if (process.env.NODE_ENV === 'production') {
+  transporter.verify()
+    .then(() => console.log('[Email] relais Brevo joignable'))
+    .catch((error) => console.error(`[Email] relais Brevo INJOIGNABLE : ${error.message}`));
+}
+
+/* Rendre les connexions du pool à l'arrêt du serveur. Sans cela, les sockets
+   gardés ouverts retiennent le processus, et un redéploiement attend pour rien
+   avant d'être tué de force. */
+export function closeEmailTransport() {
+  transporter.close();
+}
 
 const EMAIL_FROM = process.env.EMAIL_FROM || 'Aux P\'tits Pois <noreply@auxptitspois.fr>';
 

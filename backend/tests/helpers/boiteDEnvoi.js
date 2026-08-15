@@ -47,18 +47,32 @@ export function retablirSmtp() {
   refusDEnvoi = null;
 }
 
+/* Les réglages avec lesquels le service a fabriqué son transporteur — pool,
+   délais de garde. Les relire permet de vérifier qu'ils n'ont pas disparu à la
+   faveur d'une refonte. */
+export const reglagesTransporteur = {};
+
 /* Ce que verra `import nodemailer from 'nodemailer'` une fois le module
-   remplacé. La forme compte : le service utilise l'export par défaut. */
+   remplacé. La forme compte à deux titres : le service utilise l'export par
+   défaut, et il attend un transporteur qui sache aussi se vérifier et se
+   fermer. Un double qui n'offrirait que sendMail laisserait passer un appel
+   manquant sur les deux autres. */
 export const fauxNodemailer = {
   default: {
-    createTransport: () => ({
-      sendMail: async (options) => {
-        if (refusDEnvoi) throw new Error(refusDEnvoi);
+    createTransport: (options) => {
+      Object.assign(reglagesTransporteur, options);
 
-        boiteDEnvoi.push(options);
-        return { messageId: 'message-de-test', accepted: [options.to] };
-      },
-    }),
+      return {
+        sendMail: async (message) => {
+          if (refusDEnvoi) throw new Error(refusDEnvoi);
+
+          boiteDEnvoi.push(message);
+          return { messageId: 'message-de-test', accepted: [message.to] };
+        },
+        verify: async () => true,
+        close: () => {},
+      };
+    },
   },
 };
 

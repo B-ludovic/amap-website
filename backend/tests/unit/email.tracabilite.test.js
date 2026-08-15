@@ -25,6 +25,7 @@ import {
   simulerRefusSmtp,
   retablirSmtp,
   simulerPanneDeBase,
+  reglagesTransporteur,
 } from '../helpers/boiteDEnvoi.js';
 import { messagesSortants } from '../fixtures/messagesSortants.js';
 import { adherente, permanence, panierHebdomadaire, lettreDInformation } from '../fixtures/destinataires.js';
@@ -174,6 +175,25 @@ describe('Un envoi de masse ne s\'arrête pas au premier refus', () => {
       { id: 'u3', firstName: 'Chloé', email: 'chloe@example.org' },
     ];
   }
+});
+
+describe('Le lien vers le relais est borné dans le temps', () => {
+  /* Trois réglages faciles à perdre au fil d'une refonte, et dont l'absence ne
+     se voit pas : tout continue de fonctionner, simplement moins bien et
+     beaucoup plus longtemps. D'où ce garde-fou. */
+  it('garde les connexions plutôt que d\'en rouvrir une par message', () => {
+    expect(reglagesTransporteur.pool).toBe(true);
+    expect(reglagesTransporteur.maxConnections).toBeGreaterThan(0);
+    expect(reglagesTransporteur.maxMessages).toBeGreaterThan(0);
+  });
+
+  it('n\'attend pas dix minutes devant un socket muet', () => {
+    /* Le défaut de nodemailer est de 600 000 ms. Un envoi bloqué immobilisait
+       la boucle d'autant. */
+    expect(reglagesTransporteur.socketTimeout).toBeLessThanOrEqual(30_000);
+    expect(reglagesTransporteur.connectionTimeout).toBeLessThanOrEqual(30_000);
+    expect(reglagesTransporteur.greetingTimeout).toBeLessThanOrEqual(30_000);
+  });
 });
 
 describe('Le rapport de progression pendant un envoi de masse', () => {

@@ -9,6 +9,7 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import cookieParser from 'cookie-parser';
 import { connectDB, disconnectDB } from './config/database.js';
+import { closeEmailTransport } from './services/email.service.js';
 import { errorHandler } from './middlewares/error.middleware.js';
 import { httpStatusCodes } from './utils/httpErrors.js';
 
@@ -269,6 +270,7 @@ const startServer = async () => {
 
 process.on('SIGINT', async () => {
   console.log('\n⏳ Arrêt du serveur en cours...');
+  closeEmailTransport();
   await disconnectDB();
   console.log('👋 Serveur arrêté proprement');
   process.exit(0);
@@ -276,6 +278,7 @@ process.on('SIGINT', async () => {
 
 process.on('SIGTERM', async () => {
   console.log('\n⏳ Arrêt du serveur en cours...');
+  closeEmailTransport();
   await disconnectDB();
   console.log('👋 Serveur arrêté proprement');
   process.exit(0);
