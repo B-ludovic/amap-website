@@ -27,7 +27,19 @@ model User {
   resetTokenExpiry DateTime?
 
   tokenVersion     Int       @default(1)
-  
+
+  // Opposition à la lettre d'information. Le booléen porte l'état du jour, la
+  // date porte la preuve : l'article 21 du RGPD demande de pouvoir montrer quand
+  // l'opposition a été exercée, pas seulement qu'elle l'est.
+  //
+  // Aucun jeton de désabonnement stocké ici : le lien des emails est signé à la
+  // volée (src/utils/unsubscribeToken.js). Une colonne de jetons aurait exigé
+  // d'en semer un dans chaque ligne existante le jour de la migration, puis de
+  // n'en oublier aucune à la création d'un compte — deux occasions de laisser un
+  // adhérent sans lien valide.
+  newsletterOptIn    Boolean   @default(true)
+  newsletterOptOutAt DateTime?
+
   subscriptions       Subscription[]
   subscriptionRequests SubscriptionRequest[]
   shiftVolunteers     ShiftVolunteer[]

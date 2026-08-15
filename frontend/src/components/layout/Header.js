@@ -31,6 +31,7 @@ function Header() {
   const [notifs, setNotifs] = useState({ requests: 0, producers: 0, messages: 0 });
   const { user, logout } = useAuth();
   const { showConfirm } = useModal();
+  const isActivePath = (path) => pathname === path;
 
   useEffect(() => {
     if (user?.role !== 'ADMIN') return;
@@ -196,19 +197,19 @@ function Header() {
             </Link>
           </div>
           <nav className="mobile-nav">
-            <Link href="/" className="mobile-nav-link" onClick={closeMenu}>
+            <Link href="/" className={`mobile-nav-link ${isActivePath('/') ? 'active' : ''}`} onClick={closeMenu}>
               Accueil
             </Link>
-            <Link href="/panier-semaine" className="mobile-nav-link" onClick={closeMenu}>
+            <Link href="/panier-semaine" className={`mobile-nav-link ${isActivePath('/panier-semaine') ? 'active' : ''}`} onClick={closeMenu}>
               Panier de la semaine
             </Link>
-            <Link href="/nos-abonnements" className="mobile-nav-link" onClick={closeMenu}>
+            <Link href="/nos-abonnements" className={`mobile-nav-link ${isActivePath('/nos-abonnements') ? 'active' : ''}`} onClick={closeMenu}>
               Nos abonnements
             </Link>
-            <Link href="/nos-producteurs" className="mobile-nav-link" onClick={closeMenu}>
+            <Link href="/nos-producteurs" className={`mobile-nav-link ${isActivePath('/nos-producteurs') ? 'active' : ''}`} onClick={closeMenu}>
               Nos producteurs
             </Link>
-            <Link href="/devenir-producteur" className="mobile-nav-link" onClick={closeMenu}>
+            <Link href="/devenir-producteur" className={`mobile-nav-link ${isActivePath('/devenir-producteur') ? 'active' : ''}`} onClick={closeMenu}>
               Devenir producteur
             </Link>
           </nav>

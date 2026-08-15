@@ -1,0 +1,81 @@
+/* Page de désabonnement - Aux P'tits Pois
+   Posée sur la structure de auth.css : ce fichier n'ajoute que ce qui lui est
+   propre — l'adresse rappelée, l'avertissement sur les alertes, le retour en
+   arrière. */
+
+.unsub-icon {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--spacing-xl);
+  color: var(--brass);
+}
+
+/* L'adresse partiellement masquée : la personne doit la reconnaître d'un coup
+   d'œil, c'est elle qui confirme qu'on parle bien de sa boîte. */
+.unsub-email {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+  background-color: var(--surface-sand);
+  border-radius: var(--border-radius-sm);
+  padding: 2px 6px;
+  white-space: nowrap;
+}
+
+/* Ce qui continuera d'arriver malgré le désabonnement. Encadré et non fondu
+   dans le texte : c'est la phrase qu'on ne doit pas sauter. */
+.unsub-note {
+  margin: var(--spacing-xl) 0 0;
+  padding: var(--spacing-md);
+  background-color: var(--surface-sand);
+  border-left: var(--border-width-thick) solid var(--brass);
+  border-radius: var(--border-radius-sm);
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-relaxed);
+  text-align: left;
+}
+
+.unsub-error {
+  margin: var(--spacing-lg) 0 0;
+  padding: var(--spacing-md);
+  background-color: var(--error-bg);
+  border: var(--border-width) solid var(--error-bg-border);
+  border-radius: var(--border-radius-sm);
+  color: var(--error-text);
+  font-size: var(--font-size-sm);
+  text-align: left;
+}
+
+.unsub-actions {
+  margin-top: var(--spacing-2xl);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+/* Le chemin du retour, discret mais présent : un désabonnement en un clic part
+   parfois d'un doigt qui glisse. */
+.unsub-undo {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--accent-color);
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  text-decoration: underline;
+  cursor: pointer;
+  transition: color var(--transition-fast);
+}
+
+.unsub-undo:hover:not(:disabled) {
+  color: var(--primary-hover);
+}
+
+.unsub-undo:disabled {
+  color: var(--text-light);
+  cursor: default;
+  text-decoration: none;
+}

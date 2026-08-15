@@ -614,6 +614,20 @@
   gap: 10px;
 }
 
+/* Carte « mes emails » : ce que le désabonnement ne coupera pas. Détaché du
+   paragraphe au-dessus, parce qu'une personne qui vient couper ses emails lit
+   le bouton et saute le texte. */
+.account-mail-note {
+  margin: -6px 0 18px;
+  padding: 10px 12px;
+  background-color: var(--surface-sand);
+  border-left: var(--border-width-thick) solid var(--brass);
+  border-radius: var(--border-radius-sm);
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+
 .account-btn-danger-ghost {
   height: 46px;
   background-color: transparent;

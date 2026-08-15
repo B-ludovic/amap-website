@@ -13,6 +13,7 @@ import {
   sumClosureDays
 } from '../utils/closurePeriod.js';
 import { formatDateFR } from '../services/closure.service.js';
+import { resolveNewsletterRecipients } from '../services/newsletterAudience.service.js';
 import { logAudit } from '../services/audit.service.js';
 
 /* Le motif est écrit par un administrateur, mais il finit dans un e-mail : on
@@ -76,11 +77,14 @@ function buildClosureEmailHtml(startDate, endDate, reason, isUpdate) {
    laisse une trace dans /admin/communication — puis envoyée aux abonnés
    actifs. Sans abonné actif, la trace reste, rien ne part. */
 async function announceClosure({ closure, adminId, isUpdate }) {
-  const activeSubscriptions = await prisma.subscription.findMany({
-    where: { status: 'ACTIVE' },
-    include: { user: { select: { email: true, firstName: true } } }
+  /* Type ALERT : cette annonce-là part aussi aux adhérents qui ont quitté la
+     lettre d'information. Une distribution annulée conditionne le retrait d'un
+     panier déjà payé — se taire enverrait quelqu'un attendre devant une porte
+     close un mercredi soir. Le pied de page de l'email le leur dit. */
+  const recipients = await resolveNewsletterRecipients({
+    target: 'ACTIVE_SUBSCRIBERS',
+    type: 'ALERT'
   });
-  const recipients = activeSubscriptions.map(subscription => subscription.user);
 
   const prefix = isUpdate ? 'Fermeture de l\'AMAP modifiée' : 'Fermeture de l\'AMAP';
   const newsletter = await prisma.newsletter.create({

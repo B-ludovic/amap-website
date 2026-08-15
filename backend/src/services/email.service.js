@@ -4,6 +4,8 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import DOMPurify from 'isomorphic-dompurify';
 import { euroAmount } from '../utils/subscriptionPricing.js';
+import { overridesOptOut } from './newsletterAudience.service.js';
+import { unsubscribePageUrl, unsubscribeHeaders } from '../utils/unsubscribeToken.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const logoPath = path.join(__dirname, '../assets/logo.png');
@@ -482,21 +484,68 @@ class EmailService {
     return looksLikeHtml ? raw : raw.replace(/\n/g, '<br>');
   }
 
+  /* Le bas d'une newsletter, et les en-têtes qui l'accompagnent.
+
+     Ce pied de page n'est pas une formule de politesse : c'est le seul endroit
+     où se tient la promesse d'un désabonnement « simple et gratuit » que
+     réclament l'article L34-5 du code des postes et l'article 21 du RGPD. Il
+     porte donc un lien qui agit vraiment, scellé pour l'adresse à qui l'on
+     écrit, et qui n'exige ni compte ouvert ni mot de passe retrouvé.
+
+     Deux versions, selon ce qu'on envoie. Une lettre d'information annonce
+     qu'on peut la couper. Une alerte — fermeture, distribution annulée —
+     annonce l'inverse, puisqu'elle continuera d'arriver tant que le contrat
+     court : mieux vaut l'écrire que laisser espérer un silence qui ne viendra
+     pas. Cette version-là ne pose aucun en-tête de désabonnement, sans quoi le
+     bouton de Gmail promettrait à son tour ce qu'on ne tiendra pas.
+
+     Sans identifiant — un appelant qui passerait une adresse libre — rien n'est
+     signable : on renvoie alors vers l'espace adhérent plutôt que d'afficher un
+     lien mort. */
+  static newsletterFooter(recipientId, respectsOptOut) {
+    const accountLink = `<a href="${escapeHtml(`${process.env.FRONTEND_URL}/compte`)}">Gérer mes préférences</a>`;
+
+    if (!recipientId) {
+      return {
+        html: `Vous recevez cet email parce que vous êtes adhérent(e) de l'AMAP Aux P'tits Pois.<br>${accountLink}`,
+      };
+    }
+
+    const unsubLink = escapeHtml(unsubscribePageUrl(recipientId));
+
+    if (!respectsOptOut) {
+      return {
+        html: `Ce message concerne votre contrat en cours : il vous parvient même si vous avez quitté la lettre d'information.<br>
+               <a href="${unsubLink}">Gérer mes emails</a>`,
+      };
+    }
+
+    return {
+      headers: unsubscribeHeaders(recipientId),
+      html: `Vous recevez cet email parce que vous êtes adhérent(e) de l'AMAP Aux P'tits Pois.<br>
+             ${accountLink} | <a href="${unsubLink}">Me désabonner</a>`,
+    };
+  }
+
   /* Envoie une newsletter */
   async sendNewsletter(newsletter, recipients) {
     try {
       const results = { sent: 0, failed: 0, errors: [] };
       const batchSize = 50;
+      const respectsOptOut = !overridesOptOut(newsletter.type);
 
       for (let i = 0; i < recipients.length; i += batchSize) {
         const batch = recipients.slice(i, i + batchSize);
 
         for (const recipient of batch) {
+          const footer = EmailService.newsletterFooter(recipient.id, respectsOptOut);
+
           try {
             await transporter.sendMail({
               from: EMAIL_FROM,
               to: recipient.email,
               subject: newsletter.subject,
+              ...(footer.headers && { headers: footer.headers }),
               html: `
                 <!DOCTYPE html>
                 <html lang="fr">
@@ -535,11 +584,7 @@ class EmailService {
                         </div>
                         <div class="footer">
                           <p><strong>Aux P'tits Pois — AMAP Solidaire</strong><br>14, rue du Château, 45300 Yèvre-la-Ville</p>
-                          <p class="unsub">
-                            Vous recevez cet email car vous êtes inscrit(e) sur notre liste de diffusion.<br>
-                            <a href="${process.env.FRONTEND_URL}/compte">Gérer mes préférences</a> | 
-                            <a href="${process.env.FRONTEND_URL}/compte">Me désabonner</a>
-                          </p>
+                          <p class="unsub">${footer.html}</p>
                         </div>
                       </div>
                     </div>

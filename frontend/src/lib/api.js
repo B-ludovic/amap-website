@@ -367,9 +367,42 @@ export const auth = {
   },
 };
 
+/* Le désabonnement, vu des deux côtés de la porte.
+
+   Les trois premières fonctions travaillent sans session : elles présentent le
+   sceau reçu dans l'URL de l'email, seule pièce d'identité de quelqu'un qui a
+   peut-être oublié son mot de passe. La quatrième est l'inverse — la personne
+   est connectée, c'est sa session qui répond d'elle. */
+export const newsletterPreferences = {
+  status: async ({ u, t }) => {
+    return fetchAPI(`/newsletters/unsubscribe?${new URLSearchParams({ u, t })}`);
+  },
+
+  unsubscribe: async ({ u, t }) => {
+    return fetchAPI(`/newsletters/unsubscribe?${new URLSearchParams({ u, t })}`, {
+      method: 'POST',
+    });
+  },
+
+  resubscribe: async ({ u, t }) => {
+    return fetchAPI(`/newsletters/resubscribe?${new URLSearchParams({ u, t })}`, {
+      method: 'POST',
+    });
+  },
+
+  setMine: async (optIn) => {
+    return fetchAPI('/newsletters/preferences', {
+      method: 'PUT',
+      body: { optIn },
+      requiresAuth: true,
+    });
+  },
+};
+
 const api = {
   admin,
   auth,
+  newsletterPreferences,
 
   newsletters: {
     getAll: async (params = {}) => {

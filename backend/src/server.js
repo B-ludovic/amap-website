@@ -154,6 +154,26 @@ const newsletterSendLimiter = rateLimit({
   message: { success: false, error: { message: 'Trop d\'envois de newsletter, réessayez dans une heure.' } },
 });
 
+/* Rate limiting — désabonnement
+
+   Route publique par nécessité : le lien d'un email doit s'ouvrir sans session.
+   Le sceau de l'URL empêche de désabonner autrui, mais rien n'empêche de
+   marteler l'adresse avec des sceaux au hasard, chaque essai coûtant un calcul
+   d'empreinte et une requête en base.
+
+   Le plafond est volontairement large : un désabonnement en un clic est posté
+   par les serveurs de Gmail, pas par la machine de l'adhérent, et plusieurs
+   dizaines d'adhérents peuvent donc arriver derrière la même poignée d'adresses
+   IP. Un plafond serré transformerait une vague de désabonnements légitimes en
+   erreurs — c'est-à-dire en plaintes pour spam. */
+const unsubscribeLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, error: { message: 'Trop de requêtes, réessayez dans 15 minutes.' } },
+});
+
 // Rate limiting — recherche utilisateur par email (anti-énumération)
 // Rate limiting — routes admin générales
 const adminLimiter = rateLimit({
@@ -196,6 +216,8 @@ app.use('/api/shifts', shiftsRoutes);
 // Avant le routeur, comme pdfLimiter : monté après, il ne verrait jamais passer
 // la requête.
 app.use('/api/newsletters/:id/send', newsletterSendLimiter);
+app.use('/api/newsletters/unsubscribe', unsubscribeLimiter);
+app.use('/api/newsletters/resubscribe', unsubscribeLimiter);
 app.use('/api/newsletters', newslettersRoutes);
 app.use('/api/producer-inquiries', publicLimiter);
 app.use('/api/producer-inquiries', producerInquiriesRoutes);

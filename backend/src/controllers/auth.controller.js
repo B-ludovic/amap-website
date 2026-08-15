@@ -255,6 +255,8 @@ const getMe = asyncHandler(async (req, res) => {
             address: true,
             role: true,
             emailVerified: true,
+            // L'espace adhérent affiche et bascule ce réglage depuis sa fiche
+            newsletterOptIn: true,
             createdAt: true,
             updatedAt: true,
         }
@@ -471,6 +473,11 @@ const exportMe = asyncHandler(async (req, res) => {
             address: true,
             role: true,
             emailVerified: true,
+            /* L'export RGPD doit montrer l'opposition et sa date : c'est la
+               preuve que l'association tient de son côté, l'adhérent a droit à
+               la même copie. */
+            newsletterOptIn: true,
+            newsletterOptOutAt: true,
             createdAt: true,
             subscriptionRequests: {
                 select: {

@@ -9,6 +9,7 @@ import {
     httpStatusCodes
 } from '../utils/httpErrors.js';
 import { logAudit } from '../services/audit.service.js';
+import { resolveNewsletterRecipients } from '../services/newsletterAudience.service.js';
 
 // RÉCUPÉRER TOUTES LES NEWSLETTERS
 const getAllNewsletters = asyncHandler(async (req, res) => {
@@ -208,51 +209,14 @@ const sendNewsletter = asyncHandler(async (req, res) => {
         throw new HttpConflictError('Cette newsletter a déjà été envoyée');
     }
 
-    // Récupérer les destinataires selon le target
-    let recipients = [];
-
-    switch (newsletter.target) {
-        case 'ALL':
-            recipients = await prisma.user.findMany({
-                where: { deletedAt: null },
-                select: { email: true, firstName: true }
-            });
-            break;
-
-        case 'ACTIVE_SUBSCRIBERS':
-            const activeSubscriptions = await prisma.subscription.findMany({
-                where: { status: 'ACTIVE' },
-                include: {
-                    user: {
-                        select: { email: true, firstName: true }
-                    }
-                }
-            });
-            recipients = activeSubscriptions.map(sub => sub.user);
-            break;
-
-        case 'SOLIDARITY':
-            const solidaritySubscriptions = await prisma.subscription.findMany({
-                where: {
-                    status: 'ACTIVE',
-                    pricingType: 'SOLIDARITY'
-                },
-                include: {
-                    user: {
-                        select: { email: true, firstName: true }
-                    }
-                }
-            });
-            recipients = solidaritySubscriptions.map(sub => sub.user);
-            break;
-
-        case 'TEST':
-            recipients = [{
-                email: req.user.email,
-                firstName: req.user.firstName
-            }];
-            break;
-    }
+    /* Qui reçoit : la règle vit dans newsletterAudience, partagée avec l'annonce
+       automatique de fermeture, pour qu'un désabonnement respecté ici le soit
+       aussi là-bas. L'envoi de test fait exception — il ne s'adresse qu'à
+       l'administrateur qui appuie sur le bouton, et doit partir même si celui-ci
+       s'est désabonné, sinon il ne pourrait plus se relire. */
+    const recipients = newsletter.target === 'TEST'
+        ? [{ id: req.user.id, email: req.user.email, firstName: req.user.firstName }]
+        : await resolveNewsletterRecipients({ target: newsletter.target, type: newsletter.type });
 
     // Envoyer les emails via le service
     const result = await emailService.sendNewsletter(newsletter, recipients);

@@ -117,7 +117,7 @@ function plural(count, singular, pluralForm) {
 
 export default function ComptePage() {
   const router = useRouter();
-  const { user, loading, isAuthenticated, logout } = useAuth();
+  const { user, loading, isAuthenticated, logout, updateUser } = useAuth();
   const { showError } = useModal();
 
   const [subscription, setSubscription] = useState(null);
@@ -129,6 +129,7 @@ export default function ComptePage() {
   const [exportStatus, setExportStatus] = useState('idle'); // idle | working | ready
   const [contractStatus, setContractStatus] = useState('idle'); // idle | working
   const [deleteStep, setDeleteStep] = useState('idle'); // idle | armed | working
+  const [newsletterStatus, setNewsletterStatus] = useState('idle'); // idle | working
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -212,6 +213,27 @@ export default function ComptePage() {
       setContractStatus('idle');
     }
   }, [subscription, showError]);
+
+  /* Le même réglage que la page /desabonnement, atteint par l'autre porte : ici
+     la session dit qui parle, là-bas c'est le sceau du lien reçu par email. La
+     valeur affichée reste celle du contexte d'authentification, mise à jour
+     après la réponse du serveur — l'écran ne bascule qu'une fois le changement
+     réellement enregistré. */
+  const handleNewsletterToggle = useCallback(async () => {
+    const next = !user.newsletterOptIn;
+    setNewsletterStatus('working');
+    try {
+      await api.newsletterPreferences.setMine(next);
+      updateUser({ ...user, newsletterOptIn: next });
+    } catch {
+      showError(
+        'Réglage non enregistré',
+        "Votre préférence d'emails n'a pas pu être enregistrée. Réessayez dans un instant."
+      );
+    } finally {
+      setNewsletterStatus('idle');
+    }
+  }, [user, updateUser, showError]);
 
   const handleDeleteAccount = useCallback(async () => {
     setDeleteStep('working');
@@ -591,6 +613,37 @@ export default function ComptePage() {
               <Link href="/contact" className="btn btn-secondary account-btn account-btn-block">
                 Modifier mes informations
               </Link>
+            </div>
+          </article>
+
+          {/* Emails */}
+          <article className="account-card">
+            <div className="account-card-head">
+              <h2 className="account-card-title">Mes emails</h2>
+            </div>
+            <div className="account-data-body">
+              <p className="account-data-text">
+                {user.newsletterOptIn
+                  ? 'Vous recevez la lettre d’information de l’AMAP : le panier de la semaine, les recettes, les nouvelles des producteurs.'
+                  : 'Vous ne recevez plus la lettre d’information de l’AMAP.'}
+              </p>
+              <p className="account-mail-note">
+                Les annonces qui touchent à votre contrat — fermeture de l&apos;AMAP, distribution
+                annulée — vous parviennent dans tous les cas.
+              </p>
+              <div className="account-data-actions">
+                <button
+                  type="button"
+                  className="btn btn-secondary account-btn account-btn-block"
+                  onClick={handleNewsletterToggle}
+                  disabled={newsletterStatus === 'working'}
+                >
+                  {newsletterStatus === 'working' && 'Enregistrement…'}
+                  {newsletterStatus === 'idle' && (user.newsletterOptIn
+                    ? 'Ne plus recevoir la lettre d’information'
+                    : 'Recevoir de nouveau la lettre d’information')}
+                </button>
+              </div>
             </div>
           </article>
 
