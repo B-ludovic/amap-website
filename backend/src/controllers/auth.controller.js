@@ -312,6 +312,12 @@ const forgotPassword = asyncHandler(async (req, res) => {
 const resetPassword = asyncHandler(async (req, res) => {
     const { token, password } = req.body;
 
+    // Contrôlé avant tout usage : crypto.update() lève un TypeError brut sur autre
+    // chose qu'une chaîne, qui ressortirait en 500 au lieu du message attendu
+    if (!token || typeof token !== 'string') {
+        throw new HttpBadRequestError('Lien de réinitialisation invalide.');
+    }
+
     if (!password) {
         throw new HttpBadRequestError('Nouveau mot de passe est requis.');
     }
