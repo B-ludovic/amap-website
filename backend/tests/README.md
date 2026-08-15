@@ -39,7 +39,9 @@ devienne lente et capricieuse sans que personne l'ait décidé.
 | `unit/email.tracabilite.test.js` | La trace laissée par chaque envoi, réussi ou raté : ligne en base, log qui ne recopie pas l'adresse en production, envoi de masse qui ne s'arrête pas au premier refus. Défaut C2. |
 | `unit/newsletter.envoi.test.js` | Le sort de `status` et `sentAt` à l'envoi : relâchés quand rien n'est parti (C3), pris avant la boucle par compare-and-set pour qu'un second clic ne double pas l'envoi (M2), et réponse 202 pendant que la diffusion continue derrière (M10). Vaut aussi pour l'annonce de fermeture. |
 
-Un mot sur `helpers/attente.js`, qui revient dans ce dernier fichier. Depuis que
+| `unit/drapeaux.orphelins.test.js` | Le balayage des drapeaux d'envoi laissés levés par un processus mort : relâchés quand `EmailLog` ne montre aucun envoi réussi, laissés intacts sinon. Défaut m9. |
+
+Un mot sur `helpers/attente.js`, qui revient dans `newsletter.envoi.test.js`. Depuis que
 la diffusion quitte la requête, il n'y a plus de promesse à attendre : le test
 observe l'état en base jusqu'à ce qu'il change, exactement comme l'écran de
 communication en se rafraîchissant. Un `await` sur l'appel du contrôleur ne
