@@ -6,7 +6,7 @@ import {
   HttpConflictError,
   httpStatusCodes
 } from '../utils/httpErrors.js';
-import { ProducerSchema, UpdateProducerSchema, ProductSchema, UpdateProductSchema, BasketTypeSchema, BlogPostSchema } from '../utils/validation.schemas.js';
+import { ProducerSchema, UpdateProducerSchema, ProductSchema, UpdateProductSchema, BasketTypeSchema, BlogPostSchema, ThemeSchema } from '../utils/validation.schemas.js';
 import { logAudit } from '../services/audit.service.js';
 import { normalizeTitleCase } from '../utils/normalize.js';
 
@@ -681,39 +681,20 @@ const deleteUser = asyncHandler(async (req, res) => {
 
 // METTRE À JOUR LE THÈME ACTIF 
 const updateTheme = asyncHandler(async (req, res) => {
-  const { season, primaryColor, secondaryColor, accentColor, backgroundColor, backgroundImage } = req.body;
-
-  const validSeasons = ['SPRING', 'SUMMER', 'AUTUMN', 'WINTER'];
-
-  if (!season || !validSeasons.includes(season)) {
-    throw new HttpBadRequestError(`Saison invalide. Valeurs autorisées : ${validSeasons.join(', ')}`);
+  const parsed = ThemeSchema.safeParse(req.body);
+  if (!parsed.success) {
+    throw new HttpBadRequestError(parsed.error.errors[0].message);
   }
+  const { season, primaryColor, secondaryColor, accentColor, backgroundColor, backgroundImage } = parsed.data;
 
-  // Désactiver tous les thèmes
-  await prisma.themeConfig.updateMany({
-    data: { isActive: false }
-  });
+  const theme = await prisma.$transaction(async (tx) => {
+    await tx.themeConfig.updateMany({ data: { isActive: false } });
 
-  // Créer ou mettre à jour le thème pour cette saison
-  const theme = await prisma.themeConfig.upsert({
-    where: { season },
-    update: {
-      primaryColor,
-      secondaryColor,
-      accentColor,
-      backgroundColor,
-      backgroundImage,
-      isActive: true
-    },
-    create: {
-      season,
-      primaryColor,
-      secondaryColor,
-      accentColor,
-      backgroundColor,
-      backgroundImage,
-      isActive: true
-    }
+    return tx.themeConfig.upsert({
+      where: { season },
+      update: { primaryColor, secondaryColor, accentColor, backgroundColor, backgroundImage, isActive: true },
+      create: { season, primaryColor, secondaryColor, accentColor, backgroundColor, backgroundImage, isActive: true }
+    });
   });
 
   await logAudit(req, 'UPDATE_THEME', 'IMPORTANT', {
@@ -1188,6 +1169,16 @@ const deleteAllExamples = asyncHandler(async (req, res) => {
 
 const getAuditLogs = asyncHandler(async (req, res) => {
   const { severity, action, page = 1, limit = 50 } = req.query;
+  const validSeverities = ['CRITICAL', 'IMPORTANT'];
+  const validActions = ['DELETE_USER', 'CHANGE_USER_ROLE', 'PURGE_USER_DATA', 'CREATE_PRODUCER', 'UPDATE_PRODUCER', 'DELETE_PRODUCER', 'CREATE_PRODUCT', 'UPDATE_PRODUCT', 'DELETE_PRODUCT', 'UPDATE_THEME', 'DELETE_CONTACT_MESSAGE', 'DELETE_EXAMPLES', 'APPROVE_SUBSCRIPTION_REQUEST', 'REJECT_SUBSCRIPTION_REQUEST', 'CREATE_SUBSCRIPTION', 'UPDATE_SUBSCRIPTION', 'ACTIVATE_SUBSCRIPTION', 'CANCEL_SUBSCRIPTION', 'UPDATE_SUBSCRIPTION_STATUS', 'CREATE_SHIFT', 'UPDATE_SHIFT', 'DELETE_SHIFT', 'UPDATE_SHIFT_VOLUNTEER_STATUS', 'CREATE_WEEKLY_BASKET', 'UPDATE_WEEKLY_BASKET', 'DELETE_WEEKLY_BASKET', 'PUBLISH_WEEKLY_BASKET', 'CREATE_CLOSURE', 'UPDATE_CLOSURE', 'DELETE_CLOSURE', 'UPDATE_WEEKLY_PICKUP', 'EXPORT_DISTRIBUTION_LIST'];
+
+  if (severity && !validSeverities.includes(severity)) {
+    throw new HttpBadRequestError('Sévérité invalide');
+  }
+
+  if (action && !validActions.includes(action)) {
+    throw new HttpBadRequestError('Action invalide');
+  }
   const parsedPage = Math.max(parseInt(page) || 1, 1);
   const parsedLimit = Math.min(parseInt(limit) || 50, 200);
   const skip = (parsedPage - 1) * parsedLimit;

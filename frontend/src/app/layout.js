@@ -111,7 +111,7 @@ async function RootLayout({ children }) {
     <html lang="fr" className={fontVariables}>
       <body>
         <a href="#main-content" className="skip-link">Aller au contenu principal</a>
-        <JsonLd data={organizationJsonLd} />
+        <JsonLd data={organizationJsonLd} nonce={nonce} />
         <Providers>
           <ConditionalHeader />
           <main className="main-content" id="main-content">

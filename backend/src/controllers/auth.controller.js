@@ -23,13 +23,16 @@ const generateToken = (userId, tokenVersion) => {
 };
 
 // Options du cookie d'auth
-// En prod : cross-domain (Vercel → Render), SameSite=None obligatoire avec Secure=true
+// SameSite se calcule sur le site (domaine enregistrable), pas sur l'origine :
+// auxptitspois.fr et api.auxptitspois.fr sont same-site, donc Lax suffit pour
+// tous les appels du front et ferme structurellement le CSRF — aucune requête
+// venue d'un autre site n'emporte le cookie. Conséquence assumée : une
+// prévisualisation sur *.vercel.app est cross-site et perd l'authentification.
 const isProduction = process.env.NODE_ENV === 'production';
 const cookieOptions = {
     httpOnly: true,
     secure: isProduction,
-    sameSite: isProduction ? 'None' : 'Strict',
-    partitioned: isProduction,
+    sameSite: 'Lax',
     maxAge: 7 * 24 * 60 * 60 * 1000,
     path: '/',
 };

@@ -14,9 +14,6 @@ import {
   deleteUser,
   updateTheme,
   getActiveTheme,
-  createBlogPost,
-  updateBlogPost,
-  deleteBlogPost,
   getExampleStats,
   deleteAllExamples,
   globalSearch,
@@ -55,11 +52,6 @@ router.delete('/users/:userId', deleteUser);
 // GESTION DES THÈMES SAISONNIERS
 router.put('/theme', updateTheme);
 router.get('/theme/active', getActiveTheme);
-
-// GESTION DU BLOG
-router.post('/blog', createBlogPost);
-router.put('/blog/:id', updateBlogPost);
-router.delete('/blog/:id', deleteBlogPost);
 
 // STATISTIQUES
 router.get('/stats', getStats);

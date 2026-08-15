@@ -83,6 +83,19 @@ export const BlogPostSchema = z.object({
   isPublished: z.boolean().optional(),
 });
 
+const LocalBackgroundImageSchema = z.string()
+  .max(500, 'Image de fond : 500 caractères maximum')
+  .regex(/^\/(?!\/)[A-Za-z0-9/_-]+\.(?:png|jpe?g|webp|avif)$/i, 'L’image de fond doit être un chemin local vers une image');
+
+export const ThemeSchema = z.object({
+  season: z.enum(['SPRING', 'SUMMER', 'AUTUMN', 'WINTER']),
+  primaryColor: z.string().regex(/^#[0-9a-f]{6}$/i, 'Couleur primaire invalide'),
+  secondaryColor: z.string().regex(/^#[0-9a-f]{6}$/i, 'Couleur secondaire invalide'),
+  accentColor: z.string().regex(/^#[0-9a-f]{6}$/i, 'Couleur d’accent invalide'),
+  backgroundColor: z.string().regex(/^#[0-9a-f]{6}$/i, 'Couleur de fond invalide'),
+  backgroundImage: LocalBackgroundImageSchema.nullable().optional(),
+});
+
 export const ContactSchema = z.object({
   name:    z.string().min(1, 'Nom requis').max(100, 'Nom : 100 caractères maximum'),
   email:   z.string().email('Email invalide'),

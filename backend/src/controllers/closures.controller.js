@@ -7,7 +7,7 @@ import {
 } from '../utils/httpErrors.js';
 import {
   MAX_CLOSURE_DAYS_PER_YEAR,
-  countClosureDays,
+  countClosureDaysInYear,
   getUtcDayBounds,
   getYearBounds,
   sumClosureDays
@@ -96,17 +96,18 @@ async function announceClosure({ closure, adminId, isUpdate }) {
 
 /* Jours déjà consommés sur l'année civile d'une date, la fermeture en cours de
    modification exclue du calcul — sinon elle se compterait contre elle-même. */
-async function countDaysUsedInYear(date, excludedId) {
-  const { year, start, end } = getYearBounds(date);
+async function countDaysUsedInYear(year, excludedId) {
+  const { start, end } = getYearBounds(new Date(Date.UTC(year, 0, 1)));
 
   const closures = await prisma.amapClosure.findMany({
     where: {
-      startDate: { gte: start, lte: end },
+      startDate: { lte: end },
+      endDate: { gte: start },
       ...(excludedId && { id: { not: excludedId } })
     }
   });
 
-  return { year, daysUsed: sumClosureDays(closures) };
+  return { year, daysUsed: sumClosureDays(closures, year) };
 }
 
 /* Une permanence programmée dit « rendez-vous ce jour-là », une fermeture dit
@@ -166,13 +167,27 @@ async function validateClosurePeriod({ startDate, endDate, excludedId }) {
     throw new HttpBadRequestError('La date de fin ne peut pas précéder la date de début');
   }
 
-  const daysRequested = countClosureDays(start, end);
-  const { year, daysUsed } = await countDaysUsedInYear(start, excludedId);
+  const overlappingClosure = await prisma.amapClosure.findFirst({
+    where: {
+      startDate: { lte: end },
+      endDate: { gte: start },
+      ...(excludedId && { id: { not: excludedId } })
+    }
+  });
 
-  if (daysUsed + daysRequested > MAX_CLOSURE_DAYS_PER_YEAR) {
-    throw new HttpBadRequestError(
-      `Limite de 3 semaines de fermeture atteinte pour ${year}. Jours déjà utilisés : ${daysUsed}/${MAX_CLOSURE_DAYS_PER_YEAR}`
-    );
+  if (overlappingClosure) {
+    throw new HttpBadRequestError('Cette fermeture chevauche une fermeture existante');
+  }
+
+  for (let year = start.getUTCFullYear(); year <= end.getUTCFullYear(); year += 1) {
+    const daysRequested = countClosureDaysInYear(start, end, year);
+    const { daysUsed } = await countDaysUsedInYear(year, excludedId);
+
+    if (daysUsed + daysRequested > MAX_CLOSURE_DAYS_PER_YEAR) {
+      throw new HttpBadRequestError(
+        `Limite de 3 semaines de fermeture atteinte pour ${year}. Jours déjà utilisés : ${daysUsed}/${MAX_CLOSURE_DAYS_PER_YEAR}`
+      );
+    }
   }
 
   await refuseIfShiftsPlanned({ start, end });
@@ -187,9 +202,7 @@ const getAllClosures = asyncHandler(async (req, res) => {
   });
 
   const { year, start, end } = getYearBounds(new Date());
-  const daysUsedThisYear = sumClosureDays(
-    closures.filter(closure => closure.startDate >= start && closure.startDate <= end)
-  );
+  const daysUsedThisYear = sumClosureDays(closures, year);
 
   res.json({
     success: true,

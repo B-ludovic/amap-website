@@ -30,14 +30,26 @@ async function checkRenewalReminders() {
 
     let sent = 0;
     for (const sub of subscriptions) {
+      /* On pose le drapeau AVANT d'envoyer. Le updateMany filtré sur
+         renewalReminderSentAt: null est un compare-and-set atomique : c'est la
+         base qui arbitre, donc deux instances du job ne peuvent pas envoyer le
+         même rappel. Un e-mail parti ne se reprend pas — on préfère en rater un
+         (échec juste après la prise) plutôt qu'en doubler un. */
+      const claimed = await prisma.subscription.updateMany({
+        where: { id: sub.id, renewalReminderSentAt: null },
+        data: { renewalReminderSentAt: new Date() },
+      });
+      if (claimed.count === 0) continue;
+
       const result = await emailService.sendRenewalReminderEmail(sub, sub.user);
       if (result.success) {
-        await prisma.subscription.update({
-          where: { id: sub.id },
-          data: { renewalReminderSentAt: new Date() },
-        });
         sent++;
       } else {
+        // Échec d'envoi : on relâche le drapeau pour retenter au prochain passage.
+        await prisma.subscription.update({
+          where: { id: sub.id },
+          data: { renewalReminderSentAt: null },
+        });
         console.error(`[RenewalJob] Échec rappel ${sub.subscriptionNumber}:`, result.error);
       }
     }

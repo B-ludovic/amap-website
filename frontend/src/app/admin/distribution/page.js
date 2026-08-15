@@ -77,7 +77,8 @@ export default function AdminDistributionPage() {
       if (item.pickup) {
         // Mettre à jour un pickup existant
         await api.distribution.markAsPickedUp(item.pickup.id, {
-          wasPickedUp: newStatus
+          wasPickedUp: newStatus,
+          weeklyBasketId: currentBasket.id
         });
       } else {
         // Créer un nouveau pickup
@@ -111,7 +112,8 @@ export default function AdminDistributionPage() {
       if (item.pickup) {
         await api.distribution.markAsPickedUp(item.pickup.id, {
           wasPickedUp: item.pickup.wasPickedUp,
-          notes: note
+          notes: note,
+          weeklyBasketId: currentBasket.id
         });
       } else {
         await api.distribution.markAsPickedUp('new', {

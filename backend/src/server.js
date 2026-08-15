@@ -69,25 +69,26 @@ const ALLOWED_ORIGINS = [
 
 const corsOptions = {
   origin: (origin, callback) => {
-    // En développement, autoriser les requêtes sans origin (Postman, etc.)
-    if (!origin && process.env.NODE_ENV !== 'production') {
-      return callback(null, true);
+    // Requête sans Origin : appel serveur à serveur (composants serveur Next,
+    // health check Render, Postman). Ce n'est pas un navigateur, CORS ne
+    // s'applique pas — on laisse passer sans en-tête d'autorisation.
+    if (!origin) {
+      return callback(null, false);
     }
-    if (origin && ALLOWED_ORIGINS.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error(`Origine non autorisée par CORS : ${origin}`));
-    }
+    // Refuser, ce n'est pas planter : callback(null, false) n'ajoute aucun
+    // en-tête CORS, le navigateur bloque donc la lecture de la réponse. Lever
+    // une Error ferait répondre 500 à tout le monde, y compris aux clients
+    // non-navigateur. La protection CSRF, elle, tient au cookie SameSite=Lax.
+    callback(null, ALLOWED_ORIGINS.includes(origin));
   },
   credentials: true,
 };
 app.use(cors(corsOptions));
 
 // Parse le JSON dans le body des requêtes (limité à 100kb)
+// Seul format accepté : aucune route ne consomme de formulaire URL-encoded, et
+// c'est le seul corps qu'un formulaire HTML hostile peut envoyer sans préflight.
 app.use(express.json({ limit: '100kb' }));
-
-// Parse les données de formulaire URL-encoded
-app.use(express.urlencoded({ extended: true, limit: '100kb' }));
 
 // Parse les cookies
 app.use(cookieParser());

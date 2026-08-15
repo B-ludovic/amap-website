@@ -1,3 +1,4 @@
+import { headers } from 'next/headers';
 import JsonLd from '../../components/JsonLd';
 
 export const metadata = {
@@ -19,6 +20,7 @@ async function fetchProducers() {
 
 export default async function Layout({ children }) {
   const producers = await fetchProducers();
+  const nonce = (await headers()).get('x-nonce') ?? '';
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -40,7 +42,7 @@ export default async function Layout({ children }) {
 
   return (
     <>
-      <JsonLd data={jsonLd} />
+      <JsonLd data={jsonLd} nonce={nonce} />
       {children}
     </>
   );

@@ -567,6 +567,17 @@ const pauseSubscription = asyncHandler(async (req, res) => {
     throw new HttpBadRequestError('Dates de début et fin de pause requises');
   }
 
+  const pauseStartDate = new Date(startDate);
+  const pauseEndDate = new Date(endDate);
+
+  if (Number.isNaN(pauseStartDate.getTime()) || Number.isNaN(pauseEndDate.getTime())) {
+    throw new HttpBadRequestError('Dates de pause invalides');
+  }
+
+  if (pauseEndDate <= pauseStartDate) {
+    throw new HttpBadRequestError('La date de fin de pause doit être postérieure à la date de début');
+  }
+
   const subscription = await prisma.subscription.findUnique({ where: { id } });
 
   if (!subscription) {
@@ -582,7 +593,7 @@ const pauseSubscription = asyncHandler(async (req, res) => {
   const daysUsed = existingPauses.reduce((sum, p) =>
     sum + Math.round((new Date(p.endDate) - new Date(p.startDate)) / 86400000), 0
   );
-  const daysRequested = Math.round((new Date(endDate) - new Date(startDate)) / 86400000);
+  const daysRequested = Math.round((pauseEndDate - pauseStartDate) / 86400000);
   if (daysUsed + daysRequested > 14) {
     throw new HttpBadRequestError(
       `Limite de 2 semaines de pause atteinte. Jours déjà utilisés : ${daysUsed}/14`
@@ -593,8 +604,8 @@ const pauseSubscription = asyncHandler(async (req, res) => {
   const pause = await prisma.subscriptionPause.create({
     data: {
       subscriptionId: id,
-      startDate: new Date(startDate),
-      endDate: new Date(endDate),
+      startDate: pauseStartDate,
+      endDate: pauseEndDate,
       reason
     }
   });

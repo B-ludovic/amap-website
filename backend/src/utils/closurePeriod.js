@@ -34,6 +34,19 @@ export function countClosureDays(startDate, endDate) {
   return Math.round((end - start) / MS_PER_DAY) + 1;
 }
 
+/* Part d'une fermeture qui tombe dans une année donnée. Une fermeture qui
+   traverse le Nouvel An consomme donc le quota de chacune des deux années. */
+export function countClosureDaysInYear(startDate, endDate, year) {
+  const start = getUtcDayBounds(startDate).start;
+  const end = getUtcDayBounds(endDate).start;
+  const yearStart = new Date(Date.UTC(year, 0, 1));
+  const yearEnd = new Date(Date.UTC(year, 11, 31));
+  const boundedStart = start > yearStart ? start : yearStart;
+  const boundedEnd = end < yearEnd ? end : yearEnd;
+
+  return boundedEnd < boundedStart ? 0 : Math.round((boundedEnd - boundedStart) / MS_PER_DAY) + 1;
+}
+
 /* Bornes de l'année civile d'une date, pour cerner le quota annuel. */
 export function getYearBounds(value) {
   const year = new Date(value).getUTCFullYear();
@@ -46,6 +59,6 @@ export function getYearBounds(value) {
 }
 
 /* Somme des jours consommés par une liste de fermetures. */
-export function sumClosureDays(closures) {
-  return closures.reduce((total, closure) => total + countClosureDays(closure.startDate, closure.endDate), 0);
+export function sumClosureDays(closures, year) {
+  return closures.reduce((total, closure) => total + countClosureDaysInYear(closure.startDate, closure.endDate, year), 0);
 }

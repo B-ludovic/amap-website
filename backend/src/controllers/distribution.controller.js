@@ -98,8 +98,12 @@ const getDistributionList = asyncHandler(async (req, res) => {
 // MARQUER COMME RÉCUPÉRÉ
 const markAsPickedUp = asyncHandler(async (req, res) => {
   const { pickupId } = req.params;
-  const { wasPickedUp, notes } = req.body;
+  const { wasPickedUp, notes, weeklyBasketId } = req.body;
   const pickedUpBy = `${req.user.firstName} ${req.user.lastName}`;
+
+  if (typeof wasPickedUp !== 'boolean') {
+    throw new HttpBadRequestError('wasPickedUp doit être un booléen');
+  }
 
   // Chercher ou créer le pickup
   let pickup;
@@ -117,6 +121,10 @@ const markAsPickedUp = asyncHandler(async (req, res) => {
       where: { id: weeklyBasketId }
     });
 
+    if (!weeklyBasket) {
+      throw new HttpNotFoundError('Panier hebdomadaire introuvable');
+    }
+
     pickup = await prisma.weeklyPickup.create({
       data: {
         subscriptionId,
@@ -130,12 +138,20 @@ const markAsPickedUp = asyncHandler(async (req, res) => {
     });
   } else {
     // Mettre à jour un pickup existant
+    if (!weeklyBasketId) {
+      throw new HttpBadRequestError('weeklyBasketId requis');
+    }
+
     pickup = await prisma.weeklyPickup.findUnique({
       where: { id: pickupId }
     });
 
     if (!pickup) {
       throw new HttpNotFoundError('Retrait introuvable');
+    }
+
+    if (pickup.weeklyBasketId !== weeklyBasketId) {
+      throw new HttpNotFoundError('Retrait introuvable pour ce panier hebdomadaire');
     }
 
     previousPickup = pickup;

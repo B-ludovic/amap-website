@@ -10,7 +10,10 @@ export function middleware(request) {
 
   const csp = [
     "default-src 'self'",
-    `script-src 'nonce-${nonce}' 'strict-dynamic' 'unsafe-eval'`,
+    /* 'unsafe-eval' n'est requis que par les source maps eval de webpack en
+       développement. En production il n'a aucun usage et rouvre les gadgets de
+       contournement de strict-dynamic. */
+    `script-src 'nonce-${nonce}' 'strict-dynamic'${isProd ? '' : " 'unsafe-eval'"}`,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob: https:",
     "font-src 'self' data:",
@@ -22,9 +25,10 @@ export function middleware(request) {
     ...(isProd ? ["upgrade-insecure-requests"] : []),
   ].join('; ');
 
+  // Seul x-nonce a besoin d'être transmis au rendu : la CSP est un en-tête de
+  // réponse, la poser sur la requête n'a aucun effet.
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set('x-nonce', nonce);
-  requestHeaders.set('Content-Security-Policy', csp);
 
   const response = NextResponse.next({
     request: { headers: requestHeaders },
@@ -33,6 +37,8 @@ export function middleware(request) {
   response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
   response.headers.set('Cross-Origin-Opener-Policy', 'same-origin');
   response.headers.set('X-Frame-Options', 'DENY');
+  response.headers.set('X-Content-Type-Options', 'nosniff');
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
 
   return response;
 }

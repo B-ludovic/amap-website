@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { spellNumber } from '../../constants/numberWords';
+import JsonLd from '../../components/JsonLd';
 import '../../styles/public/faq.css';
 
 const FAQ_CATEGORIES = [
@@ -159,10 +160,7 @@ export default function FaqPage() {
 
   return (
     <div className="faq-page">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
-      />
+      <JsonLd data={faqSchema} />
 
       {/* Hero */}
       <section className="faq-hero">

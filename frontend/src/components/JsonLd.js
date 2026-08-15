@@ -5,10 +5,14 @@ function safeJsonLd(data) {
     .replace(/&/g, '\\u0026');
 }
 
-export default function JsonLd({ data }) {
+/* Le nonce reste optionnel : sans 'unsafe-inline', certains navigateurs
+   bloquent aussi les blocs script non exécutables. Le passer quand on est dans
+   un composant serveur évite le bruit en console. */
+export default function JsonLd({ data, nonce }) {
   return (
     <script
       type="application/ld+json"
+      nonce={nonce}
       dangerouslySetInnerHTML={{ __html: safeJsonLd(data) }}
     />
   );
