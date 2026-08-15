@@ -11,12 +11,6 @@ Plateforme web moderne pour la gestion d'une AMAP (Association pour le Maintien 
 ![Inscription](screenshots/inscription.png)
 ![Détail d'une recette](screenshots/detail-recette.png)
 
-### Thèmes saisonniers
-![Thème printemps](screenshots/theme-printemps.png)
-![Thème été](screenshots/theme-ete.png)
-![Thème automne](screenshots/theme-automne.png)
-![Thème hiver](screenshots/theme-hiver.png)
-
 ### Interface mobile responsive
 ![Menu burger](screenshots/menu-burger.png)
 ![Accueil mobile](screenshots/mobile-accueil.png)
@@ -28,8 +22,9 @@ Plateforme web moderne pour la gestion d'une AMAP (Association pour le Maintien 
 ## 📋 Description
 
 Ce projet est un site complet permettant de gérer une AMAP de A à Z :
-- 🛒 Gestion des paniers hebdomadaires (création manuelle ou génération automatique)
+- 🛒 Gestion des paniers hebdomadaires (création manuelle ou génération automatique depuis le catalogue saisonnier)
 - 👥 Gestion des adhérents, demandes et abonnements
+- 💶 Grille tarifaire calculée en un seul endroit, du formulaire public au contrat PDF signé
 - 🚜 Présentation des producteurs et des produits locaux
 - 📅 Organisation des permanences de distribution et de l'émargement
 - 📧 Communication avec les membres (newsletters, emails transactionnels)
@@ -66,12 +61,12 @@ amap-website/
 ├── frontend/          # Application Next.js
 │   ├── src/
 │   │   ├── app/         # Pages, routes, sitemap.js, robots.js
-│   │   │   └── admin/   # Espace d'administration (14 écrans)
+│   │   │   └── admin/   # Espace d'administration (15 écrans)
 │   │   ├── components/  # Composants (admin, auth, common, home, layout)
 │   │   ├── constants/   # Icônes produits, listes de recettes, nombres en toutes lettres
-│   │   ├── contexts/    # Contextes React (Auth, Modal, Theme)
+│   │   ├── contexts/    # Contextes React (Auth, Modal)
 │   │   ├── hooks/       # Hooks personnalisés (useFocusTrap)
-│   │   ├── lib/         # Utilitaires (api.js, logger.js, format.js, closures.js)
+│   │   ├── lib/         # Utilitaires (api.js, logger.js, format.js, closures.js, memberSearch.js)
 │   │   ├── middleware.js # CSP nonce, HSTS, COOP, X-Frame-Options
 │   │   └── styles/      # CSS (variables, globals, admin/, components/)
 │   ├── scripts/         # copy-orejime.js (postinstall)
@@ -79,20 +74,20 @@ amap-website/
 │
 └── backend/           # API Express
     ├── src/
-    │   ├── config/       # Connexion Prisma / PostgreSQL
-    │   ├── controllers/  # Logique métier (15 contrôleurs)
+    │   ├── config/       # Chargement et contrôle de la configuration, connexion Prisma / PostgreSQL
+    │   ├── controllers/  # Logique métier (14 contrôleurs)
     │   ├── routes/       # Routes API
     │   ├── middlewares/  # Auth (cookie JWT), rôles, gestion d'erreurs
     │   ├── services/     # Email, contrats PDF, recettes, audit, clôtures, génération de paniers
     │   ├── jobs/         # Tâches planifiées (rappels, purge RGPD, panier auto)
-    │   └── utils/        # Schémas Zod, erreurs HTTP, tarification, calendrier
+    │   └── utils/        # Schémas Zod, erreurs HTTP, grille tarifaire, calendrier
     ├── templates/        # Gabarit Handlebars du contrat PDF
     ├── scripts/          # create-admin.js, extractLogo.js
     └── prisma/
         ├── schema.prisma  # Modèle de données
         ├── seed.js        # Jeu de données de démonstration
         ├── seed-safe.js   # Seed non destructif
-        └── migrations/    # 21 migrations
+        └── migrations/    # 20 migrations
 ```
 
 ## 🛠️ Installation
@@ -134,6 +129,8 @@ Variables attendues dans `backend/.env` :
 | `BREVO_SMTP_KEY` | Clé SMTP Brevo |
 | `EMAIL_FROM` | Adresse d'expédition des emails |
 | `FRONTEND_URL` | URL du frontend (liens dans les emails + origine CORS autorisée) |
+
+> `DATABASE_URL`, `JWT_SECRET` et `FRONTEND_URL` sont obligatoires : le serveur s'arrête au démarrage si l'une manque. `BREVO_SMTP_USER` et `BREVO_SMTP_KEY` bloquent le démarrage en production seulement — en développement, un avertissement signale que les emails ne partiront pas.
 
 Puis initialiser la base :
 ```bash
@@ -229,7 +226,7 @@ NEXT_PUBLIC_GA_ID=...          # ID Google Analytics (ex: G-XXXXXXXXXX)
 
 ### Pour les adhérents
 - Inscription, connexion, réinitialisation de mot de passe, vérification d'email
-- Demande d'abonnement en ligne (formule annuelle ou découverte, petit ou grand panier, tarif normal ou solidaire)
+- Demande d'abonnement en ligne (formule annuelle ou découverte, petit ou grand panier, tarif normal ou solidaire, règlement en 1, 2 ou 4 chèques) avec les montants exacts affichés avant l'envoi
 - Consultation du panier de la semaine avec horaire et adresse de retrait
 - Suggestions et recherche de recettes basées sur les légumes du panier
 - Inscription aux permanences de distribution, avec désistement encadré
@@ -239,20 +236,20 @@ NEXT_PUBLIC_GA_ID=...          # ID Google Analytics (ex: G-XXXXXXXXXX)
 - Suppression du compte (RGPD art. 17)
 
 ### Pour les administrateurs
-Espace dédié de 14 écrans, pagination unifiée sur toutes les listes :
+Espace dédié de 15 écrans, pagination unifiée sur toutes les listes :
 - **Demandes d'abonnement** : validation, refus, rattachement au compte utilisateur, génération du contrat PDF pré-rempli (Puppeteer + Handlebars)
 - **Abonnements** : activation, résiliation, pause individuelle (limite 2 semaines/an)
 - **Fermetures** : fermetures collectives de l'AMAP (limite 3 semaines/an) avec newsletter automatique, contrôle de collision avec les permanences existantes
 - **Panier hebdomadaire** : composition manuelle ou génération automatique depuis le catalogue saisonnier, publication avec notification email aux abonnés actifs (envoi par batch)
-- **Distribution** : liste d'émargement, pointage optimiste des retraits, note par adhérent, statistiques, export CSV compatible Excel (UTF-8 BOM)
+- **Distribution** : liste d'émargement, pointage optimiste des retraits, recherche instantanée d'un adhérent, note par adhérent, statistiques, export CSV généré par le serveur (compatible Excel, UTF-8 BOM) et tracé au journal d'audit
 - **Permanences** : création, duplication, gestion des bénévoles inscrits
-- **Producteurs / Produits** : fiches fermes, saisonnalité des produits, tailles de panier éligibles
+- **Producteurs / Produits** : fiches fermes détaillées (commune, distance au point de retrait, certification, détail libre type « Surface : 4 hectares », année d'entrée dans l'AMAP), saisonnalité des produits, tailles de panier éligibles
 - **Demandes producteurs** : traitement des candidatures avec emails d'acceptation/refus
 - **Communication** : newsletters rich-text (Tiptap), envoi groupé, programmation, brouillons
 - **Messages** : boîte de réception du formulaire de contact (lu / non-lu / archivé)
 - **Utilisateurs** : gestion des comptes et des rôles
 - **Journal** : journal d'audit des actions sensibles, filtrable par sévérité
-- **Paramètres** : thèmes saisonniers et personnalisation des couleurs
+- **Paramètres** : suppression des jeux de données d'exemple (producteurs, produits, points de retrait marqués comme exemples), action irréversible et journalisée
 - **Tableau de bord** : statistiques de l'association
 
 ### Automatisations
@@ -260,6 +257,13 @@ Trois tâches tournent avec le serveur, sans planificateur externe :
 - **Rappel de renouvellement** : email aux abonnés dont le contrat expire dans 30 jours (une seule fois par abonnement)
 - **Purge RGPD** : suppression définitive des comptes supprimés depuis 90 jours et des inscriptions non vérifiées depuis 30 jours, en transaction et sur prédicat relationnel (un compte restauré entre-temps échappe à la purge)
 - **Génération du panier** : chaque jeudi à 2h (Europe/Paris) pour la distribution du mercredi suivant, tirage dans le catalogue de la saison en cours, sautée si une fermeture couvre la semaine
+
+### Tarification & contrats
+Le prix d'un contrat ne s'écrit nulle part à la main : il se déduit de deux nombres, le prix hebdomadaire du panier et le nombre de semaines réellement livrées.
+- Source unique dans `backend/src/utils/subscriptionPricing.js` : 19 € (petit panier) et 29,80 € (grand panier) par semaine, 49 livraisons pour l'annuel et 12 pour la découverte, fermetures de l'AMAP déjà déduites
+- **Tarif solidaire** : l'adhérent règle 20 % du total, les 80 % restants étant pris en charge par le Secours Catholique — c'est cette part réellement due qui est imprimée sur le contrat
+- **Règlement en 1, 2 ou 4 chèques** : les premiers chèques sont arrondis à l'euro, le dernier est obtenu par soustraction et absorbe la monnaie, ce qui garantit que la somme des chèques égale exactement le prix
+- Le serveur expose la grille complète (prix, ventilation en chèques, tarif solidaire) : le formulaire public l'affiche au lieu de recopier les nombres, et le PDF signé lit la même table
 
 ### Recettes & Cuisine
 - Intégration API TheMealDB avec traduction automatique en français (google-translate-api-x)
@@ -270,7 +274,8 @@ Trois tâches tournent avec le serveur, sans planificateur externe :
 - Pages dédiées avec liste et détail des recettes
 
 ### Design & Sécurité
-- Design responsive (desktop, tablet, mobile) avec thèmes saisonniers dynamiques
+- Design responsive (desktop, tablet, mobile), design tokens centralisés dans `frontend/src/styles/variables.css`
+- **Démarrage bloquant sur configuration incomplète** : sans `DATABASE_URL`, `JWT_SECRET` ou `FRONTEND_URL`, le serveur refuse de démarrer au lieu de répondre 200 sur `/api/health` en ratant toutes les connexions ; les identifiants SMTP sont exigés en production et avertis bruyamment en développement
 - **Authentification par cookie `httpOnly`** (`SameSite=Lax`, `Secure` en production, 7 jours), invisible du JavaScript client
 - **Révocation de session** : un compteur `tokenVersion` en base invalide instantanément tous les tokens émis (changement de rôle, réinitialisation de mot de passe)
 - Protection des routes par rôle (MEMBER, VOLUNTEER, ADMIN)
@@ -280,7 +285,7 @@ Trois tâches tournent avec le serveur, sans planificateur externe :
 - **CSP nonce-based** via middleware Next.js (`script-src 'nonce' 'strict-dynamic'`, `'unsafe-eval'` retiré en production)
 - **HSTS** (`max-age=31536000; includeSubDomains; preload`), **COOP** (`same-origin`), **X-Frame-Options** (`DENY`), `nosniff`, `Referrer-Policy`
 - JSON-LD sécurisé : échappement `<`, `>`, `&` dans les scripts structurés
-- **Journal d'audit** : 33 actions d'administration tracées (acteur, cible, IP, détails JSON, sévérité CRITICAL / IMPORTANT), l'échec du log ne fait jamais échouer l'action métier
+- **Journal d'audit** : 32 actions d'administration tracées (acteur, cible, IP, détails JSON, sévérité CRITICAL / IMPORTANT), l'échec du log ne fait jamais échouer l'action métier
 - Visiteurs anonymes : pas de requête `/auth/me` (flag `localStorage`) → zéro 401 en console
 - Erreurs API remontées telles quelles à l'utilisateur, y compris l'échec réseau (« Serveur injoignable »)
 - Gestion du consentement cookies conforme RGPD (Orejime)
@@ -314,13 +319,13 @@ Le schéma Prisma comprend :
 - **Newsletter** - Communications (type, cible, programmation)
 - **ContactMessage** - Messages de contact
 - **AuditLog** - Journal d'audit des actions d'administration
-- **ThemeConfig** - Configuration du thème actif
+- **ThemeConfig** - Table héritée de l'ancien système de thèmes saisonniers, plus lue par l'application
 
 ## 🎨 Personnalisation
 
-Les administrateurs peuvent choisir parmi 4 thèmes saisonniers prédéfinis (Printemps, Été, Automne, Hiver) et personnaliser leurs couleurs. Les thèmes sont stockés en base de données et appliqués dynamiquement via le `ThemeProvider` React.
+Les couleurs, espacements et typographies sont centralisés en design tokens dans `frontend/src/styles/variables.css`. Une modification de palette se fait à cet endroit et se propage à tout le site : aucun style n'est écrit en dur dans les composants.
 
-Les couleurs et styles sont centralisés dans `frontend/src/styles/variables.css`.
+Le site n'utilise aucun framework CSS utilitaire — uniquement du CSS natif organisé par écran dans `frontend/src/styles/` (`admin/`, `components/`, `public/`).
 
 ## 📝 Scripts disponibles
 
@@ -338,7 +343,6 @@ Les couleurs et styles sont centralisés dans `frontend/src/styles/variables.css
 - `npm run studio` - Interface graphique de la base
 - `npm run seed` / `npm run seed:safe` - Données d'exemple (destructif / non destructif)
 - `node scripts/create-admin.js` - Crée le premier compte admin en production
-- `node prisma/migrate-theme-colors.js` - Met à jour les couleurs de thème en base (WCAG AA)
 
 ### Frontend
 - `npm run dev` - Next.js en développement
@@ -348,6 +352,10 @@ Les couleurs et styles sont centralisés dans `frontend/src/styles/variables.css
 - `npm run postinstall` - Copie les fichiers Orejime dans `public/` (automatique après `npm install`)
 
 ## 🐛 Débogage
+
+**Le serveur refuse de démarrer :**
+- Message « Variables d'environnement manquantes » : `DATABASE_URL`, `JWT_SECRET` ou `FRONTEND_URL` n'est pas défini
+- Message « Identifiants SMTP manquants » en production : renseignez `BREVO_SMTP_USER` et `BREVO_SMTP_KEY` (voir `.env.example`, qui détaille où les récupérer dans Brevo)
 
 **Problème de connexion à la DB :**
 - Vérifiez que PostgreSQL est démarré

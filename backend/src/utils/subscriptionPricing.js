@@ -72,9 +72,20 @@ export function splitPayment(price, paymentType = '1') {
   return [toCents(price)];
 }
 
+/* Les trois ventilations possibles d'un même montant, indexées par modalité. */
+const installmentsFor = (price) => Object.fromEntries(
+  PAYMENT_TYPES.map((paymentType) => [paymentType, splitPayment(price, paymentType)])
+);
+
 /* Grille complète, telle que le formulaire public et l'administration doivent
    l'afficher. Le serveur l'expose au lieu de laisser le navigateur recopier les
-   nombres : c'est la même table qui décide de l'affichage et du contrat. */
+   nombres : c'est la même table qui décide de l'affichage et du contrat.
+
+   La ventilation en chèques descend ici pour la même raison que le prix. Le
+   formulaire public l'affichait à partir de son propre calcul, écrit dans le
+   navigateur ; il tombait juste, mais rien ne le garantissait — deux règles
+   d'arrondi vivant chacune de leur côté finissent toujours par diverger, et
+   celle-ci est imprimée sur un contrat signé par les deux parties. */
 export function getPricingGrid() {
   const grid = {};
 
@@ -82,13 +93,18 @@ export function getPricingGrid() {
     grid[type] = {};
 
     for (const basketSize of Object.keys(WEEKLY_PRICE)) {
+      const price = computeSubscriptionPrice({ type, basketSize });
+      const priceSolidarity = computeSubscriptionPrice({ type, basketSize, pricingType: 'SOLIDARITY' });
+
       grid[type][basketSize] = {
         name: `${TYPE_LABEL[type]} - ${BASKET_LABEL[basketSize]}`,
         weight: BASKET_WEIGHT[basketSize],
         weeks: DELIVERED_WEEKS[type],
         weeklyPrice: WEEKLY_PRICE[basketSize],
-        price: computeSubscriptionPrice({ type, basketSize }),
-        priceSolidarity: computeSubscriptionPrice({ type, basketSize, pricingType: 'SOLIDARITY' }),
+        price,
+        priceSolidarity,
+        installments: installmentsFor(price),
+        installmentsSolidarity: installmentsFor(priceSolidarity),
       };
     }
   }
