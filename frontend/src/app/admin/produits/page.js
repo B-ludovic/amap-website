@@ -69,6 +69,7 @@ export default function AdminProductsPage() {
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
@@ -106,16 +107,19 @@ export default function AdminProductsPage() {
   const openCreate = () => {
     setEditing({ id: null });
     setForm({ ...EMPTY_FORM, producerId: producers[0]?.id ?? '' });
+    setIsDirty(false);
   };
 
   const openEdit = (product) => {
     setEditing(product);
     setForm(toForm(product));
+    setIsDirty(false);
   };
 
   const setField = (field) => (event) => {
     const value = event.target.type === 'checkbox' ? event.target.checked : event.target.value;
     setForm(current => ({ ...current, [field]: value }));
+    setIsDirty(true);
   };
 
   const toggleInList = (field, value) => () => {
@@ -125,6 +129,7 @@ export default function AdminProductsPage() {
         ? current[field].filter(item => item !== value)
         : [...current[field], value]
     }));
+    setIsDirty(true);
   };
 
   const handleSave = async (event) => {
@@ -267,6 +272,7 @@ export default function AdminProductsPage() {
           title={editing.id ? 'Produit' : 'Nouveau produit'}
           width="640px"
           onClose={() => setEditing(null)}
+          isDirty={isDirty}
         >
           <form onSubmit={handleSave}>
             <div className="admin-form">

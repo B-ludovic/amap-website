@@ -61,6 +61,7 @@ export default function AdminProducersPage() {
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
 
   const fetchProducers = useCallback(async () => {
     setLoading(true);
@@ -106,16 +107,19 @@ export default function AdminProducersPage() {
   const openCreate = () => {
     setEditing({ id: null });
     setForm(EMPTY_FORM);
+    setIsDirty(false);
   };
 
   const openEdit = (producer) => {
     setEditing(producer);
     setForm(toForm(producer));
+    setIsDirty(false);
   };
 
   const setField = (field) => (event) => {
     const value = event.target.type === 'checkbox' ? event.target.checked : event.target.value;
     setForm(current => ({ ...current, [field]: value }));
+    setIsDirty(true);
   };
 
   const handleSave = async (event) => {
@@ -227,6 +231,7 @@ export default function AdminProducersPage() {
           title={editing.id ? 'Producteur' : 'Nouveau producteur'}
           width="640px"
           onClose={() => setEditing(null)}
+          isDirty={isDirty}
         >
           <form onSubmit={handleSave}>
             <div className="admin-form">

@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import api from "../../../lib/api";
 import logger from "../../../lib/logger";
 import { useModal } from "../../../contexts/ModalContext";
+import PickupNoteModal from "../../../components/admin/PickupNoteModal";
 import "../../../styles/admin/components.css";
 import "../../../styles/admin/dashboard.css";
 import "../../../styles/admin/layout.css";
@@ -24,20 +25,17 @@ export default function AdminDistributionPage() {
   const [distributionList, setDistributionList] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [listLoading, setListLoading] = useState(false);
   const [basketError, setBasketError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  
-  const { showSuccess, showError } = useModal();
+  const [noteTarget, setNoteTarget] = useState(null);
+
+  const { showError } = useModal();
+  const debounceRef = useRef(null);
 
   useEffect(() => {
     fetchCurrentBasket();
   }, []);
-
-  useEffect(() => {
-    if (currentBasket) {
-      fetchDistributionList();
-    }
-  }, [currentBasket, searchTerm]);
 
   const fetchCurrentBasket = async () => {
     setLoading(true);
@@ -58,12 +56,14 @@ export default function AdminDistributionPage() {
     }
   };
 
-  const fetchDistributionList = async () => {
+  const fetchDistributionList = useCallback(async (term) => {
+    if (!currentBasket) return;
+
+    setListLoading(true);
     try {
-      setLoading(true);
-      const params = searchTerm ? { search: searchTerm } : {};
+      const params = term ? { search: term } : {};
       const response = await api.distribution.getList(currentBasket.id, params);
-      
+
       setDistributionList(response.data.list);
       setStats({
         totalSubscribers: response.data.totalSubscribers,
@@ -71,68 +71,75 @@ export default function AdminDistributionPage() {
         pending: response.data.pending
       });
     } catch (error) {
-      showError('Erreur', 'Erreur lors du chargement de la liste');
+      showError('Erreur', error.message);
     } finally {
-      setLoading(false);
+      setListLoading(false);
     }
+  }, [currentBasket, showError]);
+
+  /* La recherche part vers le serveur après une pause de frappe : le filtrage
+     est fait par l'API, un appel par caractère saturerait la liste et les
+     réponses pourraient revenir dans le désordre. */
+  useEffect(() => {
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      fetchDistributionList(searchTerm);
+    }, searchTerm ? 300 : 0);
+
+    return () => clearTimeout(debounceRef.current);
+  }, [searchTerm, fetchDistributionList]);
+
+  // Remplace le retrait d'une seule ligne, sans toucher au reste de la liste.
+  const patchRow = (subscriptionId, pickup) => {
+    setDistributionList(list =>
+      list.map(row => (row.subscriptionId === subscriptionId ? { ...row, pickup } : row))
+    );
   };
 
+  const shiftCounters = (delta) => {
+    setStats(current => current && {
+      ...current,
+      pickedUp: current.pickedUp + delta,
+      pending: current.pending - delta,
+    });
+  };
+
+  /* Pointage optimiste : à la table, la ligne doit réagir au doigt et non au
+     réseau. On ne recharge pas la liste — le serveur renvoie le retrait
+     enregistré, qu'on fond dans la ligne pour récupérer son identifiant (cas
+     d'une première coche) et l'heure de retrait dont l'export a besoin.
+     Pas de modale de succès : la ligne qui passe au vert et le compteur qui
+     avance sont déjà l'accusé de réception. */
   const handleTogglePickup = async (item) => {
     const newStatus = !item.pickup?.wasPickedUp;
 
-    try {
-      if (item.pickup) {
-        // Mettre à jour un pickup existant
-        await api.distribution.markAsPickedUp(item.pickup.id, {
-          wasPickedUp: newStatus,
-          weeklyBasketId: currentBasket.id
-        });
-      } else {
-        // Créer un nouveau pickup
-        await api.distribution.markAsPickedUp('new', {
-          subscriptionId: item.subscriptionId,
-          weeklyBasketId: currentBasket.id,
-          wasPickedUp: newStatus
-        });
-      }
+    patchRow(item.subscriptionId, { ...item.pickup, wasPickedUp: newStatus });
+    shiftCounters(newStatus ? 1 : -1);
 
-      showSuccess(
-        'Succès',
-        newStatus ? 'Retrait validé' : 'Retrait annulé'
-      );
-      
-      fetchDistributionList();
+    try {
+      const response = item.pickup
+        ? await api.distribution.markAsPickedUp(item.pickup.id, {
+            wasPickedUp: newStatus,
+            weeklyBasketId: currentBasket.id
+          })
+        : await api.distribution.markAsPickedUp('new', {
+            subscriptionId: item.subscriptionId,
+            weeklyBasketId: currentBasket.id,
+            wasPickedUp: newStatus
+          });
+
+      if (response.data) patchRow(item.subscriptionId, response.data);
     } catch (error) {
+      // Retour en arrière ciblé : un pointage voisin en cours n'est pas écrasé.
+      patchRow(item.subscriptionId, item.pickup);
+      shiftCounters(newStatus ? -1 : 1);
       showError('Erreur', error.message);
     }
   };
 
-  const handleAddNote = async (item) => {
-    const note = prompt('Ajouter une note (ex: "Récupéré par son voisin") :');
-    
-    if (!note) return;
-
-    try {
-      if (item.pickup) {
-        await api.distribution.markAsPickedUp(item.pickup.id, {
-          wasPickedUp: item.pickup.wasPickedUp,
-          notes: note,
-          weeklyBasketId: currentBasket.id
-        });
-      } else {
-        await api.distribution.markAsPickedUp('new', {
-          subscriptionId: item.subscriptionId,
-          weeklyBasketId: currentBasket.id,
-          wasPickedUp: false,
-          notes: note
-        });
-      }
-
-      showSuccess('Succès', 'Note ajoutée avec succès');
-      fetchDistributionList();
-    } catch (error) {
-      showError('Erreur', 'Erreur lors de l\'ajout de la note');
-    }
+  const handleNoteClosed = (pickup) => {
+    if (pickup) patchRow(noteTarget.subscriptionId, pickup);
+    setNoteTarget(null);
   };
 
   const handleExport = () => {
@@ -286,7 +293,7 @@ export default function AdminDistributionPage() {
       </div>
 
       {/* Liste d'émargement */}
-      {loading ? (
+      {listLoading ? (
         <div className="loading-state">Chargement...</div>
       ) : distributionList.length === 0 ? (
         <div className="empty-state">
@@ -369,8 +376,8 @@ export default function AdminDistributionPage() {
                     <td data-label="Actions">
                       <button
                         className="btn btn-sm btn-secondary"
-                        onClick={() => handleAddNote(item)}
-                        title="Ajouter une note"
+                        onClick={() => setNoteTarget(item)}
+                        title={item.pickup?.notes ? 'Modifier la note' : 'Ajouter une note'}
                       >
                         Note
                       </button>
@@ -400,6 +407,14 @@ export default function AdminDistributionPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {noteTarget && (
+        <PickupNoteModal
+          item={noteTarget}
+          weeklyBasketId={currentBasket.id}
+          onClose={handleNoteClosed}
+        />
       )}
     </div>
   );

@@ -42,7 +42,9 @@ export default function AdminWeeklyBasketPage() {
   const [products, setProducts] = useState([]);
   const [notesTarget, setNotesTarget] = useState(null);
   const [notesDraft, setNotesDraft] = useState('');
+  const [isNotesDirty, setIsNotesDirty] = useState(false);
   const [drawDate, setDrawDate] = useState(null);
+  const [isDrawDirty, setIsDrawDirty] = useState(false);
   const [busy, setBusy] = useState(false);
 
   const fetchAll = useCallback(async () => {
@@ -219,7 +221,10 @@ export default function AdminWeeklyBasketPage() {
             saison, puis figé en base. Cet écran rend compte du tirage et permet de le corriger.
           </p>
         </div>
-        <button type="button" className="admin-btn-ghost" onClick={() => setDrawDate(nextWednesday())}>
+        <button type="button" className="admin-btn-ghost" onClick={() => {
+          setDrawDate(nextWednesday());
+          setIsDrawDirty(false);
+        }}>
           Tirer un panier
         </button>
       </div>
@@ -254,7 +259,11 @@ export default function AdminWeeklyBasketPage() {
                 <button
                   type="button"
                   className="admin-btn-ghost"
-                  onClick={() => { setNotesTarget(current); setNotesDraft(current.notes ?? ''); }}
+                  onClick={() => {
+                    setNotesTarget(current);
+                    setNotesDraft(current.notes ?? '');
+                    setIsNotesDirty(false);
+                  }}
                 >
                   Message de la semaine
                 </button>
@@ -431,7 +440,11 @@ export default function AdminWeeklyBasketPage() {
             <button
               type="button"
               className="admin-btn-ghost"
-              onClick={() => { setNotesTarget(inspected); setNotesDraft(inspected.notes ?? ''); }}
+              onClick={() => {
+                setNotesTarget(inspected);
+                setNotesDraft(inspected.notes ?? '');
+                setIsNotesDirty(false);
+              }}
             >
               Message de la semaine
             </button>
@@ -449,6 +462,7 @@ export default function AdminWeeklyBasketPage() {
           title="Message de la semaine"
           width="560px"
           onClose={() => setNotesTarget(null)}
+          isDirty={isNotesDirty}
         >
           <div className="admin-form">
             <div className="admin-form-field">
@@ -461,7 +475,10 @@ export default function AdminWeeklyBasketPage() {
                 rows={4}
                 placeholder="Message de la semaine pour les adhérents…"
                 value={notesDraft}
-                onChange={(event) => setNotesDraft(event.target.value)}
+                onChange={(event) => {
+                  setNotesDraft(event.target.value);
+                  setIsNotesDirty(true);
+                }}
               />
             </div>
           </div>
@@ -478,7 +495,7 @@ export default function AdminWeeklyBasketPage() {
       )}
 
       {drawDate && (
-        <AdminModal title="Tirer un panier" width="560px" onClose={() => setDrawDate(null)}>
+        <AdminModal title="Tirer un panier" width="560px" onClose={() => setDrawDate(null)} isDirty={isDrawDirty}>
           <div className="admin-form">
             <div className="admin-form-field">
               <label htmlFor="admin-basket-draw" className="admin-field-label">Date de distribution</label>
@@ -487,7 +504,10 @@ export default function AdminWeeklyBasketPage() {
                 type="date"
                 className="admin-input admin-input-mono"
                 value={drawDate}
-                onChange={(event) => setDrawDate(event.target.value)}
+                onChange={(event) => {
+                  setDrawDate(event.target.value);
+                  setIsDrawDirty(true);
+                }}
               />
             </div>
             <p className="admin-product-hint">

@@ -1,26 +1,42 @@
 'use client';
 
 import { useEffect } from 'react';
+import { useModal } from '../../contexts/ModalContext';
 
 /* Panneau modal commun à toutes les fiches de l'administration.
    La largeur suit la table MODAL_WIDTHS de la maquette : chaque vue passe la
    sienne en pixels, le panneau la lit comme variable CSS. */
-export default function AdminModal({ title, width = '680px', onClose, children }) {
+export default function AdminModal({ title, width = '680px', onClose, isDirty = false, children }) {
+  const { showConfirm } = useModal();
+
+  const requestClose = () => {
+    if (!isDirty) {
+      onClose();
+      return;
+    }
+
+    showConfirm(
+      'Abandonner les modifications ?',
+      'Les modifications non enregistrées seront perdues.',
+      onClose
+    );
+  };
+
   useEffect(() => {
     const onKeyDown = (event) => {
-      if (event.key === 'Escape') onClose();
+      if (event.key === 'Escape') requestClose();
     };
 
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
-  }, [onClose]);
+  }, [requestClose]);
 
   return (
     <div
       className="admin-modal-veil"
       role="presentation"
       onMouseDown={(event) => {
-        if (event.target === event.currentTarget) onClose();
+        if (event.target === event.currentTarget) requestClose();
       }}
     >
       <div
@@ -32,7 +48,7 @@ export default function AdminModal({ title, width = '680px', onClose, children }
       >
         <div className="admin-modal-head">
           <h2 className="admin-modal-title">{title}</h2>
-          <button type="button" className="admin-modal-close" onClick={onClose} aria-label="Fermer">
+          <button type="button" className="admin-modal-close" onClick={requestClose} aria-label="Fermer">
             ✕
           </button>
         </div>

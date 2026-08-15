@@ -156,12 +156,17 @@ const markAsPickedUp = asyncHandler(async (req, res) => {
 
     previousPickup = pickup;
 
+    /* L'heure et l'auteur suivent l'état du retrait, sans jamais le contredire :
+       on efface les deux quand le panier est décoché, sinon l'export imprimerait
+       « Non » dans « Retiré » avec une heure dans « Heure retrait ». Et on garde
+       l'horodatage d'origine s'il existe déjà : ajouter une note à un panier
+       déjà récupéré ne doit pas réécrire l'heure à laquelle il l'a été. */
     pickup = await prisma.weeklyPickup.update({
       where: { id: pickupId },
       data: {
-        wasPickedUp: wasPickedUp !== undefined ? wasPickedUp : pickup.wasPickedUp,
-        pickedUpAt: wasPickedUp ? new Date() : pickup.pickedUpAt,
-        pickedUpBy: wasPickedUp ? pickedUpBy : pickup.pickedUpBy,
+        wasPickedUp,
+        pickedUpAt: wasPickedUp ? (pickup.pickedUpAt ?? new Date()) : null,
+        pickedUpBy: wasPickedUp ? (pickup.pickedUpBy ?? pickedUpBy) : null,
         notes
       }
     });

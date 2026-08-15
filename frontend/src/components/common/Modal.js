@@ -84,7 +84,7 @@ export default function Modal({
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose} aria-hidden="true">
+    <div className="modal-overlay" onClick={onClose}>
       <div
         ref={containerRef}
         className="modal-container"

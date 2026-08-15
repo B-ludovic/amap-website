@@ -15,6 +15,7 @@ export default function ShiftDuplicateModal({ shift, onClose }) {
   const [newDate, setNewDate] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [isDirty, setIsDirty] = useState(false);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -36,7 +37,7 @@ export default function ShiftDuplicateModal({ shift, onClose }) {
   };
 
   return (
-    <AdminModal title="Dupliquer la permanence" width="520px" onClose={() => onClose(false)}>
+    <AdminModal title="Dupliquer la permanence" width="520px" onClose={() => onClose(false)} isDirty={isDirty}>
       <form onSubmit={handleSubmit}>
         <div className="admin-form">
           <p className="admin-quote admin-quote-compact">
@@ -52,7 +53,10 @@ export default function ShiftDuplicateModal({ shift, onClose }) {
               type="date"
               className="admin-input admin-input-mono"
               value={newDate}
-              onChange={(event) => setNewDate(event.target.value)}
+              onChange={(event) => {
+                setNewDate(event.target.value);
+                setIsDirty(true);
+              }}
             />
           </div>
 

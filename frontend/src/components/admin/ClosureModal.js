@@ -38,6 +38,7 @@ export default function ClosureModal({ closure, daysUsed, maxDays, year, onClose
   const [notify, setNotify] = useState(!isEdit);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [isDirty, setIsDirty] = useState(false);
 
   /* Budget disponible pour cette fermeture-ci : le quota annuel moins ce qui
      est déjà engagé, mais la fermeture en cours de modification se rend son
@@ -94,6 +95,7 @@ export default function ClosureModal({ closure, daysUsed, maxDays, year, onClose
       title={isEdit ? 'Modifier la fermeture' : 'Créer une fermeture'}
       width="640px"
       onClose={() => onClose(false)}
+      isDirty={isDirty}
     >
       <form onSubmit={handleSubmit}>
         <div className="admin-form admin-closure-form">
@@ -109,6 +111,7 @@ export default function ClosureModal({ closure, daysUsed, maxDays, year, onClose
                   const value = event.target.value;
                   setStartDate(value);
                   if (new Date(endDate) < new Date(value)) setEndDate(value);
+                  setIsDirty(true);
                 }}
               />
             </div>
@@ -120,7 +123,10 @@ export default function ClosureModal({ closure, daysUsed, maxDays, year, onClose
                 className="admin-input admin-input-mono"
                 value={endDate}
                 min={startDate}
-                onChange={(event) => setEndDate(event.target.value)}
+                onChange={(event) => {
+                  setEndDate(event.target.value);
+                  setIsDirty(true);
+                }}
               />
             </div>
           </div>
@@ -153,7 +159,10 @@ export default function ClosureModal({ closure, daysUsed, maxDays, year, onClose
               className="admin-input"
               placeholder="Ex : congés estivaux, travaux…"
               value={reason}
-              onChange={(event) => setReason(event.target.value)}
+              onChange={(event) => {
+                setReason(event.target.value);
+                setIsDirty(true);
+              }}
             />
           </div>
 
@@ -162,7 +171,10 @@ export default function ClosureModal({ closure, daysUsed, maxDays, year, onClose
               id="cl-notify"
               type="checkbox"
               checked={notify}
-              onChange={(event) => setNotify(event.target.checked)}
+              onChange={(event) => {
+                setNotify(event.target.checked);
+                setIsDirty(true);
+              }}
             />
             <span>
               {isEdit

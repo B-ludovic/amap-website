@@ -70,6 +70,7 @@ export default function NewsletterModal({ newsletter, onClose }) {
   const [scheduledFor, setScheduledFor] = useState(newsletter?.scheduledFor?.split('.')[0] ?? '');
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -77,7 +78,8 @@ export default function NewsletterModal({ newsletter, onClose }) {
       StarterKit,
       Placeholder.configure({ placeholder: 'Rédigez la newsletter…' })
     ],
-    content: newsletter?.content || ''
+    content: newsletter?.content || '',
+    onUpdate: () => setIsDirty(true)
   });
 
   useEffect(() => {
@@ -139,6 +141,7 @@ export default function NewsletterModal({ newsletter, onClose }) {
   const handleChange = (event) => {
     const { name, value } = event.target;
     setFormData(current => ({ ...current, [name]: value }));
+    setIsDirty(true);
     if (errors[name]) setErrors(current => ({ ...current, [name]: '' }));
   };
 
@@ -147,6 +150,7 @@ export default function NewsletterModal({ newsletter, onClose }) {
       title={isEdit ? 'Modifier la newsletter' : 'Nouvelle newsletter'}
       width="760px"
       onClose={() => onClose(false)}
+      isDirty={isDirty}
     >
       <form onSubmit={handleSubmit}>
         <div className="admin-form">
@@ -197,15 +201,15 @@ export default function NewsletterModal({ newsletter, onClose }) {
               <span className="admin-field-label">Action après sauvegarde</span>
               <div className="admin-radios">
                 <label className="admin-radio">
-                  <input type="radio" name="sendMode" checked={sendMode === null} onChange={() => setSendMode(null)} />
+                  <input type="radio" name="sendMode" checked={sendMode === null} onChange={() => { setSendMode(null); setIsDirty(true); }} />
                   <span>Enregistrer comme brouillon</span>
                 </label>
                 <label className="admin-radio">
-                  <input type="radio" name="sendMode" checked={sendMode === 'now'} onChange={() => setSendMode('now')} />
+                  <input type="radio" name="sendMode" checked={sendMode === 'now'} onChange={() => { setSendMode('now'); setIsDirty(true); }} />
                   <span>Envoyer maintenant</span>
                 </label>
                 <label className="admin-radio">
-                  <input type="radio" name="sendMode" checked={sendMode === 'schedule'} onChange={() => setSendMode('schedule')} />
+                  <input type="radio" name="sendMode" checked={sendMode === 'schedule'} onChange={() => { setSendMode('schedule'); setIsDirty(true); }} />
                   <span>Programmer l&apos;envoi</span>
                 </label>
               </div>
@@ -220,7 +224,10 @@ export default function NewsletterModal({ newsletter, onClose }) {
                 type="datetime-local"
                 className="admin-input admin-input-mono"
                 value={scheduledFor}
-                onChange={(event) => setScheduledFor(event.target.value)}
+                onChange={(event) => {
+                  setScheduledFor(event.target.value);
+                  setIsDirty(true);
+                }}
               />
               {errors.scheduledFor && <span className="admin-form-error">{errors.scheduledFor}</span>}
             </div>

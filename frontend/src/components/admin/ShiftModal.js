@@ -38,6 +38,7 @@ export default function ShiftModal({ shift, onClose }) {
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
 
   const fetchUsers = useCallback(async () => {
     try {
@@ -57,6 +58,7 @@ export default function ShiftModal({ shift, onClose }) {
   const handleChange = (event) => {
     const { name, value } = event.target;
     setFormData(current => ({ ...current, [name]: value }));
+    setIsDirty(true);
     if (errors[name]) setErrors(current => ({ ...current, [name]: '' }));
   };
 
@@ -114,6 +116,7 @@ export default function ShiftModal({ shift, onClose }) {
       title={isEdit ? 'Modifier la permanence' : 'Créer une permanence'}
       width="680px"
       onClose={() => onClose(false)}
+      isDirty={isDirty}
     >
       <form onSubmit={handleSubmit}>
         <div className="admin-form">
@@ -190,7 +193,10 @@ export default function ShiftModal({ shift, onClose }) {
               <button
                 type="button"
                 className="admin-btn-link"
-                onClick={() => setCrew(current => [...current, { userId: '', role: null, status: 'CONFIRMED' }])}
+                onClick={() => {
+                  setCrew(current => [...current, { userId: '', role: null, status: 'CONFIRMED' }]);
+                  setIsDirty(true);
+                }}
               >
                 Ajouter un bénévole
               </button>
@@ -213,6 +219,7 @@ export default function ShiftModal({ shift, onClose }) {
                         setCrew(current => current.map((item, position) => (
                           position === index ? { ...item, userId } : item
                         )));
+                        setIsDirty(true);
                       }}
                     >
                       <option value="">Choisir un membre…</option>
@@ -229,7 +236,10 @@ export default function ShiftModal({ shift, onClose }) {
                     <button
                       type="button"
                       className="admin-btn-link admin-btn-link-delete"
-                      onClick={() => setCrew(current => current.filter((_, position) => position !== index))}
+                      onClick={() => {
+                        setCrew(current => current.filter((_, position) => position !== index));
+                        setIsDirty(true);
+                      }}
                     >
                       Retirer
                     </button>
