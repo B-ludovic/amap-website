@@ -212,8 +212,36 @@ async function runRetentionJob() {
   }
 }
 
+const FIRST_RUN_DELAY_MS = 60 * 60 * 1000;
+const INTERVAL_MS = 24 * 60 * 60 * 1000;
+
+/* Le premier passage attend une heure au lieu de partir avec le processus.
+
+   Les autres jobs peuvent se permettre de démarrer aussitôt : ils envoient des
+   e-mails ou créent des paniers, et une erreur s'y rattrape. Celui-ci détruit,
+   sans sauvegarde applicative derrière. Un déploiement relance le processus, donc
+   une purge partait dans les secondes suivant la mise en ligne — avant que
+   quiconque ait ouvert le site pour vérifier que la version déployée est saine.
+   Un filtre devenu trop large aurait effacé avant d'être vu. Cette heure est la
+   fenêtre pendant laquelle on peut encore revenir en arrière.
+
+   L'intervalle quotidien part de la fin de ce premier passage plutôt que du
+   démarrage, sans quoi les deux premières purges tomberaient à une heure puis à
+   vingt-quatre, soit vingt-trois heures d'écart au lieu de vingt-quatre.
+
+   Reste ce que ce code ne peut pas régler seul : deux instances du serveur, ce
+   sont deux minuteries, donc deux purges qui se croisent et deux décomptes
+   contradictoires dans le journal. Et à l'inverse, sur une instance qui s'endort
+   faute de trafic, un réveil de moins d'une heure ne laisse jamais la purge
+   partir. Les deux défauts ont la même cause — le calendrier vit dans le
+   processus web — et la même réponse : un déclencheur externe, du type Cron Job
+   Render, qui appelle la purge une fois par jour quel que soit le nombre
+   d'instances. */
 export function startDataRetentionJob() {
-  runRetentionJob();
-  setInterval(runRetentionJob, 24 * 60 * 60 * 1000);
-  console.log('[RetentionJob] Job de rétention RGPD démarré (purge quotidienne)');
+  setTimeout(() => {
+    runRetentionJob();
+    setInterval(runRetentionJob, INTERVAL_MS);
+  }, FIRST_RUN_DELAY_MS);
+
+  console.log('[RetentionJob] Job de rétention RGPD démarré (premier passage dans 1 h, puis quotidien)');
 }
