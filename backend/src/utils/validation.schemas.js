@@ -15,6 +15,14 @@ export const PasswordSchema = z.string()
   .regex(/[0-9]/, 'Doit contenir au moins un chiffre')
   .regex(/[\W_]/, 'Doit contenir au moins un caractère spécial');
 
+export const RegisterSchema = z.object({
+  email: z.string().trim().toLowerCase().email('Email invalide').max(200, 'Email : 200 caractères maximum'),
+  firstName: z.string().trim().min(1, 'Prénom requis').max(80, 'Prénom : 80 caractères maximum').regex(/^[\p{L}\p{M}\s'’-]+$/u, 'Prénom invalide'),
+  lastName: z.string().trim().min(1, 'Nom requis').max(80, 'Nom : 80 caractères maximum').regex(/^[\p{L}\p{M}\s'’-]+$/u, 'Nom invalide'),
+  phone: z.string().trim().regex(/^[0-9+\s.-]{6,20}$/, 'Téléphone invalide'),
+  address: z.string().trim().min(1, 'Adresse requise').max(300, 'Adresse : 300 caractères maximum'),
+});
+
 export const ProducerSchema = z.object({
   name:        z.string().min(1, 'Nom requis').max(200, 'Nom : 200 caractères maximum'),
   description: z.string().min(1, 'Description requise').max(5000, 'Description : 5000 caractères maximum'),

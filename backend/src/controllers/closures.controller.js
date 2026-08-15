@@ -13,6 +13,7 @@ import {
   sumClosureDays
 } from '../utils/closurePeriod.js';
 import { formatDateFR } from '../services/closure.service.js';
+import { logAudit } from '../services/audit.service.js';
 
 function buildClosureEmailHtml(startDate, endDate, reason, isUpdate) {
   const start = formatDateFR(startDate);
@@ -216,6 +217,12 @@ const createClosure = asyncHandler(async (req, res) => {
     ? await announceClosure({ closure, adminId: req.user.id, isUpdate: false })
     : 0;
 
+  await logAudit(req, 'CREATE_CLOSURE', 'IMPORTANT', {
+    type: 'AMAP_CLOSURE',
+    id: closure.id,
+    label: `${formatDateFR(closure.startDate)} au ${formatDateFR(closure.endDate)}`
+  }, { notified: Boolean(notify), sentCount });
+
   res.json({
     success: true,
     message: notify
@@ -254,6 +261,17 @@ const updateClosure = asyncHandler(async (req, res) => {
     ? await announceClosure({ closure: updated, adminId: req.user.id, isUpdate: true })
     : 0;
 
+  await logAudit(req, 'UPDATE_CLOSURE', 'IMPORTANT', {
+    type: 'AMAP_CLOSURE',
+    id,
+    label: `${formatDateFR(updated.startDate)} au ${formatDateFR(updated.endDate)}`
+  }, {
+    before: { startDate: closure.startDate, endDate: closure.endDate },
+    after: { startDate: updated.startDate, endDate: updated.endDate },
+    notified: Boolean(notify),
+    sentCount
+  });
+
   res.json({
     success: true,
     message: notify
@@ -278,6 +296,12 @@ const deleteClosure = asyncHandler(async (req, res) => {
   }
 
   await prisma.amapClosure.delete({ where: { id } });
+
+  await logAudit(req, 'DELETE_CLOSURE', 'IMPORTANT', {
+    type: 'AMAP_CLOSURE',
+    id,
+    label: `${formatDateFR(closure.startDate)} au ${formatDateFR(closure.endDate)}`
+  });
 
   res.json({ success: true, message: 'Fermeture supprimée' });
 });

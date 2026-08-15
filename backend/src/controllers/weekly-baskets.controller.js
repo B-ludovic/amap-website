@@ -10,6 +10,7 @@ import {
   HttpBadRequestError,
   httpStatusCodes
 } from '../utils/httpErrors.js';
+import { logAudit } from '../services/audit.service.js';
 
 // Inclusion standard des items avec leur produit éventuel
 const itemsInclude = {
@@ -126,6 +127,12 @@ const createWeeklyBasket = asyncHandler(async (req, res) => {
     isPublished: false
   });
 
+  await logAudit(req, 'CREATE_WEEKLY_BASKET', 'IMPORTANT', {
+    type: 'WEEKLY_BASKET',
+    id: basket.id,
+    label: `${basket.year}-S${basket.weekNumber}`
+  });
+
   res.status(httpStatusCodes.CREATED).json({
     success: true,
     message: 'Panier hebdomadaire créé avec succès',
@@ -152,6 +159,12 @@ const updateWeeklyBasket = asyncHandler(async (req, res) => {
     },
     include: itemsInclude
   });
+
+  await logAudit(req, 'UPDATE_WEEKLY_BASKET', 'IMPORTANT', {
+    type: 'WEEKLY_BASKET',
+    id,
+    label: `${basket.year}-S${basket.weekNumber}`
+  }, { before: { distributionDate: basket.distributionDate }, after: { distributionDate: updated.distributionDate } });
 
   res.json({
     success: true,
@@ -180,6 +193,12 @@ const deleteWeeklyBasket = asyncHandler(async (req, res) => {
   }
 
   await prisma.weeklyBasket.delete({ where: { id } });
+
+  await logAudit(req, 'DELETE_WEEKLY_BASKET', 'IMPORTANT', {
+    type: 'WEEKLY_BASKET',
+    id,
+    label: `${basket.year}-S${basket.weekNumber}`
+  });
 
   res.json({ success: true, message: 'Panier hebdomadaire supprimé avec succès' });
 });
@@ -217,6 +236,12 @@ const publishWeeklyBasket = asyncHandler(async (req, res) => {
   const recipients = activeSubscribers.map(s => s.user);
   emailService.sendWeeklyBasketNotification(published, recipients);
 
+  await logAudit(req, 'PUBLISH_WEEKLY_BASKET', 'IMPORTANT', {
+    type: 'WEEKLY_BASKET',
+    id,
+    label: `${published.year}-S${published.weekNumber}`
+  }, { recipientsCount: recipients.length });
+
   res.json({
     success: true,
     message: 'Panier hebdomadaire publié avec succès',
@@ -251,6 +276,12 @@ const duplicateWeeklyBasket = asyncHandler(async (req, res) => {
     notes: original.notes,
     isPublished: false
   });
+
+  await logAudit(req, 'CREATE_WEEKLY_BASKET', 'IMPORTANT', {
+    type: 'WEEKLY_BASKET',
+    id: duplicated.id,
+    label: `${duplicated.year}-S${duplicated.weekNumber}`
+  }, { duplicatedFrom: original.id });
 
   res.status(httpStatusCodes.CREATED).json({
     success: true,

@@ -8,10 +8,10 @@ import { prisma } from '../config/database.js';
 // - details : objet JSON avec des informations supplémentaires (optionnel)
 const logAudit = async (req, action, severity, target = {}, details = null) => {
   try {
-    const admin = req.user;
+    const admin = req?.user;
     const ip =
-      req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
-      req.socket?.remoteAddress ||
+      req?.headers?.['x-forwarded-for']?.split(',')[0]?.trim() ||
+      req?.socket?.remoteAddress ||
       null;
 
     await prisma.auditLog.create({

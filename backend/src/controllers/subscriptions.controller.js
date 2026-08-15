@@ -397,6 +397,17 @@ const createSubscription = asyncHandler(async (req, res) => {
   // Envoyer email de confirmation à l'adhérent
   await emailService.sendSubscriptionConfirmation(subscription, user);
 
+  await logAudit(req, 'CREATE_SUBSCRIPTION', 'IMPORTANT', {
+    type: 'SUBSCRIPTION',
+    id: subscription.id,
+    label: subscription.subscriptionNumber
+  }, {
+    price: subscription.price,
+    pricingType: subscription.pricingType,
+    startDate: subscription.startDate,
+    endDate: subscription.endDate
+  });
+
   res.status(httpStatusCodes.CREATED).json({
     success: true,
     message: 'Abonnement créé avec succès',
@@ -444,6 +455,27 @@ const updateSubscription = asyncHandler(async (req, res) => {
     }
   });
 
+  await logAudit(req, 'UPDATE_SUBSCRIPTION', 'IMPORTANT', {
+    type: 'SUBSCRIPTION',
+    id,
+    label: subscription.subscriptionNumber
+  }, {
+    before: {
+      basketSize: subscription.basketSize,
+      pricingType: subscription.pricingType,
+      endDate: subscription.endDate,
+      price: subscription.price,
+      paidAmount: subscription.paidAmount
+    },
+    after: {
+      basketSize: updated.basketSize,
+      pricingType: updated.pricingType,
+      endDate: updated.endDate,
+      price: updated.price,
+      paidAmount: updated.paidAmount
+    }
+  });
+
   res.json({
     success: true,
     message: 'Abonnement modifié avec succès',
@@ -469,6 +501,12 @@ const activateSubscription = asyncHandler(async (req, res) => {
     where: { id },
     data: { status: 'ACTIVE' }
   });
+
+  await logAudit(req, 'ACTIVATE_SUBSCRIPTION', 'IMPORTANT', {
+    type: 'SUBSCRIPTION',
+    id,
+    label: subscription.subscriptionNumber
+  }, { before: { status: subscription.status }, after: { status: activated.status } });
 
   res.json({
     success: true,

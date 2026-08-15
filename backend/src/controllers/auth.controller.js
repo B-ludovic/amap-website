@@ -12,7 +12,8 @@ import {
   httpStatusCodes,
 } from '../utils/httpErrors.js';
 import { normalizeFirstName, normalizeLastName, normalizeTitleCase } from '../utils/normalize.js';
-import { PasswordSchema } from '../utils/validation.schemas.js';
+import { PasswordSchema, RegisterSchema } from '../utils/validation.schemas.js';
+import { logAudit } from '../services/audit.service.js';
 
 // Token JWT
 const generateToken = (userId, tokenVersion) => {
@@ -35,12 +36,12 @@ const cookieOptions = {
 
 // Inscription d'un nouvel utilisateur
 const register = asyncHandler(async (req, res) => {
-    const { email, password, firstName, lastName, phone, address } = req.body;
+    const { password } = req.body;
 
-    // Verifier que tous les champs sont fournis
-    if (!email || !password || !firstName || !lastName || !phone || !address) {
-        throw new HttpBadRequestError('Tous les champs sont requis.');
-    }
+    const registerCheck = RegisterSchema.safeParse(req.body);
+    if (!registerCheck.success) throw new HttpBadRequestError(registerCheck.error.errors[0].message);
+
+    const { email, firstName, lastName, phone, address } = registerCheck.data;
 
     const pwdCheck = PasswordSchema.safeParse(password);
     if (!pwdCheck.success) throw new HttpBadRequestError(pwdCheck.error.errors[0].message);
@@ -109,7 +110,7 @@ const login = asyncHandler(async (req, res) => {
     }
 
     // Trouver l'utilisateur par email
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.user.findUnique({ where: { email: email.trim().toLowerCase() } });
     if (!user) {
         throw new HttpUnauthorizedError('Email ou mot de passe incorrect.');
     }
@@ -428,10 +429,26 @@ const deleteMe = asyncHandler(async (req, res) => {
         throw new HttpNotFoundError('Compte introuvable');
     }
 
+    if (user.role === 'ADMIN') {
+        const activeAdminCount = await prisma.user.count({
+            where: { role: 'ADMIN', deletedAt: null },
+        });
+
+        if (activeAdminCount <= 1) {
+            throw new HttpBadRequestError('Impossible de supprimer le dernier administrateur');
+        }
+    }
+
     await prisma.user.update({
         where: { id: req.user.id },
         data: { deletedAt: new Date() },
     });
+
+    await logAudit(req, 'DELETE_USER', 'CRITICAL', {
+        type: 'USER',
+        id: user.id,
+        label: user.email
+    }, { initiatedByUser: true });
 
     res.clearCookie('authToken', { ...cookieOptions, maxAge: undefined });
     res.json({ success: true, message: 'Votre compte a été supprimé.' });

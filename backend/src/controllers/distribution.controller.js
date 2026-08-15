@@ -4,6 +4,7 @@ import {
   HttpNotFoundError,
   HttpBadRequestError
 } from '../utils/httpErrors.js';
+import { logAudit } from '../services/audit.service.js';
 
 // REQUÊTE PARTAGÉE
 async function fetchDistributionData(weeklyBasketId) {
@@ -102,6 +103,7 @@ const markAsPickedUp = asyncHandler(async (req, res) => {
 
   // Chercher ou créer le pickup
   let pickup;
+  let previousPickup = null;
 
   if (pickupId === 'new') {
     // Créer un nouveau pickup
@@ -136,6 +138,8 @@ const markAsPickedUp = asyncHandler(async (req, res) => {
       throw new HttpNotFoundError('Retrait introuvable');
     }
 
+    previousPickup = pickup;
+
     pickup = await prisma.weeklyPickup.update({
       where: { id: pickupId },
       data: {
@@ -146,6 +150,16 @@ const markAsPickedUp = asyncHandler(async (req, res) => {
       }
     });
   }
+
+  await logAudit(req, 'UPDATE_WEEKLY_PICKUP', 'IMPORTANT', {
+    type: 'WEEKLY_PICKUP',
+    id: pickup.id,
+    label: pickup.weeklyBasketId
+  }, {
+    subscriptionId: pickup.subscriptionId,
+    before: previousPickup ? { wasPickedUp: previousPickup.wasPickedUp } : null,
+    after: { wasPickedUp: pickup.wasPickedUp }
+  });
 
   res.json({
     success: true,
@@ -198,6 +212,12 @@ const exportDistributionList = asyncHandler(async (req, res) => {
   const { weeklyBasketId } = req.params;
 
   const { weeklyBasket, activeSubscriptions } = await fetchDistributionData(weeklyBasketId);
+
+  await logAudit(req, 'EXPORT_DISTRIBUTION_LIST', 'IMPORTANT', {
+    type: 'WEEKLY_BASKET',
+    id: weeklyBasketId,
+    label: weeklyBasket.distributionDate.toISOString()
+  }, { subscribersCount: activeSubscriptions.length });
 
   const escape = (val) => `"${String(val ?? '').replace(/"/g, '""')}"`;
 

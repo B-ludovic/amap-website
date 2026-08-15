@@ -8,6 +8,7 @@ import {
     httpStatusCodes
 } from '../utils/httpErrors.js';
 import { findClosureCovering, describeClosure } from '../services/closure.service.js';
+import { logAudit } from '../services/audit.service.js';
 
 const VOLUNTEER_STATUSES = ['CONFIRMED', 'CANCELLED', 'ABSENT'];
 
@@ -168,6 +169,12 @@ const createShift = asyncHandler(async (req, res) => {
     }
   });
 
+  await logAudit(req, 'CREATE_SHIFT', 'IMPORTANT', {
+    type: 'SHIFT',
+    id: shift.id,
+    label: shift.distributionDate.toISOString()
+  }, { volunteersCount: shift.volunteers.length });
+
   res.status(httpStatusCodes.CREATED).json({
     success: true,
     message: 'Permanence créée avec succès',
@@ -180,7 +187,10 @@ const updateShift = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { distributionDate, startTime, endTime, volunteersNeeded, notes, volunteers } = req.body;
 
-  const shift = await prisma.shift.findUnique({ where: { id } });
+  const shift = await prisma.shift.findUnique({
+    where: { id },
+    include: { volunteers: { select: { userId: true } } }
+  });
 
   if (!shift) {
     throw new HttpNotFoundError('Permanence introuvable');
@@ -190,56 +200,73 @@ const updateShift = asyncHandler(async (req, res) => {
     await refuseIfClosed(new Date(distributionDate));
   }
 
-  /* Différence plutôt que table rase : on retire ceux qui ne sont plus dans la
-     liste, on ajoute les nouveaux, et on ne touche pas aux inscriptions qui
-     restent. Vider puis recréer effaçait le rôle et la date d'inscription des
-     bénévoles qui n'avaient pourtant pas bougé. */
-  if (Array.isArray(volunteers)) {
-    const wantedIds = new Set(volunteers.map(v => v.userId).filter(Boolean));
-    const current = await prisma.shiftVolunteer.findMany({ where: { shiftId: id } });
-    const currentIds = new Set(current.map(v => v.userId));
+  /* Tout l'enregistrement tient dans une seule transaction : retraits, ajouts
+     et champs de la permanence. Un identifiant d'utilisateur invalide fait
+     échouer l'ajout, et sans transaction les retraits déjà écrits resteraient
+     acquis — des bénévoles se présenteraient le mercredi sans figurer nulle
+     part. Ou tout passe, ou rien ne bouge.
 
-    const removed = current.filter(v => !wantedIds.has(v.userId)).map(v => v.id);
-    if (removed.length > 0) {
-      await prisma.shiftVolunteer.deleteMany({ where: { id: { in: removed } } });
+     Différence plutôt que table rase, aussi : on retire ceux qui ne sont plus
+     dans la liste, on ajoute les nouveaux, et on ne touche pas aux inscriptions
+     qui restent. Vider puis recréer effaçait le rôle et la date d'inscription
+     des bénévoles qui n'avaient pourtant pas bougé. */
+  const updatedShift = await prisma.$transaction(async (tx) => {
+    if (Array.isArray(volunteers)) {
+      const wantedIds = new Set(volunteers.map(v => v.userId).filter(Boolean));
+      const current = await tx.shiftVolunteer.findMany({ where: { shiftId: id } });
+      const currentIds = new Set(current.map(v => v.userId));
+
+      const removed = current.filter(v => !wantedIds.has(v.userId)).map(v => v.id);
+      if (removed.length > 0) {
+        await tx.shiftVolunteer.deleteMany({ where: { id: { in: removed } } });
+      }
+
+      const added = volunteers.filter(v => v.userId && !currentIds.has(v.userId));
+      if (added.length > 0) {
+        await tx.shiftVolunteer.createMany({
+          data: added.map(v => ({
+            shiftId: id,
+            userId: v.userId,
+            role: v.role || null,
+            status: v.status || 'CONFIRMED'
+          }))
+        });
+      }
     }
 
-    const added = volunteers.filter(v => v.userId && !currentIds.has(v.userId));
-    if (added.length > 0) {
-      await prisma.shiftVolunteer.createMany({
-        data: added.map(v => ({
-          shiftId: id,
-          userId: v.userId,
-          role: v.role || null,
-          status: v.status || 'CONFIRMED'
-        }))
-      });
-    }
-  }
-
-  const updatedShift = await prisma.shift.update({
-    where: { id },
-    data: {
-      ...(distributionDate && { distributionDate: new Date(distributionDate) }),
-      ...(startTime && { startTime }),
-      ...(endTime && { endTime }),
-      ...(volunteersNeeded && { volunteersNeeded }),
-      notes
-    },
-    include: {
-      volunteers: {
-        include: {
-          user: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              email: true
+    return tx.shift.update({
+      where: { id },
+      data: {
+        ...(distributionDate && { distributionDate: new Date(distributionDate) }),
+        ...(startTime && { startTime }),
+        ...(endTime && { endTime }),
+        ...(volunteersNeeded && { volunteersNeeded }),
+        notes
+      },
+      include: {
+        volunteers: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true
+              }
             }
           }
         }
       }
-    }
+    });
+  });
+
+  await logAudit(req, 'UPDATE_SHIFT', 'IMPORTANT', {
+    type: 'SHIFT',
+    id,
+    label: shift.distributionDate.toISOString()
+  }, {
+    before: { distributionDate: shift.distributionDate, volunteerIds: shift.volunteers.map(volunteer => volunteer.userId) },
+    after: { distributionDate: updatedShift.distributionDate, volunteerIds: updatedShift.volunteers.map(volunteer => volunteer.userId) }
   });
 
   res.json({
@@ -270,6 +297,12 @@ const deleteShift = asyncHandler(async (req, res) => {
 
   await prisma.shift.delete({ where: { id } });
 
+  await logAudit(req, 'DELETE_SHIFT', 'IMPORTANT', {
+    type: 'SHIFT',
+    id,
+    label: shift.distributionDate.toISOString()
+  }, { volunteersCount: shift.volunteers.length });
+
   // Notifier les bénévoles inscrits
   for (const volunteer of shift.volunteers) {
     await emailService.sendShiftCancellation(shift, volunteer.user);
@@ -287,55 +320,62 @@ const joinShift = asyncHandler(async (req, res) => {
   const { role } = req.body;
   const userId = req.user.id;
 
-  const shift = await prisma.shift.findUnique({
-    where: { id },
-    include: {
-      volunteers: {
-        where: { status: 'CONFIRMED' }
-      }
-    }
-  });
+  const shift = await prisma.shift.findUnique({ where: { id } });
 
   if (!shift) {
     throw new HttpNotFoundError('Permanence introuvable');
   }
 
-  // Vérifier si complet
-  if (shift.volunteers.length >= shift.volunteersNeeded) {
-    throw new HttpConflictError('Cette permanence est complète');
-  }
+  await refuseIfClosed(shift.distributionDate);
 
-  // Vérifier si déjà inscrit
-  const existingVolunteer = await prisma.shiftVolunteer.findUnique({
-    where: {
-      shiftId_userId: {
-        shiftId: id,
-        userId
-      }
+  /* Compter les places puis insérer en deux requêtes séparées laissait passer
+     autant d'inscriptions que de clics simultanés : chacune lisait « il reste
+     une place » avant que la précédente ne soit écrite. Le verrou de ligne sur
+     la permanence met les inscriptions concurrentes à la queue leu leu, si bien
+     que le compte lu est toujours le compte réel.
+
+     L'envoi de l'email reste dehors : on ne tient pas un verrou de base le
+     temps d'un aller-retour SMTP. */
+  const volunteer = await prisma.$transaction(async (tx) => {
+    await tx.$queryRaw`SELECT id FROM "Shift" WHERE id = ${id} FOR UPDATE`;
+
+    const existing = await tx.shiftVolunteer.findUnique({
+      where: { shiftId_userId: { shiftId: id, userId } }
+    });
+
+    /* Une inscription annulée n'est pas une inscription : la refuser enfermait
+       l'adhérent dans une impasse, puisque la contrainte d'unicité lui
+       interdisait aussi d'en créer une seconde. On la réactive. */
+    if (existing && existing.status !== 'CANCELLED') {
+      throw new HttpConflictError('Vous êtes déjà inscrit à cette permanence');
     }
-  });
 
-  if (existingVolunteer) {
-    throw new HttpConflictError('Vous êtes déjà inscrit à cette permanence');
-  }
+    const confirmed = await tx.shiftVolunteer.count({
+      where: { shiftId: id, status: 'CONFIRMED' }
+    });
 
-  const volunteer = await prisma.shiftVolunteer.create({
-    data: {
-      shiftId: id,
-      userId,
-      role: role || 'Distribution',
-      status: 'CONFIRMED'
-    },
-    include: {
+    if (confirmed >= shift.volunteersNeeded) {
+      throw new HttpConflictError('Cette permanence est complète');
+    }
+
+    const crewSelect = {
       user: {
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          email: true
-        }
+        select: { id: true, firstName: true, lastName: true, email: true }
       }
+    };
+
+    if (existing) {
+      return tx.shiftVolunteer.update({
+        where: { id: existing.id },
+        data: { status: 'CONFIRMED', role: role || existing.role || 'Distribution' },
+        include: crewSelect
+      });
     }
+
+    return tx.shiftVolunteer.create({
+      data: { shiftId: id, userId, role: role || 'Distribution', status: 'CONFIRMED' },
+      include: crewSelect
+    });
   });
 
   await emailService.sendShiftConfirmation(shift, volunteer.user);
@@ -418,6 +458,12 @@ const updateVolunteerStatus = asyncHandler(async (req, res) => {
     data: { status }
   });
 
+  await logAudit(req, 'UPDATE_SHIFT_VOLUNTEER_STATUS', 'IMPORTANT', {
+    type: 'SHIFT_VOLUNTEER',
+    id: volunteer.id,
+    label: shiftId
+  }, { before: { status: volunteer.status }, after: { status: updated.status } });
+
   res.json({
     success: true,
     message: 'Statut mis à jour',
@@ -486,6 +532,12 @@ const duplicateShift = asyncHandler(async (req, res) => {
       notes: original.notes
     }
   });
+
+  await logAudit(req, 'CREATE_SHIFT', 'IMPORTANT', {
+    type: 'SHIFT',
+    id: duplicated.id,
+    label: duplicated.distributionDate.toISOString()
+  }, { duplicatedFrom: original.id });
 
   res.status(httpStatusCodes.CREATED).json({
     success: true,

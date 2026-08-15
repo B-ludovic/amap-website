@@ -1,4 +1,5 @@
 import { prisma } from '../config/database.js';
+import { logAudit } from '../services/audit.service.js';
 
 const DELETED_ACCOUNT_RETENTION_DAYS = 90;
 const UNVERIFIED_ACCOUNT_RETENTION_DAYS = 30;
@@ -33,6 +34,7 @@ async function purgeDeletedAccounts() {
 
   const count = await purgeUsers(users.map(u => u.id));
   if (count > 0) {
+    await logAudit(null, 'PURGE_USER_DATA', 'CRITICAL', { type: 'USER', label: 'Comptes supprimés depuis plus de 90 jours' }, { count, retentionDays: DELETED_ACCOUNT_RETENTION_DAYS });
     console.log(`[RetentionJob] ${count} compte(s) supprimé(s) définitivement (>90j)`);
   }
 }
@@ -55,6 +57,7 @@ async function purgeUnverifiedAccounts() {
 
   const count = await purgeUsers(users.map(u => u.id));
   if (count > 0) {
+    await logAudit(null, 'PURGE_USER_DATA', 'IMPORTANT', { type: 'USER', label: 'Comptes non vérifiés' }, { count, retentionDays: UNVERIFIED_ACCOUNT_RETENTION_DAYS });
     console.log(`[RetentionJob] ${count} inscription(s) non vérifiée(s) supprimée(s) (>30j)`);
   }
 }

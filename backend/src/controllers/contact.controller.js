@@ -3,6 +3,7 @@ import emailService from '../services/email.service.js';
 import { prisma } from '../config/database.js';
 import { HttpBadRequestError, HttpNotFoundError, httpStatusCodes } from '../utils/httpErrors.js';
 import { ContactSchema } from '../utils/validation.schemas.js';
+import { logAudit } from '../services/audit.service.js';
 
 // POST /api/contact — Envoi d'un message de contact (public)
 const sendContactMessage = asyncHandler(async (req, res) => {
@@ -74,6 +75,12 @@ const deleteContactMessage = asyncHandler(async (req, res) => {
   }
 
   await prisma.contactMessage.delete({ where: { id } });
+
+  await logAudit(req, 'DELETE_CONTACT_MESSAGE', 'IMPORTANT', {
+    type: 'CONTACT_MESSAGE',
+    id,
+    label: existing.subject
+  });
 
   res.json({ success: true, message: 'Message supprimé.' });
 });

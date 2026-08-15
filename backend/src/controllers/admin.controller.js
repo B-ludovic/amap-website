@@ -104,6 +104,15 @@ const updateProducer = asyncHandler(async (req, res) => {
     }
   });
 
+  await logAudit(req, 'UPDATE_PRODUCER', 'IMPORTANT', {
+    type: 'PRODUCER',
+    id,
+    label: producer.name
+  }, {
+    before: { name: producer.name, isActive: producer.isActive },
+    after: { name: updatedProducer.name, isActive: updatedProducer.isActive }
+  });
+
   res.json({
     success: true,
     message: 'Producteur modifié avec succès',
@@ -257,6 +266,15 @@ const updateProduct = asyncHandler(async (req, res) => {
     include: {
       producer: true
     }
+  });
+
+  await logAudit(req, 'UPDATE_PRODUCT', 'IMPORTANT', {
+    type: 'PRODUCT',
+    id,
+    label: product.name
+  }, {
+    before: { name: product.name, isActive: product.isActive, isExample: product.isExample },
+    after: { name: updatedProduct.name, isActive: updatedProduct.isActive, isExample: updatedProduct.isExample }
   });
 
   res.json({
@@ -696,6 +714,12 @@ const updateTheme = asyncHandler(async (req, res) => {
       backgroundImage,
       isActive: true
     }
+  });
+
+  await logAudit(req, 'UPDATE_THEME', 'IMPORTANT', {
+    type: 'THEME_CONFIG',
+    id: theme.id,
+    label: theme.season
   });
 
   res.json({
