@@ -23,3 +23,28 @@ if (missing.length > 0) {
   console.error('   Le serveur ne peut pas démarrer sans elles.');
   process.exit(1);
 }
+
+/* Identifiants du relais SMTP, contrôlés à part parce qu'ils ne bloquent pas le
+   même périmètre. Sans eux, email.service.js construit son transporteur avec des
+   identifiants undefined : chaque envoi échoue, l'échec est avalé par un catch
+   qui renvoie { success: false } sans que personne le lise, et inscription,
+   réinitialisation de mot de passe et newsletters se taisent. C'est le piège
+   décrit plus haut, appliqué aux emails.
+
+   Exigés seulement en production : y travailler localement sur la pagination
+   admin ne devrait pas réclamer une clé Brevo valide. En développement, un
+   avertissement bruyant suffit — l'important est de savoir pourquoi rien
+   n'arrive, pas d'être empêché de coder. */
+const REQUIRED_MAIL_ENV = ['BREVO_SMTP_USER', 'BREVO_SMTP_KEY'];
+
+const missingMail = REQUIRED_MAIL_ENV.filter((key) => !process.env[key]);
+
+if (missingMail.length > 0) {
+  if (process.env.NODE_ENV === 'production') {
+    console.error(`❌ Identifiants SMTP manquants : ${missingMail.join(', ')}`);
+    console.error('   Le serveur refuse de démarrer : aucun email ne partirait.');
+    process.exit(1);
+  }
+  console.warn(`⚠️  Identifiants SMTP manquants : ${missingMail.join(', ')}`);
+  console.warn('   Aucun email ne sera envoyé. Voir .env.example pour les récupérer.');
+}
