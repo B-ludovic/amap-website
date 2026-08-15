@@ -33,8 +33,8 @@ router.post('/forgot-password', forgotPassword);
 // Réinitialisation du mot de passe
 router.post('/reset-password', resetPassword);
 
-// Déconnexion
-router.post('/logout', logout);
+// Déconnexion — authMiddleware pose req.user, sans quoi la révocation du token est ignorée
+router.post('/logout', authMiddleware, logout);
 
 // Récupérer les informations de l'utilisateur connecté
 router.get('/me', authMiddleware, getMe);
