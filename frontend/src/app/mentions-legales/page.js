@@ -321,6 +321,34 @@ export default function MentionsLegalesPage() {
               de votre abonnement et des distributions. En dehors des services tiers
               mentionnés plus haut, elles ne sont jamais transmises.
             </p>
+            <h3 className="legal-h3">Durée de conservation</h3>
+            <p className="legal-text legal-text-loose">
+              Vos données ne sont pas conservées indéfiniment : passé les délais
+              ci-dessous, elles sont effacées automatiquement, sans démarche de votre part.
+            </p>
+            <dl className="split-list legal-durations">
+              <div className="split-row">
+                <dt className="split-label">Compte supprimé</dt>
+                <dd className="split-value">90 jours</dd>
+              </div>
+              <div className="split-row">
+                <dt className="split-label">Inscription jamais confirmée</dt>
+                <dd className="split-value">30 jours</dd>
+              </div>
+              <div className="split-row">
+                <dt className="split-label">Message envoyé via le formulaire de contact</dt>
+                <dd className="split-value">1 an</dd>
+              </div>
+              <div className="split-row">
+                <dt className="split-label">Candidature producteur, une fois traitée</dt>
+                <dd className="split-value">2 ans</dd>
+              </div>
+            </dl>
+            <p className="legal-text legal-text-loose">
+              Les données liées à un abonnement en cours sont conservées le temps de la
+              relation contractuelle, puis suivent le délai applicable au compte.
+            </p>
+
             <p className="legal-text legal-text-spaced">
               Conformément au RGPD, vous disposez d&apos;un droit d&apos;accès, de
               rectification et de suppression de vos données. L&apos;export et la
