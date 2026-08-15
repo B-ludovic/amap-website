@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ShieldCheck, ShieldAlert } from 'lucide-react';
+import { ShieldCheck, ShieldAlert, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../../contexts/AuthContext';
 import api from '../../../lib/api';
 import logger from '../../../lib/logger';
@@ -32,6 +32,7 @@ export default function AdminJournalPage() {
 
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
   const [severityFilter, setSeverityFilter] = useState('ALL');
   const [page, setPage] = useState(1);
   const [pagination, setPagination] = useState(null);
@@ -49,6 +50,7 @@ export default function AdminJournalPage() {
   }, [user, severityFilter, page]);
 
   const loadLogs = async () => {
+    setLoadError(null);
     try {
       setLoading(true);
       const params = { page, limit: 50 };
@@ -58,6 +60,7 @@ export default function AdminJournalPage() {
       setPagination(data.data.pagination);
     } catch (error) {
       logger.error('Erreur chargement journal:', error);
+      setLoadError(error.message || 'Impossible de charger le journal.');
     } finally {
       setLoading(false);
     }
@@ -80,6 +83,20 @@ export default function AdminJournalPage() {
 
   if (authLoading || loading) {
     return <div className="admin-loading">Chargement...</div>;
+  }
+
+  if (loadError) {
+    return (
+      <div className="admin-page">
+        <div className="admin-error">
+          <AlertCircle size={48} />
+          <p>{loadError}</p>
+          <button type="button" className="btn btn-secondary" onClick={loadLogs}>
+            Réessayer
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (

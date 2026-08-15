@@ -15,7 +15,8 @@ import {
     Calendar,
     Download,
     Search,
-    User
+    User,
+    AlertCircle
 } from "lucide-react";
 
 export default function AdminDistributionPage() {
@@ -23,6 +24,7 @@ export default function AdminDistributionPage() {
   const [distributionList, setDistributionList] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [basketError, setBasketError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   
   const { showSuccess, showError } = useModal();
@@ -38,6 +40,8 @@ export default function AdminDistributionPage() {
   }, [currentBasket, searchTerm]);
 
   const fetchCurrentBasket = async () => {
+    setLoading(true);
+    setBasketError(null);
     try {
       const response = await api.weeklyBaskets.getCurrent();
       if (response.data) {
@@ -48,6 +52,9 @@ export default function AdminDistributionPage() {
     } catch (error) {
       logger.error('Erreur:', error);
       setCurrentBasket(null);
+      setBasketError(error.message || 'Impossible de charger la distribution.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -168,6 +175,24 @@ export default function AdminDistributionPage() {
   const getBasketSizeLabel = (size) => {
     return size === 'SMALL' ? 'Petit panier' : 'Grand panier';
   };
+
+  if (loading) {
+    return <div className="admin-loading">Chargement...</div>;
+  }
+
+  if (basketError) {
+    return (
+      <div className="admin-page">
+        <div className="admin-error">
+          <AlertCircle size={48} />
+          <p>{basketError}</p>
+          <button type="button" className="btn btn-secondary" onClick={fetchCurrentBasket}>
+            Réessayer
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (!currentBasket) {
     return (
