@@ -11,6 +11,30 @@ const formatEuro = (value) => (
   Number.isInteger(value) ? String(value) : value.toFixed(2).replace('.', ',')
 );
 
+/* Insécable écrite en échappement et non collée telle quelle dans la source :
+   un caractère invisible dans le code est un caractère qu'on finit par perdre à
+   la première copie. Elle empêche le symbole € de partir seul à la ligne. */
+const NBSP = '\u00A0';
+const euroAmount = (value) => `${formatEuro(value)}${NBSP}€`;
+
+/* Énoncé d'un échelonnement en toutes lettres : « 3 chèques de 73 € et 1 chèque
+   de 73,04 € ». Les chèques de même montant sont regroupés, si bien que seul le
+   dernier se détache lorsqu'il porte le reliquat, et qu'un règlement en une
+   fois donne simplement « 1 chèque de 292,04 € ». */
+const formatInstallments = (amounts) => {
+  const groups = [];
+
+  for (const amount of amounts) {
+    const previous = groups[groups.length - 1];
+    if (previous && previous.amount === amount) previous.count += 1;
+    else groups.push({ amount, count: 1 });
+  }
+
+  return groups
+    .map(({ amount, count }) => `${count} chèque${count > 1 ? 's' : ''} de ${euroAmount(amount)}`)
+    .join(' et ');
+};
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -153,6 +177,21 @@ class ContractService {
     const quarterPaymentSmallText = `3 chèques de ${quarterSmall}€<br>et 1 chèque de ${lastQuarterSmall}€`;
     const quarterPaymentLargeText = `3 chèques de ${quarterLarge}€<br>et 1 chèque de ${lastQuarterLarge}€`;
 
+    /* Part réellement due par l'adhérent, et sa ventilation en chèques.
+
+       Le tableau ci-dessus est la carte de tarifs de l'association : il affiche
+       le prix plein des deux tailles de panier, l'adhérent coche sa ligne. Pour
+       un contrat solidaire, ce que l'adhérent inscrit sur ses chèques vaut le
+       cinquième de ce qui est imprimé en face de sa case, et ce montant-là ne
+       figurait nulle part sur le document qu'il signe : la seule mention du
+       tarif solidaire était une note de bas de tableau annonçant un pourcentage,
+       à charge pour le lecteur de faire la division lui-même devant son chéquier.
+
+       Aucun tarif n'est modifié ici — on énonce un nombre que le serveur
+       calculait déjà pour créer l'abonnement, et qu'il gardait pour lui. */
+    const memberAmount = euroAmount(subscription.price);
+    const memberInstallments = formatInstallments(splitPayment(subscription.price, paymentType));
+
     // Nombre de permanences (exemple: 2 permanences par défaut, à adapter selon vos règles)
     const permanences = subscription.type === 'ANNUAL' ? '2 à 3' : '1';
 
@@ -199,6 +238,10 @@ class ContractService {
       halfLargePrice: halfLargePrice,
       quarterPaymentSmallText: quarterPaymentSmallText,
       quarterPaymentLargeText: quarterPaymentLargeText,
+
+      // Part de l'adhérent, à afficher pour lever l'ambiguïté du tarif solidaire
+      memberAmount: memberAmount,
+      memberInstallments: memberInstallments,
 
       // Point de retrait
       pickupLocationName: subscription.pickupLocation.name,
