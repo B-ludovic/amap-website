@@ -8,6 +8,7 @@ import {
 import {
   MAX_CLOSURE_DAYS_PER_YEAR,
   countClosureDays,
+  getUtcDayBounds,
   getYearBounds,
   sumClosureDays
 } from '../utils/closurePeriod.js';
@@ -107,6 +108,45 @@ async function countDaysUsedInYear(date, excludedId) {
   return { year, daysUsed: sumClosureDays(closures) };
 }
 
+/* Une permanence programmée dit « rendez-vous ce jour-là », une fermeture dit
+   l'inverse. Les deux ne peuvent pas coexister : le contrôleur des permanences
+   empêche déjà d'en poser une sur un jour fermé, il faut fermer l'autre sens et
+   empêcher d'envelopper une permanence dans une fermeture.
+
+   On refuse plutôt que de supprimer d'office : effacer enverrait le même jour
+   deux emails contradictoires au même bénévole — une annulation de permanence
+   et une annonce de fermeture — et l'administrateur perdrait la trace de ce
+   qu'il vient de détruire. Le refus le force à nettoyer en connaissance de
+   cause.
+
+   Seules les permanences encore à venir bloquent : une permanence déjà tenue
+   est de l'histoire, elle ne promet plus rien à personne. */
+async function refuseIfShiftsPlanned({ start, end }) {
+  const now = new Date();
+  const from = getUtcDayBounds(start).start;
+  const to = getUtcDayBounds(end).end;
+
+  if (to < now) return;
+
+  const shifts = await prisma.shift.findMany({
+    where: {
+      distributionDate: { gte: from > now ? from : now, lte: to }
+    },
+    orderBy: { distributionDate: 'asc' },
+    select: { distributionDate: true }
+  });
+
+  if (shifts.length === 0) return;
+
+  const dates = shifts.map(shift => formatDateFR(shift.distributionDate)).join(', ');
+
+  throw new HttpBadRequestError(
+    shifts.length === 1
+      ? `Une permanence est programmée pendant cette période, le ${dates}. Supprimez-la ou déplacez-la avant de déclarer la fermeture.`
+      : `${shifts.length} permanences sont programmées pendant cette période : ${dates}. Supprimez-les ou déplacez-les avant de déclarer la fermeture.`
+  );
+}
+
 /* Contrôle commun à la création et à la modification : dates cohérentes et
    quota annuel respecté. */
 async function validateClosurePeriod({ startDate, endDate, excludedId }) {
@@ -133,6 +173,8 @@ async function validateClosurePeriod({ startDate, endDate, excludedId }) {
       `Limite de 3 semaines de fermeture atteinte pour ${year}. Jours déjà utilisés : ${daysUsed}/${MAX_CLOSURE_DAYS_PER_YEAR}`
     );
   }
+
+  await refuseIfShiftsPlanned({ start, end });
 
   return { start, end };
 }

@@ -12,6 +12,39 @@ import {
 } from '../utils/httpErrors.js';
 import { logAudit } from '../services/audit.service.js';
 import { computeRemainingPickups } from '../utils/subscriptionSchedule.js';
+import { computeSubscriptionPrice } from '../utils/subscriptionPricing.js';
+
+const SubscriptionTypeSchema = z.enum(['ANNUAL', 'DISCOVERY']);
+const BasketSizeSchema = z.enum(['SMALL', 'LARGE']);
+const PricingTypeSchema = z.enum(['NORMAL', 'SOLIDARITY']);
+const emptyToUndefined = (value) => (value === '' || value === null ? undefined : value);
+const DateSchema = z.preprocess(emptyToUndefined, z.coerce.date());
+const OptionalDateSchema = z.preprocess(emptyToUndefined, z.coerce.date().optional());
+const OptionalAmountSchema = z.preprocess(
+  emptyToUndefined,
+  z.coerce.number().finite().min(0).optional()
+);
+
+const CreateSubscriptionSchema = z.object({
+  userId: z.string().min(1, 'Utilisateur requis'),
+  type: SubscriptionTypeSchema,
+  basketSize: BasketSizeSchema,
+  pricingType: PricingTypeSchema.optional().default('NORMAL'),
+  startDate: DateSchema,
+  endDate: DateSchema,
+  pickupLocationId: z.string().min(1, 'Point de retrait requis')
+}).refine(({ startDate, endDate }) => endDate > startDate, {
+  message: 'La date de fin doit être postérieure à la date de début',
+  path: ['endDate']
+});
+
+const UpdateSubscriptionSchema = z.object({
+  basketSize: BasketSizeSchema.optional(),
+  pricingType: PricingTypeSchema.optional(),
+  endDate: OptionalDateSchema,
+  price: OptionalAmountSchema,
+  paidAmount: OptionalAmountSchema
+});
 
 // Générer un numéro d'abonnement unique
 const generateSubscriptionNumber = async () => {
@@ -310,20 +343,10 @@ const getSubscriptionById = asyncHandler(async (req, res) => {
 
 // CRÉER UN ABONNEMENT (ADMIN - après validation demande)
 const createSubscription = asyncHandler(async (req, res) => {
-  const {
-    userId,
-    type,
-    basketSize,
-    pricingType,
-    startDate,
-    endDate,
-    price,
-    pickupLocationId
-  } = req.body;
+  const parsed = CreateSubscriptionSchema.safeParse(req.body);
+  if (!parsed.success) throw new HttpBadRequestError(parsed.error.errors[0].message);
 
-  if (!userId || !type || !basketSize || !startDate || !endDate || !price || !pickupLocationId) {
-    throw new HttpBadRequestError('Tous les champs requis doivent être remplis');
-  }
+  const { userId, type, basketSize, pricingType, startDate, endDate, pickupLocationId } = parsed.data;
 
   // Vérifier que l'utilisateur existe
   const user = await prisma.user.findUnique({ where: { id: userId } });
@@ -352,9 +375,9 @@ const createSubscription = asyncHandler(async (req, res) => {
       basketSize,
       pricingType: pricingType || 'NORMAL',
       status: 'ACTIVE',
-      startDate: new Date(startDate),
-      endDate: new Date(endDate),
-      price: parseFloat(price),
+      startDate,
+      endDate,
+      price: computeSubscriptionPrice({ type, basketSize, pricingType }),
       paidAmount: 0,
       pickupLocationId
     },
@@ -384,7 +407,6 @@ const createSubscription = asyncHandler(async (req, res) => {
 // MODIFIER UN ABONNEMENT (ADMIN)
 const updateSubscription = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { basketSize, pricingType, endDate, price, paidAmount } = req.body;
 
   const subscription = await prisma.subscription.findUnique({ where: { id } });
 
@@ -392,14 +414,23 @@ const updateSubscription = asyncHandler(async (req, res) => {
     throw new HttpNotFoundError('Abonnement introuvable');
   }
 
+  const parsed = UpdateSubscriptionSchema.safeParse(req.body);
+  if (!parsed.success) throw new HttpBadRequestError(parsed.error.errors[0].message);
+
+  const { basketSize, pricingType, endDate, price, paidAmount } = parsed.data;
+
+  if (endDate && endDate <= subscription.startDate) {
+    throw new HttpBadRequestError('La date de fin doit être postérieure à la date de début');
+  }
+
   const updated = await prisma.subscription.update({
     where: { id },
     data: {
       ...(basketSize && { basketSize }),
       ...(pricingType && { pricingType }),
-      ...(endDate && { endDate: new Date(endDate) }),
-      ...(price && { price: parseFloat(price) }),
-      ...(paidAmount !== undefined && { paidAmount: parseFloat(paidAmount) })
+      ...(endDate && { endDate }),
+      ...(price !== undefined && { price }),
+      ...(paidAmount !== undefined && { paidAmount })
     },
     include: {
       user: {
