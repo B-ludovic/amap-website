@@ -121,8 +121,13 @@ export default function NewsletterModal({ newsletter, onClose }) {
         const response = await api.newsletters.create(payload);
 
         if (sendMode === 'now') {
-          await api.newsletters.send(response.data.id);
-          showSuccess('Newsletter envoyée', 'Le message est parti vers ses destinataires.');
+          /* Le serveur répond 202 : il a pris l'envoi en charge, il ne l'a pas
+             terminé. Annoncer « c'est parti » serait promettre un résultat que
+             personne ne connaît encore — l'acheminement vers deux cents
+             adhérents demande près de deux minutes. On renvoie donc vers la
+             liste, où le statut et le compteur avancent d'eux-mêmes. */
+          const envoi = await api.newsletters.send(response.data.id);
+          showSuccess('Envoi lancé', envoi?.message ?? 'Le suivi s\'affiche dans la liste des newsletters.');
         } else if (sendMode === 'schedule') {
           await api.newsletters.schedule(response.data.id, { scheduledFor });
           showSuccess('Newsletter programmée', 'L\'envoi partira à la date indiquée.');

@@ -71,6 +71,9 @@ export const httpStatusCodes = {
   // succès
   OK: 200,
   CREATED: 201,
+  // « C'est pris en charge, ce n'est pas terminé » — l'envoi d'une newsletter
+  // se poursuit après la réponse, l'état se relit ensuite en base.
+  ACCEPTED: 202,
   NO_CONTENT: 204,
 
   // erreurs client

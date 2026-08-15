@@ -394,12 +394,35 @@ class EmailService {
     };
   }
 
-  /* Envoie une newsletter */
-  async sendNewsletter(newsletter, recipients) {
+  /* Envoie une newsletter.
+
+     `onProgress` est appelé à la fin de chaque lot, avec le compte courant.
+     L'envoi ne se fait plus dans la requête de l'administratrice — deux cents
+     adhérents demandent près de deux minutes, cinq cents plus de quatre — et
+     elle a donc besoin de voir la progression ailleurs que dans une roue qui
+     tourne. Le rapporteur écrit en base ; c'est de là que l'écran lit.
+
+     Il est appelé entre les lots et non à chaque message : cinq cents écritures
+     pour cinq cents envois coûteraient plus cher que l'envoi lui-même, et
+     personne ne regarde un compteur avancer message par message. */
+  async sendNewsletter(newsletter, recipients, { onProgress } = {}) {
     try {
       const results = { sent: 0, failed: 0, errors: [] };
       const batchSize = 50;
       const respectsOptOut = !overridesOptOut(newsletter.type);
+
+      /* Rendre compte ne doit jamais interrompre ce dont on rend compte : une
+         base momentanément injoignable ferait sinon échouer un envoi qui se
+         déroule très bien. Même règle que pour la trace dans #trace. */
+      const rapporter = async () => {
+        if (!onProgress) return;
+
+        try {
+          await onProgress({ sent: results.sent, failed: results.failed });
+        } catch (error) {
+          console.error(`[Email:NEWSLETTER] progression non enregistrée : ${error.message}`);
+        }
+      };
 
       for (let i = 0; i < recipients.length; i += batchSize) {
         const batch = recipients.slice(i, i + batchSize);
@@ -439,6 +462,8 @@ class EmailService {
             results.errors.push({ email: recipient.email, error: envoi.error });
           }
         }
+        await rapporter();
+
         if (i + batchSize < recipients.length) await new Promise(resolve => setTimeout(resolve, 1000));
       }
       return { success: true, results };

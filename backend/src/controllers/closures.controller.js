@@ -1,6 +1,6 @@
 import { prisma } from '../config/database.js';
 import { asyncHandler } from '../middlewares/error.middleware.js';
-import emailService from '../services/email.service.js';
+import { reserverNewsletter, lancerDiffusion } from '../services/newsletterDispatch.service.js';
 import {
   HttpNotFoundError,
   HttpBadRequestError
@@ -104,41 +104,39 @@ async function announceClosure({ closure, adminId, isUpdate }) {
     }
   });
 
-  if (recipients.length === 0) return { sent: 0, failed: 0 };
+  if (recipients.length === 0) return { lancee: false, recipientsCount: 0 };
 
-  const result = await emailService.sendNewsletter(newsletter, recipients);
-  const sent = result.results?.sent ?? 0;
-  const failed = result.results?.failed ?? recipients.length;
+  /* Même mécanique que l'envoi manuel, et pour la même raison : deux cents
+     abonnés demandent près de deux minutes d'envoi, que la requête de
+     l'administratrice n'a pas à porter. On réserve, on lance, on rend la main.
 
-  /* sentAt n'est posé que si quelque chose est réellement parti — c'est lui qui
-     verrouille la newsletter dans /admin/communication. Un quota SMTP dépassé
-     au moment où l'on enregistre une fermeture marquerait sinon l'annonce
-     « envoyée » alors qu'aucun adhérent n'a rien reçu, et la seule trace du
-     texte deviendrait inrenvoyable. La fermeture, elle, existe bel et bien :
-     on ne remonte donc pas d'erreur, on rend le compte exact à l'appelant. */
-  if (sent > 0) {
-    await prisma.newsletter.update({
-      where: { id: newsletter.id },
-      data: { sentAt: new Date(), sentCount: sent }
-    });
-  } else {
-    console.error(`[Closure ${closure.id}] annonce non distribuée : ${failed} envoi(s) refusé(s) sur ${recipients.length} — newsletter ${newsletter.id} renvoyable, voir EmailLog`);
-  }
+     L'annonce vient d'être créée, sa réservation ne peut donc pas échouer — mais
+     on la teste tout de même plutôt que de supposer, un enregistrement de
+     fermeture déclenché deux fois passant par ici deux fois. */
+  const reservee = await reserverNewsletter(newsletter.id);
 
-  return { sent, failed };
+  if (!reservee) return { lancee: false, recipientsCount: recipients.length };
+
+  lancerDiffusion({ id: newsletter.id, newsletter, recipients });
+
+  return { lancee: true, recipientsCount: recipients.length, newsletterId: newsletter.id };
 }
 
-/* Ce que l'administratrice lit après coup. Trois cas, et non deux : tout est
-   parti, une partie seulement, ou rien — et le dernier mérite de dire où
-   récupérer le texte plutôt que de laisser croire à un envoi silencieux. */
-function closureNotice(base, { sent, failed }) {
-  if (failed === 0) return `${base} Newsletter envoyée à ${sent} abonné(s).`;
+/* Ce que l'administratrice lit après coup.
 
-  if (sent === 0) {
-    return `${base} Aucun abonné n'a pu être joint (${failed} échec${failed > 1 ? 's' : ''}) : l'annonce reste renvoyable depuis l'écran Communication.`;
+   Le compte des envois réussis ne peut plus figurer ici : au moment où cette
+   phrase se compose, la diffusion commence à peine. C'est un renseignement en
+   moins dans la fenêtre de confirmation, et c'est le prix du découplage — il se
+   retrouve, complet et à jour, dans l'écran de communication, là où le statut de
+   l'annonce vit désormais. */
+function closureNotice(base, { lancee, recipientsCount }) {
+  if (!lancee) {
+    return recipientsCount === 0
+      ? `${base} Aucun abonné actif : aucune annonce envoyée.`
+      : `${base} L'annonce n'a pas pu être lancée, elle reste disponible dans l'écran Communication.`;
   }
 
-  return `${base} Newsletter envoyée à ${sent} abonné(s), ${failed} non joint(s).`;
+  return `${base} Annonce en cours d'envoi vers ${recipientsCount} abonné(s) : le suivi s'affiche dans l'écran Communication.`;
 }
 
 /* Jours déjà consommés sur l'année civile d'une date, la fermeture en cours de
@@ -275,20 +273,20 @@ const createClosure = asyncHandler(async (req, res) => {
 
   const annonce = notify
     ? await announceClosure({ closure, adminId: req.user.id, isUpdate: false })
-    : { sent: 0, failed: 0 };
+    : { lancee: false, recipientsCount: 0 };
 
   await logAudit(req, 'CREATE_CLOSURE', 'IMPORTANT', {
     type: 'AMAP_CLOSURE',
     id: closure.id,
     label: `${formatDateFR(closure.startDate)} au ${formatDateFR(closure.endDate)}`
-  }, { notified: Boolean(notify), sentCount: annonce.sent, failedCount: annonce.failed });
+  }, { notified: Boolean(notify), announcementLaunched: annonce.lancee, recipientsCount: annonce.recipientsCount });
 
   res.json({
     success: true,
     message: notify
       ? closureNotice('Fermeture créée.', annonce)
       : 'Fermeture créée. Aucune newsletter envoyée.',
-    data: { closure, sentCount: annonce.sent, failedCount: annonce.failed, notified: Boolean(notify) }
+    data: { closure, announcement: annonce, notified: Boolean(notify) }
   });
 });
 
@@ -319,7 +317,7 @@ const updateClosure = asyncHandler(async (req, res) => {
 
   const annonce = notify
     ? await announceClosure({ closure: updated, adminId: req.user.id, isUpdate: true })
-    : { sent: 0, failed: 0 };
+    : { lancee: false, recipientsCount: 0 };
 
   await logAudit(req, 'UPDATE_CLOSURE', 'IMPORTANT', {
     type: 'AMAP_CLOSURE',
@@ -329,8 +327,8 @@ const updateClosure = asyncHandler(async (req, res) => {
     before: { startDate: closure.startDate, endDate: closure.endDate },
     after: { startDate: updated.startDate, endDate: updated.endDate },
     notified: Boolean(notify),
-    sentCount: annonce.sent,
-    failedCount: annonce.failed
+    announcementLaunched: annonce.lancee,
+    recipientsCount: annonce.recipientsCount
   });
 
   res.json({
@@ -338,7 +336,7 @@ const updateClosure = asyncHandler(async (req, res) => {
     message: notify
       ? closureNotice('Fermeture modifiée.', annonce)
       : 'Fermeture modifiée. Aucune newsletter envoyée.',
-    data: { closure: updated, sentCount: annonce.sent, failedCount: annonce.failed, notified: Boolean(notify) }
+    data: { closure: updated, announcement: annonce, notified: Boolean(notify) }
   });
 });
 

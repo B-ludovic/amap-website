@@ -176,6 +176,48 @@ describe('Un envoi de masse ne s\'arrête pas au premier refus', () => {
   }
 });
 
+describe('Le rapport de progression pendant un envoi de masse', () => {
+  /* Cinquante et un destinataires : deux lots, donc deux rapports et une pause
+     d'une seconde entre les deux. La pause est franchie par une horloge
+     factice — l'attendre réellement rendrait la suite plus lente que tout le
+     reste réuni, pour ne rien prouver de plus. */
+  const CINQUANTE_ET_UN = Array.from({ length: 51 }, (_, i) => ({
+    id: `u${i}`, firstName: 'Adhérent', email: `adherent${i}@example.org`,
+  }));
+
+  it('rend compte à la fin de chaque lot, pas seulement à la fin', async () => {
+    const rapports = [];
+
+    vi.useFakeTimers();
+    try {
+      const envoi = emails.sendNewsletter(lettreDInformation, CINQUANTE_ET_UN, {
+        onProgress: ({ sent, failed }) => { rapports.push({ sent, failed }); },
+      });
+
+      await vi.advanceTimersByTimeAsync(5000);
+      await envoi;
+    } finally {
+      vi.useRealTimers();
+    }
+
+    /* Le premier rapport tombe alors qu'il reste un adhérent à servir : c'est
+       ce qui permet à l'écran de communication de montrer un envoi qui avance
+       au lieu d'une roue qui tourne. */
+    expect(rapports).toEqual([{ sent: 50, failed: 0 }, { sent: 51, failed: 0 }]);
+  });
+
+  it('n\'interrompt pas l\'envoi si le rapport échoue', async () => {
+    const envoi = await emails.sendNewsletter(lettreDInformation, [adherente], {
+      onProgress: () => { throw new Error('base injoignable'); },
+    });
+
+    /* Rendre compte ne doit jamais faire échouer ce dont on rend compte. */
+    expect(envoi.success).toBe(true);
+    expect(envoi.results.sent).toBe(1);
+    expect(erreursConsole.join('\n')).toContain('progression non enregistrée');
+  });
+});
+
 describe('La trace ne fait jamais tomber l\'envoi qu\'elle décrit', () => {
   it('rend l\'envoi pour réussi même si la base est injoignable', async () => {
     simulerPanneDeBase();

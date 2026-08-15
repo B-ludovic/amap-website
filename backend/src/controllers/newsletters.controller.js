@@ -10,6 +10,7 @@ import {
 } from '../utils/httpErrors.js';
 import { logAudit } from '../services/audit.service.js';
 import { resolveNewsletterRecipients } from '../services/newsletterAudience.service.js';
+import { reserverNewsletter, lancerDiffusion } from '../services/newsletterDispatch.service.js';
 
 // RÉCUPÉRER TOUTES LES NEWSLETTERS
 const getAllNewsletters = asyncHandler(async (req, res) => {
@@ -25,10 +26,14 @@ const getAllNewsletters = asyncHandler(async (req, res) => {
         where.type = type;
     }
 
+    /* « Envoyée » se lit sur le statut et non plus sur sentAt : celui-ci est
+       posé dès le départ de la diffusion, il rangerait donc un envoi encore en
+       cours parmi les lettres parties. Un envoi en cours n'est ni l'un ni
+       l'autre — il n'apparaît dans aucun des deux filtres, comme il se doit. */
     if (sent === 'true') {
-        where.sentAt = { not: null };
+        where.status = 'SENT';
     } else if (sent === 'false') {
-        where.sentAt = null;
+        where.status = { in: ['DRAFT', 'FAILED'] };
     }
 
     const [newsletters, total] = await Promise.all([
@@ -195,22 +200,6 @@ const deleteNewsletter = asyncHandler(async (req, res) => {
     });
 });
 
-/* Relâcher le drapeau posé avant l'envoi.
-
-   Appelé sur les seuls chemins où rien n'est parti : la newsletter redevient
-   alors modifiable et renvoyable, ce qui est tout l'objet du défaut C3.
-
-   Ce que ce filet ne rattrape pas, et qu'il faut savoir : si le processus meurt
-   pendant la boucle d'envoi, personne n'exécute cette ligne et la newsletter
-   reste marquée envoyée avec un compte à zéro. C'est le mauvais côté du bon
-   choix — un drapeau coincé se débloque à la main en base, deux cents envois en
-   double ne se reprennent pas. Distinguer « en cours » de « envoyée »
-   demanderait une colonne de plus, et n'a pas été jugé nécessaire pour un envoi
-   déclenché à la main quelques fois par saison. */
-async function releaseNewsletterClaim(id) {
-    await prisma.newsletter.update({ where: { id }, data: { sentAt: null } });
-}
-
 // ENVOYER UNE NEWSLETTER
 const sendNewsletter = asyncHandler(async (req, res) => {
     const { id } = req.params;
@@ -221,7 +210,11 @@ const sendNewsletter = asyncHandler(async (req, res) => {
         throw new HttpNotFoundError('Newsletter introuvable');
     }
 
-    if (newsletter.sentAt) {
+    if (newsletter.status === 'SENDING') {
+        throw new HttpConflictError('Un envoi est déjà en cours pour cette newsletter');
+    }
+
+    if (newsletter.status === 'SENT') {
         throw new HttpConflictError('Cette newsletter a déjà été envoyée');
     }
 
@@ -234,100 +227,39 @@ const sendNewsletter = asyncHandler(async (req, res) => {
         ? [{ id: req.user.id, email: req.user.email, firstName: req.user.firstName }]
         : await resolveNewsletterRecipients({ target: newsletter.target, type: newsletter.type });
 
-    /* On pose le drapeau AVANT d'envoyer.
+    /* La réservation se prend AVANT d'envoyer, et c'est la base qui arbitre —
+       le détail du compare-and-set est dans newsletterDispatch.
 
-       Le contrôle de sentAt fait plus haut ne protège de rien à lui seul : entre
-       cette lecture et l'écriture qui suivait l'envoi, il s'écoule toute la durée
-       de la boucle — de trente secondes à plusieurs minutes selon l'effectif. Un
-       mercredi matin, deux cents adhérents, le proxy coupe la connexion au bout
-       de deux minutes, l'administratrice croit que rien n'est parti et reclique.
-       Le premier envoi tournait toujours : cent trente personnes recevaient la
-       lettre en double, et aucun compteur ne le disait.
+       Le contrôle de statut fait plus haut n'est donc pas redondant, il est
+       simplement moins cher : il évite d'aller résoudre la liste des
+       destinataires pour rien, et il sait dire lequel des deux refus
+       s'applique. */
+    const reservee = await reserverNewsletter(id);
 
-       Le updateMany filtré sur sentAt: null est un compare-and-set atomique —
-       c'est la base qui arbitre, pas l'application. Même motif que
-       renewalReminder.job.js, pour la même raison : un e-mail parti ne se
-       reprend pas, on préfère en rater un plutôt qu'en doubler un.
-
-       Le contrôle du dessus n'est donc pas redondant, il est simplement moins
-       cher : il évite d'aller résoudre la liste des destinataires pour rien. */
-    const claimed = await prisma.newsletter.updateMany({
-        where: { id, sentAt: null },
-        data: { sentAt: new Date() }
-    });
-
-    if (claimed.count === 0) {
+    if (!reservee) {
         throw new HttpConflictError('Cette newsletter a déjà été envoyée');
     }
 
-    // Envoyer les emails via le service
-    const result = await emailService.sendNewsletter(newsletter, recipients);
+    /* L'envoi quitte la requête.
 
-    if (!result.success) {
-        await releaseNewsletterClaim(id);
-        throw new HttpBadRequestError('Erreur lors de l\'envoi de la newsletter');
-    }
+       Cinq cents adhérents demandent plus de quatre minutes. Pendant tout ce
+       temps, l'ancienne version tenait la requête ouverte sans écrire un octet,
+       jusqu'à ce que le proxy de l'hébergeur coupe — ce qui était précisément le
+       déclencheur du double envoi.
 
-    const { sent, failed } = result.results;
+       On répond donc 202 : « c'est accepté, ce n'est pas fini ». Le suivi se lit
+       ensuite dans l'écran de communication, que le statut et le compteur
+       alimentent au fil des lots. */
+    lancerDiffusion({ id, newsletter, recipients, trace: { user: req.user, ip: req.ip } });
 
-    /* Un envoi qui n'a atteint personne n'est pas un envoi.
-
-       La garde !result.success au-dessus ne se déclenche que si la méthode
-       elle-même s'est effondrée ; les refus du serveur SMTP, eux, sont comptés
-       destinataire par destinataire et rendus dans results. Sans la condition
-       ci-dessous, un quota Brevo dépassé un jour de rentrée donnait ceci :
-       cent vingt refus, sentAt posé quand même, « Newsletter envoyée à 0
-       destinataire(s) » à l'écran, et un second clic accueilli par « cette
-       newsletter a déjà été envoyée ». Le texte mourait en base, lu par
-       personne, et le seul chemin de sortie était de le recopier ailleurs.
-
-       Ne pas poser sentAt est tout l'enjeu : c'est lui, et lui seul, qui
-       verrouille. Tant qu'il reste nul, la newsletter se corrige et se renvoie
-       une fois le quota revenu. */
-    if (sent === 0 && recipients.length > 0) {
-        await releaseNewsletterClaim(id);
-
-        /* Le détail par destinataire vit dans EmailLog, pas ici : recopier les
-           adresses dans les logs de l'hébergeur reviendrait sur la règle posée
-           pour error.middleware.js. */
-        console.error(`[Newsletter ${id}] échec total : ${failed} envoi(s) refusé(s) sur ${recipients.length} — voir EmailLog`);
-
-        throw new HttpBadRequestError(
-            `Aucun email n'a pu être envoyé (${failed} échec${failed > 1 ? 's' : ''}). La newsletter reste modifiable et renvoyable.`
-        );
-    }
-
-    /* sentAt a été posé au moment de la prise ; il ne reste que le compte. Le
-       dater d'ici serait d'ailleurs faux : l'envoi a commencé plusieurs minutes
-       plus tôt, et c'est ce début-là qui fait foi pour dire « déjà envoyée ». */
-    await prisma.newsletter.update({
-        where: { id },
-        data: { sentCount: sent }
-    });
-
-    /* Succès partiel : la newsletter est bien partie, elle se verrouille donc,
-       mais quelques boîtes n'ont pas été atteintes. On le dit plutôt que de
-       laisser l'administratrice déduire l'écart entre deux nombres. */
-    if (failed > 0) {
-        console.warn(`[Newsletter ${id}] ${failed} destinataire(s) non joint(s) sur ${recipients.length} — voir EmailLog`);
-    }
-
-    /* Qui a écrit à tout le monde, quand, à quelle liste et combien de boîtes ont
-       reçu le message. Newsletter.createdBy ne répond qu'à la première question,
-       et encore : il nomme la main qui a rédigé, pas celle qui a appuyé sur
-       « envoyer », et il devient nul lorsque le compte de l'auteur est purgé.
-       Le journal, lui, conserve l'adresse de l'administrateur telle qu'elle était
-       au moment de l'envoi. */
-    await logAudit(req, 'SEND_NEWSLETTER', 'CRITICAL', { type: 'NEWSLETTER', id, label: newsletter.subject }, { target: newsletter.target, recipientsCount: recipients.length, sentCount: sent, failedCount: failed });
-
-    res.json({
+    res.status(httpStatusCodes.ACCEPTED).json({
         success: true,
-        message: failed > 0
-            ? `Newsletter envoyée à ${sent} destinataire(s), ${failed} non joint(s).`
-            : `Newsletter envoyée à ${sent} destinataire(s)`,
+        message: recipients.length > 0
+            ? `Envoi lancé vers ${recipients.length} destinataire(s). Le suivi s'affiche dans la liste des newsletters.`
+            : 'Aucun destinataire dans cette cible : rien ne sera envoyé.',
         data: {
-            sentCount: sent,
-            failedCount: failed
+            status: 'SENDING',
+            recipientsCount: recipients.length
         }
     });
 });
@@ -374,11 +306,11 @@ const scheduleNewsletter = asyncHandler(async (req, res) => {
 const getNewsletterStats = asyncHandler(async (req, res) => {
     const [total, sent, scheduled, byType] = await Promise.all([
         prisma.newsletter.count(),
-        prisma.newsletter.count({ where: { sentAt: { not: null } } }),
+        prisma.newsletter.count({ where: { status: 'SENT' } }),
         prisma.newsletter.count({
             where: {
                 scheduledFor: { not: null },
-                sentAt: null
+                status: { in: ['DRAFT', 'FAILED'] }
             }
         }),
         prisma.newsletter.groupBy({

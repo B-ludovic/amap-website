@@ -461,6 +461,20 @@ model Newsletter {
   target      NewsletterTarget @default(ALL)
   
   scheduledFor DateTime?
+
+  // Où en est l'envoi. Le champ existe parce qu'un envoi ne se fait plus dans
+  // la requête de l'administratrice : elle reçoit un 202 aussitôt le drapeau
+  // pris, et c'est ici qu'elle lit ensuite ce qu'il est advenu.
+  //
+  // sentAt seul ne pouvait pas porter cette information : posé, il disait
+  // « envoyée » aussi bien pour un envoi terminé que pour un envoi encore en
+  // cours ; nul, il ne distinguait pas un brouillon jamais lancé d'une
+  // tentative qui n'a atteint personne. Trois états valent mieux que deux
+  // valeurs d'un même champ.
+  status      NewsletterStatus @default(DRAFT)
+
+  // Début de l'envoi, pas sa fin : il est posé au moment où la newsletter est
+  // réservée, et c'est ce début qui fait foi pour refuser un second départ.
   sentAt      DateTime?
   sentCount   Int      @default(0)
   openCount   Int      @default(0)
@@ -476,6 +490,21 @@ model Newsletter {
   
   @@index([sentAt])
   @@index([createdBy])
+  @@index([status])
+}
+
+/* DRAFT rien n'est parti, SENDING la boucle tourne, SENT au moins une boîte a
+   reçu, FAILED aucune.
+
+   FAILED n'est pas une impasse : c'est un état de départ au même titre que
+   DRAFT, et la prise du drapeau accepte les deux. Un quota Brevo dépassé un
+   matin ne condamne donc pas le texte — il dit seulement que la tentative
+   précédente n'a atteint personne. */
+enum NewsletterStatus {
+  DRAFT
+  SENDING
+  SENT
+  FAILED
 }
 
 enum NewsletterType {

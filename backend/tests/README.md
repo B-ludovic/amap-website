@@ -37,7 +37,13 @@ devienne lente et capricieuse sans que personne l'ait décidé.
 | --- | --- |
 | `unit/email.mentions.test.js` | Les mentions obligatoires du pied de page des emails : adresse postale, motif de réception, exercice des droits RGPD. Défaut m7. |
 | `unit/email.tracabilite.test.js` | La trace laissée par chaque envoi, réussi ou raté : ligne en base, log qui ne recopie pas l'adresse en production, envoi de masse qui ne s'arrête pas au premier refus. Défaut C2. |
-| `unit/newsletter.envoi.test.js` | Le sort de `sentAt` à l'envoi : posé ou relâché selon la proportion d'échecs (C3), et pris avant la boucle par compare-and-set pour qu'un second clic ne double pas l'envoi (M2). Vaut aussi pour l'annonce de fermeture. |
+| `unit/newsletter.envoi.test.js` | Le sort de `status` et `sentAt` à l'envoi : relâchés quand rien n'est parti (C3), pris avant la boucle par compare-and-set pour qu'un second clic ne double pas l'envoi (M2), et réponse 202 pendant que la diffusion continue derrière (M10). Vaut aussi pour l'annonce de fermeture. |
+
+Un mot sur `helpers/attente.js`, qui revient dans ce dernier fichier. Depuis que
+la diffusion quitte la requête, il n'y a plus de promesse à attendre : le test
+observe l'état en base jusqu'à ce qu'il change, exactement comme l'écran de
+communication en se rafraîchissant. Un `await` sur l'appel du contrôleur ne
+prouverait plus rien.
 
 Les deux fichiers partagent `fixtures/messagesSortants.js`, le catalogue des
 dix-huit messages du site. Un test de complétude compare ce catalogue à la liste

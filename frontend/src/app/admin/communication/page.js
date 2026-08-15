@@ -23,11 +23,21 @@ const TARGET_LABELS = {
   TEST: 'Test'
 };
 
-/* L'état n'est pas une colonne : il se déduit des dates. Une newsletter est
-   envoyée si sentAt est posé, programmée si une date d'envoi l'attend, et
-   brouillon dans tous les autres cas. */
+/* L'état est désormais une colonne, et c'est elle qui fait foi.
+
+   Il se déduisait des dates : sentAt posé valait « envoyée ». Cela ne suffit
+   plus depuis que l'envoi se poursuit après la réponse du serveur — sentAt est
+   posé au départ de la diffusion, pas à son terme, si bien qu'une lettre en
+   cours d'acheminement se serait annoncée partie. Le serveur tient donc un
+   statut explicite, et c'est ce que cet écran lit.
+
+   « Échec » est un état de départ comme « Brouillon » : la lettre reste
+   modifiable et se renvoie, ce que le libellé doit laisser entendre plutôt que
+   de sonner comme une fin de course. */
 function stateOf(newsletter) {
-  if (newsletter.sentAt) return { label: 'Envoyée', tone: 'admin-badge-green' };
+  if (newsletter.status === 'SENDING') return { label: 'Envoi en cours', tone: 'admin-badge-amber' };
+  if (newsletter.status === 'SENT') return { label: 'Envoyée', tone: 'admin-badge-green' };
+  if (newsletter.status === 'FAILED') return { label: 'Échec, à renvoyer', tone: 'admin-badge-red' };
   if (newsletter.scheduledFor) return { label: 'Programmée', tone: 'admin-badge-amber' };
   return { label: 'Brouillon', tone: '' };
 }
@@ -167,15 +177,21 @@ export default function AdminCommunicationPage() {
                   <div className="admin-newsletter-meta">
                     <span>{TARGET_LABELS[newsletter.target] ?? newsletter.target}</span>
                     <span>
-                      {newsletter.sentAt
-                        ? `Envoyée le ${longDate(newsletter.sentAt)}`
-                        : newsletter.scheduledFor
-                          ? `Programmée le ${longDate(newsletter.scheduledFor)}`
-                          : `Créée le ${longDate(newsletter.createdAt)}`}
+                      {newsletter.status === 'SENDING'
+                        ? `Départ le ${longDate(newsletter.sentAt)}`
+                        : newsletter.status === 'SENT'
+                          ? `Envoyée le ${longDate(newsletter.sentAt)}`
+                          : newsletter.scheduledFor
+                            ? `Programmée le ${longDate(newsletter.scheduledFor)}`
+                            : `Créée le ${longDate(newsletter.createdAt)}`}
                     </span>
-                    {newsletter.sentAt && (
+                    {/* Le compteur avance lot par lot pendant la diffusion : on
+                        l'affiche donc aussi en cours de route, en disant qu'il
+                        n'est pas définitif. */}
+                    {(newsletter.status === 'SENDING' || newsletter.status === 'SENT') && (
                       <span>
                         {newsletter.sentCount} {plural(newsletter.sentCount, 'destinataire', 'destinataires')}
+                        {newsletter.status === 'SENDING' && ' pour l\'instant'}
                         {newsletter.openCount > 0 && ` · ${newsletter.openCount} ${plural(newsletter.openCount, 'ouverture', 'ouvertures')}`}
                       </span>
                     )}
