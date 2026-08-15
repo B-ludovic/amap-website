@@ -1,0 +1,166 @@
+/* CGU — réglages propres au texte juridique, posés sur le gabarit de legal.css.
+   La page reprend le hero, le sommaire collant et la colonne de 44em des
+   mentions légales ; seuls les motifs absents de cette page sont définis ici :
+   le numéro d'article au-dessus du titre, les tables d'articles à intitulé long,
+   et l'énumération à puces de l'article 1. */
+
+/* ---------- Justification du corps de texte ----------
+   Un document juridique se lit en pavés pleins : les deux bords alignés donnent
+   au texte la tenue d'un contrat imprimé. La justification n'est appliquée
+   qu'aux paragraphes du corps — jamais aux intitulés, aux titres ni au sommaire,
+   dont les lignes courtes se creuseraient de trous.
+
+   La césure va avec : sans elle, une colonne de 44em coupée en lignes justifiées
+   étire les espaces jusqu'à ouvrir des lézardes verticales dans le pavé. Le
+   `lang="fr"` posé sur <html> donne au navigateur le dictionnaire qu'il faut
+   pour couper aux bons endroits. */
+.cgu-page .legal-text,
+.cgu-page .def-value,
+.cgu-page .cgu-bullet-text,
+.cgu-page .notice-band-text {
+  text-align: justify;
+  hyphens: auto;
+}
+
+/* ---------- Préambule ---------- */
+
+/* Une ligne d'identification posée avant le premier article, détachée du corps
+   par un filet : elle situe l'éditeur sans faire elle-même partie du texte. */
+.cgu-preamble {
+  padding-bottom: 28px;
+  margin-bottom: 44px;
+  border-bottom: var(--border-width) solid var(--border-card);
+}
+
+/* ---------- Numéro d'article ----------
+   Le numéro se lit au-dessus du titre, en monospace : le titre garde sa Fraunces
+   pleine largeur, et un article se cite par son rang sans l'alourdir. */
+.cgu-article-label {
+  display: block;
+  letter-spacing: 0.12em;
+  color: var(--terracotta);
+  margin-bottom: 12px;
+}
+
+/* ---------- Tables d'articles ----------
+   Intitulé en gras à gauche, disposition du .def-list. Les intitulés juridiques
+   sont plus longs que ceux des mentions légales (« Sécurité des identifiants »
+   contre « Adresse ») : la colonne s'élargit et la respiration augmente, sinon
+   chaque libellé casse sur trois lignes face à un paragraphe de six. */
+.cgu-defs {
+  --def-col: 210px;
+  --def-gap: 28px;
+  --def-pad: 20px;
+}
+
+.cgu-defs .def-label-strong {
+  line-height: 1.4;
+}
+
+.cgu-defs .def-value {
+  font-size: 15px;
+  line-height: 1.75;
+  color: var(--text-secondary);
+}
+
+/* ---------- Énumération à puces ----------
+   Point terracotta en colonne fixe, filets de séparation : la même famille que
+   .numbered-steps, sans les numéros — ces finalités ne s'enchaînent pas, elles
+   coexistent. */
+.cgu-bullets {
+  display: grid;
+  gap: 0;
+  list-style: none;
+  margin: 0 0 28px;
+  padding: 0;
+  border-top: var(--border-width) solid var(--border-card);
+}
+
+.cgu-bullet {
+  display: grid;
+  grid-template-columns: 20px 1fr;
+  gap: 12px;
+  align-items: start;
+  padding: 13px 0;
+  margin: 0;
+}
+
+.cgu-bullet:not(:last-child) {
+  border-bottom: var(--border-width) solid var(--border-card);
+}
+
+/* Un span vide n'a pas de ligne de base à offrir : le point se centre donc sur
+   la première ligne du texte par un décalage calculé — moitié de l'interligne
+   (15px × 1.7 ≈ 25px), moins la moitié du point. */
+.cgu-bullet-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background-color: var(--terracotta);
+  margin-top: 10px;
+}
+
+.cgu-bullet-text {
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+}
+
+/* ---------- Encart d'acceptation ---------- */
+
+.cgu-notice {
+  --notice-pad: 18px 20px;
+  align-items: flex-start;
+  margin-top: 4px;
+}
+
+/* Le point du bandeau est centré sur une ligne unique ; ici le texte en fait
+   plusieurs, il se cale donc sur la première. */
+.cgu-notice .notice-band-dot {
+  margin-top: 8px;
+}
+
+.cgu-notice .notice-band-text strong {
+  font-weight: var(--font-weight-semibold);
+  color: var(--notice-strong);
+}
+
+/* ---------- Carte de signalement ---------- */
+
+.cgu-card {
+  margin-top: 32px;
+  display: grid;
+  justify-items: start;
+  gap: 14px;
+}
+
+/* Les marges internes du gabarit de carte feraient doublon avec le gap */
+.cgu-card .legal-card-title {
+  margin-bottom: 0;
+}
+
+.cgu-card-text {
+  font-size: 14.5px;
+  line-height: 1.7;
+  margin: 0;
+}
+
+/* ---------- Version en vigueur ---------- */
+
+.cgu-version {
+  border-top: var(--border-width) solid var(--border-card);
+  margin-top: 28px;
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 560px) {
+  .cgu-defs {
+    --def-col: 1fr;
+  }
+
+  .cgu-defs .def-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}

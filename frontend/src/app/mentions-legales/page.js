@@ -38,7 +38,7 @@ export default function MentionsLegalesPage() {
               ))}
             </nav>
           </div>
-          <Link href="/cookies" className="legal-cookie-btn">
+          <Link href="/cookies" className="legal-aside-btn">
             Gérer mes cookies
           </Link>
         </aside>

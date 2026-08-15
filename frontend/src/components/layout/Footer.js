@@ -98,6 +98,11 @@ function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/cgu" className="footer-link">
+                  Conditions d&apos;utilisation
+                </Link>
+              </li>
+              <li>
                 <Link href="/mentions-legales" className="footer-link">
                   Mentions légales
                 </Link>

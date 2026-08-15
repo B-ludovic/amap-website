@@ -1,7 +1,10 @@
-/* Mentions légales — report au pixel de mocks/mentions-legales.dc.html.
+/* Gabarit des pages légales — report au pixel de mocks/mentions-legales.dc.html.
    Sommaire collant à gauche, texte à droite sur une colonne de 44em.
-   La maquette renvoie vers une page « cookies » dédiée ; le site n'en a pas,
-   les deux boutons ouvrent le panneau Orejime. */
+   Partagé par les mentions légales et les CGU : les classes .legal-* décrivent
+   la mise en page d'un document juridique, pas le contenu de l'une des deux
+   pages. Ce qui est propre aux CGU vit dans cgu.css.
+   Le bouton de colonne latérale (.legal-aside-btn) renvoie vers la page sœur :
+   les cookies depuis les mentions légales, les mentions légales depuis les CGU. */
 
 .legal-page {
   background-color: var(--surface-page);
@@ -69,7 +72,7 @@
   --toc-size: 14px;
 }
 
-.legal-cookie-btn {
+.legal-aside-btn {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -85,7 +88,7 @@
   transition: background-color var(--transition-fast), border-color var(--transition-fast);
 }
 
-.legal-cookie-btn:hover {
+.legal-aside-btn:hover {
   background-color: var(--surface-sand);
   border-color: var(--text-primary);
 }
