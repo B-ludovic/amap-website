@@ -225,14 +225,48 @@ const sendNewsletter = asyncHandler(async (req, res) => {
         throw new HttpBadRequestError('Erreur lors de l\'envoi de la newsletter');
     }
 
+    const { sent, failed } = result.results;
+
+    /* Un envoi qui n'a atteint personne n'est pas un envoi.
+
+       La garde !result.success au-dessus ne se déclenche que si la méthode
+       elle-même s'est effondrée ; les refus du serveur SMTP, eux, sont comptés
+       destinataire par destinataire et rendus dans results. Sans la condition
+       ci-dessous, un quota Brevo dépassé un jour de rentrée donnait ceci :
+       cent vingt refus, sentAt posé quand même, « Newsletter envoyée à 0
+       destinataire(s) » à l'écran, et un second clic accueilli par « cette
+       newsletter a déjà été envoyée ». Le texte mourait en base, lu par
+       personne, et le seul chemin de sortie était de le recopier ailleurs.
+
+       Ne pas poser sentAt est tout l'enjeu : c'est lui, et lui seul, qui
+       verrouille. Tant qu'il reste nul, la newsletter se corrige et se renvoie
+       une fois le quota revenu. */
+    if (sent === 0 && recipients.length > 0) {
+        /* Le détail par destinataire vit dans EmailLog, pas ici : recopier les
+           adresses dans les logs de l'hébergeur reviendrait sur la règle posée
+           pour error.middleware.js. */
+        console.error(`[Newsletter ${id}] échec total : ${failed} envoi(s) refusé(s) sur ${recipients.length} — voir EmailLog`);
+
+        throw new HttpBadRequestError(
+            `Aucun email n'a pu être envoyé (${failed} échec${failed > 1 ? 's' : ''}). La newsletter reste modifiable et renvoyable.`
+        );
+    }
+
     // Mettre à jour la newsletter
     await prisma.newsletter.update({
         where: { id },
         data: {
             sentAt: new Date(),
-            sentCount: result.results.sent
+            sentCount: sent
         }
     });
+
+    /* Succès partiel : la newsletter est bien partie, elle se verrouille donc,
+       mais quelques boîtes n'ont pas été atteintes. On le dit plutôt que de
+       laisser l'administratrice déduire l'écart entre deux nombres. */
+    if (failed > 0) {
+        console.warn(`[Newsletter ${id}] ${failed} destinataire(s) non joint(s) sur ${recipients.length} — voir EmailLog`);
+    }
 
     /* Qui a écrit à tout le monde, quand, à quelle liste et combien de boîtes ont
        reçu le message. Newsletter.createdBy ne répond qu'à la première question,
@@ -240,14 +274,16 @@ const sendNewsletter = asyncHandler(async (req, res) => {
        « envoyer », et il devient nul lorsque le compte de l'auteur est purgé.
        Le journal, lui, conserve l'adresse de l'administrateur telle qu'elle était
        au moment de l'envoi. */
-    await logAudit(req, 'SEND_NEWSLETTER', 'CRITICAL', { type: 'NEWSLETTER', id, label: newsletter.subject }, { target: newsletter.target, recipientsCount: recipients.length, sentCount: result.results.sent, failedCount: result.results.failed });
+    await logAudit(req, 'SEND_NEWSLETTER', 'CRITICAL', { type: 'NEWSLETTER', id, label: newsletter.subject }, { target: newsletter.target, recipientsCount: recipients.length, sentCount: sent, failedCount: failed });
 
     res.json({
         success: true,
-        message: `Newsletter envoyée à ${result.results.sent} destinataire(s)`,
+        message: failed > 0
+            ? `Newsletter envoyée à ${sent} destinataire(s), ${failed} non joint(s).`
+            : `Newsletter envoyée à ${sent} destinataire(s)`,
         data: {
-            sentCount: result.results.sent,
-            failedCount: result.results.failed
+            sentCount: sent,
+            failedCount: failed
         }
     });
 });

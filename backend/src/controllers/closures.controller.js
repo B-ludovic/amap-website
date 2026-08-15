@@ -104,17 +104,41 @@ async function announceClosure({ closure, adminId, isUpdate }) {
     }
   });
 
-  if (recipients.length === 0) return 0;
+  if (recipients.length === 0) return { sent: 0, failed: 0 };
 
   const result = await emailService.sendNewsletter(newsletter, recipients);
-  const sentCount = result.results?.sent ?? 0;
+  const sent = result.results?.sent ?? 0;
+  const failed = result.results?.failed ?? recipients.length;
 
-  await prisma.newsletter.update({
-    where: { id: newsletter.id },
-    data: { sentAt: new Date(), sentCount }
-  });
+  /* sentAt n'est posé que si quelque chose est réellement parti — c'est lui qui
+     verrouille la newsletter dans /admin/communication. Un quota SMTP dépassé
+     au moment où l'on enregistre une fermeture marquerait sinon l'annonce
+     « envoyée » alors qu'aucun adhérent n'a rien reçu, et la seule trace du
+     texte deviendrait inrenvoyable. La fermeture, elle, existe bel et bien :
+     on ne remonte donc pas d'erreur, on rend le compte exact à l'appelant. */
+  if (sent > 0) {
+    await prisma.newsletter.update({
+      where: { id: newsletter.id },
+      data: { sentAt: new Date(), sentCount: sent }
+    });
+  } else {
+    console.error(`[Closure ${closure.id}] annonce non distribuée : ${failed} envoi(s) refusé(s) sur ${recipients.length} — newsletter ${newsletter.id} renvoyable, voir EmailLog`);
+  }
 
-  return sentCount;
+  return { sent, failed };
+}
+
+/* Ce que l'administratrice lit après coup. Trois cas, et non deux : tout est
+   parti, une partie seulement, ou rien — et le dernier mérite de dire où
+   récupérer le texte plutôt que de laisser croire à un envoi silencieux. */
+function closureNotice(base, { sent, failed }) {
+  if (failed === 0) return `${base} Newsletter envoyée à ${sent} abonné(s).`;
+
+  if (sent === 0) {
+    return `${base} Aucun abonné n'a pu être joint (${failed} échec${failed > 1 ? 's' : ''}) : l'annonce reste renvoyable depuis l'écran Communication.`;
+  }
+
+  return `${base} Newsletter envoyée à ${sent} abonné(s), ${failed} non joint(s).`;
 }
 
 /* Jours déjà consommés sur l'année civile d'une date, la fermeture en cours de
@@ -249,22 +273,22 @@ const createClosure = asyncHandler(async (req, res) => {
     data: { startDate: start, endDate: end, reason: reason || null }
   });
 
-  const sentCount = notify
+  const annonce = notify
     ? await announceClosure({ closure, adminId: req.user.id, isUpdate: false })
-    : 0;
+    : { sent: 0, failed: 0 };
 
   await logAudit(req, 'CREATE_CLOSURE', 'IMPORTANT', {
     type: 'AMAP_CLOSURE',
     id: closure.id,
     label: `${formatDateFR(closure.startDate)} au ${formatDateFR(closure.endDate)}`
-  }, { notified: Boolean(notify), sentCount });
+  }, { notified: Boolean(notify), sentCount: annonce.sent, failedCount: annonce.failed });
 
   res.json({
     success: true,
     message: notify
-      ? `Fermeture créée. Newsletter envoyée à ${sentCount} abonné(s).`
+      ? closureNotice('Fermeture créée.', annonce)
       : 'Fermeture créée. Aucune newsletter envoyée.',
-    data: { closure, sentCount, notified: Boolean(notify) }
+    data: { closure, sentCount: annonce.sent, failedCount: annonce.failed, notified: Boolean(notify) }
   });
 });
 
@@ -293,9 +317,9 @@ const updateClosure = asyncHandler(async (req, res) => {
     data: { startDate: start, endDate: end, reason: reason || null }
   });
 
-  const sentCount = notify
+  const annonce = notify
     ? await announceClosure({ closure: updated, adminId: req.user.id, isUpdate: true })
-    : 0;
+    : { sent: 0, failed: 0 };
 
   await logAudit(req, 'UPDATE_CLOSURE', 'IMPORTANT', {
     type: 'AMAP_CLOSURE',
@@ -305,15 +329,16 @@ const updateClosure = asyncHandler(async (req, res) => {
     before: { startDate: closure.startDate, endDate: closure.endDate },
     after: { startDate: updated.startDate, endDate: updated.endDate },
     notified: Boolean(notify),
-    sentCount
+    sentCount: annonce.sent,
+    failedCount: annonce.failed
   });
 
   res.json({
     success: true,
     message: notify
-      ? `Fermeture modifiée. Newsletter envoyée à ${sentCount} abonné(s).`
+      ? closureNotice('Fermeture modifiée.', annonce)
       : 'Fermeture modifiée. Aucune newsletter envoyée.',
-    data: { closure: updated, sentCount, notified: Boolean(notify) }
+    data: { closure: updated, sentCount: annonce.sent, failedCount: annonce.failed, notified: Boolean(notify) }
   });
 });
 
