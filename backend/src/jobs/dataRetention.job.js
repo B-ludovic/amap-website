@@ -19,6 +19,13 @@ const UNVERIFIED_ACCOUNT_RETENTION_DAYS = 30;
 const CONTACT_MESSAGE_RETENTION_DAYS = 365;
 const PRODUCER_INQUIRY_RETENTION_DAYS = 2 * 365;
 
+/* Une demande d'abonnement porte sa propre identité — nom, e-mail, téléphone —
+   et son rattachement à un compte est facultatif. Tant qu'il est renseigné, la
+   demande part avec le compte ; sans lui, aucune suppression de compte ne peut
+   l'atteindre, et elle resterait en base indéfiniment. Ces orphelines ont donc
+   leur propre échéance, comptée depuis leur traitement. */
+const ORPHAN_REQUEST_RETENTION_DAYS = 365;
+
 const daysAgo = (days) => {
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - days);
@@ -152,12 +159,54 @@ async function purgeProducerInquiries() {
   await warnAboutUntreated('candidature(s) producteur sans réponse', untreated, PRODUCER_INQUIRY_RETENTION_DAYS);
 }
 
+/* Les demandes rattachées à un compte ne sont pas concernées : elles suivent le
+   compte, et tant qu'il vit la demande documente la relation en cours. Seules
+   les orphelines vieillissent pour leur propre compte.
+
+   Le rapprochement par e-mail avec les comptes en cours de purge a été écarté,
+   bien qu'il paraisse plus direct. Il obligerait à lire la liste des adresses
+   concernées avant d'ouvrir la transaction, alors que tout ce job est bâti sur
+   l'inverse — un filtre relationnel réévalué au moment de la suppression, pour
+   qu'un compte restauré entre-temps échappe à la purge au lieu d'être emporté.
+   Une adresse lue trop tôt rouvrirait exactement cette fenêtre. Et ce
+   rapprochement ne verrait de toute façon que les orphelines dont l'adresse
+   correspond à un compte : celles déposées sans compte, qui sont la raison
+   d'être de cette purge, lui resteraient invisibles. */
+async function purgeOrphanSubscriptionRequests() {
+  const cutoff = daysAgo(ORPHAN_REQUEST_RETENTION_DAYS);
+
+  /* Même précaution que pour les candidatures producteurs : ramener une demande
+     en arrière ou l'archiver efface son tampon de traitement
+     (subscription-requests.controller.js), d'où le repli sur updatedAt. */
+  const { count } = await prisma.subscriptionRequest.deleteMany({
+    where: {
+      userId: null,
+      status: { in: ['APPROVED', 'REJECTED', 'ARCHIVED'] },
+      OR: [
+        { processedAt: { lte: cutoff } },
+        { processedAt: null, updatedAt: { lte: cutoff } },
+      ],
+    },
+  });
+
+  if (count > 0) {
+    await logAudit(null, 'PURGE_USER_DATA', 'IMPORTANT', { type: 'SUBSCRIPTION_REQUEST', label: 'Demandes d\'abonnement sans compte' }, { count, retentionDays: ORPHAN_REQUEST_RETENTION_DAYS });
+    console.log(`[RetentionJob] ${count} demande(s) d'abonnement orpheline(s) purgée(s) (>${ORPHAN_REQUEST_RETENTION_DAYS}j)`);
+  }
+
+  const untreated = await prisma.subscriptionRequest.count({
+    where: { userId: null, status: { in: ['PENDING', 'IN_PROGRESS'] }, createdAt: { lte: cutoff } },
+  });
+  await warnAboutUntreated('demande(s) d\'abonnement sans compte non traitée(s)', untreated, ORPHAN_REQUEST_RETENTION_DAYS);
+}
+
 async function runRetentionJob() {
   try {
     await purgeDeletedAccounts();
     await purgeUnverifiedAccounts();
     await purgeContactMessages();
     await purgeProducerInquiries();
+    await purgeOrphanSubscriptionRequests();
   } catch (error) {
     console.error('[RetentionJob] Erreur lors de la purge des données:', error);
   }

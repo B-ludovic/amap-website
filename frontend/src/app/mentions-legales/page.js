@@ -340,6 +340,10 @@ export default function MentionsLegalesPage() {
                 <dd className="split-value">1 an</dd>
               </div>
               <div className="split-row">
+                <dt className="split-label">Demande d&apos;abonnement sans compte, une fois traitée</dt>
+                <dd className="split-value">1 an</dd>
+              </div>
+              <div className="split-row">
                 <dt className="split-label">Candidature producteur, une fois traitée</dt>
                 <dd className="split-value">2 ans</dd>
               </div>
