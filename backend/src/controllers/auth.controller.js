@@ -21,19 +21,87 @@ const generateToken = (userId, tokenVersion) => {
     });
 };
 
-// Options du cookie d'auth
-// SameSite se calcule sur le site (domaine enregistrable), pas sur l'origine :
-// auxptitspois.fr et api.auxptitspois.fr sont same-site, donc Lax suffit pour
-// tous les appels du front et ferme structurellement le CSRF — aucune requête
-// venue d'un autre site n'emporte le cookie. Conséquence assumée : une
-// prévisualisation sur *.vercel.app est cross-site et perd l'authentification.
+/* Options du cookie d'auth
+
+   SameSite se calcule sur le site (domaine enregistrable), pas sur l'origine :
+   auxptitspois.fr et api.auxptitspois.fr sont same-site, donc Lax suffit pour
+   tous les appels du front et ferme structurellement le CSRF — aucune requête
+   venue d'un autre site n'emporte le cookie. Conséquence assumée : une
+   prévisualisation sur *.vercel.app est cross-site et perd l'authentification.
+
+   Ce « Lax » n'est pas un réglage parmi d'autres : c'est la seule protection
+   anti-CSRF de l'application. Il n'existe aucun jeton dans le dépôt, et il n'en
+   faut pas tant que cette valeur tient. Le jour où l'API déménage sur un domaine
+   étranger au front — amap-api.onrender.com plutôt que api.auxptitspois.fr —,
+   l'authentification cassera net, et le réflexe sera de passer à 'None' pour la
+   réparer. Ce geste-là, seul, rouvre le CSRF en grand.
+
+   D'où les deux garde-fous ci-dessous plutôt qu'un commentaire de plus : l'un
+   refuse de démarrer si la valeur change sans jeton, l'autre prévient quand la
+   configuration s'apprête à provoquer ce changement. */
 const isProduction = process.env.NODE_ENV === 'production';
+
+const SAME_SITE = 'Lax';
+
+/* Premier garde-fou. Celui qui remplacera 'Lax' par 'None' pour débloquer une
+   prévisualisation ou un déménagement d'API se heurtera au démarrage à ce
+   message, plutôt que de découvrir six mois plus tard que l'application n'a plus
+   aucune défense. Poser CSRF_TOKEN_ENABLED=true est la promesse explicite qu'un
+   double-submit cookie a été mis en place — c'est-à-dire un jeton envoyé dans un
+   cookie lisible et renvoyé par le front dans un en-tête, que seul un script du
+   même site peut lire. */
+if (SAME_SITE !== 'Lax' && process.env.CSRF_TOKEN_ENABLED !== 'true') {
+    throw new Error(
+        `Cookie d'authentification en SameSite=${SAME_SITE} sans protection CSRF. ` +
+        'SameSite=Lax est la seule défense anti-CSRF de cette application : la quitter ' +
+        'exige d\'introduire un jeton anti-CSRF (double-submit cookie) dans le même commit, ' +
+        'puis de poser CSRF_TOKEN_ENABLED=true.'
+    );
+}
+
 const cookieOptions = {
     httpOnly: true,
     secure: isProduction,
-    sameSite: 'Lax',
+    sameSite: SAME_SITE,
     maxAge: 7 * 24 * 60 * 60 * 1000,
     path: '/',
+};
+
+/* Domaine enregistrable, approché par ses deux derniers labels. Ce n'est pas la
+   liste des suffixes publics — « bbc.co.uk » y serait lu « co.uk » —, mais aucun
+   déploiement du projet n'utilise de suffixe à deux niveaux, et l'approximation
+   suffit à distinguer auxptitspois.fr de onrender.com ou de vercel.app. */
+const registrableDomain = (hostname) => hostname.split('.').slice(-2).join('.');
+
+let crossSiteWarningSent = false;
+
+/* Second garde-fou. Il ne protège de rien par lui-même : il nomme la panne à
+   l'instant où elle se produit. Quand l'API pose un cookie Lax depuis un domaine
+   étranger à celui du front, le navigateur acceptera le cookie mais ne le
+   renverra jamais, et la connexion échouera sans message — la trace la plus
+   coûteuse à diagnostiquer qui soit. Une ligne de log ici épargne une soirée, et
+   surtout elle rappelle la solution correcte avant que le réflexe 'None' ne
+   s'installe. */
+const warnIfCrossSite = (req) => {
+    if (crossSiteWarningSent || !process.env.FRONTEND_URL) return;
+
+    try {
+        const frontDomain = registrableDomain(new URL(process.env.FRONTEND_URL).hostname);
+        const apiDomain = registrableDomain(req.hostname);
+
+        if (frontDomain !== apiDomain) {
+            crossSiteWarningSent = true;
+            console.warn(
+                `[Auth] Le cookie est posé depuis « ${req.hostname} » alors que le front est sur ` +
+                `« ${frontDomain} » : ces deux domaines sont cross-site, le navigateur ne renverra ` +
+                'donc pas un cookie SameSite=Lax et l\'authentification échouera. La réponse n\'est ' +
+                'pas de passer à SameSite=None — cela rouvrirait le CSRF — mais de servir l\'API ' +
+                'depuis un sous-domaine du front, ou d\'ajouter un jeton anti-CSRF.'
+            );
+        }
+    } catch {
+        // FRONTEND_URL malformée : ce diagnostic ne doit jamais empêcher une connexion.
+    }
 };
 
 // Inscription d'un nouvel utilisateur
@@ -130,6 +198,7 @@ const login = asyncHandler(async (req, res) => {
 
     // Generer un token JWT (avec version pour révocation) et le poser en cookie HttpOnly
     const token = generateToken(user.id, user.tokenVersion);
+    warnIfCrossSite(req);
     res.cookie('authToken', token, cookieOptions);
 
     res.json({
