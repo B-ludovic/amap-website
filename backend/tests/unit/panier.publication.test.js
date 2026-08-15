@@ -18,13 +18,13 @@ const { scenario, etat, notifications } = vi.hoisted(() => ({
   notifications: [],
 }));
 
-vi.mock('../../src/services/email.service.js', () => ({
-  default: {
-    // Le contrôleur pose un .catch dessus : il faut une vraie promesse.
-    sendWeeklyBasketNotification: async (basket, recipients) => {
-      notifications.push({ basketId: basket.id, destinataires: recipients.length });
-      return { success: true, results: { sent: recipients.length, failed: 0, errors: [] } };
-    },
+/* La diffusion elle-même a son fichier (panier.notification.test.js). Ici on ne
+   vérifie qu'une chose à son sujet : combien de fois elle est déclenchée. */
+vi.mock('../../src/services/weeklyBasketDispatch.service.js', () => ({
+  reserverNotification: async () => true,
+  destinatairesRestants: async () => scenario.abonnes.map((a) => a.user),
+  lancerNotification: ({ basket, recipients }) => {
+    notifications.push({ basketId: basket.id, destinataires: recipients.length });
   },
 }));
 
@@ -57,10 +57,6 @@ vi.mock('../../src/config/database.js', () => ({
         Object.assign(etat.panier, data);
         return { count: 1 };
       },
-    },
-
-    subscription: {
-      findMany: async () => scenario.abonnes,
     },
   },
 }));

@@ -357,7 +357,21 @@ model WeeklyBasket {
   
   isPublished     Boolean  @default(false)
   publishedAt     DateTime?
-  
+
+  /* Le sort de la notification, qui n'est pas celui de la publication : publier
+     réussit en une écriture, prévenir deux cents abonnés demande des minutes et
+     peut mourir en chemin. Les deux compteurs sont recomptés depuis EmailLog à
+     la fin de chaque passage, plutôt qu'incrémentés — c'est la seule façon
+     qu'ils restent justes après une reprise.
+
+     notifyingSince est le drapeau de la boucle en cours. Nul, personne n'écrit ;
+     posé, quelqu'un s'en occupe ; posé et vieux, le processus qui le tenait est
+     mort et la reprise peut le reprendre. */
+  notifiedCount     Int      @default(0)
+  notifyFailedCount Int      @default(0)
+  notifyingSince    DateTime?
+
+
   notes           String?  @db.Text
   
   items           WeeklyBasketItem[]
@@ -369,6 +383,8 @@ model WeeklyBasket {
   @@unique([year, weekNumber])
   @@index([distributionDate])
   @@index([isPublished])
+  // La reprise cherche les publiés dont la distribution n'a pas encore eu lieu.
+  @@index([isPublished, distributionDate])
 }
 
 model WeeklyBasketItem {

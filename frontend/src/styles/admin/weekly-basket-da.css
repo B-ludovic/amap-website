@@ -68,6 +68,13 @@
   color: var(--text-secondary);
 }
 
+/* Le seul chiffre de la carte qui appelle un geste : il sort du gris du reste,
+   sans encadré qui ferait de chaque publication une alerte. */
+.admin-basket-notify-failed {
+  color: var(--error-text);
+  font-weight: var(--font-weight-medium);
+}
+
 .admin-basket-card-footer {
   display: flex;
   align-items: center;

@@ -1,6 +1,5 @@
 import { prisma } from '../config/database.js';
 import { asyncHandler } from '../middlewares/error.middleware.js';
-import emailService from '../services/email.service.js';
 import {
   generateWeeklyBasket,
   getSeasonFromDate
@@ -12,6 +11,11 @@ import {
   httpStatusCodes
 } from '../utils/httpErrors.js';
 import { logAudit } from '../services/audit.service.js';
+import {
+  reserverNotification,
+  destinatairesRestants,
+  lancerNotification
+} from '../services/weeklyBasketDispatch.service.js';
 
 // Inclusion standard des items avec leur produit éventuel
 const itemsInclude = {
@@ -265,20 +269,22 @@ const publishWeeklyBasket = asyncHandler(async (req, res) => {
     include: itemsInclude
   });
 
-  // Notifier les abonnés actifs
-  const activeSubscribers = await prisma.subscription.findMany({
-    where: { status: 'ACTIVE' },
-    include: {
-      user: { select: { firstName: true, email: true } }
-    }
-  });
-  const recipients = activeSubscribers.map(s => s.user);
+  const recipients = await destinatairesRestants(id);
 
-  /* Non attendu à dessein. Personne ne lit le compte-rendu : le détail est dans
-     EmailLog. Le .catch évite qu'un rejet emporte le processus. */
-  emailService.sendWeeklyBasketNotification(published, recipients)
-    .catch((error) => console.error('[WeeklyBaskets] Notification des abonnés interrompue :', error.message));
+  /* La boucle quitte la requête : deux cents abonnés demandent des minutes, et
+     l'administratrice ne doit pas les attendre. Son avancement s'écrit sur la
+     ligne du panier, et le job de reprise la termine si le processus meurt.
 
+     Le drapeau se prend avant de lancer : sans lui, le job pourrait partir en
+     même temps sur le même panier. S'il est déjà pris, c'est qu'une notification
+     tourne — on ne la double pas. */
+  if (await reserverNotification(id)) {
+    lancerNotification({ basket: published, recipients });
+  }
+
+  /* La publication est actée ici, quoi qu'il advienne de la boucle : elle a bien
+     eu lieu. recipientsCount dit qui était visé — ce qui est réellement parti
+     s'écrit sur le panier, où l'écran le lit. */
   await logAudit(req, 'PUBLISH_WEEKLY_BASKET', 'IMPORTANT', {
     type: 'WEEKLY_BASKET',
     id,

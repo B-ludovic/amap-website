@@ -324,6 +324,20 @@ export default function AdminWeeklyBasketPage() {
                         </span>
                       )}
                     </div>
+                    {/* Publier envoie un email à tous les abonnés actifs : sans
+                        cette ligne, rien à l'écran ne distingue une annonce
+                        partie de bout en bout d'une annonce interrompue. */}
+                    {basket.isPublished && (
+                      <span className="admin-mono-label">
+                        {basket.notifiedCount} {plural(basket.notifiedCount, 'abonné prévenu', 'abonnés prévenus')}
+                        {basket.notifyingSince && ' pour l\'instant'}
+                        {basket.notifyFailedCount > 0 && (
+                          <span className="admin-basket-notify-failed">
+                            {' · '}{basket.notifyFailedCount} non {plural(basket.notifyFailedCount, 'joint', 'joints')}
+                          </span>
+                        )}
+                      </span>
+                    )}
                   </div>
 
                   <div className="admin-basket-card-footer">
