@@ -392,12 +392,19 @@ const leaveShift = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const userId = req.user.id;
 
+  /* La permanence et l'adhérent viennent avec l'inscription : trois requêtes
+     séparées laissaient la porte ouverte à une permanence supprimée entre-temps,
+     dont on lisait ensuite la date. */
   const volunteer = await prisma.shiftVolunteer.findUnique({
     where: {
       shiftId_userId: {
         shiftId: id,
         userId
       }
+    },
+    include: {
+      shift: true,
+      user: { select: { firstName: true, email: true } }
     }
   });
 
@@ -405,9 +412,15 @@ const leaveShift = asyncHandler(async (req, res) => {
     throw new HttpNotFoundError('Inscription introuvable');
   }
 
+  /* Un désistement déjà enregistré n'en est plus un : sans ce contrôle, un
+     second appel réécrivait le même statut et renvoyait un deuxième email de
+     désistement pour une inscription déjà annulée. */
+  if (volunteer.status === 'CANCELLED') {
+    throw new HttpConflictError('Vous vous êtes déjà désisté de cette permanence');
+  }
+
   // Vérifier délai (ex: 48h avant)
-  const shift = await prisma.shift.findUnique({ where: { id } });
-  const hoursBefore = (new Date(shift.distributionDate) - new Date()) / (1000 * 60 * 60);
+  const hoursBefore = (new Date(volunteer.shift.distributionDate) - new Date()) / (1000 * 60 * 60);
 
   if (hoursBefore < 48) {
     throw new HttpBadRequestError('Vous ne pouvez plus vous désister moins de 48h avant');
@@ -418,11 +431,7 @@ const leaveShift = asyncHandler(async (req, res) => {
     data: { status: 'CANCELLED' }
   });
 
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { firstName: true, email: true }
-  });
-  await emailService.sendShiftWithdrawal(shift, user);
+  await emailService.sendShiftWithdrawal(volunteer.shift, volunteer.user);
 
   res.json({
     success: true,
