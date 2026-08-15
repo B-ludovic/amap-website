@@ -195,6 +195,22 @@ const deleteNewsletter = asyncHandler(async (req, res) => {
     });
 });
 
+/* Relâcher le drapeau posé avant l'envoi.
+
+   Appelé sur les seuls chemins où rien n'est parti : la newsletter redevient
+   alors modifiable et renvoyable, ce qui est tout l'objet du défaut C3.
+
+   Ce que ce filet ne rattrape pas, et qu'il faut savoir : si le processus meurt
+   pendant la boucle d'envoi, personne n'exécute cette ligne et la newsletter
+   reste marquée envoyée avec un compte à zéro. C'est le mauvais côté du bon
+   choix — un drapeau coincé se débloque à la main en base, deux cents envois en
+   double ne se reprennent pas. Distinguer « en cours » de « envoyée »
+   demanderait une colonne de plus, et n'a pas été jugé nécessaire pour un envoi
+   déclenché à la main quelques fois par saison. */
+async function releaseNewsletterClaim(id) {
+    await prisma.newsletter.update({ where: { id }, data: { sentAt: null } });
+}
+
 // ENVOYER UNE NEWSLETTER
 const sendNewsletter = asyncHandler(async (req, res) => {
     const { id } = req.params;
@@ -218,10 +234,37 @@ const sendNewsletter = asyncHandler(async (req, res) => {
         ? [{ id: req.user.id, email: req.user.email, firstName: req.user.firstName }]
         : await resolveNewsletterRecipients({ target: newsletter.target, type: newsletter.type });
 
+    /* On pose le drapeau AVANT d'envoyer.
+
+       Le contrôle de sentAt fait plus haut ne protège de rien à lui seul : entre
+       cette lecture et l'écriture qui suivait l'envoi, il s'écoule toute la durée
+       de la boucle — de trente secondes à plusieurs minutes selon l'effectif. Un
+       mercredi matin, deux cents adhérents, le proxy coupe la connexion au bout
+       de deux minutes, l'administratrice croit que rien n'est parti et reclique.
+       Le premier envoi tournait toujours : cent trente personnes recevaient la
+       lettre en double, et aucun compteur ne le disait.
+
+       Le updateMany filtré sur sentAt: null est un compare-and-set atomique —
+       c'est la base qui arbitre, pas l'application. Même motif que
+       renewalReminder.job.js, pour la même raison : un e-mail parti ne se
+       reprend pas, on préfère en rater un plutôt qu'en doubler un.
+
+       Le contrôle du dessus n'est donc pas redondant, il est simplement moins
+       cher : il évite d'aller résoudre la liste des destinataires pour rien. */
+    const claimed = await prisma.newsletter.updateMany({
+        where: { id, sentAt: null },
+        data: { sentAt: new Date() }
+    });
+
+    if (claimed.count === 0) {
+        throw new HttpConflictError('Cette newsletter a déjà été envoyée');
+    }
+
     // Envoyer les emails via le service
     const result = await emailService.sendNewsletter(newsletter, recipients);
 
     if (!result.success) {
+        await releaseNewsletterClaim(id);
         throw new HttpBadRequestError('Erreur lors de l\'envoi de la newsletter');
     }
 
@@ -242,6 +285,8 @@ const sendNewsletter = asyncHandler(async (req, res) => {
        verrouille. Tant qu'il reste nul, la newsletter se corrige et se renvoie
        une fois le quota revenu. */
     if (sent === 0 && recipients.length > 0) {
+        await releaseNewsletterClaim(id);
+
         /* Le détail par destinataire vit dans EmailLog, pas ici : recopier les
            adresses dans les logs de l'hébergeur reviendrait sur la règle posée
            pour error.middleware.js. */
@@ -252,13 +297,12 @@ const sendNewsletter = asyncHandler(async (req, res) => {
         );
     }
 
-    // Mettre à jour la newsletter
+    /* sentAt a été posé au moment de la prise ; il ne reste que le compte. Le
+       dater d'ici serait d'ailleurs faux : l'envoi a commencé plusieurs minutes
+       plus tôt, et c'est ce début-là qui fait foi pour dire « déjà envoyée ». */
     await prisma.newsletter.update({
         where: { id },
-        data: {
-            sentAt: new Date(),
-            sentCount: sent
-        }
+        data: { sentCount: sent }
     });
 
     /* Succès partiel : la newsletter est bien partie, elle se verrouille donc,

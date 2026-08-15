@@ -1,18 +1,26 @@
-/* Ce qu'une newsletter devient quand l'envoi se passe mal — défaut C3.
+/* Le sort d'une newsletter au moment de l'envoi — défauts C3 et M2.
 
-   La scène. L'association a dépassé son quota Brevo du jour. L'administratrice
-   envoie la newsletter de rentrée à cent vingt adhérents ; les cent vingt
-   envois sont refusés. Avant, le service rendait { success: true } — son try
-   externe n'englobait aucun appel réseau, tous les refus étaient rattrapés plus
-   bas — le contrôleur posait sentAt sans regarder le compte, et l'écran
-   affichait « Newsletter envoyée à 0 destinataire(s) ». Second clic : « cette
-   newsletter a déjà été envoyée ». Le texte mourait en base, lu par personne,
-   et il fallait le recopier dans une nouvelle newsletter pour s'en sortir.
+   Tout tient à un champ, sentAt, et à deux questions posées sur lui.
 
-   Tout tient à un champ. sentAt est ce qui verrouille : tant qu'il est nul, la
-   newsletter se corrige et se renvoie. Ces tests vérifient donc moins un message
-   d'erreur qu'une décision d'écriture — poser ou ne pas poser ce champ, selon
-   que quelque chose est réellement parti.
+   Quand le poser (C3). L'association a dépassé son quota Brevo du jour.
+   L'administratrice envoie la lettre de rentrée à cent vingt adhérents ; les
+   cent vingt envois sont refusés. Avant, le service rendait { success: true } —
+   son try externe n'englobait aucun appel réseau — le contrôleur posait sentAt
+   sans regarder le compte, et l'écran affichait « Newsletter envoyée à 0
+   destinataire(s) ». Second clic : « cette newsletter a déjà été envoyée ». Le
+   texte mourait en base, lu par personne.
+
+   Quand le poser, dans le temps (M2). Le contrôle de sentAt se faisait à la
+   lecture, l'écriture venait après la boucle : entre les deux, deux à trois
+   minutes pour deux cents adhérents. Le proxy de l'hébergeur coupe la connexion
+   au bout de deux minutes, l'administratrice croit que rien n'est parti et
+   reclique. Le premier envoi tournait toujours, et cent trente personnes
+   recevaient la lettre en double.
+
+   Ces tests portent donc moins sur des messages d'erreur que sur une décision
+   d'écriture : poser le drapeau, le relâcher, ou refuser d'entrer. La base
+   factice ci-dessous arbitre comme le ferait Postgres, sans quoi le
+   compare-and-set ne serait pas réellement éprouvé.
 
    Le même piège existait dans l'annonce automatique de fermeture, qui passe par
    le même service ; il est éprouvé ici aussi. */
@@ -20,21 +28,34 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { appeler } from '../helpers/expressFactice.js';
 
-/* Le résultat que le service d'emails rendra, réécrit par chaque test. */
-const { scenario, misesAJour, closuresCreees } = vi.hoisted(() => ({
-  scenario: { results: { sent: 0, failed: 0, errors: [] }, success: true },
-  misesAJour: [],
+const { scenario, etat, closuresCreees } = vi.hoisted(() => ({
+  scenario: {},
+  etat: { lettre: null, annonce: null },
   closuresCreees: [],
 }));
 
 vi.mock('../../src/services/email.service.js', () => ({
   default: {
-    sendNewsletter: async () => ({ success: scenario.success, results: scenario.results }),
+    sendNewsletter: async () => {
+      /* Une porte que le test peut tenir fermée, pour garder un envoi « en
+         cours » pendant qu'un second clic arrive. */
+      if (scenario.porte) await scenario.porte;
+
+      return { success: scenario.success, results: scenario.results };
+    },
   },
 }));
 
 vi.mock('../../src/services/newsletterAudience.service.js', () => ({
-  resolveNewsletterRecipients: async () => scenario.destinataires,
+  resolveNewsletterRecipients: async () => {
+    /* Seconde porte, posée entre la lecture de sentAt et la prise du drapeau.
+       C'est la seule fenêtre où deux requêtes peuvent se croiser en ayant
+       toutes deux vu le champ à null — donc le seul endroit d'où l'on peut
+       éprouver le compare-and-set lui-même. */
+    if (scenario.porteDestinataires) await scenario.porteDestinataires;
+
+    return scenario.destinataires;
+  },
   overridesOptOut: (type) => type === 'ALERT',
 }));
 
@@ -43,23 +64,43 @@ vi.mock('../../src/services/audit.service.js', () => ({ logAudit: async () => {}
 vi.mock('../../src/config/database.js', () => ({
   prisma: {
     newsletter: {
-      findUnique: async () => scenario.newsletter,
-      create: async ({ data }) => ({ id: 'newsletter-annonce', ...data }),
-      update: async (args) => { misesAJour.push(args); return args; },
+      findUnique: async () => etat.lettre,
+
+      create: async ({ data }) => {
+        etat.annonce = { id: 'newsletter-annonce', sentAt: null, sentCount: 0, ...data };
+        return etat.annonce;
+      },
+
+      update: async ({ where, data }) => {
+        const cible = where.id === etat.lettre?.id ? etat.lettre : etat.annonce;
+        Object.assign(cible, data);
+        return cible;
+      },
+
+      /* Le cœur de M2 : l'écriture n'est acceptée que si le drapeau est encore
+         nul au moment où elle s'exécute. C'est ce que fait un UPDATE … WHERE
+         sentAt IS NULL, et c'est ce qui permet à la base d'arbitrer entre deux
+         requêtes plutôt que de laisser l'application le faire. */
+      updateMany: async ({ where, data }) => {
+        const cible = etat.lettre;
+
+        if (where.sentAt === null && cible.sentAt !== null) return { count: 0 };
+
+        Object.assign(cible, data);
+        return { count: 1 };
+      },
     },
+
     /* Le chemin de création d'une fermeture passe par trois gardes avant
        d'arriver à l'annonce : chevauchement d'une autre fermeture, quota de
        trois semaines par an, permanences déjà planifiées. Elles ne sont pas le
-       sujet ici — on leur donne un terrain vide pour qu'elles laissent passer,
-       et le test porte alors sur ce qui suit. */
+       sujet ici — on leur donne un terrain vide pour qu'elles laissent passer. */
     amapClosure: {
       create: async ({ data }) => { const c = { id: 'fermeture-0001', ...data }; closuresCreees.push(c); return c; },
       findFirst: async () => null,
       findMany: async () => [],
     },
-    shift: {
-      findMany: async () => [],
-    },
+    shift: { findMany: async () => [] },
   },
 }));
 
@@ -71,32 +112,38 @@ const requete = {
   user: { id: 'admin-0001', email: 'admin@example.org', firstName: 'Sofia' },
 };
 
-/* Cent vingt adhérents, comme dans la scène. */
-const cent_vingt_adherents = Array.from({ length: 120 }, (_, i) => ({
+/* Cent vingt adhérents pour la scène de C3, deux cents pour celle de M2. */
+const adherents = (nombre) => Array.from({ length: nombre }, (_, i) => ({
   id: `u${i}`, email: `adherent${i}@example.org`, firstName: 'Adhérent',
 }));
 
-function poserScenario({ sent, failed, destinataires = cent_vingt_adherents, success = true }) {
+const CENT_VINGT = adherents(120);
+
+function poserScenario({ sent, failed, destinataires = CENT_VINGT, success = true }) {
   scenario.success = success;
+  scenario.porte = null;
+  scenario.porteDestinataires = null;
   scenario.destinataires = destinataires;
   scenario.results = {
     sent,
     failed,
     errors: destinataires.slice(0, failed).map((d) => ({ email: d.email, error: 'quota exceeded' })),
   };
-  scenario.newsletter = {
+
+  etat.lettre = {
     id: 'newsletter-0001',
     subject: 'La lettre de rentrée',
     target: 'ALL',
     type: 'NEWSLETTER',
     sentAt: null,
+    sentCount: 0,
   };
+  etat.annonce = null;
 }
 
 let journal;
 
 beforeEach(() => {
-  misesAJour.length = 0;
   closuresCreees.length = 0;
   journal = [];
   vi.spyOn(console, 'error').mockImplementation((...a) => journal.push(a.join(' ')));
@@ -108,7 +155,7 @@ afterEach(() => {
 });
 
 describe('Une newsletter que personne n\'a reçue ne se verrouille pas', () => {
-  it('refuse l\'envoi et laisse sentAt intact', async () => {
+  it('refuse l\'envoi et relâche le drapeau', async () => {
     poserScenario({ sent: 0, failed: 120 });
 
     const { statut, message } = await appeler(sendNewsletter, requete);
@@ -116,9 +163,9 @@ describe('Une newsletter que personne n\'a reçue ne se verrouille pas', () => {
     expect(statut).toBe(400);
     expect(message).toContain('Aucun email n\'a pu être envoyé');
     expect(message).toContain('120 échecs');
-    /* Le cœur du défaut : c'est cette absence d'écriture qui garde la
-       newsletter renvoyable. */
-    expect(misesAJour).toHaveLength(0);
+    /* Le cœur du défaut : c'est ce champ resté nul qui garde la newsletter
+       renvoyable. */
+    expect(etat.lettre.sentAt).toBeNull();
   });
 
   it('annonce que le texte reste modifiable, plutôt que de laisser deviner', async () => {
@@ -142,18 +189,32 @@ describe('Une newsletter que personne n\'a reçue ne se verrouille pas', () => {
     expect(trace).not.toContain('@example.org');
     expect(trace).toContain('EmailLog');
   });
+
+  it('reste renvoyable pour de bon : un second essai repart', async () => {
+    poserScenario({ sent: 0, failed: 120 });
+    await appeler(sendNewsletter, requete);
+
+    /* Le quota est revenu. */
+    poserScenario({ sent: 120, failed: 0 });
+    etat.lettre.sentAt = null;
+
+    const { statut } = await appeler(sendNewsletter, requete);
+
+    expect(statut).toBe(200);
+    expect(etat.lettre.sentAt).toBeInstanceOf(Date);
+    expect(etat.lettre.sentCount).toBe(120);
+  });
 });
 
 describe('Un envoi partiel se verrouille, mais le dit', () => {
-  it('pose sentAt avec le nombre réellement atteint', async () => {
+  it('garde le drapeau et enregistre le nombre réellement atteint', async () => {
     poserScenario({ sent: 118, failed: 2 });
 
     const { statut, corps } = await appeler(sendNewsletter, requete);
 
     expect(statut).toBe(200);
-    expect(misesAJour).toHaveLength(1);
-    expect(misesAJour[0].data.sentCount).toBe(118);
-    expect(misesAJour[0].data.sentAt).toBeInstanceOf(Date);
+    expect(etat.lettre.sentAt).toBeInstanceOf(Date);
+    expect(etat.lettre.sentCount).toBe(118);
     expect(corps.data).toEqual({ sentCount: 118, failedCount: 2 });
   });
 
@@ -167,14 +228,14 @@ describe('Un envoi partiel se verrouille, mais le dit', () => {
 });
 
 describe('Un envoi qui se passe bien ne change pas de comportement', () => {
-  it('pose sentAt et rend le message habituel', async () => {
+  it('pose le drapeau et rend le message habituel', async () => {
     poserScenario({ sent: 120, failed: 0 });
 
     const { statut, message } = await appeler(sendNewsletter, requete);
 
     expect(statut).toBe(200);
     expect(message).toBe('Newsletter envoyée à 120 destinataire(s)');
-    expect(misesAJour[0].data.sentCount).toBe(120);
+    expect(etat.lettre.sentCount).toBe(120);
   });
 });
 
@@ -189,12 +250,12 @@ describe('Une liste vide n\'est pas un échec', () => {
        déclenche donc pas. */
     expect(erreur).toBeNull();
     expect(statut).toBe(200);
-    expect(misesAJour).toHaveLength(1);
+    expect(etat.lettre.sentAt).toBeInstanceOf(Date);
   });
 });
 
 describe('Le service qui s\'effondre reste distinct du serveur qui refuse', () => {
-  it('rend l\'erreur générique quand la méthode elle-même a échoué', async () => {
+  it('rend l\'erreur générique et relâche le drapeau', async () => {
     poserScenario({ sent: 0, failed: 0 });
     scenario.success = false;
 
@@ -202,7 +263,81 @@ describe('Le service qui s\'effondre reste distinct du serveur qui refuse', () =
 
     expect(statut).toBe(400);
     expect(message).toBe('Erreur lors de l\'envoi de la newsletter');
-    expect(misesAJour).toHaveLength(0);
+    expect(etat.lettre.sentAt).toBeNull();
+  });
+});
+
+describe('Le second clic pendant que le premier envoi tourne', () => {
+  it('est refusé, et personne ne reçoit la lettre en double', async () => {
+    poserScenario({ sent: 200, failed: 0, destinataires: adherents(200) });
+
+    /* On tient l'envoi ouvert : côté serveur la boucle tourne encore, comme
+       pendant les deux minutes qui précèdent la coupure du proxy. */
+    let ouvrirLaPorte;
+    scenario.porte = new Promise((resolve) => { ouvrirLaPorte = resolve; });
+
+    const premierClic = appeler(sendNewsletter, requete);
+    await new Promise((resolve) => setImmediate(resolve));
+
+    /* L'administratrice, qui a vu une erreur réseau, reclique. */
+    const secondClic = await appeler(sendNewsletter, requete);
+
+    expect(secondClic.statut).toBe(409);
+    expect(secondClic.message).toBe('Cette newsletter a déjà été envoyée');
+
+    ouvrirLaPorte();
+    const resultatPremier = await premierClic;
+
+    /* Le premier envoi, lui, va au bout et rend son compte. */
+    expect(resultatPremier.statut).toBe(200);
+    expect(etat.lettre.sentCount).toBe(200);
+  });
+
+  it('pose le drapeau avant l\'envoi, pas après', async () => {
+    poserScenario({ sent: 200, failed: 0, destinataires: adherents(200) });
+
+    let ouvrirLaPorte;
+    scenario.porte = new Promise((resolve) => { ouvrirLaPorte = resolve; });
+
+    const envoi = appeler(sendNewsletter, requete);
+    await new Promise((resolve) => setImmediate(resolve));
+
+    /* C'est toute la différence avec l'ancien code : à cet instant précis, la
+       boucle n'a encore rien envoyé et le drapeau est déjà posé. */
+    expect(etat.lettre.sentAt).toBeInstanceOf(Date);
+
+    ouvrirLaPorte();
+    await envoi;
+  });
+});
+
+describe('Deux requêtes qui se croisent avant que l\'une ait pris le drapeau', () => {
+  it('n\'en laisse passer qu\'une, et c\'est la base qui tranche', async () => {
+    poserScenario({ sent: 200, failed: 0, destinataires: adherents(200) });
+
+    /* On arrête les deux requêtes entre la lecture de sentAt et la prise du
+       drapeau. À cet instant, toutes deux ont vu le champ à null : c'est
+       exactement la situation qu'un contrôle applicatif ne sait pas départager,
+       et qu'un UPDATE … WHERE sentAt IS NULL règle tout seul. */
+    let ouvrirLaPorte;
+    scenario.porteDestinataires = new Promise((resolve) => { ouvrirLaPorte = resolve; });
+
+    const premiere = appeler(sendNewsletter, requete);
+    const seconde = appeler(sendNewsletter, requete);
+    await new Promise((resolve) => setImmediate(resolve));
+
+    expect(etat.lettre.sentAt).toBeNull();
+
+    ouvrirLaPorte();
+    const resultats = await Promise.all([premiere, seconde]);
+
+    /* Une seule passe. Laquelle importe peu — ce qui compte est qu'il n'y en
+       ait pas deux, sans quoi cent trente adhérents reçoivent la lettre en
+       double. */
+    expect(resultats.map((r) => r.statut).sort()).toEqual([200, 409]);
+    expect(resultats.filter((r) => r.statut === 409)[0].message)
+      .toBe('Cette newsletter a déjà été envoyée');
+    expect(etat.lettre.sentCount).toBe(200);
   });
 });
 
@@ -223,7 +358,7 @@ describe('L\'annonce de fermeture tombe dans le même piège, et en sort pareil'
     expect(statut).toBe(200);
     expect(closuresCreees).toHaveLength(1);
 
-    expect(misesAJour).toHaveLength(0);
+    expect(etat.annonce.sentAt).toBeNull();
     expect(message).toContain('Aucun abonné n\'a pu être joint');
     expect(message).toContain('renvoyable depuis l\'écran Communication');
     expect(corps.data.failedCount).toBe(120);
@@ -234,8 +369,8 @@ describe('L\'annonce de fermeture tombe dans le même piège, et en sort pareil'
 
     const { message } = await appeler(createClosure, requeteFermeture);
 
-    expect(misesAJour).toHaveLength(1);
-    expect(misesAJour[0].data.sentCount).toBe(3);
+    expect(etat.annonce.sentAt).toBeInstanceOf(Date);
+    expect(etat.annonce.sentCount).toBe(3);
     expect(message).toBe('Fermeture créée. Newsletter envoyée à 3 abonné(s), 117 non joint(s).');
   });
 });
