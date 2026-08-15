@@ -344,13 +344,16 @@ const resetPassword = asyncHandler(async (req, res) => {
     // Hasher le nouveau mot de passe
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Mettre à jour le mot de passe et supprimer le token
+    // Mettre à jour le mot de passe, supprimer le token
+    // et révoquer les sessions ouvertes (tokenVersion) : le nouveau mot de passe
+    // ne protège rien tant qu'un ancien cookie reste valable
     await prisma.user.update({
         where: { id: user.id },
         data: {
             password: hashedPassword,
             resetToken: null,
             resetTokenExpiry: null,
+            tokenVersion: { increment: 1 },
         },
     });
 
@@ -444,7 +447,7 @@ const deleteMe = asyncHandler(async (req, res) => {
 
     await prisma.user.update({
         where: { id: req.user.id },
-        data: { deletedAt: new Date() },
+        data: { deletedAt: new Date(), tokenVersion: { increment: 1 } },
     });
 
     await logAudit(req, 'DELETE_USER', 'CRITICAL', {
