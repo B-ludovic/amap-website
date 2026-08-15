@@ -694,6 +694,18 @@ const api = {
       });
     },
 
+    /* Déplacer un chèque. Avancer — pochette vers banque, banque vers compte —
+       ne demande rien. Revenir en arrière, constater un rejet ou rendre le
+       chèque exige le mot de passe : ces mouvements retirent de l'argent au
+       contrat ou effacent un fait déjà consigné. */
+    updateCheque: async (subscriptionId, paymentId, changes) => {
+      return fetchAPI(`/subscriptions/${subscriptionId}/cheques/${paymentId}`, {
+        method: 'PATCH',
+        requiresAuth: true,
+        body: changes,
+      });
+    },
+
     cancel: async (id) => {
       return fetchAPI(`/subscriptions/${id}/cancel`, {
         method: 'PUT',

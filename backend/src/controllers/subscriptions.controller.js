@@ -1,4 +1,5 @@
 import { prisma } from '../config/database.js';
+import bcrypt from 'bcryptjs';
 import { asyncHandler } from '../middlewares/error.middleware.js';
 import emailService from '../services/email.service.js';
 import contractService from '../services/contract.service.js';
@@ -63,6 +64,57 @@ const RecordChequesSchema = z.object({
   receivedAt: OptionalDateSchema,
   checkNumbers: z.array(z.string().trim().max(20)).optional()
 });
+
+const PaymentStatusSchema = z.enum(['RECEIVED', 'DEPOSITED', 'SUCCEEDED', 'FAILED', 'RETURNED']);
+
+const UpdatePaymentSchema = z.object({
+  status: PaymentStatusSchema.optional(),
+  checkNumber: z.string().trim().max(20).nullable().optional(),
+  dueDate: OptionalDateSchema,
+  password: z.string().optional()
+});
+
+/* Ce que l'association détient réellement : le chèque est dans la pochette, à la
+   banque, ou crédité. Un chèque rejeté ou rendu à l'adhérent ne couvre plus
+   rien, et le contrat redevient dû d'autant. */
+const HELD_STATUSES = ['RECEIVED', 'DEPOSITED', 'SUCCEEDED'];
+
+/* paidAmount est un reflet, jamais une saisie : il se relit depuis les chèques à
+   chaque fois qu'un seul d'entre eux bouge, dans la même transaction. Deux
+   écritures indépendantes du même argent finiraient par se contredire, et c'est
+   le tableau de bord qui mentirait en premier. */
+const recomputePaidAmount = async (tx, subscriptionId) => {
+  const { _sum } = await tx.payment.aggregate({
+    where: { subscriptionId, status: { in: HELD_STATUSES } },
+    _sum: { amount: true }
+  });
+
+  const held = Number((_sum.amount ?? 0).toFixed(2));
+  await tx.subscription.update({ where: { id: subscriptionId }, data: { paidAmount: held } });
+
+  return held;
+};
+
+/* Le chèque avance sans cérémonie : de la pochette du trésorier à la banque, de
+   la banque au compte. Ces deux pas-là suivent le trajet du papier, on les fait
+   soixante fois dans une soirée, ils ne demandent rien.
+
+   Tout le reste — revenir en arrière, constater un rejet, rendre les chèques —
+   retire de l'argent au contrat ou efface un fait déjà consigné. Ceux-là
+   demandent le mot de passe. */
+const FORWARD_STEP = { RECEIVED: 'DEPOSITED', DEPOSITED: 'SUCCEEDED' };
+
+const requiresReauth = (from, to) => FORWARD_STEP[from] !== to;
+
+/* Les dates suivent le statut plutôt que de traîner derrière lui : un chèque
+   ramené « en main » n'a plus été déposé, et un chèque rejeté l'a bien été. */
+const stampsFor = (status, payment, now) => ({
+  RECEIVED: { depositedAt: null, paidAt: null },
+  DEPOSITED: { depositedAt: payment.depositedAt ?? now, paidAt: null },
+  SUCCEEDED: { depositedAt: payment.depositedAt ?? now, paidAt: payment.paidAt ?? now },
+  FAILED: { paidAt: null },
+  RETURNED: { depositedAt: null, paidAt: null }
+}[status]);
 
 // Générer un numéro d'abonnement unique
 const generateSubscriptionNumber = async () => {
@@ -549,18 +601,16 @@ const recordChequesReceived = asyncHandler(async (req, res) => {
     }
 
     /* paidAmount reflète ce que l'association détient, pas ce qu'elle a encaissé :
-       l'engagement est couvert dès que le papier est là. Il est écrit ici, dans
-       la transaction qui crée les chèques, et n'est plus modifiable ailleurs.
+       l'engagement est couvert dès que le papier est là. Il se relit depuis les
+       chèques, ici comme partout ailleurs.
 
        Le statut ne passe à ACTIVE que depuis PENDING : enregistrer les chèques
        d'un abonnement en pause ne doit pas le réveiller. */
-    const updated = await tx.subscription.update({
-      where: { id },
-      data: {
-        paidAmount: total,
-        ...(subscription.status === 'PENDING' && { status: 'ACTIVE' })
-      }
-    });
+    await recomputePaidAmount(tx, id);
+
+    const updated = subscription.status === 'PENDING'
+      ? await tx.subscription.update({ where: { id }, data: { status: 'ACTIVE' } })
+      : await tx.subscription.findUnique({ where: { id } });
 
     return { payments, updated };
   });
@@ -583,6 +633,108 @@ const recordChequesReceived = asyncHandler(async (req, res) => {
     success: true,
     message: `${payments.length} chèque${payments.length > 1 ? 's' : ''} enregistré${payments.length > 1 ? 's' : ''}`,
     data: { subscription: updated, payments }
+  });
+});
+
+/* DÉPLACER UN CHÈQUE (ADMIN)
+
+   Suit le papier plutôt qu'un état abstrait : il quitte la pochette du trésorier
+   pour la banque, la banque pour le compte. Ces deux pas se font sans cérémonie,
+   parce qu'on les répète et qu'ils ne retirent rien à personne.
+
+   La marche arrière, elle, demande le mot de passe. Non pour savoir qui agit —
+   la session le dit déjà et le journal l'écrit — mais pour établir que la
+   personne devant le clavier est bien celle de la session, et non quelqu'un qui
+   a ramassé la tablette restée déverrouillée sur la table d'une permanence.
+   Cette garantie ne vaut que si chaque bénévole a son propre compte : derrière
+   un compte partagé, le mot de passe ne prouve rien sur l'identité.
+
+   Les échecs sont journalisés autant que les réussites. Une invite de mot de
+   passe est un oracle, et un oracle que personne ne compte devient un moyen
+   d'essayer le mot de passe de l'administrateur sans que rien ne le signale. */
+const updatePayment = asyncHandler(async (req, res) => {
+  const { id, paymentId } = req.params;
+
+  const parsed = UpdatePaymentSchema.safeParse(req.body);
+  if (!parsed.success) throw new HttpBadRequestError(parsed.error.errors[0].message);
+
+  const { status, checkNumber, dueDate, password } = parsed.data;
+
+  const payment = await prisma.payment.findUnique({
+    where: { id: paymentId },
+    include: { subscription: { select: { id: true, subscriptionNumber: true } } }
+  });
+
+  if (!payment || payment.subscriptionId !== id) {
+    throw new HttpNotFoundError('Chèque introuvable pour ce contrat');
+  }
+
+  const cible = { type: 'SUBSCRIPTION', id, label: payment.subscription.subscriptionNumber };
+  const changeDeStatut = status !== undefined && status !== payment.status;
+  const marcheArriere = changeDeStatut && requiresReauth(payment.status, status);
+
+  if (marcheArriere) {
+    /* req.user est un extrait choisi par le middleware, sans l'empreinte du mot
+       de passe : on la relit ici, et seulement pour cette comparaison. */
+    const compte = await prisma.user.findUnique({
+      where: { id: req.user.id },
+      select: { password: true }
+    });
+
+    const valide = typeof password === 'string'
+      && password.length > 0
+      && compte
+      && await bcrypt.compare(password, compte.password);
+
+    if (!valide) {
+      await logAudit(req, 'FAILED_PAYMENT_REAUTH', 'CRITICAL', cible, {
+        paymentId,
+        from: payment.status,
+        to: status,
+        motif: password ? 'mot de passe incorrect' : 'mot de passe absent'
+      });
+
+      /* 403 et non 401, bien qu'il s'agisse d'un mot de passe. La session est
+         valide — c'est le contrôle d'élévation qui échoue. Le client traite tout
+         401 sur route authentifiée comme une session expirée et renvoie à la
+         page de connexion : une faute de frappe déconnecterait le trésorier en
+         pleine permanence, la file d'attente devant lui. */
+      throw new HttpForbiddenError(
+        'Mot de passe incorrect : cette correction n\'a pas été enregistrée'
+      );
+    }
+  }
+
+  const now = new Date();
+
+  const { updated, held } = await prisma.$transaction(async (tx) => {
+    const updated = await tx.payment.update({
+      where: { id: paymentId },
+      data: {
+        ...(changeDeStatut && { status, ...stampsFor(status, payment, now) }),
+        ...(checkNumber !== undefined && { checkNumber: checkNumber || null }),
+        ...(dueDate !== undefined && { dueDate })
+      }
+    });
+
+    const held = await recomputePaidAmount(tx, id);
+
+    return { updated, held };
+  });
+
+  await logAudit(req, 'UPDATE_PAYMENT_STATUS', marcheArriere ? 'CRITICAL' : 'IMPORTANT', cible, {
+    paymentId,
+    montant: payment.amount,
+    marcheArriere,
+    before: { status: payment.status, dueDate: payment.dueDate, checkNumber: payment.checkNumber },
+    after: { status: updated.status, dueDate: updated.dueDate, checkNumber: updated.checkNumber },
+    paidAmount: held
+  });
+
+  res.json({
+    success: true,
+    message: marcheArriere ? 'Correction enregistrée' : 'Chèque mis à jour',
+    data: { payment: updated, paidAmount: held }
   });
 });
 
@@ -881,6 +1033,7 @@ export {
   createSubscription,
   updateSubscription,
   recordChequesReceived,
+  updatePayment,
   cancelSubscription,
   pauseSubscription,
   resumeSubscription,

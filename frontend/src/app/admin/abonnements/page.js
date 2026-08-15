@@ -6,6 +6,7 @@ import { useModal } from '../../../contexts/ModalContext';
 import AdminModal from '../../../components/admin/AdminModal';
 import AdminPagination from '../../../components/admin/AdminPagination';
 import ChequesModal from '../../../components/admin/ChequesModal';
+import ChequeCorrectionModal from '../../../components/admin/ChequeCorrectionModal';
 import { monthYear, numericDate, euro, plural } from '../../../lib/format';
 import '../../../styles/admin/subscriptions.css';
 
@@ -18,6 +19,14 @@ const CHEQUE_STATUS = {
   SUCCEEDED: { label: 'Encaissé', tone: 'admin-badge-green', acquis: true },
   FAILED: { label: 'Rejeté', tone: 'admin-badge-red', acquis: true },
   RETURNED: { label: 'Rendu', tone: '', acquis: true }
+};
+
+/* Le pas suivant du chèque, quand il en a un. Ces deux mouvements suivent le
+   trajet du papier et se font d'un clic : c'est le geste répété du trésorier.
+   Tout le reste passe par la correction, et donc par le mot de passe. */
+const NEXT_STEP = {
+  RECEIVED: { status: 'DEPOSITED', label: 'Déposer en banque' },
+  DEPOSITED: { status: 'SUCCEEDED', label: 'Marquer encaissé' }
 };
 
 const STATUS = {
@@ -63,6 +72,7 @@ export default function AdminSubscriptionsPage() {
   const [selected, setSelected] = useState(null);
   const [busy, setBusy] = useState(false);
   const [chequesOpen, setChequesOpen] = useState(false);
+  const [chequeACorriger, setChequeACorriger] = useState(null);
 
   const debounceRef = useRef(null);
 
@@ -108,6 +118,34 @@ export default function AdminSubscriptionsPage() {
   const refresh = () => {
     setSelected(null);
     fetchSubscriptions({ search, status, type, page });
+  };
+
+  /* Déplacer un chèque ne clôt pas la fiche : le trésorier en pointe plusieurs à
+     la suite. On recharge donc le contrat sous les yeux plutôt que de refermer,
+     et la liste en arrière-plan, dont le règlement a changé. */
+  const reloadSelected = async () => {
+    try {
+      const response = await api.subscriptions.getById(selected.id);
+      setSelected(response.data);
+      fetchSubscriptions({ search, status, type, page });
+    } catch (error) {
+      showError('Erreur', 'Impossible de recharger ce contrat.');
+    }
+  };
+
+  const avancerCheque = async (cheque) => {
+    const pas = NEXT_STEP[cheque.status];
+    if (!pas) return;
+
+    setBusy(true);
+    try {
+      await api.subscriptions.updateCheque(selected.id, cheque.id, { status: pas.status });
+      await reloadSelected();
+    } catch (error) {
+      showError('Erreur', error.message);
+    } finally {
+      setBusy(false);
+    }
   };
 
   const handleContract = async () => {
@@ -380,6 +418,26 @@ export default function AdminSubscriptionsPage() {
                       <span className="admin-cheques-row-number">n° {cheque.checkNumber}</span>
                     )}
                     <span className={`admin-badge ${etat.tone}`}>{etat.label}</span>
+                    <span className="admin-cheques-row-actions">
+                      {NEXT_STEP[cheque.status] && (
+                        <button
+                          type="button"
+                          className="admin-btn-link"
+                          onClick={() => avancerCheque(cheque)}
+                          disabled={busy}
+                        >
+                          {NEXT_STEP[cheque.status].label}
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        className="admin-btn-link"
+                        onClick={() => setChequeACorriger(cheque)}
+                        disabled={busy}
+                      >
+                        Corriger
+                      </button>
+                    </span>
                   </article>
                 );
               })}
@@ -426,6 +484,19 @@ export default function AdminSubscriptionsPage() {
             setChequesOpen(false);
             showSuccess('Chèques enregistrés', 'Le règlement est rattaché au contrat.');
             refresh();
+          }}
+        />
+      )}
+
+      {selected && chequeACorriger && (
+        <ChequeCorrectionModal
+          subscriptionId={selected.id}
+          cheque={chequeACorriger}
+          onClose={() => setChequeACorriger(null)}
+          onCorrected={async () => {
+            setChequeACorriger(null);
+            showSuccess('Correction enregistrée', 'Le journal en garde la trace.');
+            await reloadSelected();
           }}
         />
       )}

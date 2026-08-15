@@ -657,8 +657,10 @@ enum AuditAction {
   DELETE_CLOSURE
   UPDATE_WEEKLY_PICKUP
   EXPORT_DISTRIBUTION_LIST
-  // Critique — de l'argent entre en base
+  // Critique — de l'argent entre en base, ou en sort
   RECORD_CHEQUES_RECEIVED
+  UPDATE_PAYMENT_STATUS
+  FAILED_PAYMENT_REAUTH
 }
 
 enum AuditSeverity {
