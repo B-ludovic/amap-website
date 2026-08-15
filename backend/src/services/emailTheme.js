@@ -22,20 +22,11 @@
    Helvetica pour le texte) est ce que verra la majorité. Et la largeur tient en
    600 pixels, au-delà desquels les clients coupent. */
 
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const logoPath = path.join(__dirname, '../assets/logo.png');
-
-/* Le logo voyage encodé dans le message : une image distante resterait grise
-   tant que le destinataire n'a pas autorisé le chargement, ce que la plupart
-   des clients refusent par défaut. Lu une fois au démarrage, pas à chaque
-   envoi. */
-const LOGO_BASE64 = fs.existsSync(logoPath)
-  ? `data:image/png;base64,${fs.readFileSync(logoPath).toString('base64')}`
-  : null;
+/* Hébergé plutôt qu'encodé : le base64 pesait 166 ko et faisait tronquer le
+   message chez Gmail, qui ne rend de toute façon pas les data: URI. Servi par
+   le site et non par l'API, qui peut s'endormir. alt vide : décoratif, le nom
+   est écrit juste en dessous. */
+const logoTag = () => `<img src="${process.env.FRONTEND_URL}/logo-email.png" alt="" width="64" height="64" style="display:block;margin:0 auto 18px;border:0;">`;
 
 // Reprises telles quelles de frontend/src/styles/variables.css
 export const EMAIL_PALETTE = {
@@ -281,10 +272,6 @@ const styles = `
   }
 `;
 
-const LOGO_TAG = LOGO_BASE64
-  ? `<img src="${LOGO_BASE64}" alt="" width="64" height="64" style="display:block;margin:0 auto 18px;">`
-  : '';
-
 const ADDRESS = 'Aux P\'tits Pois — AMAP Solidaire';
 const ADDRESS_LINE = '14, rue du Château, 45300 Yèvre-la-Ville';
 
@@ -305,7 +292,7 @@ export function renderEmail({ title, eyebrow = 'AMAP Solidaire', content, footer
     <div class="wrapper">
       <div class="container">
         <div class="header">
-          ${LOGO_TAG}
+          ${logoTag()}
           <p class="eyebrow">${eyebrow}</p>
           <h1>${title}</h1>
         </div>
@@ -322,6 +309,41 @@ ${content}
     </div>
   </body>
 </html>`;
+}
+
+/* Partie texte du multipart, dérivée du HTML plutôt que rédigée à part : deux
+   versions écrites séparément divergent, et c'est toujours la texte — jamais
+   relue — qui garde l'ancienne date. Les liens gardent leur adresse, sinon le
+   désabonnement promis par le pied de page n'existe plus en texte brut. */
+export function emailToText(html) {
+  const sansBalises = (fragment) => String(fragment).replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+
+  return String(html ?? '')
+    .replace(/<!DOCTYPE[^>]*>/gi, ' ')
+    .replace(/<(style|script|head|title)\b[^>]*>[\s\S]*?<\/\1>/gi, ' ')
+    .replace(/<!--[\s\S]*?-->/g, ' ')
+    // Les liens d'abord : après le retrait des balises, l'adresse serait perdue.
+    .replace(
+      /<a\b[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi,
+      (_, href, texte) => {
+        const libelle = sansBalises(texte);
+        return libelle && libelle !== href ? `${libelle} (${href})` : href;
+      }
+    )
+    .replace(/<li\b[^>]*>/gi, '\n- ')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/(p|div|h[1-6]|tr|li|ul|ol|table|section)>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, '\'')
+    .replace(/[ \t]+/g, ' ')
+    .replace(/ *\n */g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
 }
 
 /* Un bouton reste un lien : les <button> ne cliquent pas dans un email. */

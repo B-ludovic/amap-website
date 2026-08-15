@@ -1,18 +1,11 @@
-/* Le catalogue des dix-huit messages que le site sait envoyer.
+/* Le catalogue des dix-huit messages du site, partagé par les tests.
 
-   Une seule liste, partagée par les tests qui vérifient les mentions du pied de
-   page et par ceux qui vérifient la trace laissée en base. Elle est écrite à la
-   main plutôt que dérivée du service : c'est justement l'écart entre ce que le
-   service fait et ce qu'on attend de lui qui doit se voir. Un test de
-   complétude compare les deux et refuse qu'un expéditeur manque à l'appel.
+   Écrit à la main plutôt que dérivé du service : c'est l'écart entre les deux
+   que le test de complétude doit voir.
 
-   Ce que chaque entrée déclare :
-     · methode — le nom exact de l'expéditeur, pour le contrôle de complétude ;
-     · kind    — le membre d'EmailKind attendu dans EmailLog ;
-     · public  — vers quelle porte la mention des droits doit conduire :
-                 « adherent » l'espace adhérent, « candidat » l'adresse de
-                 l'association, « interne » aucune, le destinataire étant
-                 l'association elle-même. */
+   `public` dit vers quelle porte la mention des droits doit conduire —
+   « adherent » l'espace, « candidat » l'adresse de l'association, « interne »
+   aucune. */
 
 import {
   adherente,

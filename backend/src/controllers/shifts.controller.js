@@ -318,15 +318,9 @@ const deleteShift = asyncHandler(async (req, res) => {
     label: shift.distributionDate.toISOString()
   }, { volunteersCount: shift.volunteers.length });
 
-  /* Prévenir les bénévoles, et dire ce qui a réellement été prévenu.
-
-     La suppression, elle, est déjà faite et ne se rejoue pas : on ne remonte
-     donc pas d'erreur HTTP si un message n'est pas parti, ce serait annoncer
-     l'échec d'une opération qui a réussi. Mais annoncer « supprimée avec
-     succès » sans réserve n'est pas mieux — c'est ce qui envoyait deux
-     bénévoles devant un local fermé un mercredi soir. Le décompte remonte donc
-     jusqu'à l'écran, et le détail de qui n'a pas été joint se relit dans
-     EmailLog, tracé par le service. */
+  /* La suppression est faite et ne se rejoue pas : pas d'erreur HTTP si un
+     message n'est pas parti. Mais le décompte remonte à l'écran, sinon deux
+     bénévoles se présentent devant un local fermé. */
   const envois = await Promise.all(
     shift.volunteers.map((volunteer) => emailService.sendShiftCancellation(shift, volunteer.user))
   );

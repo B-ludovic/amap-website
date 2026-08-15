@@ -1,19 +1,8 @@
-/* La trace de ce qui est parti, et de ce qui n'est pas parti — défaut C2.
+/* Trace des envois — défaut C2.
 
-   La scène qui a motivé ce fichier. Mardi soir, l'administratrice supprime la
-   permanence du mercredi, gel annoncé. Quatre bénévoles à prévenir. Brevo
-   refuse le deuxième message : le quota du jour est atteint, le panier de la
-   semaine est déjà parti le matin. Avant, l'échec était avalé sans un mot, la
-   valeur de retour jetée par l'appelant, et l'interface affichait « Permanence
-   supprimée avec succès ». Mercredi 18 h, deux bénévoles devant un local fermé,
-   et personne — ni dans les logs, ni dans AuditLog, ni dans l'interface — ne
-   pouvait dire lesquels des quatre avaient été prévenus.
-
-   Ce que ces tests verrouillent, c'est la réponse à cette question-là : chaque
-   envoi, réussi ou raté, laisse une ligne relisible dans EmailLog. Le reste
-   suit — un log qui ne recopie pas l'adresse en production, une trace qui ne
-   fait jamais tomber l'envoi qu'elle décrit, et une méthode d'envoi de masse
-   qui ne s'arrête pas au premier refus. */
+   Chaque envoi, réussi ou raté, laisse une ligne relisible dans EmailLog. Sans
+   elle, personne ne pouvait dire lesquels des quatre bénévoles avaient été
+   prévenus de l'annulation d'une permanence. */
 
 import { describe, it, expect, beforeAll, beforeEach, afterEach, afterAll, vi } from 'vitest';
 import {

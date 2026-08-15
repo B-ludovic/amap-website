@@ -1,22 +1,8 @@
-/* Les drapeaux restés levés sur un envoi qui n'a jamais eu lieu — défaut m9.
+/* Balayage des drapeaux d'envoi orphelins — défaut m9.
 
-   Trois endroits posent un drapeau avant d'envoyer et le relâchent en cas
-   d'échec : le rappel de renouvellement, l'avis de dépôt de chèque, l'envoi
-   d'une newsletter. L'arbitrage est le bon — la base tranche, deux instances ne
-   doublent pas un envoi. Reste la brèche : un processus qui meurt entre la
-   prise et le relâchement laisse le drapeau levé pour toujours, sur un message
-   qui n'est jamais parti.
-
-   L'audit signalait la brèche sans recommander de la traiter, au motif que le
-   remède coûtait trop cher tant qu'on ignorait ce qui était réellement parti.
-   EmailLog l'a rendu bon marché : chaque envoi y laisse son type et l'objet
-   concerné, si bien qu'un drapeau sans ligne SENT en face est un drapeau
-   orphelin, et rien d'autre.
-
-   Ce que ces tests protègent avant tout, c'est le sens inverse : ne PAS
-   relâcher un drapeau dont l'envoi a bien eu lieu. Un balayage trop zélé ne
-   perdrait pas un message, il en enverrait un second — ce qui est précisément
-   ce que tout le dispositif cherche à éviter. */
+   Un processus mort entre la prise du drapeau et son relâchement le laisse levé
+   pour toujours. Ce que ces tests protègent surtout, c'est le sens inverse : ne
+   PAS relâcher un drapeau dont l'envoi a réussi, ce qui enverrait un doublon. */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 

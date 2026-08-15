@@ -1,33 +1,11 @@
-/* Le sort d'une newsletter au moment de l'envoi — défauts C3, M2 et M10.
+/* Sort d'une newsletter à l'envoi — défauts C3, M2 et M10.
 
-   Trois questions posées au même endroit, et qui se répondent avec deux champs :
-   `status` et `sentAt`.
+   Tout tient à deux champs, `status` et `sentAt` : relâchés quand rien n'est
+   parti (C3), pris avant la boucle par compare-and-set (M2), et la boucle
+   tourne hors de la requête (M10).
 
-   Quand marquer l'envoi (C3). L'association a dépassé son quota Brevo du jour.
-   L'administratrice envoie la lettre de rentrée à cent vingt adhérents ; les
-   cent vingt envois sont refusés. Avant, le contrôleur posait sentAt sans
-   regarder le compte, et l'écran affichait « Newsletter envoyée à 0
-   destinataire(s) ». Second clic : « cette newsletter a déjà été envoyée ». Le
-   texte mourait en base, lu par personne.
-
-   Quand le marquer, dans le temps (M2). Le contrôle se faisait à la lecture,
-   l'écriture venait après la boucle : deux à trois minutes d'écart pour deux
-   cents adhérents. Le proxy coupe la connexion, l'administratrice croit que rien
-   n'est parti et reclique — cent trente personnes recevaient la lettre en
-   double.
-
-   Où faire tourner la boucle (M10). Elle tournait dans la requête, qui restait
-   ouverte sans écrire un octet jusqu'à ce que le proxy la coupe — ce qui était
-   précisément le déclencheur du double envoi. Elle tourne maintenant derrière,
-   et la requête rend un 202 aussitôt la réservation prise.
-
-   Conséquence pour ces tests : la réponse HTTP ne dit plus le résultat de
-   l'envoi, seulement qu'il est lancé. Ce qui se vérifie ensuite, c'est l'état en
-   base — exactement ce que l'écran de communication relit. D'où attendreQue,
-   plutôt qu'un await sur une promesse que plus personne ne tient.
-
-   La base factice arbitre comme le ferait Postgres : sans cela, le
-   compare-and-set de M2 ne serait pas réellement éprouvé. */
+   Conséquence : la réponse HTTP ne dit plus le résultat de l'envoi. Ce qui se
+   vérifie, c'est l'état en base — d'où attendreQue. */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { appeler } from '../helpers/expressFactice.js';

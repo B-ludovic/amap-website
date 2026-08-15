@@ -1,14 +1,4 @@
-/* Un aller-retour HTTP sans serveur.
-
-   Les contrôleurs du projet sont enveloppés dans asyncHandler, qui se contente
-   de rattraper une promesse rejetée et de la passer à `next`. Un contrôleur est
-   donc une fonction ordinaire à trois arguments : on peut l'appeler à la main,
-   à condition de lui fournir un req, un res et un next crédibles.
-
-   C'est ce que fait `appeler` ci-dessous. Elle rend le statut, le corps de la
-   réponse et l'erreur éventuelle réunis dans un même objet, si bien qu'un test
-   n'a pas à savoir lequel des deux chemins le contrôleur a pris pour vérifier
-   qu'il a pris le bon. */
+/* Un aller-retour HTTP sans serveur, pour appeler un contrôleur à la main. */
 
 export function reponseFactice() {
   const res = {

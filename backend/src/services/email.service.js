@@ -4,29 +4,12 @@ import { prisma } from '../config/database.js';
 import { euroAmount } from '../utils/subscriptionPricing.js';
 import { overridesOptOut } from './newsletterAudience.service.js';
 import { unsubscribePageUrl, unsubscribeHeaders } from '../utils/unsubscribeToken.js';
-import { renderEmail, emailButton } from './emailTheme.js';
+import { renderEmail, emailButton, emailToText } from './emailTheme.js';
 
-/* Le lien vers le relais de Brevo.
-
-   Trois réglages absents jusqu'ici, et trois conséquences bien réelles.
-
-   Le pool. Sans lui, chaque message rouvrait une connexion TCP, négociait TLS et
-   se réauthentifiait — pour cinq cents adhérents, cinq cents fois la même
-   cérémonie avant même d'écrire la première ligne du message. Les connexions
-   sont désormais gardées et réutilisées. Trois suffisent : la boucle d'envoi est
-   séquentielle, elle n'en occupe qu'une à la fois, les deux autres sont là pour
-   les messages transactionnels qui partent pendant qu'une newsletter s'écoule.
-   maxMessages ferme la connexion tous les cent messages, ce qu'attendent la
-   plupart des relais plutôt que de voir un socket vivre indéfiniment.
-
-   Les délais de garde. Nodemailer laisse dix minutes à un socket muet. Dix
-   minutes pendant lesquelles un envoi bloqué immobilisait la boucle — et, avant
-   que celle-ci ne quitte la requête, la page de l'administratrice avec elle.
-   Vingt secondes suffisent largement à un relais qui répond ; au-delà, il ne
-   répond pas, et l'échec est une information plus utile que l'attente.
-
-   Ces valeurs valent pour Brevo depuis un hébergement européen. Un relais plus
-   lent demanderait de les relever plutôt que de les retirer. */
+/* Pool : sans lui chaque message rouvrait une connexion TCP + TLS + auth.
+   Délais de garde : le défaut de nodemailer est de dix minutes sur un socket
+   muet, de quoi immobiliser la boucle d'envoi. Valeurs calibrées pour Brevo
+   depuis l'Europe — un relais plus lent demanderait de les relever. */
 const transporter = nodemailer.createTransport({
   host: 'smtp-relay.brevo.com',
   port: 587,
@@ -45,30 +28,15 @@ const transporter = nodemailer.createTransport({
   socketTimeout: 20_000,
 });
 
-/* Savoir au démarrage si le relais répond.
-
-   Une clé Brevo révoquée ne se découvrait qu'au premier envoi raté. Depuis que
-   chaque échec laisse une trace (voir #send), ce n'est plus le trou noir
-   d'autrefois — mais l'apprendre au moment où une adhérente attend sa
-   confirmation d'inscription reste tard. Cette poignée de main le dit au
-   déploiement.
-
-   Un avertissement, jamais un arrêt : une coupure passagère chez Brevo ne doit
-   pas empêcher les adhérents de consulter le panier de la semaine. Le site vit
-   très bien sans e-mail pendant une heure.
-
-   En développement, on s'en abstient — la boîte de test n'est pas toujours
-   configurée, et un rouge au démarrage qui ne veut rien dire finit par ne plus
-   être lu du tout. */
+/* Une clé révoquée se découvrait au premier envoi raté. Avertissement et non
+   arrêt : une coupure chez Brevo ne doit pas empêcher de consulter le site. */
 if (process.env.NODE_ENV === 'production') {
   transporter.verify()
     .then(() => console.log('[Email] relais Brevo joignable'))
     .catch((error) => console.error(`[Email] relais Brevo INJOIGNABLE : ${error.message}`));
 }
 
-/* Rendre les connexions du pool à l'arrêt du serveur. Sans cela, les sockets
-   gardés ouverts retiennent le processus, et un redéploiement attend pour rien
-   avant d'être tué de force. */
+// Les sockets du pool retiendraient le processus au redéploiement.
 export function closeEmailTransport() {
   transporter.close();
 }
@@ -97,25 +65,11 @@ const longDate = (value) => {
   return `${jour === 1 ? '1er' : jour} ${MOIS[date.getMonth()]} ${date.getFullYear()}`;
 };
 
-/* L'adresse de l'association : boîte de réception du formulaire de contact,
-   et porte de sortie pour qui n'a pas d'espace adhérent. Elle était recopiée
-   dans six messages ; le jour où l'AMAP en changera, c'est ici que ça se
-   passera. */
+// Recopiée dans six messages avant d'être rassemblée ici.
 const AMAP_EMAIL = 'auxptitspois@gmail.com';
 
-/* La mention RGPD du pied de page : pourquoi cette adresse précise reçoit ce
-   message précis, et par quelle porte reprendre la main sur ses données.
-
-   Deux portes, parce qu'il y a deux publics. L'adhérent a un espace où tout se
-   consulte, s'exporte et s'efface en quelques clics. Le candidat producteur,
-   lui, n'a pas de compte : l'envoyer vers « votre espace adhérent » serait le
-   diriger vers une porte fermée, et un droit qu'on ne peut pas exercer ne vaut
-   guère mieux qu'un droit qu'on ne mentionne pas. Sa porte à lui est l'adresse
-   de l'association — celle-là même que le corps du message lui donne déjà pour
-   toute question.
-
-   La phrase est volontairement identique des deux côtés : c'est la destination
-   qui change, jamais la promesse. */
+/* Deux portes pour deux publics : l'adhérent a un espace, le candidat
+   producteur n'a pas de compte — l'y envoyer serait une porte fermée. */
 const droitsViaEspace = () =>
   `Pour consulter, modifier ou supprimer vos données, <a href="${escapeHtml(`${process.env.FRONTEND_URL}/compte`)}">ouvrez votre espace adhérent</a>.`;
 
@@ -130,36 +84,25 @@ const rgpdNoteSansCompte = (email, raison) =>
 
 class EmailService {
 
-  /* Le point de passage unique de tout message sortant.
-
-     Avant, chaque méthode portait sa propre copie du même try/catch : dix-neuf
-     copies, dont six seulement journalisaient quelque chose. Les treize autres
-     avalaient l'échec en silence et rendaient un { success: false } que quinze
-     appelants sur dix-huit jetaient sans le lire. Un mardi soir, quatre
-     bénévoles à prévenir de l'annulation d'une permanence, une erreur de quota
-     sur le deuxième message : l'interface affichait « supprimée avec succès » et
-     rien nulle part ne disait lesquels avaient été prévenus.
-
-     Une seule porte, donc, par laquelle tout passe. Ce qui en sort est double :
-     une ligne de log pour l'équipe technique, et une ligne en base pour tous les
-     autres — c'est celle-là qui répond à « l'adhérente Machin a-t-elle reçu sa
-     confirmation le 12 mars ? », une question qu'aucun log rotatif ne sait
-     tenir. La valeur de retour ne change pas de forme : les appelants qui la
-     lisaient déjà continuent de fonctionner à l'identique. */
+  /* Point de passage unique de tout message sortant : une ligne de log pour
+     l'équipe, une ligne en base pour répondre à « untel a-t-il reçu son
+     message le 12 mars ? », qu'aucun log rotatif ne sait tenir. */
   async #send(mailOptions, { kind, ref = null }) {
     try {
-      const info = await transporter.sendMail(mailOptions);
+      // Ajoutée ici seulement : seul endroit par lequel les 19 messages passent.
+      const message = mailOptions.html && !mailOptions.text
+        ? { ...mailOptions, text: emailToText(mailOptions.html) }
+        : mailOptions;
+
+      const info = await transporter.sendMail(message);
       await this.#trace({ kind, ref, mailOptions, status: 'SENT', messageId: info?.messageId ?? null });
 
       if (process.env.NODE_ENV !== 'production') console.log(`[Email:${kind}] envoyé à ${mailOptions.to}`);
 
       return { success: true };
     } catch (error) {
-      /* L'adresse du destinataire reste hors du flux de logs en production :
-         c'est une donnée personnelle, et les journaux de l'hébergeur se
-         conservent sans être une base de données (même règle que
-         error.middleware.js). Elle est enregistrée juste en dessous, dans
-         EmailLog, qui est purgé et dont l'accès est contrôlé. */
+      /* Donnée personnelle hors des logs de production (règle d'error.middleware.js).
+         Elle est en base, dans EmailLog, qui est purgé. */
       const destinataire = process.env.NODE_ENV === 'production' ? '[adresse en base]' : mailOptions.to;
       console.error(`[Email:${kind}] échec d'envoi vers ${destinataire} : ${error.message}`);
 
@@ -169,17 +112,10 @@ class EmailService {
     }
   }
 
-  /* La trace ne doit jamais faire tomber l'envoi qu'elle décrit.
-
-     Si la base est injoignable au moment où l'on veut écrire la ligne, laisser
-     l'exception remonter transformerait un email parti avec succès en erreur
-     500 pour l'administratrice — et, sur l'appel non attendu des paniers
-     hebdomadaires, en rejet de promesse non capturé, ce qui arrête le processus
-     Node. L'échec d'écriture se journalise donc et s'arrête là.
-
-     On n'enregistre que l'enveloppe. Le HTML rendu porte le prénom, l'adresse de
-     retrait, le contenu du panier : le garder reviendrait à tenir une copie de
-     la boîte mail de chaque adhérent, ce qu'aucune finalité ne justifie. */
+  /* Ne doit jamais faire tomber l'envoi qu'elle décrit : une base injoignable
+     transformerait un message parti en erreur 500, voire en rejet non capturé
+     sur l'appel non attendu des paniers. Seule l'enveloppe est gardée — le HTML
+     porte le prénom et l'adresse de retrait. */
   async #trace({ kind, ref, mailOptions, status, messageId = null, error = null }) {
     try {
       await prisma.emailLog.create({
@@ -323,12 +259,8 @@ class EmailService {
               <li>Votre abonnement est activé</li>
             </ol>
             <p>À très bientôt,<br>L'équipe Aux P'tits Pois</p>`,
-        /* Seul message dont la porte dépend de la donnée reçue. La route
-           actuelle exige d'être connecté, donc userId est toujours là ; mais
-           le modèle le déclare optionnel et la purge RGPD compte déjà des
-           « demandes d'abonnement sans compte ». Le jour où un formulaire
-           public rouvrira ce chemin, la mention suivra d'elle-même au lieu
-           d'envoyer vers un espace adhérent qui n'existe pas. */
+        /* userId est optionnel dans le modèle et la purge compte des demandes
+           sans compte : la mention suit la donnée plutôt qu'un pari. */
         footerNote: request.userId
           ? rgpdNote(request.email, 'suite à votre demande d\'abonnement')
           : rgpdNoteSansCompte(request.email, 'suite à votre demande d\'abonnement'),
@@ -375,9 +307,8 @@ class EmailService {
             </div>
             <p><strong>Message :</strong></p>
             <div class="message-box">${DOMPurify.sanitize(message, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] })}</div>`,
-        /* Seul message, avec la remise de chèques, à ne porter aucune mention
-           RGPD — et c'est volontaire : il arrive dans la boîte de
-           l'association, pas dans celle de la personne dont il parle. */
+        /* Sans mention RGPD à dessein : destinataire interne, la personne
+           dont il parle n'est pas celle qui le reçoit. */
         footerNote: 'Message automatique émis par le formulaire de contact du site. Répondre à cet email écrit directement à son auteur.',
       }),
     }, { kind: 'CONTACT_MESSAGE', ref: null });
@@ -421,10 +352,7 @@ class EmailService {
      signable : on renvoie alors vers l'espace adhérent plutôt que d'afficher un
      lien mort. */
   static newsletterFooter(recipientId, respectsOptOut) {
-    /* Le même ordre et les mêmes mots que dans les dix-sept autres messages :
-       le motif, puis les droits, puis le désabonnement. Le lien « Gérer mes
-       préférences » d'avant menait déjà à /compte : la phrase des droits mène
-       au même endroit, en disant ce qu'on y trouve. */
+    // Même ordre que les autres messages : motif, droits, désabonnement.
     const motif = 'Vous recevez cet email parce que vous êtes adhérent(e) de l\'AMAP Aux P\'tits Pois.';
 
     if (!recipientId) {
@@ -451,26 +379,15 @@ class EmailService {
     };
   }
 
-  /* Envoie une newsletter.
-
-     `onProgress` est appelé à la fin de chaque lot, avec le compte courant.
-     L'envoi ne se fait plus dans la requête de l'administratrice — deux cents
-     adhérents demandent près de deux minutes, cinq cents plus de quatre — et
-     elle a donc besoin de voir la progression ailleurs que dans une roue qui
-     tourne. Le rapporteur écrit en base ; c'est de là que l'écran lit.
-
-     Il est appelé entre les lots et non à chaque message : cinq cents écritures
-     pour cinq cents envois coûteraient plus cher que l'envoi lui-même, et
-     personne ne regarde un compteur avancer message par message. */
+  /* `onProgress` est appelé à la fin de chaque lot, pas à chaque message :
+     l'envoi se poursuit hors de la requête, l'écran lit l'avancement en base. */
   async sendNewsletter(newsletter, recipients, { onProgress } = {}) {
     try {
       const results = { sent: 0, failed: 0, errors: [] };
       const batchSize = 50;
       const respectsOptOut = !overridesOptOut(newsletter.type);
 
-      /* Rendre compte ne doit jamais interrompre ce dont on rend compte : une
-         base momentanément injoignable ferait sinon échouer un envoi qui se
-         déroule très bien. Même règle que pour la trace dans #trace. */
+      // Rendre compte ne doit pas interrompre ce dont on rend compte.
       const rapporter = async () => {
         if (!onProgress) return;
 
@@ -487,11 +404,7 @@ class EmailService {
         for (const recipient of batch) {
           const footer = EmailService.newsletterFooter(recipient.id, respectsOptOut);
 
-          /* Un envoi de masse ne s'arrête pas au premier refus : #send ne lève
-             jamais, on lit donc son verdict et on continue la liste. Chaque
-             destinataire laisse sa propre ligne dans EmailLog, ce qui permet de
-             répondre après coup à « qui n'a pas reçu l'annonce ? » sans avoir à
-             conserver ce tableau d'erreurs. */
+          // #send ne lève jamais : on lit le verdict et on continue la liste.
           const envoi = await this.#send({
             from: EMAIL_FROM,
             to: recipient.email,
@@ -637,9 +550,7 @@ class EmailService {
   async sendTreasurerChequeDigest(lignes) {
     const destinataire = process.env.TREASURER_EMAIL;
     if (!destinataire) {
-      /* Rien ne part, donc rien à tracer — mais l'absence de configuration doit
-         s'entendre : sans cette ligne, une remise de chèques jamais annoncée
-         ressemblerait à une remise sans chèque à déposer. */
+      // Sans cette ligne, une remise jamais annoncée ressemble à une remise vide.
       console.error('[Email:TREASURER_CHEQUE_DIGEST] TREASURER_EMAIL non configurée, récapitulatif non envoyé');
       return { success: false, error: 'TREASURER_EMAIL non configurée' };
     }
@@ -691,8 +602,7 @@ class EmailService {
             </table>
             <p>Une fois la remise déposée, marquez ces chèques « remis en banque » depuis la fiche de chaque abonnement : c'est ce qui met à jour l'espace de l'adhérent et arrête ce rappel.</p>
             ${emailButton(`${process.env.FRONTEND_URL}/admin/abonnements`, 'Ouvrir les abonnements')}`,
-        /* Destinataire interne, comme le formulaire de contact : rien à
-           mentionner à quelqu'un sur ses propres données. */
+        // Destinataire interne, comme le formulaire de contact.
         footerNote: 'Message automatique destiné à la trésorerie de l\'association.',
       }),
     }, { kind: 'TREASURER_CHEQUE_DIGEST', ref: null });

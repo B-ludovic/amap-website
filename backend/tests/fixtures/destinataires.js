@@ -1,12 +1,6 @@
-/* Les personnes et les objets qui servent de matière aux tests.
-
-   Trois publics, parce que les mentions du pied de page en dépendent :
-   l'adhérente, qui a un espace où exercer ses droits ; la candidate
-   productrice, qui n'a pas de compte et à qui il faut donc une autre porte ;
-   et l'association elle-même, destinataire de ses propres messages internes.
-
-   Les adresses sont en .test et .example, réservées par la RFC 2606 : aucune ne
-   peut appartenir à quelqu'un, même par accident. */
+/* Trois publics, parce que les mentions du pied de page en dépendent :
+   l'adhérente qui a un espace, la candidate productrice qui n'en a pas, et
+   l'association elle-même. Adresses en .test et .example (RFC 2606). */
 
 export const adherente = {
   id: 'utilisateur-de-test-0001',

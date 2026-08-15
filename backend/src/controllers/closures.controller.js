@@ -106,13 +106,8 @@ async function announceClosure({ closure, adminId, isUpdate }) {
 
   if (recipients.length === 0) return { lancee: false, recipientsCount: 0 };
 
-  /* Même mécanique que l'envoi manuel, et pour la même raison : deux cents
-     abonnés demandent près de deux minutes d'envoi, que la requête de
-     l'administratrice n'a pas à porter. On réserve, on lance, on rend la main.
-
-     L'annonce vient d'être créée, sa réservation ne peut donc pas échouer — mais
-     on la teste tout de même plutôt que de supposer, un enregistrement de
-     fermeture déclenché deux fois passant par ici deux fois. */
+  /* Même mécanique que l'envoi manuel : on réserve, on lance, on rend la main.
+     La réservation ne peut pas échouer ici, on la teste quand même. */
   const reservee = await reserverNewsletter(newsletter.id);
 
   if (!reservee) return { lancee: false, recipientsCount: recipients.length };
@@ -122,13 +117,8 @@ async function announceClosure({ closure, adminId, isUpdate }) {
   return { lancee: true, recipientsCount: recipients.length, newsletterId: newsletter.id };
 }
 
-/* Ce que l'administratrice lit après coup.
-
-   Le compte des envois réussis ne peut plus figurer ici : au moment où cette
-   phrase se compose, la diffusion commence à peine. C'est un renseignement en
-   moins dans la fenêtre de confirmation, et c'est le prix du découplage — il se
-   retrouve, complet et à jour, dans l'écran de communication, là où le statut de
-   l'annonce vit désormais. */
+/* Le compte des envois réussis ne peut plus figurer ici : la diffusion commence
+   à peine. Il se lit dans l'écran de communication. */
 function closureNotice(base, { lancee, recipientsCount }) {
   if (!lancee) {
     return recipientsCount === 0

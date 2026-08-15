@@ -1,53 +1,24 @@
-/* Les drapeaux restés levés sur un envoi qui n'a jamais eu lieu.
+/* Trois endroits posent un drapeau avant d'envoyer et le relâchent en cas
+   d'échec : rappel de renouvellement, avis de chèque, newsletter. Un processus
+   mort entre les deux laisse le drapeau levé pour toujours.
 
-   Trois endroits du projet posent un drapeau en base AVANT d'envoyer un e-mail,
-   et le relâchent si l'envoi échoue : le rappel de renouvellement, l'avis de
-   dépôt de chèque, et l'envoi d'une newsletter. C'est le bon arbitrage, et il
-   est assumé partout où il apparaît — la base arbitre, deux instances ne
-   peuvent pas doubler un envoi, et l'on préfère rater un message qu'en envoyer
-   deux.
-
-   Reste une brèche, la même aux trois endroits : si le processus meurt entre la
-   prise et le relâchement — un redéploiement au mauvais moment — le drapeau
-   reste levé sur un envoi qui n'est jamais parti. Le rappel n'arrivera jamais,
-   la newsletter restera « en cours d'envoi » pour toujours, et rien ne le dit.
-
-   Ce balayage était trop cher tant qu'on ne savait pas ce qui était réellement
-   parti. Depuis qu'EmailLog garde une ligne par message, avec le type d'envoi
-   et l'objet concerné, la question se pose en une requête : un drapeau levé
-   depuis plus d'une heure sans ligne SENT correspondante est un drapeau
-   orphelin. On le relâche, et le job d'origine réessaiera à son prochain
-   passage.
-
-   La règle exacte est « aucune ligne SENT », et non « aucune ligne ». Un
-   processus mort juste après un refus SMTP laisse une ligne FAILED derrière
-   lui : le message n'est pas parti pour autant, le drapeau doit tomber. */
+   Le critère est « aucune ligne SENT dans EmailLog », et non « aucune ligne » :
+   un processus mort juste après un refus laisse une ligne FAILED, et le message
+   n'est pas parti pour autant. */
 
 import { prisma } from '../config/database.js';
 
-/* Une heure de sursis. Le plus long envoi du projet — une newsletter à cinq
-   cents adhérents — demande moins de cinq minutes ; au-delà d'une heure, un
-   drapeau encore levé ne décrit plus un envoi en cours, il décrit un cadavre. */
+// Le plus long envoi du projet demande moins de cinq minutes.
 const GRACE_MS = 60 * 60 * 1000;
 
-/* On ne remonte pas au-delà de sept jours.
-
-   Le raisonnement s'appuie sur EmailLog, qui est purgé à un an : un drapeau
-   posé il y a treize mois n'a plus de ligne en face, non pas parce que l'envoi
-   a échoué mais parce que la trace a été effacée. Le relâcher réexpédierait un
-   rappel de renouvellement vieux d'un an. La fenêtre reste donc courte —
-   largement de quoi rattraper un redéploiement ou une panne d'un week-end,
-   trop courte pour confondre une trace absente et une trace purgée. */
+/* Borne haute obligatoire : EmailLog est purgé à un an, au-delà une trace
+   absente ne prouve rien et le relâchement réexpédierait un vieux rappel. */
 const FENETRE_MS = 7 * 24 * 60 * 60 * 1000;
 
 const ilYA = (ms) => new Date(Date.now() - ms);
 
-/* Parmi ces objets, lesquels ont réellement reçu leur message ?
-
-   Une seule requête pour toute la fournée, plutôt qu'une par objet : la liste
-   des drapeaux suspects est courte, mais elle ne l'est que parce que tout va
-   bien — le jour où elle sera longue, ce sera précisément le jour où il ne
-   faudra pas marteler la base. */
+// Une requête pour toute la fournée : le jour où la liste sera longue sera
+// justement celui où il ne faudra pas marteler la base.
 async function refsRellementServis(kind, refs) {
   if (refs.length === 0) return new Set();
 
@@ -60,9 +31,7 @@ async function refsRellementServis(kind, refs) {
   return new Set(lignes.map((ligne) => ligne.ref));
 }
 
-/* Rappels de renouvellement et avis de chèque : même forme, même remède. Le
-   drapeau retombe à null, et le job quotidien correspondant refera une
-   tentative dès son prochain passage. */
+// Le drapeau retombe à null, le job quotidien réessaiera de lui-même.
 async function relacherDrapeauxSimples({ modele, champ, kind, intitule }) {
   const candidats = await prisma[modele].findMany({
     where: { [champ]: { lte: ilYA(GRACE_MS), gte: ilYA(FENETRE_MS) } },
@@ -84,15 +53,9 @@ async function relacherDrapeauxSimples({ modele, champ, kind, intitule }) {
   console.warn(`[OrphanFlags] ${count} ${intitule} relâché(s) : l'envoi n'avait jamais eu lieu, une nouvelle tentative partira au prochain passage`);
 }
 
-/* Une newsletter demande un traitement à part : elle ne s'adresse pas à une
-   personne mais à une liste, et le processus a pu mourir au milieu.
-
-   D'où deux issues, tranchées par le nombre de destinataires réellement
-   servis. Si personne n'a rien reçu, tout est relâché et la lettre redevient
-   renvoyable. Si une partie de la liste a été servie, on ne relâche surtout
-   pas — la renvoyer écrirait deux fois aux mêmes personnes. On la close alors
-   sur le compte réel, celui qu'EmailLog a mémorisé, qui est plus fiable que le
-   compteur figé au moment de la panne. */
+/* Une newsletter s'adresse à une liste : le processus a pu mourir au milieu.
+   Si une partie a été servie, on ne relâche surtout pas — la renvoyer écrirait
+   deux fois aux mêmes personnes. */
 async function refermerNewslettersBloquees() {
   const bloquees = await prisma.newsletter.findMany({
     where: {
@@ -122,8 +85,7 @@ async function refermerNewslettersBloquees() {
   }
 }
 
-/* Exportée pour être déclenchable seule — le job périodique n'est qu'un
-   ordonnanceur, la logique est ici. */
+// Exportée pour être déclenchable seule.
 export async function releaseOrphanFlags() {
   try {
     await relacherDrapeauxSimples({
@@ -146,9 +108,8 @@ export async function releaseOrphanFlags() {
   }
 }
 
-/* Au démarrage puis toutes les heures. Le passage au démarrage est le plus
-   utile des deux : la panne qu'on répare est presque toujours un redéploiement,
-   et c'est donc au redémarrage suivant que le drapeau orphelin attend. */
+// Le passage au démarrage est le plus utile : la panne est presque toujours un
+// redéploiement.
 export function startOrphanFlagsJob() {
   releaseOrphanFlags();
   setInterval(releaseOrphanFlags, 60 * 60 * 1000);

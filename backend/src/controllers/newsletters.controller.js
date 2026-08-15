@@ -26,10 +26,8 @@ const getAllNewsletters = asyncHandler(async (req, res) => {
         where.type = type;
     }
 
-    /* « Envoyée » se lit sur le statut et non plus sur sentAt : celui-ci est
-       posé dès le départ de la diffusion, il rangerait donc un envoi encore en
-       cours parmi les lettres parties. Un envoi en cours n'est ni l'un ni
-       l'autre — il n'apparaît dans aucun des deux filtres, comme il se doit. */
+    /* Sur le statut et non sur sentAt, posé dès le départ de la diffusion :
+       un envoi en cours n'est ni parti ni en attente. */
     if (sent === 'true') {
         where.status = 'SENT';
     } else if (sent === 'false') {
@@ -227,29 +225,17 @@ const sendNewsletter = asyncHandler(async (req, res) => {
         ? [{ id: req.user.id, email: req.user.email, firstName: req.user.firstName }]
         : await resolveNewsletterRecipients({ target: newsletter.target, type: newsletter.type });
 
-    /* La réservation se prend AVANT d'envoyer, et c'est la base qui arbitre —
-       le détail du compare-and-set est dans newsletterDispatch.
-
-       Le contrôle de statut fait plus haut n'est donc pas redondant, il est
-       simplement moins cher : il évite d'aller résoudre la liste des
-       destinataires pour rien, et il sait dire lequel des deux refus
-       s'applique. */
+    /* Réservation avant envoi, arbitrée par la base (voir newsletterDispatch).
+       Le contrôle du dessus n'est pas redondant : il évite de résoudre la liste
+       pour rien et sait dire lequel des deux refus s'applique. */
     const reservee = await reserverNewsletter(id);
 
     if (!reservee) {
         throw new HttpConflictError('Cette newsletter a déjà été envoyée');
     }
 
-    /* L'envoi quitte la requête.
-
-       Cinq cents adhérents demandent plus de quatre minutes. Pendant tout ce
-       temps, l'ancienne version tenait la requête ouverte sans écrire un octet,
-       jusqu'à ce que le proxy de l'hébergeur coupe — ce qui était précisément le
-       déclencheur du double envoi.
-
-       On répond donc 202 : « c'est accepté, ce n'est pas fini ». Le suivi se lit
-       ensuite dans l'écran de communication, que le statut et le compteur
-       alimentent au fil des lots. */
+    /* 202 : accepté, pas terminé. Le suivi se lit dans l'écran de
+       communication, alimenté au fil des lots. */
     lancerDiffusion({ id, newsletter, recipients, trace: { user: req.user, ip: req.ip } });
 
     res.status(httpStatusCodes.ACCEPTED).json({

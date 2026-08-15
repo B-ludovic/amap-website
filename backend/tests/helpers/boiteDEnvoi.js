@@ -1,15 +1,7 @@
-/* La boîte d'envoi de test : un facteur qui ne sort jamais.
+/* Un facteur qui ne sort jamais.
 
-   Le service d'emails fabrique son transporteur au chargement du module, une
-   seule fois, et l'appelle ensuite pour chaque message. On remplace donc la
-   fabrique elle-même : le service croit tenir un transporteur Brevo, il tient
-   en réalité l'objet ci-dessous, qui range dans un tableau ce qu'on lui demande
-   de poster au lieu d'ouvrir une connexion SMTP.
-
-   L'intérêt de cette hauteur d'interception : le service ne sait pas qu'il est
-   observé. Il compose son HTML exactement comme en production — même gabarit,
-   même pied de page, mêmes mentions — et c'est ce HTML-là que les tests
-   examinent, pas une reconstitution. */
+   On remplace la fabrique de transporteur, et non sendMail : le service ne sait
+   pas qu'il est observé, il compose son HTML exactement comme en production. */
 
 export const boiteDEnvoi = [];
 

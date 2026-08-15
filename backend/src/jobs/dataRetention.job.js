@@ -26,18 +26,10 @@ const PRODUCER_INQUIRY_RETENTION_DAYS = 2 * 365;
    leur propre échéance, comptée depuis leur traitement. */
 const ORPHAN_REQUEST_RETENTION_DAYS = 365;
 
-/* La trace des emails porte une adresse, donc une donnée personnelle, et une
-   table qui grossit d'une ligne par message finirait par tenir l'historique de
-   correspondance de toute l'AMAP. Un an : c'est la durée pendant laquelle la
-   question « l'adhérente Machin a-t-elle reçu sa confirmation le 12 mars ? » se
-   pose encore — un contrat court sur une saison, un litige de distribution se
-   règle dans les semaines qui suivent.
-
-   Ces lignes ne sont pas rattachées aux comptes, et une purge de compte ne les
-   emporte donc pas. C'est délibéré : les relier obligerait à lire les adresses
-   concernées avant d'ouvrir la transaction, ce que tout ce job refuse par
-   ailleurs (voir plus bas). Elles s'effacent d'elles-mêmes sur leur propre
-   horloge, au plus tard un an après l'envoi. */
+/* EmailLog porte une adresse par ligne. Un an, la durée pendant laquelle on se
+   demande encore si un message est bien arrivé. Ces lignes ne sont pas reliées
+   aux comptes — les relier obligerait à lire les adresses avant la transaction,
+   ce que ce job refuse par ailleurs — elles vieillissent seules. */
 const EMAIL_LOG_RETENTION_DAYS = 365;
 
 const daysAgo = (days) => {
@@ -214,9 +206,7 @@ async function purgeOrphanSubscriptionRequests() {
   await warnAboutUntreated('demande(s) d\'abonnement sans compte non traitée(s)', untreated, ORPHAN_REQUEST_RETENTION_DAYS);
 }
 
-/* Pas de garde-fou « non traité » ici, contrairement aux messages de contact et
-   aux candidatures : une trace d'email n'attend de geste de personne. Elle
-   constate, elle ne demande rien. */
+// Pas de garde-fou « non traité » : une trace n'attend de geste de personne.
 async function purgeEmailLogs() {
   const cutoff = daysAgo(EMAIL_LOG_RETENTION_DAYS);
 

@@ -1,21 +1,8 @@
-/* Les mentions obligatoires du pied de page des emails — défaut m7.
+/* Mentions obligatoires du pied de page — défaut m7.
 
-   Ce que ce fichier verrouille. Tout message qui part du site porte, au bas de
-   sa page, trois choses : l'adresse postale de l'association, la raison pour
-   laquelle il arrive dans cette boîte-là, et le moyen d'exercer ses droits sur
-   ses données. Les mentions avaient été ajoutées au fil de l'eau, chaque
-   gabarit à sa façon ; certaines étaient complètes, d'autres à moitié, trois
-   messages n'en portaient aucune — et c'étaient précisément ceux adressés à des
-   gens qui ne sont pas adhérents.
-
-   Le point de vigilance qui a motivé la moitié de ces tests : une mention de
-   droits n'a de valeur que si elle mène à une porte ouverte. Écrire « ouvrez
-   votre espace adhérent » à une candidate productrice qui n'a pas de compte ne
-   vaut pas mieux que se taire. Les tests vérifient donc les deux : que la
-   mention est là, et qu'elle mène quelque part.
-
-   La trace laissée en base par ces mêmes envois est vérifiée à côté, dans
-   email.tracabilite.test.js. */
+   Trois mentions dans chaque message : adresse postale, motif de réception,
+   moyen d'exercer ses droits. Les tests vérifient aussi que la mention mène à
+   une porte ouverte — un candidat producteur n'a pas d'espace adhérent. */
 
 import { describe, it, expect, beforeAll, beforeEach, afterAll, vi } from 'vitest';
 import {
