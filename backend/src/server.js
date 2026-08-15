@@ -132,6 +132,28 @@ const publicLimiter = rateLimit({
   message: { success: false, error: { message: 'Trop de tentatives, réessayez dans 15 minutes.' } },
 });
 
+/* Rate limiting — envoi d'une newsletter
+
+   Cette route est déjà réservée aux administrateurs, ce qui suffisait à la
+   laisser sous le seul plafond global de 300 requêtes par quart d'heure. Sauf
+   que ce plafond autorise trois cents envois de masse en quinze minutes, chacun
+   pouvant toucher l'ensemble des adhérents : un compte administrateur compromis
+   ne vide pas seulement le quota Brevo, il brûle la réputation d'expéditeur du
+   domaine — et l'association ne peut alors plus prévenir personne de la
+   distribution du mercredi.
+
+   Cinq par heure, donc, ce qui reste très au-dessus de l'usage réel : une AMAP
+   écrit à ses adhérents une fois par semaine, pas cinq fois par heure. La
+   programmation d'une newsletter n'est volontairement pas limitée ici, puisque
+   aucun job ne lit scheduledFor : poser une date n'envoie rien. */
+const newsletterSendLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 heure
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, error: { message: 'Trop d\'envois de newsletter, réessayez dans une heure.' } },
+});
+
 // Rate limiting — recherche utilisateur par email (anti-énumération)
 // Rate limiting — routes admin générales
 const adminLimiter = rateLimit({
@@ -171,6 +193,9 @@ app.use('/api/admin', adminRoutes);
 
 // Routes supplémentaires
 app.use('/api/shifts', shiftsRoutes);
+// Avant le routeur, comme pdfLimiter : monté après, il ne verrait jamais passer
+// la requête.
+app.use('/api/newsletters/:id/send', newsletterSendLimiter);
 app.use('/api/newsletters', newslettersRoutes);
 app.use('/api/producer-inquiries', publicLimiter);
 app.use('/api/producer-inquiries', producerInquiriesRoutes);
