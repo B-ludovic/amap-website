@@ -2,6 +2,32 @@ import { prisma } from '../config/database.js';
 import { asyncHandler } from '../middlewares/error.middleware.js';
 import { HttpNotFoundError } from '../utils/httpErrors.js';
 
+const publicProducerSelect = {
+  id: true,
+  name: true,
+  specialty: true,
+  description: true,
+  image: true,
+  isActive: true,
+  city: true,
+  postalCode: true,
+  distanceKm: true,
+  certification: true,
+  farmDetailLabel: true,
+  farmDetail: true,
+  partnerSince: true,
+  products: {
+    where: { deletedAt: null },
+    select: {
+      id: true,
+      name: true,
+      description: true,
+      category: true,
+      image: true,
+    },
+  },
+};
+
 // RÉCUPÉRER TOUS LES PRODUCTEURS 
 const getAllProducers = asyncHandler(async (_req, res) => {
   // Récupérer seulement les producteurs actifs
@@ -9,21 +35,7 @@ const getAllProducers = asyncHandler(async (_req, res) => {
     where: {
       isActive: true
     },
-    // Inclure leurs produits aussi
-    include: {
-      products: {
-        where: {
-          deletedAt: null // Exclure les produits soft deleted
-        },
-        select: {
-          id: true,
-          name: true,
-          description: true,
-          category: true,
-          image: true,
-        }
-      }
-    },
+    select: publicProducerSelect,
     orderBy: {
       name: 'asc' // Tri par ordre alphabétique
     }
@@ -44,21 +56,7 @@ const getProducerById = asyncHandler(async (req, res) => {
 
   const producer = await prisma.producer.findUnique({
     where: { id },
-    include: {
-      products: {
-        where: {
-          deletedAt: null // Exclure les produits soft deleted
-        },
-        select: {
-          id: true,
-          name: true,
-          description: true,
-          category: true,
-          image: true,
-          createdAt: true,
-        }
-      }
-    }
+    select: publicProducerSelect,
   });
 
   // Si le producteur n'existe pas

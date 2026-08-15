@@ -21,15 +21,6 @@ const CERTIFICATIONS = {
   CONVERSION: { label: 'En conversion bio', className: 'badge-veggie badge-conversion' },
 };
 
-/* Un numéro français stocké d'un bloc se lit mieux par paires. Découpage à la
-   main : Intl ne s'occupe pas des téléphones, et les espaces insécables
-   d'autres formateurs provoqueraient un écart d'hydratation. */
-function formatPhone(phone) {
-  const digits = phone.replace(/\D/g, '');
-  if (digits.length !== 10) return phone;
-  return digits.match(/.{2}/g).join(' ');
-}
-
 /* Le titre s'accorde au nombre de fermes réellement publiées. Au-delà de la
    table des nombres, on retombe sur une formule qui ne compte pas. */
 function buildTitle(count) {
@@ -250,29 +241,6 @@ function ProducersPage() {
                       </div>
                     )}
 
-                    {(producer.email || producer.phone) && (
-                      <div className="def-row">
-                        <dt className="def-label">Contact</dt>
-                        <dd className="def-value farm-contact">
-                          {producer.email && (
-                            <a
-                              href={`mailto:${producer.email}`}
-                              className="farm-contact-link"
-                            >
-                              {producer.email}
-                            </a>
-                          )}
-                          {producer.phone && (
-                            <a
-                              href={`tel:${producer.phone.replace(/\s/g, '')}`}
-                              className="farm-contact-link"
-                            >
-                              {formatPhone(producer.phone)}
-                            </a>
-                          )}
-                        </dd>
-                      </div>
-                    )}
                   </dl>
                 </div>
               </article>

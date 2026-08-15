@@ -34,6 +34,9 @@ import { startWeeklyBasketGenerationJob } from './jobs/weeklyBasketGeneration.jo
 const app = express();
 const PORT = process.env.PORT || 4000;
 
+// Render transmet l'IP cliente dans X-Forwarded-For derrière son proxy.
+app.set('trust proxy', process.env.NODE_ENV === 'production' ? 1 : false);
+
 // === MIDDLEWARES ===
 
 // Sécurité avec helmet (protège contre certaines attaques)
@@ -170,6 +173,7 @@ app.use('/api/newsletters', newslettersRoutes);
 app.use('/api/producer-inquiries', publicLimiter);
 app.use('/api/producer-inquiries', producerInquiriesRoutes);
 app.use('/api/weekly-baskets', weeklyBasketsRoutes);
+app.use('/api/subscriptions/:id/contract', pdfLimiter);
 app.use('/api/subscriptions', subscriptionsRoutes);
 app.use('/api/subscription-requests/:id/contract', pdfLimiter);
 app.use('/api/subscription-requests', subscriptionRequestsRoutes);

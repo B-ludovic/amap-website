@@ -33,8 +33,6 @@ export default async function Layout({ children }) {
         '@type': 'Person',
         name: producer.name,
         description: producer.description || producer.specialty || undefined,
-        ...(producer.email && { email: producer.email }),
-        ...(producer.phone && { telephone: producer.phone }),
         ...(producer.website && { url: producer.website }),
       },
     })),

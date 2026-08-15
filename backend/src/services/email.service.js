@@ -25,6 +25,14 @@ const transporter = nodemailer.createTransport({
 
 const EMAIL_FROM = process.env.EMAIL_FROM || 'Aux P\'tits Pois <noreply@auxptitspois.fr>';
 
+const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (character) => ({
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;',
+}[character]));
+
 /* TEMPLATE CSS COMMUN POUR LE FOOTER RGPD */
 const footerCSS = `
   .footer { text-align: center; margin-top: 30px; color: #9ca3af; font-size: 12px; line-height: 1.5; padding: 0 20px; }
@@ -62,7 +70,7 @@ class EmailService {
                   <h1>Bienvenue chez Aux P'tits Pois !</h1>
                 </div>
                 <div class="content">
-                  <p>Bonjour ${user.firstName},</p>
+                  <p>Bonjour ${escapeHtml(user.firstName)},</p>
                   <p>Merci d'avoir créé votre compte sur Aux P'tits Pois, votre AMAP locale pour des produits frais, bio et de saison.</p>
                   <p>Votre compte est maintenant actif et vous pouvez :</p>
                   <ul>
@@ -78,7 +86,7 @@ class EmailService {
                 </div>
                 <div class="footer">
                   <p><strong>Aux P'tits Pois - AMAP Solidaire</strong><br>14, rue du Château, 45300 Yèvre-la-Ville</p>
-                  <p>Cet email a été envoyé à ${user.email} car vous êtes inscrit(e) sur notre plateforme.<br>
+                  <p>Cet email a été envoyé à ${escapeHtml(user.email)} car vous êtes inscrit(e) sur notre plateforme.<br>
                   Conformément au RGPD, vous disposez d'un droit d'accès, de modification et de suppression de vos données. 
                   Pour exercer vos droits, <a href="${process.env.FRONTEND_URL}/compte">accédez à votre espace membre</a>.</p>
                 </div>
@@ -125,7 +133,7 @@ class EmailService {
                   <h1>Confirmez votre email</h1>
                 </div>
                 <div class="content">
-                  <p>Bonjour ${user.firstName},</p>
+                  <p>Bonjour ${escapeHtml(user.firstName)},</p>
                   <p>Merci de vous être inscrit sur Aux P'tits Pois. Cliquez sur le bouton ci-dessous pour confirmer votre adresse email :</p>
                   <div style="text-align: center;">
                     <a href="${verifyUrl}" class="button">Confirmer mon email</a>
@@ -140,7 +148,7 @@ class EmailService {
                 </div>
                 <div class="footer">
                   <p><strong>Aux P'tits Pois - AMAP Solidaire</strong><br>14, rue du Château, 45300 Yèvre-la-Ville</p>
-                  <p>Cet email a été envoyé à ${user.email} dans le cadre de votre inscription.<br>
+                  <p>Cet email a été envoyé à ${escapeHtml(user.email)} dans le cadre de votre inscription.<br>
                   Pour gérer vos données personnelles, <a href="${process.env.FRONTEND_URL}/compte">accédez à votre espace membre</a>.</p>
                 </div>
               </div>
@@ -186,7 +194,7 @@ class EmailService {
                   <h1>Réinitialisation de mot de passe</h1>
                 </div>
                 <div class="content">
-                  <p>Bonjour ${user.firstName},</p>
+                  <p>Bonjour ${escapeHtml(user.firstName)},</p>
                   <p>Vous avez demandé à réinitialiser votre mot de passe pour votre compte Aux P'tits Pois.</p>
                   <p>Cliquez sur le bouton ci-dessous pour créer un nouveau mot de passe :</p>
                   <div style="text-align: center;">
@@ -198,7 +206,7 @@ class EmailService {
                 </div>
                 <div class="footer">
                   <p><strong>Aux P'tits Pois - AMAP Solidaire</strong><br>14, rue du Château, 45300 Yèvre-la-Ville</p>
-                  <p>Cet email a été envoyé à ${user.email} suite à une demande sur notre site.</p>
+                  <p>Cet email a été envoyé à ${escapeHtml(user.email)} suite à une demande sur notre site.</p>
                 </div>
               </div>
             </body>
@@ -241,7 +249,7 @@ class EmailService {
                   <h1>Demande d'abonnement reçue !</h1>
                 </div>
                 <div class="content">
-                  <p>Bonjour ${request.firstName},</p>
+                  <p>Bonjour ${escapeHtml(request.firstName)},</p>
                   <p>Nous avons bien reçu votre demande d'abonnement à Aux P'tits Pois.</p>
                   <div class="info-box">
                     <h3 style="margin-top: 0;">Récapitulatif de votre demande :</h3>
@@ -260,7 +268,7 @@ class EmailService {
                 </div>
                 <div class="footer">
                   <p><strong>Aux P'tits Pois - AMAP Solidaire</strong><br>14, rue du Château, 45300 Yèvre-la-Ville</p>
-                  <p>Cet email a été envoyé à ${request.email}.<br>
+                  <p>Cet email a été envoyé à ${escapeHtml(request.email)}.<br>
                   Conformément au RGPD, vous disposez d'un droit d'accès et de modification de vos données. 
                   <a href="${process.env.FRONTEND_URL}/compte">Accédez à votre espace membre</a>.</p>
                 </div>
@@ -304,13 +312,13 @@ class EmailService {
                   <h1>Candidature reçue !</h1>
                 </div>
                 <div class="content">
-                  <p>Bonjour ${inquiry.firstName},</p>
-                  <p>Nous avons bien reçu votre candidature pour <strong>${inquiry.farmName}</strong> et nous vous recontacterons très prochainement.</p>
+                  <p>Bonjour ${escapeHtml(inquiry.firstName)},</p>
+                  <p>Nous avons bien reçu votre candidature pour <strong>${escapeHtml(inquiry.farmName)}</strong> et nous vous recontacterons très prochainement.</p>
                   <p>À très bientôt,<br>L'équipe Aux P'tits Pois</p>
                 </div>
                 <div class="footer">
                   <p><strong>Aux P'tits Pois - AMAP Solidaire</strong><br>14, rue du Château, 45300 Yèvre-la-Ville</p>
-                  <p>Cet email a été envoyé à ${inquiry.email}.</p>
+                  <p>Cet email a été envoyé à ${escapeHtml(inquiry.email)}.</p>
                 </div>
               </div>
             </body>
@@ -326,11 +334,14 @@ class EmailService {
   /* Envoie un message de contact à l'adresse de l'AMAP */
   async sendContactMessage({ name, email, subject, message }) {
     try {
+      const safeName = escapeHtml(name);
+      const safeEmail = escapeHtml(email);
+      const safeSubject = escapeHtml(subject);
       await transporter.sendMail({
         from: EMAIL_FROM,
         to: 'auxptitspois@gmail.com',
         replyTo: email,
-        subject: `[Contact] ${subject}`,
+        subject: `[Contact] ${String(subject).replace(/[\r\n]+/g, ' ')}`,
         html: `
           <!DOCTYPE html>
           <html>
@@ -354,9 +365,9 @@ class EmailService {
                 </div>
                 <div class="content">
                   <div class="info-box">
-                    <p><strong>Nom :</strong> ${name}</p>
-                    <p><strong>Email :</strong> <a href="mailto:${email}">${email}</a></p>
-                    <p><strong>Sujet :</strong> ${subject}</p>
+                    <p><strong>Nom :</strong> ${safeName}</p>
+                    <p><strong>Email :</strong> <a href="mailto:${safeEmail}">${safeEmail}</a></p>
+                    <p><strong>Sujet :</strong> ${safeSubject}</p>
                   </div>
                   <p><strong>Message :</strong></p>
                   <div class="message-box">${DOMPurify.sanitize(message, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] })}</div>
@@ -483,25 +494,25 @@ class EmailService {
                   <h1>Bienvenue dans l'aventure !</h1>
                 </div>
                 <div class="content">
-                  <p>Bonjour ${user.firstName},</p>
+                  <p>Bonjour ${escapeHtml(user.firstName)},</p>
                   <p>Félicitations ! Votre abonnement Aux P'tits Pois est maintenant <strong>activé</strong>.</p>
                   <div class="info-box">
                     <h3 style="margin-top: 0;">Votre abonnement :</h3>
-                    <p><strong>N° :</strong> ${subscription.subscriptionNumber}</p>
+                    <p><strong>N° :</strong> ${escapeHtml(subscription.subscriptionNumber)}</p>
                     <p><strong>Type :</strong> ${subscription.type === 'ANNUAL' ? 'Abonnement Annuel' : 'Abonnement Découverte'}</p>
                     <p><strong>Panier :</strong> ${subscription.basketSize === 'SMALL' ? 'Petit panier (2-4 kg)' : 'Grand panier (6-8 kg)'}</p>
                   </div>
                   <div class="highlight">
                     <h3 style="margin-top: 0;">Retrait de votre panier</h3>
                     <p style="margin: 0;"><strong>Chaque mercredi de 18h15 à 19h15</strong><br>
-                    ${subscription.pickupLocation.name}<br>
-                    ${subscription.pickupLocation.address}</p>
+                    ${escapeHtml(subscription.pickupLocation.name)}<br>
+                    ${escapeHtml(subscription.pickupLocation.address)}</p>
                   </div>
                   <p>À très bientôt,<br>L'équipe Aux P'tits Pois</p>
                 </div>
                 <div class="footer">
                   <p><strong>Aux P'tits Pois - AMAP Solidaire</strong><br>14, rue du Château, 45300 Yèvre-la-Ville</p>
-                  <p>Cet email a été envoyé à ${user.email} suite à l'activation de votre contrat.<br>
+                  <p>Cet email a été envoyé à ${escapeHtml(user.email)} suite à l'activation de votre contrat.<br>
                   <a href="${process.env.FRONTEND_URL}/compte">Accédez à votre espace membre</a>.</p>
                 </div>
               </div>
@@ -546,11 +557,11 @@ class EmailService {
                 <h1>Votre abonnement expire bientôt</h1>
               </div>
               <div class="content">
-                <p>Bonjour ${user.firstName},</p>
+                <p>Bonjour ${escapeHtml(user.firstName)},</p>
                 <p>Votre abonnement Aux P'tits Pois arrive à échéance dans <strong>30 jours</strong>.</p>
                 <div class="info-box">
                   <h3 style="margin-top:0;">Votre abonnement actuel</h3>
-                  <p><strong>N° :</strong> ${subscription.subscriptionNumber}</p>
+                  <p><strong>N° :</strong> ${escapeHtml(subscription.subscriptionNumber)}</p>
                   <p><strong>Type :</strong> ${type}</p>
                 </div>
                 <div class="warning">
@@ -563,7 +574,7 @@ class EmailService {
               </div>
               <div class="footer">
                 <p><strong>Aux P'tits Pois - AMAP Solidaire</strong><br>14, rue du Château, 45300 Yèvre-la-Ville</p>
-                <p>Cet email a été envoyé à ${user.email}.<br>
+                <p>Cet email a été envoyé à ${escapeHtml(user.email)}.<br>
                 <a href="${process.env.FRONTEND_URL}/compte">Accédez à votre espace membre</a>.</p>
               </div>
             </div>
@@ -606,19 +617,19 @@ class EmailService {
                 <h1>Inscription confirmée !</h1>
               </div>
               <div class="content">
-                <p>Bonjour ${user.firstName},</p>
+                <p>Bonjour ${escapeHtml(user.firstName)},</p>
                 <p>Votre inscription à la permanence est <strong>confirmée</strong>.</p>
                 <div class="info-box">
                   <h3 style="margin-top: 0;">Détails de la permanence :</h3>
                   <p><strong>Date :</strong> ${date}</p>
-                  ${shift.startTime ? `<p><strong>Horaire :</strong> ${shift.startTime}${shift.endTime ? ` - ${shift.endTime}` : ''}</p>` : ''}
+                  ${shift.startTime ? `<p><strong>Horaire :</strong> ${escapeHtml(shift.startTime)}${shift.endTime ? ` - ${escapeHtml(shift.endTime)}` : ''}</p>` : ''}
                 </div>
                 <p>Merci pour votre engagement dans l'AMAP !</p>
                 <p>À bientôt,<br>L'équipe Aux P'tits Pois</p>
               </div>
               <div class="footer">
                 <p><strong>Aux P'tits Pois - AMAP Solidaire</strong><br>14, rue du Château, 45300 Yèvre-la-Ville</p>
-                <p>Cet email a été envoyé à ${user.email}.<br>
+                <p>Cet email a été envoyé à ${escapeHtml(user.email)}.<br>
                 <a href="${process.env.FRONTEND_URL}/compte">Accédez à votre espace membre</a>.</p>
               </div>
             </div>
@@ -661,7 +672,7 @@ class EmailService {
                 <h1>Permanence annulée</h1>
               </div>
               <div class="content">
-                <p>Bonjour ${user.firstName},</p>
+                <p>Bonjour ${escapeHtml(user.firstName)},</p>
                 <p>Nous vous informons que la permanence à laquelle vous étiez inscrit(e) a été <strong>annulée</strong>.</p>
                 <div class="info-box">
                   <h3 style="margin-top: 0;">Permanence concernée :</h3>
@@ -671,7 +682,7 @@ class EmailService {
               </div>
               <div class="footer">
                 <p><strong>Aux P'tits Pois - AMAP Solidaire</strong><br>14, rue du Château, 45300 Yèvre-la-Ville</p>
-                <p>Cet email a été envoyé à ${user.email}.<br>
+                <p>Cet email a été envoyé à ${escapeHtml(user.email)}.<br>
                 <a href="${process.env.FRONTEND_URL}/compte">Accédez à votre espace membre</a>.</p>
               </div>
             </div>
@@ -715,11 +726,11 @@ class EmailService {
                 <h1>Abonnement annulé</h1>
               </div>
               <div class="content">
-                <p>Bonjour ${user.firstName},</p>
+                <p>Bonjour ${escapeHtml(user.firstName)},</p>
                 <p>Nous vous informons que votre abonnement Aux P'tits Pois a été <strong>annulé</strong>.</p>
                 <div class="info-box">
                   <h3 style="margin-top: 0;">Abonnement concerné :</h3>
-                  <p><strong>N° :</strong> ${subscription.subscriptionNumber}</p>
+                  <p><strong>N° :</strong> ${escapeHtml(subscription.subscriptionNumber)}</p>
                   <p><strong>Type :</strong> ${type}</p>
                   <p><strong>Panier :</strong> ${basket}</p>
                 </div>
@@ -728,7 +739,7 @@ class EmailService {
               </div>
               <div class="footer">
                 <p><strong>Aux P'tits Pois - AMAP Solidaire</strong><br>14, rue du Château, 45300 Yèvre-la-Ville</p>
-                <p>Cet email a été envoyé à ${user.email}.<br>
+                <p>Cet email a été envoyé à ${escapeHtml(user.email)}.<br>
                 Conformément au RGPD, vous disposez d'un droit d'accès, de modification et de suppression de vos données personnelles. 
                 Pour exercer vos droits, <a href="${process.env.FRONTEND_URL}/compte">accédez à votre espace membre</a>.</p>
               </div>
@@ -771,8 +782,8 @@ class EmailService {
                 <h1>Candidature acceptée !</h1>
               </div>
               <div class="content">
-                <p>Bonjour ${inquiry.firstName},</p>
-                <p>Nous avons le plaisir de vous informer que la candidature de <strong>${inquiry.farmName}</strong> a été <strong>acceptée</strong> par l'AMAP Aux P'tits Pois.</p>
+                <p>Bonjour ${escapeHtml(inquiry.firstName)},</p>
+                <p>Nous avons le plaisir de vous informer que la candidature de <strong>${escapeHtml(inquiry.farmName)}</strong> a été <strong>acceptée</strong> par l'AMAP Aux P'tits Pois.</p>
                 <div class="info-box">
                   <h3 style="margin-top: 0;">Prochaines étapes :</h3>
                   <ol style="margin: 0; padding-left: 20px;">
@@ -786,7 +797,7 @@ class EmailService {
               </div>
               <div class="footer">
                 <p><strong>Aux P'tits Pois - AMAP Solidaire</strong><br>14, rue du Château, 45300 Yèvre-la-Ville</p>
-                <p>Cet email a été envoyé à ${inquiry.email} suite à votre candidature.</p>
+                <p>Cet email a été envoyé à ${escapeHtml(inquiry.email)} suite à votre candidature.</p>
               </div>
             </div>
           </body>
@@ -826,15 +837,15 @@ class EmailService {
                 <h1>Réponse à votre candidature</h1>
               </div>
               <div class="content">
-                <p>Bonjour ${inquiry.firstName},</p>
-                <p>Nous avons bien étudié la candidature de <strong>${inquiry.farmName}</strong> et nous vous remercions de l'intérêt que vous portez à notre AMAP.</p>
+                <p>Bonjour ${escapeHtml(inquiry.firstName)},</p>
+                <p>Nous avons bien étudié la candidature de <strong>${escapeHtml(inquiry.farmName)}</strong> et nous vous remercions de l'intérêt que vous portez à notre AMAP.</p>
                 <p>Après examen, nous ne sommes malheureusement pas en mesure de donner suite à votre candidature pour le moment.</p>
                 <p>Pour toute question, n'hésitez pas à nous contacter à <a href="mailto:auxptitspois@gmail.com">auxptitspois@gmail.com</a>.</p>
                 <p>Cordialement,<br>L'équipe Aux P'tits Pois</p>
               </div>
               <div class="footer">
                 <p><strong>Aux P'tits Pois - AMAP Solidaire</strong><br>14, rue du Château, 45300 Yèvre-la-Ville</p>
-                <p>Cet email a été envoyé à ${inquiry.email} suite à votre candidature.</p>
+                <p>Cet email a été envoyé à ${escapeHtml(inquiry.email)} suite à votre candidature.</p>
               </div>
             </div>
           </body>
@@ -859,7 +870,7 @@ class EmailService {
 
       const productsHtml = basket.items.map(item => {
         const name = item.product?.name || item.customProductName || 'Produit';
-        return `<li style="margin-bottom: 8px;">🥦 ${name}</li>`;
+        return `<li style="margin-bottom: 8px;">🥦 ${escapeHtml(name)}</li>`;
       }).join('');
 
       for (let i = 0; i < recipients.length; i += batchSize) {
@@ -894,7 +905,7 @@ class EmailService {
                         <h1>Au menu cette semaine !</h1>
                       </div>
                       <div class="content">
-                        <p>Bonjour ${recipient.firstName},</p>
+                        <p>Bonjour ${escapeHtml(recipient.firstName)},</p>
                         <p>Le panier de la semaine est prêt ! Voici ce que nos producteurs ont récolté pour votre distribution du <strong>${distDate}</strong> :</p>
                         <div class="basket-box">
                           <h3 class="basket-title">Contenu du panier</h3>
@@ -910,7 +921,7 @@ class EmailService {
                       </div>
                       <div class="footer">
                         <p><strong>Aux P'tits Pois - AMAP Solidaire</strong><br>14, rue du Château, 45300 Yèvre-la-Ville</p>
-                        <p>Cet email a été envoyé à ${recipient.email} car vous avez un abonnement actif.<br>
+                        <p>Cet email a été envoyé à ${escapeHtml(recipient.email)} car vous avez un abonnement actif.<br>
                         <a href="${process.env.FRONTEND_URL}/compte">Accédez à votre espace membre</a>.</p>
                       </div>
                     </div>
@@ -965,7 +976,7 @@ class EmailService {
                 <h1>Désinscription confirmée</h1>
               </div>
               <div class="content">
-                <p>Bonjour ${user.firstName},</p>
+                <p>Bonjour ${escapeHtml(user.firstName)},</p>
                 <p>Votre désinscription de la permanence a bien été enregistrée.</p>
                 <div class="info-box">
                   <h3 style="margin-top: 0;">Permanence concernée :</h3>
@@ -976,7 +987,7 @@ class EmailService {
               </div>
               <div class="footer">
                 <p><strong>Aux P'tits Pois - AMAP Solidaire</strong><br>14, rue du Château, 45300 Yèvre-la-Ville</p>
-                <p>Cet email a été envoyé à ${user.email}.<br>
+                <p>Cet email a été envoyé à ${escapeHtml(user.email)}.<br>
                 <a href="${process.env.FRONTEND_URL}/compte">Accédez à votre espace membre</a>.</p>
               </div>
             </div>

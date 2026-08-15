@@ -45,38 +45,41 @@ class ContractService {
       const html = template(data);
 
       // Générer le PDF avec Puppeteer
-      const browser = await puppeteer.launch({
+      let browser;
+      try {
+        browser = await puppeteer.launch({
         headless: 'new',
         args: ['--no-sandbox', '--disable-setuid-sandbox']
-      });
+        });
 
-      const page = await browser.newPage();
-      page.setDefaultTimeout(30000);
+        const page = await browser.newPage();
+        page.setDefaultTimeout(30000);
 
-      await page.setContent(html, { waitUntil: 'load' });
+        await page.setContent(html, { waitUntil: 'load' });
 
-      // Attendre que le contenu soit bien rendu
-      await new Promise(resolve => setTimeout(resolve, 500));
+        // Attendre que le contenu soit bien rendu
+        await new Promise(resolve => setTimeout(resolve, 500));
 
-      const pdfBuffer = await page.pdf({
-        format: 'A4',
-        printBackground: true,
-        margin: {
-          top: '2cm',
-          right: '2cm',
-          bottom: '2cm',
-          left: '2cm'
-        },
-        preferCSSPageSize: false
-      });
+        const pdfBuffer = await page.pdf({
+          format: 'A4',
+          printBackground: true,
+          margin: {
+            top: '2cm',
+            right: '2cm',
+            bottom: '2cm',
+            left: '2cm'
+          },
+          preferCSSPageSize: false
+        });
 
-      await browser.close();
+        if (isDev) {
+          console.log('[DEV] PDF généré, taille:', pdfBuffer.length, 'bytes');
+        }
 
-      if (isDev) {
-        console.log('[DEV] PDF généré, taille:', pdfBuffer.length, 'bytes');
+        return pdfBuffer;
+      } finally {
+        if (browser) await browser.close();
       }
-
-      return pdfBuffer;
     } catch (error) {
       console.error('Erreur génération contrat:', error.message);
       throw error;
