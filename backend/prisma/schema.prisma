@@ -453,8 +453,11 @@ model Newsletter {
   sentCount   Int      @default(0)
   openCount   Int      @default(0)
   
-  createdBy   String
-  author      User     @relation(fields: [createdBy], references: [id])
+  // L'auteur signe la newsletter, il ne la possède pas : l'archive de
+  // communication de l'association survit au départ du bénévole qui l'a écrite.
+  // La purge RGPD coupe le lien nominatif, la base ne détruit pas le contenu.
+  createdBy   String?
+  author      User?    @relation(fields: [createdBy], references: [id], onDelete: SetNull)
   
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -498,8 +501,11 @@ model Recipe {
   image       String?
   tips        String?  @db.Text
   
-  authorId    String
-  author      User     @relation(fields: [authorId], references: [id])
+  // Même règle que pour la newsletter : la recette appartient au site, pas à
+  // celui qui l'a saisie. Perdre son auteur ne doit pas la faire disparaître des
+  // pages publiques, ni emporter ses RecipeProduct en cascade.
+  authorId    String?
+  author      User?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
   
   products    RecipeProduct[]
   

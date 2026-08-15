@@ -5,7 +5,7 @@ const DELETED_ACCOUNT_RETENTION_DAYS = 90;
 const UNVERIFIED_ACCOUNT_RETENTION_DAYS = 30;
 
 /* Supprime les données liées puis les utilisateurs : User ne cascade pas vers
-   Subscription, SubscriptionRequest, Newsletter ni Recipe.
+   Subscription ni SubscriptionRequest, qu'il faut donc retirer soi-même.
 
    Le filtre est relationnel plutôt qu'une liste d'ids lue au préalable : chaque
    instruction réévalue le prédicat au moment où elle s'exécute, donc un compte
@@ -19,8 +19,23 @@ async function purgeUsersMatching(userWhere) {
     prisma.payment.deleteMany({ where: { subscription: { user: userWhere } } }),
     prisma.subscription.deleteMany({ where: { user: userWhere } }),
     prisma.subscriptionRequest.deleteMany({ where: { user: userWhere } }),
-    prisma.newsletter.deleteMany({ where: { author: userWhere } }),
-    prisma.recipe.deleteMany({ where: { author: userWhere } }),
+
+    /* Le contenu associatif survit à son auteur. Une recette et une newsletter
+       ne sont pas les données personnelles d'un adhérent : ce sont les pages
+       publiques et les archives de communication de l'association, que le
+       bénévole a signées sans en devenir propriétaire. On coupe donc le lien
+       nominatif — c'est ce que le RGPD demande — au lieu de détruire le contenu,
+       lequel emportait au passage les RecipeProduct en cascade et n'existe dans
+       aucune sauvegarde.
+
+       La contrainte de clé étrangère fait déjà ce travail (ON DELETE SET NULL),
+       et ces deux lignes seraient donc redondantes si la purge était le seul
+       chemin de suppression d'un compte. Elles restent parce qu'elles disent
+       l'intention à l'endroit où on la lit : ce job est celui qui détruit, il
+       doit énoncer ce qu'il choisit de ne pas détruire. */
+    prisma.newsletter.updateMany({ where: { author: userWhere }, data: { createdBy: null } }),
+    prisma.recipe.updateMany({ where: { author: userWhere }, data: { authorId: null } }),
+
     prisma.user.deleteMany({ where: userWhere }),
   ]);
 
