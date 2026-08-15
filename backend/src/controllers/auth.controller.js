@@ -383,7 +383,7 @@ const exportMe = asyncHandler(async (req, res) => {
                     type: true,
                     basketSize: true,
                     pricingType: true,
-                    paymentMethod: true,
+                    paymentType: true,
                     status: true,
                     createdAt: true,
                 }
@@ -397,10 +397,13 @@ const exportMe = asyncHandler(async (req, res) => {
                     status: true,
                     startDate: true,
                     endDate: true,
+                    price: true,
+                    paidAmount: true,
                     pickups: {
                         select: {
                             pickupDate: true,
-                            status: true,
+                            wasPickedUp: true,
+                            pickedUpAt: true,
                         }
                     },
                     pauses: {
@@ -410,7 +413,47 @@ const exportMe = asyncHandler(async (req, res) => {
                             reason: true,
                         }
                     },
+                    /* L'argent que l'adhérent a remis le concerne au premier chef :
+                       sans le détail des chèques, il ne peut pas vérifier ce que
+                       l'association dit détenir, ni contester un montant pièce en
+                       main. Le numéro de chèque est de sa main, il lui revient. */
+                    payments: {
+                        select: {
+                            amount: true,
+                            status: true,
+                            checkNumber: true,
+                            receivedAt: true,
+                            dueDate: true,
+                            depositedAt: true,
+                            paidAt: true,
+                        }
+                    },
                 }
+            },
+            /* Les permanences tenues : une présence datée, avec un rôle et un
+               statut d'absence éventuel. C'est bien une donnée sur la personne. */
+            shiftVolunteers: {
+                select: {
+                    role: true,
+                    status: true,
+                    createdAt: true,
+                    shift: {
+                        select: {
+                            distributionDate: true,
+                            startTime: true,
+                            endTime: true,
+                        }
+                    },
+                }
+            },
+            /* Le contenu appartient à l'association (voir la purge RGPD, qui le
+               détache au lieu de le détruire), mais la signature est nominative :
+               on restitue donc de quoi identifier ce qu'il a écrit, pas le texte. */
+            recipes: {
+                select: { title: true, slug: true, createdAt: true }
+            },
+            newsletters: {
+                select: { subject: true, createdAt: true, sentAt: true }
             },
         }
     });
@@ -419,12 +462,24 @@ const exportMe = asyncHandler(async (req, res) => {
         throw new HttpNotFoundError('Compte introuvable');
     }
 
+    /* Les messages de contact ne portent aucune relation vers le compte : le
+       formulaire est public, il n'enregistre qu'une adresse. Le rapprochement se
+       fait donc sur l'e-mail, seule clé disponible. Elle n'est pas vérifiée à
+       l'envoi, si bien qu'un message écrit par un tiers sous cette adresse
+       apparaîtrait ici — ce serait alors le texte de ce tiers, jamais les
+       données d'un autre adhérent. */
+    const contactMessages = await prisma.contactMessage.findMany({
+        where: { email: user.email },
+        select: { subject: true, message: true, status: true, createdAt: true },
+        orderBy: { createdAt: 'desc' },
+    });
+
     res.setHeader('Content-Type', 'application/json');
     res.setHeader('Content-Disposition', 'attachment; filename="mes-donnees-auxptitspois.json"');
     res.json({
         exportDate: new Date().toISOString(),
         source: 'Aux P\'tits Pois — export RGPD art. 20',
-        data: user,
+        data: { ...user, contactMessages },
     });
 });
 
