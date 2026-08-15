@@ -8,6 +8,7 @@ import {
     HttpConflictError,
     httpStatusCodes
 } from '../utils/httpErrors.js';
+import { logAudit } from '../services/audit.service.js';
 
 // RÉCUPÉRER TOUTES LES NEWSLETTERS
 const getAllNewsletters = asyncHandler(async (req, res) => {
@@ -185,6 +186,8 @@ const deleteNewsletter = asyncHandler(async (req, res) => {
 
     await prisma.newsletter.delete({ where: { id } });
 
+    await logAudit(req, 'DELETE_NEWSLETTER', 'IMPORTANT', { type: 'NEWSLETTER', id, label: newsletter.subject }, { type: newsletter.type, target: newsletter.target, scheduledFor: newsletter.scheduledFor });
+
     res.json({
         success: true,
         message: 'Newsletter supprimée avec succès'
@@ -266,6 +269,14 @@ const sendNewsletter = asyncHandler(async (req, res) => {
             sentCount: result.results.sent
         }
     });
+
+    /* Qui a écrit à tout le monde, quand, à quelle liste et combien de boîtes ont
+       reçu le message. Newsletter.createdBy ne répond qu'à la première question,
+       et encore : il nomme la main qui a rédigé, pas celle qui a appuyé sur
+       « envoyer », et il devient nul lorsque le compte de l'auteur est purgé.
+       Le journal, lui, conserve l'adresse de l'administrateur telle qu'elle était
+       au moment de l'envoi. */
+    await logAudit(req, 'SEND_NEWSLETTER', 'CRITICAL', { type: 'NEWSLETTER', id, label: newsletter.subject }, { target: newsletter.target, recipientsCount: recipients.length, sentCount: result.results.sent, failedCount: result.results.failed });
 
     res.json({
         success: true,

@@ -885,6 +885,11 @@ const pauseSubscription = asyncHandler(async (req, res) => {
     data: { status: 'PAUSED' }
   });
 
+  /* Une pause suspend des livraisons dues et consomme un quota de quatorze jours
+     par saison : c'est une modification du contrat, au même titre que
+     l'activation et la résiliation qui, elles, étaient déjà journalisées. */
+  await logAudit(req, 'PAUSE_SUBSCRIPTION', 'IMPORTANT', { type: 'SUBSCRIPTION', id, label: subscription.subscriptionNumber }, { startDate: pauseStartDate, endDate: pauseEndDate, reason: reason ?? null, daysUsedBefore: daysUsed, daysRequested });
+
   res.json({
     success: true,
     message: 'Abonnement mis en pause avec succès',
@@ -910,6 +915,12 @@ const resumeSubscription = asyncHandler(async (req, res) => {
     where: { id },
     data: { status: 'ACTIVE' }
   });
+
+  /* Reprise à la main, par opposition à celle du job quotidien, qui journalise de
+     son côté sous UPDATE_SUBSCRIPTION_STATUS avec « système » pour auteur. Les
+     deux se distinguent ainsi dans le journal : une reprise anticipée n'est pas
+     une fin de pause. */
+  await logAudit(req, 'RESUME_SUBSCRIPTION', 'IMPORTANT', { type: 'SUBSCRIPTION', id, label: subscription.subscriptionNumber });
 
   res.json({
     success: true,

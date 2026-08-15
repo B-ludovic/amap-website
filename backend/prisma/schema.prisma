@@ -639,6 +639,10 @@ enum AuditAction {
   DELETE_USER
   CHANGE_USER_ROLE
   PURGE_USER_DATA
+  // Écrire à tout le monde au nom de l'association : l'acte le plus visible que
+  // l'application permette, et le seul qui sorte du site pour atteindre des
+  // boîtes aux lettres. Il ne se rattrape pas.
+  SEND_NEWSLETTER
   // Importante
   CREATE_PRODUCER
   UPDATE_PRODUCER
@@ -647,7 +651,9 @@ enum AuditAction {
   UPDATE_PRODUCT
   DELETE_PRODUCT
   UPDATE_THEME
+  DELETE_NEWSLETTER
   DELETE_CONTACT_MESSAGE
+  DELETE_PRODUCER_INQUIRY
   DELETE_EXAMPLES
   APPROVE_SUBSCRIPTION_REQUEST
   REJECT_SUBSCRIPTION_REQUEST
@@ -655,6 +661,8 @@ enum AuditAction {
   UPDATE_SUBSCRIPTION
   ACTIVATE_SUBSCRIPTION
   CANCEL_SUBSCRIPTION
+  PAUSE_SUBSCRIPTION
+  RESUME_SUBSCRIPTION
   UPDATE_SUBSCRIPTION_STATUS
   CREATE_SHIFT
   UPDATE_SHIFT

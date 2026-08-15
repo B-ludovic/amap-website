@@ -8,6 +8,7 @@ import {
   httpStatusCodes
 } from '../utils/httpErrors.js';
 import { normalizeFirstName, normalizeLastName, normalizeTitleCase } from '../utils/normalize.js';
+import { logAudit } from '../services/audit.service.js';
 
 // SOUMETTRE UNE DEMANDE (PUBLIC)
 const submitInquiry = asyncHandler(async (req, res) => {
@@ -227,6 +228,12 @@ const deleteInquiry = asyncHandler(async (req, res) => {
   }
 
   await prisma.producerInquiry.delete({ where: { id } });
+
+  /* Destruction définitive de l'identité, du téléphone et de l'adresse d'une
+     exploitation, sans passer par la purge automatique ni par un quelconque
+     délai. Le journal garde ce qu'il faut pour répondre « qui, quand, laquelle »
+     sans reconstituer les données effacées : la ferme et le statut suffisent. */
+  await logAudit(req, 'DELETE_PRODUCER_INQUIRY', 'IMPORTANT', { type: 'PRODUCER_INQUIRY', id, label: inquiry.farmName }, { status: inquiry.status, submittedAt: inquiry.createdAt });
 
   res.json({
     success: true,
