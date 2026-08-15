@@ -8,7 +8,6 @@ import {
   HttpBadRequestError,
   HttpUnauthorizedError,
   HttpNotFoundError,
-  HttpConflictError,
   httpStatusCodes,
 } from '../utils/httpErrors.js';
 import { normalizeFirstName, normalizeLastName, normalizeTitleCase } from '../utils/normalize.js';
@@ -49,10 +48,19 @@ const register = asyncHandler(async (req, res) => {
     const pwdCheck = PasswordSchema.safeParse(password);
     if (!pwdCheck.success) throw new HttpBadRequestError(pwdCheck.error.errors[0].message);
 
-    // Verifier si l'utilisateur existe deja
+    // Réponse identique que l'email soit libre ou déjà pris : un 409 « existe déjà »
+    // permettrait à un tiers de vérifier qui est adhérent, simplement en tentant
+    // une inscription à son adresse. Même statut, même corps, dans les deux cas.
+    const registrationAccepted = {
+        success: true,
+        message: 'Inscription réussie ! Consultez votre email pour confirmer votre adresse.',
+    };
+
+    // Adresse déjà enregistrée : on prévient son propriétaire au lieu de créer un compte
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
-        throw new HttpConflictError('Un utilisateur avec cet email existe déjà.');
+        await emailService.sendAccountAlreadyExists(existingUser);
+        return res.status(httpStatusCodes.CREATED).json(registrationAccepted);
     }
 
     // Hasher le mot de passe
@@ -87,20 +95,7 @@ const register = asyncHandler(async (req, res) => {
         console.log(`\n🔗 [DEV] URL de confirmation email pour ${email}:\n   ${verifyUrl}\n`);
     }
 
-    res.status(httpStatusCodes.CREATED).json({
-        success: true,
-        message: 'Inscription réussie ! Consultez votre email pour confirmer votre adresse.',
-        data: {
-            user: {
-                id: user.id,
-                email: user.email,
-                firstName: user.firstName,
-                lastName: user.lastName,
-                role: user.role,
-                emailVerified: user.emailVerified,
-            },
-        }
-    });
+    res.status(httpStatusCodes.CREATED).json(registrationAccepted);
 });
 
 // Connexion d'un utilisateur

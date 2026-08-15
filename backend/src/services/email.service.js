@@ -164,6 +164,68 @@ class EmailService {
     }
   }
 
+  /* Prévient qu'une inscription a été tentée sur une adresse déjà enregistrée.
+     Remplace le 409 « cet email existe déjà », qui permettait à un tiers de
+     vérifier l'appartenance d'une personne à l'AMAP. Les données affichées
+     viennent exclusivement de la base, jamais du formulaire d'inscription :
+     sinon n'importe qui pourrait faire arriver le texte de son choix dans la
+     boîte mail de l'adhérent. */
+  async sendAccountAlreadyExists(user) {
+    try {
+      await transporter.sendMail({
+        from: EMAIL_FROM,
+        to: user.email,
+        subject: 'Tentative de création de compte - Aux P\'tits Pois',
+        html: `
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <meta charset="utf-8">
+              <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                .header { background: linear-gradient(135deg, #6b9d5a 0%, #5a8a4a 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+                .content { background: #f9f7f4; padding: 30px; border-radius: 0 0 8px 8px; }
+                .button { display: inline-block; background: #6b9d5a; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; margin: 20px 0; }
+                .warning { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0; border-radius: 4px; }
+                ${footerCSS}
+              </style>
+            </head>
+            <body>
+              <div class="container">
+                <div class="header">
+                  ${logoImg}
+                  <h1>Vous avez déjà un compte</h1>
+                </div>
+                <div class="content">
+                  <p>Bonjour ${escapeHtml(user.firstName)},</p>
+                  <p>Quelqu'un vient de tenter de créer un compte sur Aux P'tits Pois avec votre adresse email. Un compte existe déjà à cette adresse : aucun nouveau compte n'a été créé et votre mot de passe n'a pas été modifié.</p>
+                  <p><strong>Si c'était vous</strong>, connectez-vous simplement avec votre mot de passe habituel :</p>
+                  <div style="text-align: center;">
+                    <a href="${process.env.FRONTEND_URL}/auth/login" class="button">Me connecter</a>
+                  </div>
+                  <p>Vous l'avez oublié ? <a href="${process.env.FRONTEND_URL}/auth/forgot-password">Réinitialisez-le en deux minutes</a>.</p>
+                  <div class="warning"><strong>Si ce n'était pas vous :</strong> il n'y a rien à faire, votre compte n'a pas été touché. Si ces messages se répètent, écrivez-nous à <a href="mailto:auxptitspois@gmail.com">auxptitspois@gmail.com</a>.</div>
+                  <p>L'équipe Aux P'tits Pois</p>
+                </div>
+                <div class="footer">
+                  <p><strong>Aux P'tits Pois - AMAP Solidaire</strong><br>14, rue du Château, 45300 Yèvre-la-Ville</p>
+                  <p>Cet email a été envoyé à ${escapeHtml(user.email)} car un compte existe à cette adresse.<br>
+                  Pour gérer vos données personnelles, <a href="${process.env.FRONTEND_URL}/compte">accédez à votre espace membre</a>.</p>
+                </div>
+              </div>
+            </body>
+          </html>
+        `,
+      });
+      if (process.env.NODE_ENV !== 'production') console.log('[DEV] Email compte déjà existant envoyé');
+      return { success: true };
+    } catch (error) {
+      console.error('Erreur envoi email compte déjà existant:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
   /* Envoie un email de récupération de mot de passe */
   async sendPasswordResetEmail(user, resetToken) {
     try {
