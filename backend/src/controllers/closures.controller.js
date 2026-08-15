@@ -15,6 +15,37 @@ import {
 import { formatDateFR } from '../services/closure.service.js';
 import { logAudit } from '../services/audit.service.js';
 
+/* Le motif est écrit par un administrateur, mais il finit dans un e-mail : on
+   l'échappe à la source plutôt que de compter sur le nettoyage en aval. Deux
+   filtres valent mieux qu'un quand le second est à trois fichiers de distance. */
+const escapeHtml = (value) => String(value)
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;');
+
+/* ANNONCE DE FERMETURE — fragment, et non document.
+
+   Cette fonction produisait un document HTML complet : DOCTYPE, <head>, feuille
+   de style, <body> avec son propre en-tête et son propre pied de page. Or son
+   résultat n'est pas envoyé tel quel — il devient le contenu d'une Newsletter,
+   que sendNewsletter insère au milieu de son propre gabarit. Un document dans un
+   document, avec trois conséquences visibles dans la boîte de l'adhérent.
+
+   La feuille de style était retirée par le nettoyage en aval, qui ne conserve
+   que le corps : les classes restaient, leurs règles disparaissaient. Les noms
+   de classes — wrapper, header, footer — sont par ailleurs ceux du gabarit
+   englobant, si bien que le titre de la fermeture récupérait le style du grand
+   en-tête « Aux P'tits Pois » et la mention finale celui du pied de page :
+   l'adhérent recevait deux bandeaux et deux pieds. Enfin l'indentation du
+   gabarit, trente-quatre retours à la ligne, était convertie en vingt-cinq
+   <br> par sendNewsletter — sept lignes vides avant même le premier mot.
+
+   D'où un fragment : uniquement ce qui doit s'afficher dans la zone de contenu,
+   en une seule ligne pour ne rien donner à convertir, et stylé en ligne. Les
+   styles en ligne ne sont pas un pis-aller ici, c'est la règle du courrier
+   électronique : une bonne partie des clients de messagerie ignorent ou retirent
+   les blocs <style>, et celui-ci était de toute façon supprimé avant l'envoi. */
 function buildClosureEmailHtml(startDate, endDate, reason, isUpdate) {
   const start = formatDateFR(startDate);
   const end = formatDateFR(endDate);
@@ -23,41 +54,22 @@ function buildClosureEmailHtml(startDate, endDate, reason, isUpdate) {
     ? 'Les dates de fermeture annoncées précédemment ont changé.'
     : 'Bonjour,';
 
-  return `<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8" />
-  <style>
-    body        { font-family: sans-serif; color: #1f2937; background: #f9fafb; margin: 0; padding: 0; }
-    .wrapper    { max-width: 600px; margin: 40px auto; background: #ffffff; border-radius: 8px; overflow: hidden; border: 1px solid #e5e7eb; }
-    .header     { background: #166534; padding: 24px 32px; }
-    .header h1  { color: #ffffff; margin: 0; font-size: 1.25rem; }
-    .body       { padding: 32px; }
-    .body p     { line-height: 1.6; margin: 0 0 16px; }
-    .highlight  { background: #fef9c3; border-left: 4px solid #ca8a04; padding: 12px 16px; border-radius: 4px; margin-bottom: 16px; }
-    .reason     { color: #374151; }
-    .footer     { padding: 16px 32px; background: #f3f4f6; font-size: 0.8rem; color: #9ca3af; }
-  </style>
-</head>
-<body>
-  <div class="wrapper">
-    <div class="header">
-      <h1>${title}</h1>
-    </div>
-    <div class="body">
-      <p>${lead}</p>
-      <div class="highlight">
-        <p>L'AMAP sera <strong>fermée du ${start} au ${end}</strong>.<br/>
-        Aucune distribution ne sera effectuée pendant cette période.</p>
-      </div>
-      ${reason ? `<p class="reason"><strong>Motif :</strong> ${reason}</p>` : ''}
-      <p>Nous vous retrouverons avec plaisir à la reprise des distributions.</p>
-      <p>L'équipe de votre AMAP</p>
-    </div>
-    <div class="footer">Vous recevez ce message car vous êtes abonné(e) à l'AMAP.</div>
-  </div>
-</body>
-</html>`;
+  const highlight = 'background:#fef9c3;border-left:4px solid #ca8a04;padding:12px 16px;border-radius:4px;margin:0 0 16px;';
+  const motif = reason
+    ? `<p style="color:#374151;margin:0 0 16px;"><strong>Motif :</strong> ${escapeHtml(reason)}</p>`
+    : '';
+
+  return [
+    `<h2 style="color:#166534;margin:0 0 16px;font-size:20px;">${title}</h2>`,
+    `<p style="margin:0 0 16px;">${lead}</p>`,
+    `<div style="${highlight}">`,
+    `<p style="margin:0;">L'AMAP sera <strong>fermée du ${start} au ${end}</strong>.`,
+    ' Aucune distribution ne sera effectuée pendant cette période.</p>',
+    '</div>',
+    motif,
+    '<p style="margin:0 0 16px;">Nous vous retrouverons avec plaisir à la reprise des distributions.</p>',
+    '<p style="margin:0;">L\'équipe de votre AMAP</p>',
+  ].join('');
 }
 
 /* Prévenir les adhérents : la newsletter est d'abord écrite en base — elle

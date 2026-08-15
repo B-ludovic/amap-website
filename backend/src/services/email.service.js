@@ -463,6 +463,25 @@ class EmailService {
     }
   }
 
+  /* Mise en forme du corps d'une newsletter.
+
+     Deux sortes de contenus arrivent ici. Un texte saisi à la main, dont les
+     retours à la ligne portent le sens et doivent devenir des <br>. Et du HTML
+     déjà mis en forme, comme l'annonce de fermeture, dont les retours à la ligne
+     ne sont que de l'indentation : les convertir ajoutait une ligne vide entre
+     chaque balise — vingt-cinq pour une annonce de fermeture, dont sept avant le
+     premier mot.
+
+     On ne convertit donc que ce qui n'est pas déjà du HTML de bloc. Le test est
+     volontairement grossier : la présence d'une balise ouvrante de bloc suffit à
+     dire « ce contenu sait déjà se présenter, n'y touche pas ». */
+  static formatNewsletterBody(content) {
+    const raw = String(content ?? '');
+    const looksLikeHtml = /<(p|div|h[1-6]|ul|ol|table|br|section|article)\b/i.test(raw);
+
+    return looksLikeHtml ? raw : raw.replace(/\n/g, '<br>');
+  }
+
   /* Envoie une newsletter */
   async sendNewsletter(newsletter, recipients) {
     try {
@@ -512,7 +531,7 @@ class EmailService {
                         </div>
                         <div class="divider"></div>
                         <div class="content">
-                          ${DOMPurify.sanitize(newsletter.content.replace(/\n/g, '<br>'))}
+                          ${DOMPurify.sanitize(EmailService.formatNewsletterBody(newsletter.content))}
                         </div>
                         <div class="footer">
                           <p><strong>Aux P'tits Pois — AMAP Solidaire</strong><br>14, rue du Château, 45300 Yèvre-la-Ville</p>
