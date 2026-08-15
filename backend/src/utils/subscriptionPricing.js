@@ -129,6 +129,35 @@ export function splitPayment(price, paymentType = '1') {
   return [toCents(price)];
 }
 
+/* Calendrier d'encaissement, tel que le contrat l'annonce et non tel qu'on
+   l'aurait déduit : « 1 chèque débité début janvier », « 2 chèques » et
+   « 4 chèques débités à 2 mois d'intervalle max, à partir de début février ».
+   Ce n'est donc ni un découpage trimestriel, ni un décompte à partir de la
+   signature — c'est un calendrier de saison, le même pour tout le monde, ce qui
+   permet au trésorier de grouper ses dépôts au lieu de suivre cent dates
+   individuelles.
+
+   Le règlement en une fois part avec la saison, les échelonnés commencent le
+   mois suivant, puis tous les deux mois. Pour un abonnement démarrant en
+   janvier — le cas normal — cela redonne exactement les mois imprimés sur le
+   contrat. Pour une adhésion en cours de saison, le calendrier glisse d'autant
+   au lieu de placer des échéances déjà passées : personne ne peut encaisser un
+   chèque au mois de février de l'année dernière.
+
+   Le premier de chaque mois, à midi UTC : ce sont des dates que l'on lit, pas
+   des instants que l'on compare à la seconde, et midi les met hors d'atteinte
+   des décalages horaires qui feraient basculer le 1er au 31 du mois précédent
+   selon le fuseau du lecteur. */
+export function computeDueDates(startDate, paymentType = '1') {
+  const count = Number(paymentType);
+  const start = new Date(startDate);
+  const firstMonth = start.getUTCMonth() + (count === 1 ? 0 : 1);
+
+  return Array.from({ length: count }, (_, index) => (
+    new Date(Date.UTC(start.getUTCFullYear(), firstMonth + index * 2, 1, 12))
+  ));
+}
+
 /* Les trois ventilations possibles d'un même montant, indexées par modalité.
 
    Chacune porte les montants et leur énoncé. Le texte n'est pas un confort

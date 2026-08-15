@@ -5,8 +5,20 @@ import api from '../../../lib/api';
 import { useModal } from '../../../contexts/ModalContext';
 import AdminModal from '../../../components/admin/AdminModal';
 import AdminPagination from '../../../components/admin/AdminPagination';
+import ChequesModal from '../../../components/admin/ChequesModal';
 import { monthYear, numericDate, euro, plural } from '../../../lib/format';
 import '../../../styles/admin/subscriptions.css';
+
+/* Le statut d'un chèque décrit un lieu — la pochette du trésorier, la banque, le
+   compte — plutôt qu'un état abstrait. « acquis » marque ceux dont la date
+   affichée est un fait accompli et non une échéance à venir. */
+const CHEQUE_STATUS = {
+  RECEIVED: { label: 'En main', tone: 'admin-badge-amber', acquis: false },
+  DEPOSITED: { label: 'Déposé', tone: 'admin-badge-brown', acquis: true },
+  SUCCEEDED: { label: 'Encaissé', tone: 'admin-badge-green', acquis: true },
+  FAILED: { label: 'Rejeté', tone: 'admin-badge-red', acquis: true },
+  RETURNED: { label: 'Rendu', tone: '', acquis: true }
+};
 
 const STATUS = {
   ACTIVE: { label: 'Actif', tone: 'admin-badge-green' },
@@ -50,6 +62,7 @@ export default function AdminSubscriptionsPage() {
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [chequesOpen, setChequesOpen] = useState(false);
 
   const debounceRef = useRef(null);
 
@@ -171,8 +184,16 @@ export default function AdminSubscriptionsPage() {
 
   const selectedStatus = selected ? (STATUS[selected.status] ?? { label: selected.status, tone: '' }) : null;
   const daysUsed = selected ? pauseDaysUsed(selected.pauses) : 0;
-  const paid = selected ? selected.paidAmount : 0;
   const due = selected ? Math.max(0, selected.price - selected.paidAmount) : 0;
+
+  /* Les chèques ne se saisissent qu'une fois. Tant qu'aucun n'est enregistré et
+     que le contrat n'est pas clos, la remise reste à faire — y compris sur un
+     contrat déjà actif, cas de ceux créés avant ce suivi. */
+  const cheques = selected?.payments ?? [];
+  const remiseAFaire = selected !== null
+    && cheques.length === 0
+    && selected.status !== 'CANCELLED'
+    && selected.status !== 'EXPIRED';
 
   return (
     <div className="admin-subs">
@@ -305,9 +326,10 @@ export default function AdminSubscriptionsPage() {
             <div className="def-row">
               <dt className="def-label">Règlement</dt>
               <dd className="def-value">
-                {euro(selected.price)} · {euro(paid)} encaissé
-                {due > 0 ? ` · reste ${euro(due)}` : ' · soldé'}
-                {selected.payments?.length > 0 && ` · ${selected.payments.length} ${plural(selected.payments.length, 'versement', 'versements')}`}
+                {cheques.length === 0
+                  ? `${euro(selected.price)} · aucun chèque enregistré`
+                  : `${euro(selected.price)} · ${cheques.length} ${plural(cheques.length, 'chèque remis', 'chèques remis')}`
+                    + (due > 0 ? ` · reste ${euro(due)}` : ' · couvert')}
               </dd>
             </div>
             <div className="def-row">
@@ -338,8 +360,41 @@ export default function AdminSubscriptionsPage() {
             )}
           </dl>
 
+          {/* Les chèques eux-mêmes. « X € encaissé » ne disait pas où était
+              l'argent : détenu par l'association, parti en banque, ou crédité.
+              Chaque bande le dit, avec la date à laquelle elle doit partir. */}
+          {cheques.length > 0 && (
+            <div className="admin-cheques-list">
+              {cheques.map((cheque, index) => {
+                const etat = CHEQUE_STATUS[cheque.status] ?? { label: cheque.status, tone: '', acquis: true };
+                return (
+                  <article key={cheque.id} className="admin-cheques-row">
+                    <span className="admin-cheques-row-rank">{index + 1}</span>
+                    <span className="admin-cheques-row-amount">{euro(cheque.amount)}</span>
+                    <span className="admin-cheques-row-date">
+                      {etat.acquis
+                        ? numericDate(cheque.depositedAt ?? cheque.paidAt ?? cheque.dueDate)
+                        : `à déposer le ${numericDate(cheque.dueDate)}`}
+                    </span>
+                    {cheque.checkNumber && (
+                      <span className="admin-cheques-row-number">n° {cheque.checkNumber}</span>
+                    )}
+                    <span className={`admin-badge ${etat.tone}`}>{etat.label}</span>
+                  </article>
+                );
+              })}
+            </div>
+          )}
+
           <div className="admin-modal-actions">
-            <button type="button" className="admin-btn-primary" onClick={handleContract}>
+            {/* L'activation n'est plus un geste séparé : elle découle de la
+                remise. Un contrat actif a donc toujours son règlement en face. */}
+            {remiseAFaire && (
+              <button type="button" className="admin-btn-primary" onClick={() => setChequesOpen(true)}>
+                Chèques reçus
+              </button>
+            )}
+            <button type="button" className="admin-btn-ghost" onClick={handleContract}>
               Générer le contrat PDF
             </button>
             {selected.status === 'ACTIVE' && (
@@ -361,6 +416,18 @@ export default function AdminSubscriptionsPage() {
             )}
           </div>
         </AdminModal>
+      )}
+
+      {selected && chequesOpen && (
+        <ChequesModal
+          subscription={selected}
+          onClose={() => setChequesOpen(false)}
+          onRecorded={() => {
+            setChequesOpen(false);
+            showSuccess('Chèques enregistrés', 'Le règlement est rattaché au contrat.');
+            refresh();
+          }}
+        />
       )}
     </div>
   );

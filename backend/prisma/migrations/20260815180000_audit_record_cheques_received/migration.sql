@@ -1,0 +1,12 @@
+-- Nouvelle action journalisable : la remise des chèques.
+--
+-- AuditAction est un enum Postgres, et logAudit avale ses erreurs pour ne jamais
+-- faire tomber l'action principale. Sans cette valeur, l'enregistrement des
+-- chèques aurait donc réussi et sa trace au journal aurait disparu en silence,
+-- avec pour seul témoin une ligne dans la console du serveur. Pour la seule
+-- opération du projet qui fait entrer de l'argent en base, c'est le contraire de
+-- ce qu'on veut.
+--
+-- On ajoute sans retirer : le journal est un enregistrement historique, son
+-- vocabulaire ne doit pas rétrécir sous les entrées déjà écrites.
+ALTER TYPE "AuditAction" ADD VALUE IF NOT EXISTS 'RECORD_CHEQUES_RECEIVED';

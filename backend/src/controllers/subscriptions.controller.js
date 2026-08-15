@@ -12,7 +12,13 @@ import {
 } from '../utils/httpErrors.js';
 import { logAudit } from '../services/audit.service.js';
 import { computeRemainingPickups } from '../utils/subscriptionSchedule.js';
-import { computeSubscriptionPrice, getPricingGrid } from '../utils/subscriptionPricing.js';
+import {
+  computeSubscriptionPrice,
+  getPricingGrid,
+  splitPayment,
+  computeDueDates,
+  PAYMENT_TYPES
+} from '../utils/subscriptionPricing.js';
 
 const SubscriptionTypeSchema = z.enum(['ANNUAL', 'DISCOVERY']);
 const BasketSizeSchema = z.enum(['SMALL', 'LARGE']);
@@ -38,12 +44,24 @@ const CreateSubscriptionSchema = z.object({
   path: ['endDate']
 });
 
+/* paidAmount n'est plus modifiable de l'extérieur. Il est devenu le reflet des
+   lignes de paiement — la somme des chèques que l'association détient — et deux
+   façons d'écrire le même argent finissent toujours par se contredire. Il se
+   recalcule là où les chèques bougent, et nulle part ailleurs. */
 const UpdateSubscriptionSchema = z.object({
   basketSize: BasketSizeSchema.optional(),
   pricingType: PricingTypeSchema.optional(),
   endDate: OptionalDateSchema,
-  price: OptionalAmountSchema,
-  paidAmount: OptionalAmountSchema
+  price: OptionalAmountSchema
+});
+
+/* Remise des chèques. Le nombre suffit : les montants se déduisent du prix et
+   les échéances du calendrier de saison. Les numéros sont facultatifs — on ne
+   saisit pas sept chiffres debout devant une file d'attente. */
+const RecordChequesSchema = z.object({
+  paymentType: z.enum(PAYMENT_TYPES, { message: 'Modalité de règlement invalide' }),
+  receivedAt: OptionalDateSchema,
+  checkNumbers: z.array(z.string().trim().max(20)).optional()
 });
 
 // Générer un numéro d'abonnement unique
@@ -263,9 +281,13 @@ const getSubscriptionById = asyncHandler(async (req, res) => {
           startDate: 'desc'
         }
       },
+      /* Par échéance croissante : les chèques d'une même remise partagent leur
+         date de création à la milliseconde près, un tri par createdAt les
+         sortirait dans un ordre arbitraire. C'est l'ordre de dépôt qui compte,
+         c'est celui dans lequel le trésorier les lit. */
       payments: {
         orderBy: {
-          createdAt: 'desc'
+          dueDate: 'asc'
         }
       }
     }
@@ -382,10 +404,25 @@ const updateSubscription = asyncHandler(async (req, res) => {
   const parsed = UpdateSubscriptionSchema.safeParse(req.body);
   if (!parsed.success) throw new HttpBadRequestError(parsed.error.errors[0].message);
 
-  const { basketSize, pricingType, endDate, price, paidAmount } = parsed.data;
+  const { basketSize, pricingType, endDate, price } = parsed.data;
 
   if (endDate && endDate <= subscription.startDate) {
     throw new HttpBadRequestError('La date de fin doit être postérieure à la date de début');
+  }
+
+  /* Le prix se fige dès que les chèques sont là. Les montants inscrits sur les
+     chèques découlent de lui, ils sont imprimés sur un contrat signé par les
+     deux parties, et le papier est déjà dans la pochette du trésorier : le
+     modifier ici laisserait en base un engagement que personne n'a signé. Pour
+     changer le prix, il faut d'abord rendre les chèques. */
+  if (price !== undefined && price !== subscription.price) {
+    const chequesRemis = await prisma.payment.count({ where: { subscriptionId: id } });
+
+    if (chequesRemis > 0) {
+      throw new HttpConflictError(
+        'Le prix ne peut plus être modifié : les chèques correspondants ont déjà été remis'
+      );
+    }
   }
 
   const updated = await prisma.subscription.update({
@@ -394,8 +431,7 @@ const updateSubscription = asyncHandler(async (req, res) => {
       ...(basketSize && { basketSize }),
       ...(pricingType && { pricingType }),
       ...(endDate && { endDate }),
-      ...(price !== undefined && { price }),
-      ...(paidAmount !== undefined && { paidAmount })
+      ...(price !== undefined && { price })
     },
     include: {
       user: {
@@ -437,35 +473,116 @@ const updateSubscription = asyncHandler(async (req, res) => {
   });
 });
 
-// ACTIVER UN ABONNEMENT (ADMIN) - PENDING → ACTIVE
-const activateSubscription = asyncHandler(async (req, res) => {
+/* REMISE DES CHÈQUES (ADMIN) — c'est elle qui active l'abonnement.
+
+   Elle remplace l'ancien bouton « Activer », qui basculait le statut sans que
+   rien n'atteste d'un règlement : on pouvait avoir un abonnement actif, des
+   paniers livrés chaque semaine, et pas un centime en face. Ici l'activation
+   n'est plus un geste séparé, c'est la conséquence d'un fait — le trésorier
+   tient les chèques.
+
+   D'où le sens du statut PENDING, qui devient précis : contrat édité, chèques
+   pas encore remis. Et d'où l'absence d'un état « en attente de réception » sur
+   les paiements : une ligne n'existe que parce que le papier est là.
+
+   Un seul geste pour toute la remise, et non un pointage chèque par chèque.
+   L'adhérent tend une enveloppe, l'administrateur indique combien elle contient,
+   le reste se déduit : les montants du prix, les échéances du calendrier de
+   saison. Les numéros se saisissent après coup, pour ceux qui en ont le temps. */
+const recordChequesReceived = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
-  const subscription = await prisma.subscription.findUnique({ where: { id } });
+  const parsed = RecordChequesSchema.safeParse(req.body);
+  if (!parsed.success) throw new HttpBadRequestError(parsed.error.errors[0].message);
+
+  const { paymentType, receivedAt, checkNumbers = [] } = parsed.data;
+  const remiseLe = receivedAt ?? new Date();
+
+  const subscription = await prisma.subscription.findUnique({
+    where: { id },
+    include: { payments: { select: { id: true } } }
+  });
 
   if (!subscription) {
     throw new HttpNotFoundError('Abonnement introuvable');
   }
 
-  if (subscription.status !== 'PENDING') {
-    throw new HttpBadRequestError('Seuls les abonnements en attente peuvent être activés');
+  /* Deux remises pour un même abonnement doubleraient l'engagement en base. La
+     correction passe par la marche arrière, pas par une seconde saisie. */
+  if (subscription.payments.length > 0) {
+    throw new HttpConflictError('Les chèques de cet abonnement ont déjà été enregistrés');
   }
 
-  const activated = await prisma.subscription.update({
-    where: { id },
-    data: { status: 'ACTIVE' }
+  if (subscription.status === 'CANCELLED' || subscription.status === 'EXPIRED') {
+    throw new HttpBadRequestError('Cet abonnement est clos : aucun règlement ne peut y être rattaché');
+  }
+
+  const amounts = splitPayment(subscription.price, paymentType);
+  const dueDates = computeDueDates(subscription.startDate, paymentType);
+
+  /* La somme des chèques vaut le prix par construction — le dernier est calculé
+     par soustraction. On le vérifie tout de même avant d'écrire : c'est le seul
+     endroit du projet où de l'argent entre en base, et une garantie qu'on ne
+     contrôle jamais finit par ne plus en être une. */
+  const total = Number(amounts.reduce((somme, montant) => somme + montant, 0).toFixed(2));
+
+  if (total !== subscription.price) {
+    throw new HttpBadRequestError(
+      `Ventilation incohérente : ${total} € réparti pour un contrat de ${subscription.price} €`
+    );
+  }
+
+  const { payments, updated } = await prisma.$transaction(async (tx) => {
+    const payments = [];
+
+    for (const [index, amount] of amounts.entries()) {
+      payments.push(await tx.payment.create({
+        data: {
+          subscriptionId: id,
+          amount,
+          status: 'RECEIVED',
+          receivedAt: remiseLe,
+          dueDate: dueDates[index],
+          checkNumber: checkNumbers[index]?.trim() || null
+        }
+      }));
+    }
+
+    /* paidAmount reflète ce que l'association détient, pas ce qu'elle a encaissé :
+       l'engagement est couvert dès que le papier est là. Il est écrit ici, dans
+       la transaction qui crée les chèques, et n'est plus modifiable ailleurs.
+
+       Le statut ne passe à ACTIVE que depuis PENDING : enregistrer les chèques
+       d'un abonnement en pause ne doit pas le réveiller. */
+    const updated = await tx.subscription.update({
+      where: { id },
+      data: {
+        paidAmount: total,
+        ...(subscription.status === 'PENDING' && { status: 'ACTIVE' })
+      }
+    });
+
+    return { payments, updated };
   });
 
-  await logAudit(req, 'ACTIVATE_SUBSCRIPTION', 'IMPORTANT', {
+  await logAudit(req, 'RECORD_CHEQUES_RECEIVED', 'CRITICAL', {
     type: 'SUBSCRIPTION',
     id,
     label: subscription.subscriptionNumber
-  }, { before: { status: subscription.status }, after: { status: activated.status } });
+  }, {
+    paymentType,
+    receivedAt: remiseLe,
+    amounts,
+    dueDates,
+    numbered: checkNumbers.filter(Boolean).length,
+    before: { status: subscription.status, paidAmount: subscription.paidAmount },
+    after: { status: updated.status, paidAmount: updated.paidAmount }
+  });
 
-  res.json({
+  res.status(httpStatusCodes.CREATED).json({
     success: true,
-    message: 'Abonnement activé avec succès',
-    data: activated
+    message: `${payments.length} chèque${payments.length > 1 ? 's' : ''} enregistré${payments.length > 1 ? 's' : ''}`,
+    data: { subscription: updated, payments }
   });
 });
 
@@ -763,7 +880,7 @@ export {
   getSubscriptionById,
   createSubscription,
   updateSubscription,
-  activateSubscription,
+  recordChequesReceived,
   cancelSubscription,
   pauseSubscription,
   resumeSubscription,

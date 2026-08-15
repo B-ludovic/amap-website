@@ -682,10 +682,15 @@ const api = {
       });
     },
 
-    activate: async (id) => {
-      return fetchAPI(`/subscriptions/${id}/activate`, {
-        method: 'PUT',
+    /* Remise des chèques : c'est elle qui active l'abonnement. Elle remplace
+       l'ancien « activate », qui basculait le statut sans qu'aucun règlement ne
+       soit enregistré en face. Le nombre de chèques suffit — le serveur en
+       déduit les montants et les échéances. */
+    recordCheques: async (id, { paymentType, receivedAt, checkNumbers } = {}) => {
+      return fetchAPI(`/subscriptions/${id}/cheques`, {
+        method: 'POST',
         requiresAuth: true,
+        body: { paymentType, receivedAt, checkNumbers },
       });
     },
 

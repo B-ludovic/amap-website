@@ -141,3 +141,127 @@
     border-left: none;
   }
 }
+
+/* REMISE DES CHÈQUES
+   Saisie à la permanence et bandes de chèques dans la fiche de contrat. */
+
+.admin-cheques-field {
+  display: grid;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+/* Trois cibles larges : cet écran se remplit debout, une tablette à la main.
+   44px de haut, seuil de cible tactile du critère WCAG 2.5.5. */
+.admin-cheques-choice {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.admin-cheques-choice-btn {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--border-card);
+  border-radius: var(--border-radius-md);
+  background-color: var(--surface-page);
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  transition:
+    border-color 200ms cubic-bezier(0.2, 0.6, 0.2, 1),
+    background-color 200ms cubic-bezier(0.2, 0.6, 0.2, 1),
+    color 200ms cubic-bezier(0.2, 0.6, 0.2, 1);
+}
+
+.admin-cheques-choice-btn:hover {
+  border-color: var(--border-strong);
+  background-color: var(--surface-hover);
+}
+
+.admin-cheques-choice-btn.is-active {
+  border-color: var(--terracotta);
+  background-color: var(--terracotta);
+  color: var(--surface-page);
+}
+
+.admin-cheques-choice-btn:focus-visible {
+  outline: none;
+  border-color: var(--terracotta);
+  box-shadow: 0 0 0 3px var(--field-focus-ring);
+}
+
+/* L'aperçu reprend mot pour mot la phrase du contrat signé : c'est elle que le
+   trésorier doit retrouver dans l'enveloppe. */
+.admin-cheques-preview {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--text-light);
+}
+
+.admin-cheques-numbers {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 8px;
+}
+
+.admin-cheques-notice {
+  margin: 24px 0 0;
+  padding-left: 12px;
+  border-left: 2px solid var(--border-brass);
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+
+/* BANDES DE CHÈQUES DANS LA FICHE */
+
+.admin-cheques-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.admin-cheques-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  padding: 12px 16px;
+  border: 1px solid var(--border-card);
+  border-radius: var(--border-radius-md);
+}
+
+.admin-cheques-row-rank {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--border-radius-full);
+  background-color: var(--surface-sand);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-light);
+}
+
+.admin-cheques-row-amount {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.admin-cheques-row-date,
+.admin-cheques-row-number {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-light);
+}
+
+/* Le badge se pousse en bout de bande : c'est ce qu'on balaie du regard en
+   parcourant une colonne de chèques. */
+.admin-cheques-row .admin-badge {
+  margin-left: auto;
+}
