@@ -40,6 +40,7 @@ devienne lente et capricieuse sans que personne l'ait décidé.
 | `unit/newsletter.envoi.test.js` | Le sort de `status` et `sentAt` à l'envoi : relâchés quand rien n'est parti (C3), pris avant la boucle par compare-and-set pour qu'un second clic ne double pas l'envoi (M2), et réponse 202 pendant que la diffusion continue derrière (M10). Vaut aussi pour l'annonce de fermeture. |
 | `unit/drapeaux.orphelins.test.js` | Le balayage des drapeaux d'envoi laissés levés par un processus mort : relâchés quand `EmailLog` ne montre aucun envoi réussi, laissés intacts sinon. Défaut m9. |
 | `unit/email.delivrabilite.test.js` | Le poids des messages et leur version texte : plus de logo encodé, aucun message près du seuil de troncature de Gmail, en-têtes de désabonnement. Défauts M1 et M7. |
+| `unit/panier.publication.test.js` | La publication d'un panier hebdomadaire, qui prévient tous les abonnés actifs : verrou pris en base pour que deux clics croisés ne notifient pas deux fois, gardes du panier introuvable et du panier vide. Le verrou de M2, appliqué au panier. |
 
 Un mot sur `helpers/attente.js`, qui revient dans `newsletter.envoi.test.js`. Depuis que
 la diffusion quitte la requête, il n'y a plus de promesse à attendre : le test

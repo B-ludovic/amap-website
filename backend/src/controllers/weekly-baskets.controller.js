@@ -242,9 +242,26 @@ const publishWeeklyBasket = asyncHandler(async (req, res) => {
     throw new HttpBadRequestError('Le panier doit contenir au moins un produit');
   }
 
-  const published = await prisma.weeklyBasket.update({
+  if (basket.isPublished) {
+    throw new HttpConflictError('Ce panier a déjà été publié');
+  }
+
+  /* La publication se prend en base, pas sur la lecture du dessus : entre le
+     findUnique et l'écriture, une seconde requête a le temps de passer, et les
+     abonnés recevraient le panier deux fois. C'est la base qui arbitre, comme
+     pour la newsletter (voir reserverNewsletter). Le contrôle du dessus n'est
+     pas redondant pour autant : il sait dire lequel des refus s'applique. */
+  const { count } = await prisma.weeklyBasket.updateMany({
+    where: { id, isPublished: false },
+    data: { isPublished: true, publishedAt: new Date() }
+  });
+
+  if (count === 0) {
+    throw new HttpConflictError('Ce panier a déjà été publié');
+  }
+
+  const published = await prisma.weeklyBasket.findUnique({
     where: { id },
-    data: { isPublished: true, publishedAt: new Date() },
     include: itemsInclude
   });
 
