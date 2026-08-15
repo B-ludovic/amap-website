@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { euro } from '../../lib/format';
 import { useModal } from '../../contexts/ModalContext';
 import { useAuth } from '../../contexts/AuthContext';
 import api from '../../lib/api';
@@ -35,17 +36,18 @@ function SubscriptionRequestPage() {
     message: ''
   });
 
+  /* Montants passés par euro() : la grille renvoie des flottants, et un grand
+     panier annuel s'affichait « 1460.2 € » — point décimal anglais et centime
+     tronqué. */
   const getPaymentBreakdown = (price, paymentType) => {
     if (paymentType === '2') {
-      const half = (price / 2).toFixed(2);
-      return `2 × ${half}€`;
+      return `2 × ${euro(price / 2)}`;
     }
     if (paymentType === '4') {
       const q = Math.round(price / 4);
-      const qLast = (price - q * 3).toFixed(2);
-      return `3 × ${q}€ + 1 × ${qLast}€`;
+      return `3 × ${euro(q)} + 1 × ${euro(price - q * 3)}`;
     }
-    return `${price}€`;
+    return euro(price);
   };
 
   const [errors, setErrors] = useState({});
@@ -261,7 +263,6 @@ function SubscriptionRequestPage() {
                     <option value="SOLIDARITY">Tarif solidaire — 20 %</option>
                   </select>
                   <span className="field-hint">
-                    Le tarif solidaire est proposé en partenariat avec le Secours Catholique.
                     Votre demande est étudiée après réception du formulaire.
                   </span>
                   {errors.pricingType && <span className="field-error">{errors.pricingType}</span>}
@@ -327,6 +328,13 @@ function SubscriptionRequestPage() {
             </div>
           </form>
 
+          {/* La colonne ne garde que ce qui sert pendant la saisie : le
+              récapitulatif, qui recalcule le prix à chaque choix, et la carte
+              qui répond à ce prix. Le contexte à lire une fois — distribution
+              et prochaines étapes — descend sous le formulaire. C'est ce qui
+              permet à l'aside entier de coller, comme sur la FAQ et les
+              mentions légales : un aside plus haut que la fenêtre n'a aucune
+              amplitude et ne colle jamais. */}
           <aside className="subrequest-side">
             <div className="side-card">
               <div className="side-card-head">
@@ -354,7 +362,7 @@ function SubscriptionRequestPage() {
                         {formData.pricingType === 'SOLIDARITY' ? 'Tarif solidaire' : 'Tarif normal'}
                       </span>
                       <span className="split-value">
-                        {displayedPrice !== null ? `${displayedPrice} €` : '—'}
+                        {displayedPrice !== null ? euro(displayedPrice) : '—'}
                       </span>
                     </div>
                   </div>
@@ -384,59 +392,69 @@ function SubscriptionRequestPage() {
                 </div>
 
                 <div className="side-block">
+                  {/* Insécables autour des guillemets : sans elles, le chevron
+                      fermant se retrouve seul en début de ligne, la colonne
+                      étant étroite. */}
                   <p className="subrequest-note">
                     Le règlement se fait après validation de votre demande, par chèque
-                    à l’ordre de « Aux P’tits Pois ».
+                    à l’ordre de «&nbsp;Aux P’tits Pois&nbsp;».
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="side-card">
-              <div className="side-card-head">
-                <h2 className="side-card-title">Distribution</h2>
-              </div>
-              <div className="side-card-body">
-                <div className="side-block">
-                  <p className="side-block-label">Chaque mercredi</p>
-                  <p className="subrequest-info-text">18h15 — 19h15</p>
-                  <p className="subrequest-info-text">
-                    Vous composez vous-même votre panier parmi les légumes disponibles
-                    selon votre formule.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="side-card">
-              <div className="side-card-head">
-                <h2 className="side-card-title">Prochaines étapes</h2>
-              </div>
-              <div className="side-card-body">
-                <div className="side-block">
-                  <ol className="numbered-steps numbered-steps-flush">
-                    <li className="numbered-step">
-                      <span className="numbered-step-number">01</span>
-                      <span className="numbered-step-text">Validation de votre demande</span>
-                    </li>
-                    <li className="numbered-step">
-                      <span className="numbered-step-number">02</span>
-                      <span className="numbered-step-text">Contact par email ou téléphone</span>
-                    </li>
-                    <li className="numbered-step">
-                      <span className="numbered-step-number">03</span>
-                      <span className="numbered-step-text">Règlement de l’abonnement</span>
-                    </li>
-                    <li className="numbered-step">
-                      <span className="numbered-step-number">04</span>
-                      <span className="numbered-step-text">Activation et premier panier</span>
-                    </li>
-                  </ol>
-                </div>
-              </div>
+            {/* Carte forêt, posée juste sous le prix : c'est là que naît
+                l'objection qu'elle désamorce. Même rôle que sur le panier
+                hebdomadaire, le contact et la FAQ — une question anticipée,
+                une sortie. */}
+            <div className="forest-card subrequest-solidarity">
+              <p className="eyebrow">Ce montant vous arrête ?</p>
+              <p className="forest-card-text">
+                En partenariat avec le Secours Catholique, le tarif solidaire ramène
+                votre part à 20 % du prix. Sans dossier lourd, et sans aucune
+                distinction le jour de la distribution.
+              </p>
+              <Link href="/contact" className="forest-card-link">
+                Nous en parler
+              </Link>
             </div>
           </aside>
         </div>
+
+        {/* Contexte à lire une fois, sous le formulaire : la distribution et la
+            suite du parcours ne servent pas à remplir les champs. */}
+        <section className="subrequest-context">
+          <div>
+            <h2 className="eyebrow">La distribution</h2>
+            <p className="subrequest-info-text">Chaque mercredi, de 18h15 à 19h15.</p>
+            <p className="subrequest-info-text">
+              Vous composez vous-même votre panier parmi les légumes disponibles selon
+              votre formule, à la Paroisse Saint François de Sales, à Clamart.
+            </p>
+          </div>
+
+          <div>
+            <h2 className="eyebrow">Ce qui se passe ensuite</h2>
+            <ol className="numbered-steps numbered-steps-ruled">
+              <li className="numbered-step">
+                <span className="numbered-step-number">01</span>
+                <span className="numbered-step-text">Validation de votre demande</span>
+              </li>
+              <li className="numbered-step">
+                <span className="numbered-step-number">02</span>
+                <span className="numbered-step-text">Contact par email ou téléphone</span>
+              </li>
+              <li className="numbered-step">
+                <span className="numbered-step-number">03</span>
+                <span className="numbered-step-text">Règlement de l’abonnement</span>
+              </li>
+              <li className="numbered-step">
+                <span className="numbered-step-number">04</span>
+                <span className="numbered-step-text">Activation et premier panier</span>
+              </li>
+            </ol>
+          </div>
+        </section>
       </div>
     </div>
   );

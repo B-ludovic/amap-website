@@ -53,11 +53,40 @@
   align-items: start;
 }
 
+/* L'aside colle en entier, comme celui de la FAQ, des mentions légales et des
+   cookies — et non certaines cartes seulement : mêler collant et non-collant
+   dans une même colonne fait défiler les secondes derrière les premières, qui
+   transparaissent dans les interstices.
+
+   Ce qui suppose un aside plus court que la fenêtre, sans quoi il n'a aucune
+   amplitude et ne colle jamais. D'où les deux seules cartes conservées ici.
+
+   104px et non une valeur au jugé : le header fait 76px et reste collé en haut,
+   les 28px restants sont la respiration retenue par les autres pages. Plus
+   court, la carte passerait sous la barre de navigation. */
 .subrequest-side {
   display: grid;
   gap: 20px;
   position: sticky;
-  top: 24px;
+  top: 104px;
+  align-self: start;
+}
+
+/* CONTEXTE DE PIED DE PAGE
+   Deux colonnes sous le formulaire, séparées du reste par un filet : ce qu'on
+   lit une fois, pas ce qu'on consulte en remplissant. */
+
+.subrequest-context {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 56px;
+  margin-top: 72px;
+  padding-top: 48px;
+  border-top: var(--border-width) solid var(--border-card);
+}
+
+.subrequest-context .eyebrow {
+  margin-bottom: 18px;
 }
 
 /* SECTIONS DE FORMULAIRE
@@ -138,6 +167,14 @@
   color: var(--text-light);
 }
 
+/* La carte forêt suit immédiatement le récapitulatif : elle répond au prix
+   qu'on vient de lire. Le lien y reste cerclé plutôt que plein terracotta —
+   c'est une porte de sortie offerte, pas l'action principale de la page, qui
+   demeure l'envoi du formulaire. */
+.subrequest-solidarity .forest-card-link {
+  margin-top: 2px;
+}
+
 .subrequest-note {
   font-size: 13px;
   line-height: 1.55;
@@ -179,6 +216,11 @@
 
   .subrequest-side {
     position: static;
+  }
+
+  .subrequest-context {
+    grid-template-columns: 1fr;
+    gap: 40px;
   }
 }
 
