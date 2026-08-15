@@ -282,29 +282,49 @@ model SubscriptionPause {
 
 // PAIEMENTS //
 
+// Un chèque, et un seul. L'association encaisse par chèque : une ligne ici est
+// un bout de papier qu'on peut tenir dans la main, pas une intention de payer.
+// C'est pourquoi elle n'existe qu'à partir du moment où le trésorier l'a reçu,
+// et pourquoi son statut décrit un lieu — la pochette, la banque, le compte —
+// plutôt qu'un état abstrait.
 model Payment {
   id                String   @id @default(uuid())
   subscriptionId    String
   amount            Float
-  status            PaymentStatus @default(PENDING)
-  
-  stripePaymentId   String?  @unique
-  paymentMethod     String?
-  
-  subscription      Subscription @relation(fields: [subscriptionId], references: [id])
-  
-  createdAt         DateTime @default(now())
+  status            PaymentStatus @default(RECEIVED)
+
+  // Relevé si le trésorier en a le temps, jamais exigé : on ne saisit pas un
+  // numéro à sept chiffres debout devant une file d'attente.
+  checkNumber       String?
+
+  // receivedAt est la remise en main propre, createdAt la saisie. Elles
+  // coïncident à une permanence, pas quand le pointage se fait le lendemain.
+  receivedAt        DateTime
+
+  // Dépôt prévu, déplaçable : une échéance est un plan, pas un engagement.
+  dueDate           DateTime
+  depositedAt       DateTime?
   paidAt            DateTime?
-  
+
+  // Garde anti-doublon de l'avis envoyé à l'adhérent avant l'encaissement, sur
+  // le modèle de Subscription.renewalReminderSentAt.
+  reminderSentAt    DateTime?
+
+  subscription      Subscription @relation(fields: [subscriptionId], references: [id])
+
+  createdAt         DateTime @default(now())
+
   @@index([subscriptionId])
   @@index([status])
+  @@index([dueDate])
 }
 
 enum PaymentStatus {
-  PENDING
-  SUCCEEDED
-  FAILED
-  REFUNDED
+  RECEIVED    // dans la pochette du trésorier
+  DEPOSITED   // remis en banque, encaissement en attente
+  SUCCEEDED   // encaissé
+  FAILED      // rejeté, sans provision
+  RETURNED    // rendu à l'adhérent, contrat annulé
 }
 
 
