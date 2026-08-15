@@ -47,13 +47,20 @@ const NBSP = '\u00A0';
 
 const groupThousands = (value) => value.replace(/\B(?=(\d{3})+(?!\d))/g, NBSP);
 
-/* « 19 », « 29,80 », « 1 460,20 » — virgule décimale, milliers séparés, et pas
-   de décimales inutiles sur un montant rond. */
+/* « 19,00 », « 29,80 », « 1 460,20 » — virgule décimale, milliers séparés, et
+   les centimes toujours écrits, même nuls.
+
+   Les supprimer sur un montant rond semblait plus léger, mais faisait cohabiter
+   deux écritures pour une même colonne : l'en-tête du contrat annonçait « petit
+   panier / 19 € » à côté de « grand panier / 29,80 € », et le récapitulatif du
+   formulaire affichait un total à « 1 460,20 € » deux lignes au-dessus de
+   chèques à « 365 € ». C'est aussi la règle que le navigateur applique déjà de
+   son côté pour tout le reste du site : une seule façon d'écrire un montant
+   dans le projet, et non deux qui se ressemblent. */
 export function formatEuro(value) {
   const [whole, cents] = Number(value).toFixed(2).split('.');
-  const grouped = groupThousands(whole);
 
-  return cents === '00' ? grouped : `${grouped},${cents}`;
+  return `${groupThousands(whole)},${cents}`;
 }
 
 export const euroAmount = (value) => `${formatEuro(value)}${NBSP}€`;
