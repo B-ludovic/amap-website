@@ -480,24 +480,24 @@
         <td style="width: 25%;">
           <span class="checkbox {{#if isPayment1}}checked{{/if}}"></span> 1 chèque débité début janvier 2026
         </td>
-        <td style="text-align: center; width: 31.25%;">{{totalSmallPrice}}€</td>
-        <td style="text-align: center; width: 31.25%;">{{totalLargePrice}}€</td>
+        <td style="text-align: center; width: 31.25%;">{{totalSmallText}}</td>
+        <td style="text-align: center; width: 31.25%;">{{totalLargeText}}</td>
       </tr>
 
       <tr>
         <td>
           <span class="checkbox {{#if isPayment2}}checked{{/if}}"></span> 2 chèques débités à 2 mois d'intervalle max, à partir de début février 2026
         </td>
-        <td style="text-align: center;">2 chèques de {{halfSmallPrice}}€</td>
-        <td style="text-align: center;">2 chèques de {{halfLargePrice}}€</td>
+        <td style="text-align: center;">{{halfSmallText}}</td>
+        <td style="text-align: center;">{{halfLargeText}}</td>
       </tr>
 
       <tr>
         <td>
           <span class="checkbox {{#if isPayment4}}checked{{/if}}"></span> 4 chèques débités à 2 mois d'intervalle max, à partir de début février 2026
         </td>
-        <td style="text-align: center;">{{{quarterPaymentSmallText}}}</td>
-        <td style="text-align: center;">{{{quarterPaymentLargeText}}}</td>
+        <td style="text-align: center;">{{{quarterSmallText}}}</td>
+        <td style="text-align: center;">{{{quarterLargeText}}}</td>
       </tr>
     </table>
 

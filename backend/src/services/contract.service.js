@@ -147,35 +147,38 @@ class ContractService {
     const totalSmall = smallBasketPrice * numberOfWeeks;
     const totalLarge = largeBasketPrice * numberOfWeeks;
 
-    const totalSmallPrice = totalSmall.toFixed(2);
-    const totalLargePrice = totalLarge.toFixed(2);
-
-    /* Le fractionnement vient de la grille tarifaire, au même titre que le prix :
-       le PDF n'a pas à savoir comment on répartit un montant en chèques, il n'a
-       qu'à imprimer le résultat.
-
-       Le tableau du contrat est une carte de tarifs — il présente les deux
+    /* Le tableau du contrat est une carte de tarifs : il présente les deux
        tailles de panier et les trois modalités, l'adhérent coche sa ligne. D'où
-       le fractionnement calculé pour les deux tailles, indépendamment de la
-       formule choisie. */
+       une phrase par croisement, calculée pour les deux tailles indépendamment
+       de la formule finalement choisie.
 
-    // Paiement en 2 fois. Le gabarit n'affiche qu'un montant, « 2 chèques de X »,
-    // ce qui suppose les deux moitiés égales — vrai pour toute la grille
-    // actuelle. Si un prix devenait indivisible au centime, c'est le gabarit
-    // qu'il faudrait ouvrir, pas ce calcul : la ventilation, elle, reste juste.
-    const [halfSmall] = splitPayment(totalSmall, '2');
-    const [halfLarge] = splitPayment(totalLarge, '2');
-    const halfSmallPrice = halfSmall.toFixed(2);
-    const halfLargePrice = halfLarge.toFixed(2);
+       Le découpage vient de la grille tarifaire — le PDF n'a pas à savoir
+       comment on répartit un montant en chèques, seulement à imprimer le
+       résultat — et la mise en phrase est celle de la note solidaire quelques
+       lignes plus bas, pour que le document ne change pas d'écriture d'une
+       section à l'autre. Trois notations y cohabitaient jusqu'ici : point
+       décimal anglais sur une ligne, entier nu sur la suivante, « .00 » inutile
+       sur une troisième. Aucun montant ne bouge, seule leur graphie devient
+       uniformément française.
 
-    // Paiement en 4 fois (3 chèques identiques + 1 chèque ajusté)
-    const [quarterSmall, , , lastSmall] = splitPayment(totalSmall, '4');
-    const [quarterLarge, , , lastLarge] = splitPayment(totalLarge, '4');
-    const lastQuarterSmall = lastSmall.toFixed(2);
-    const lastQuarterLarge = lastLarge.toFixed(2);
+       Effet de bord voulu : quand les quatre chèques sont égaux — c'est le cas
+       de la Découverte petit panier, 228 € se divisant juste — la phrase dit
+       « 4 chèques de 57 € » au lieu d'annoncer un dernier chèque différent qui
+       ne l'est pas. */
+    const phrase = (total, paymentType) => formatInstallments(splitPayment(total, paymentType));
 
-    const quarterPaymentSmallText = `3 chèques de ${quarterSmall}€<br>et 1 chèque de ${lastQuarterSmall}€`;
-    const quarterPaymentLargeText = `3 chèques de ${quarterLarge}€<br>et 1 chèque de ${lastQuarterLarge}€`;
+    const totalSmallText = phrase(totalSmall, '1');
+    const totalLargeText = phrase(totalLarge, '1');
+    const halfSmallText = phrase(totalSmall, '2');
+    const halfLargeText = phrase(totalLarge, '2');
+
+    /* La cellule des quatre chèques est la plus étroite du tableau : on force la
+       coupure avant le dernier chèque plutôt que de laisser le navigateur
+       trancher où il peut. La note solidaire, elle, est de la prose et n'en veut
+       pas — d'où la coupure posée ici et non dans la mise en phrase. */
+    const surDeuxLignes = (texte) => texte.replace(' et ', '<br>et ');
+    const quarterSmallText = surDeuxLignes(phrase(totalSmall, '4'));
+    const quarterLargeText = surDeuxLignes(phrase(totalLarge, '4'));
 
     /* Part réellement due par l'adhérent, et sa ventilation en chèques.
 
@@ -232,12 +235,12 @@ class ContractService {
       // Prix et paiements
       smallBasketPrice: formatEuro(smallBasketPrice),
       largeBasketPrice: formatEuro(largeBasketPrice),
-      totalSmallPrice: totalSmallPrice,
-      totalLargePrice: totalLargePrice,
-      halfSmallPrice: halfSmallPrice,
-      halfLargePrice: halfLargePrice,
-      quarterPaymentSmallText: quarterPaymentSmallText,
-      quarterPaymentLargeText: quarterPaymentLargeText,
+      totalSmallText: totalSmallText,
+      totalLargeText: totalLargeText,
+      halfSmallText: halfSmallText,
+      halfLargeText: halfLargeText,
+      quarterSmallText: quarterSmallText,
+      quarterLargeText: quarterLargeText,
 
       // Part de l'adhérent, à afficher pour lever l'ambiguïté du tarif solidaire
       memberAmount: memberAmount,
