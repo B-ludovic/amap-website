@@ -21,6 +21,49 @@ import {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+/* LANCEMENT DE CHROMIUM
+
+   Le bac à sable de Chromium enferme le moteur de rendu dans un processus aux
+   droits réduits : si une faille du moteur est exploitée, elle s'exécute dans
+   cette cellule au lieu de courir avec les droits du serveur — c'est-à-dire, ici,
+   avec DATABASE_URL, JWT_SECRET et la clé SMTP dans son environnement.
+
+   Le code partait systématiquement avec --no-sandbox, la recette qu'on recopie
+   pour faire démarrer Chromium en conteneur. Le risque restait faible, puisque le
+   HTML rendu ne vient jamais du dehors : c'est un gabarit local, compilé par
+   Handlebars qui échappe par défaut, poussé par setContent et non par une
+   navigation. Mais la protection était retirée partout, y compris là où elle
+   fonctionne très bien — vérifié en local, le bac à sable rend le même PDF sans
+   surcoût mesurable.
+
+   D'où cet ordre de préférence : on démarre protégé, et l'on ne retombe sur le
+   mode ouvert que si l'hébergeur refuse le bac à sable, ce que certaines
+   plateformes font faute de namespaces utilisateur. Le repli est bruyant, pour
+   qu'il se voie dans les logs au lieu de devenir la norme silencieuse.
+
+   Sur un hébergeur dont on sait déjà qu'il le refuse, poser
+   PUPPETEER_DISABLE_SANDBOX=true évite de tenter un démarrage voué à l'échec
+   avant chaque contrat. */
+const SANDBOX_DISABLED_ARGS = ['--no-sandbox', '--disable-setuid-sandbox'];
+
+async function launchBrowser() {
+  if (process.env.PUPPETEER_DISABLE_SANDBOX === 'true') {
+    return puppeteer.launch({ headless: 'new', args: SANDBOX_DISABLED_ARGS });
+  }
+
+  try {
+    return await puppeteer.launch({ headless: 'new' });
+  } catch (error) {
+    console.warn(
+      '[Contrat] Chromium n\'a pas pu démarrer avec son bac à sable, repli sans isolation. ' +
+      'Poser PUPPETEER_DISABLE_SANDBOX=true pour éviter cette double tentative. Cause :',
+      error.message.split('\n')[0]
+    );
+
+    return puppeteer.launch({ headless: 'new', args: SANDBOX_DISABLED_ARGS });
+  }
+}
+
 class ContractService {
   // Générer le contrat PDF pour un abonnement //
   
@@ -61,10 +104,7 @@ class ContractService {
       // Générer le PDF avec Puppeteer
       let browser;
       try {
-        browser = await puppeteer.launch({
-        headless: 'new',
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
-        });
+        browser = await launchBrowser();
 
         const page = await browser.newPage();
         page.setDefaultTimeout(30000);

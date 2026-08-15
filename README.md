@@ -210,7 +210,15 @@ FRONTEND_URL=https://auxptitspois.fr
 BREVO_SMTP_USER=...        # login SMTP Brevo (Settings → SMTP et API)
 BREVO_SMTP_KEY=...         # clé SMTP Brevo
 EMAIL_FROM=...             # adresse d'expédition
+PUPPETEER_DISABLE_SANDBOX= # « true » seulement si Chromium refuse de démarrer
 ```
+
+> La génération des contrats PDF démarre Chromium avec son bac à sable, qui
+> confine le moteur de rendu au cas où une faille y serait exploitée. Si
+> l'hébergeur ne l'autorise pas, le service se replie tout seul et l'écrit dans
+> les logs (`[Contrat] Chromium n'a pas pu démarrer avec son bac à sable`). Poser
+> alors `PUPPETEER_DISABLE_SANDBOX=true` pour lui éviter une tentative perdue
+> avant chaque contrat.
 
 **Sur Vercel (frontend) :**
 ```
