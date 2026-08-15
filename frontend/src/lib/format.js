@@ -63,11 +63,17 @@ export function dayMonthYear(value) {
 
 /* « 24 décembre 2026 » — mois en toutes lettres, pour les lignes d'affichage
    et les phrases : un titre de carte ou un texte de confirmation ne gagne rien
-   à l'abréviation. */
+   à l'abréviation.
+
+   Le premier du mois s'écrit « 1er » et non « 1 ». Le détail passait inaperçu
+   tant que ces dates étaient quelconques ; il ne l'est plus depuis que les
+   échéances de chèques tombent toutes au premier, et qu'un adhérent lit
+   « à encaisser le 1 juillet » sur chacune de ses lignes. */
 export function dayMonthYearLong(value) {
   const date = toDate(value);
   if (!date) return '—';
-  return `${date.getDate()} ${MONTHS[date.getMonth()]} ${date.getFullYear()}`;
+  const day = date.getDate();
+  return `${day === 1 ? '1er' : day} ${MONTHS[date.getMonth()]} ${date.getFullYear()}`;
 }
 
 /* « 08/2026 » — ancienneté d'un adhérent */

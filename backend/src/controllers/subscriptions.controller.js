@@ -903,6 +903,27 @@ const getMySubscription = asyncHandler(async (req, res) => {
       // déjà écoulées étaient filtrées.
       pauses: {
         orderBy: { startDate: 'asc' }
+      },
+
+      /* Les chèques de l'adhérent, dans l'ordre où ils partiront en banque.
+         C'est lui qui les a écrits : il a le droit de savoir ce que
+         l'association en a fait, et surtout quand le prochain sera encaissé.
+         Sans cela son espace lui annonce « reste 888 € » alors qu'il a remis
+         son enveloppe le mois dernier.
+
+         Champs choisis un par un : rien de ce qui relève de la tenue interne
+         des comptes n'a de raison de descendre jusqu'au navigateur. */
+      payments: {
+        select: {
+          id: true,
+          amount: true,
+          status: true,
+          dueDate: true,
+          depositedAt: true,
+          paidAt: true,
+          checkNumber: true
+        },
+        orderBy: { dueDate: 'asc' }
       }
     }
   });

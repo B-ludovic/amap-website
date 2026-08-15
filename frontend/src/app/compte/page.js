@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { useAuth } from '../../contexts/AuthContext';
 import { useModal } from '../../contexts/ModalContext';
 import api, { auth as authApi } from '../../lib/api';
+import { dayMonthYearLong } from '../../lib/format';
 import '../../styles/public/compte.css';
 
 /* Formatage maison plutôt qu'Intl : le rendu doit être identique côté serveur
@@ -32,6 +33,19 @@ const TYPE_LABEL = { ANNUAL: 'Annuel', DISCOVERY: 'Découverte' };
 const SIZE_LABEL = { SMALL: 'petit panier', LARGE: 'grand panier' };
 const SIZE_WEIGHT = { SMALL: '2 à 4 kg', LARGE: '6 à 8 kg' };
 const ROLE_LABEL = { MEMBER: 'Adhérent', VOLUNTEER: 'Bénévole', ADMIN: 'Administrateur' };
+
+/* Le sort de chaque chèque, dit du point de vue de celui qui l'a écrit. Un
+   adhérent ne se demande pas dans quel état est une ligne de sa fiche : il se
+   demande quand la somme quittera son compte. La phrase répond donc à ça, et la
+   date qu'elle porte change de nature selon l'étape — une échéance tant que rien
+   n'est parti, un fait accompli ensuite. */
+const CHEQUE_PHRASE = {
+  RECEIVED: (cheque, date) => `à encaisser le ${date(cheque.dueDate)}`,
+  DEPOSITED: (cheque, date) => `remis en banque le ${date(cheque.depositedAt ?? cheque.dueDate)}`,
+  SUCCEEDED: (cheque, date) => `encaissé le ${date(cheque.paidAt ?? cheque.dueDate)}`,
+  FAILED: () => 'rejeté par la banque — contactez-nous',
+  RETURNED: () => 'rendu'
+};
 
 /* La maquette pose une quantité à droite de chaque ligne du panier ; le modèle
    de données n'en porte pas (WeeklyBasketItem n'a que le produit). La catégorie
@@ -230,6 +244,12 @@ export default function ComptePage() {
     : null;
   const progress = totalWeeks ? Math.round((currentWeek / totalWeeks) * 100) : 0;
 
+  /* Les chèques arrivent déjà triés par échéance. Le prochain encaissement est
+     le premier que l'association détient encore : ceux qui sont partis en banque
+     ne demandent plus rien à l'adhérent. */
+  const cheques = subscription?.payments ?? [];
+  const prochainEncaissement = cheques.find((cheque) => cheque.status === 'RECEIVED') ?? null;
+
   const pauses = subscription?.pauses ?? [];
   const pauseDaysUsed = pauses.reduce(
     (sum, pause) => sum + Math.round((new Date(pause.endDate) - new Date(pause.startDate)) / DAY_MS),
@@ -404,16 +424,52 @@ export default function ComptePage() {
                       {totalWeeks ? `soit ${euro(subscription.price / totalWeeks)} la semaine` : 'sur la saison'}
                     </div>
                   </div>
+                  {/* « Reste 888 € » s'affichait ici à quelqu'un qui avait remis
+                      son enveloppe le mois précédent : l'espace adhérent ne
+                      connaissait que le montant encaissé, pas les chèques
+                      détenus. Il dit maintenant ce que l'association a en main
+                      et quand le prochain partira en banque — la seule question
+                      que se pose celui qui doit provisionner son compte. */}
                   <div className="account-sub-stat">
                     <div className="account-label">Règlement</div>
-                    <div className="account-sub-amount">{euro(subscription.paidAmount)}</div>
+                    <div className="account-sub-amount">
+                      {cheques.length > 0
+                        ? `${cheques.length} ${plural(cheques.length, 'chèque', 'chèques')}`
+                        : euro(subscription.paidAmount)}
+                    </div>
                     <div className="account-sub-hint">
-                      {subscription.paidAmount >= subscription.price
-                        ? 'intégralement encaissé'
-                        : `reste ${euro(subscription.price - subscription.paidAmount)}`}
+                      {cheques.length === 0
+                        ? 'à remettre lors d’une permanence'
+                        : prochainEncaissement
+                          ? `prochain encaissement le ${dayMonthYearLong(prochainEncaissement.dueDate)}`
+                          : 'tous encaissés'}
                     </div>
                   </div>
                 </div>
+
+                {cheques.length > 0 && (
+                  <div className="account-cheques">
+                    <div className="account-label">Vos chèques</div>
+                    <ul className="account-cheques-list">
+                      {cheques.map((cheque) => (
+                        <li key={cheque.id} className="account-cheques-item">
+                          <span className="account-cheques-amount">{euro(cheque.amount)}</span>
+                          <span className="account-cheques-state">
+                            {(CHEQUE_PHRASE[cheque.status] ?? (() => cheque.status))(cheque, dayMonthYearLong)}
+                          </span>
+                          {cheque.checkNumber && (
+                            <span className="account-cheques-number">n° {cheque.checkNumber}</span>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                    <p className="account-cheques-note">
+                      Une suspension de panier ne modifie pas ces montants : l’engagement
+                      couvre la saison entière, c’est ce qui permet au producteur de semer
+                      à l’avance.
+                    </p>
+                  </div>
+                )}
 
                 <div className="account-progress">
                   <div className="account-progress-head">

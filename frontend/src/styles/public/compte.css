@@ -859,3 +859,58 @@
     width: 100%;
   }
 }
+
+/* VOS CHÈQUES
+   L'adhérent a écrit ces chèques ; il a le droit de savoir ce qu'ils sont
+   devenus, et surtout quand le prochain quittera son compte. */
+
+/* Ni filet ni marge haute : le bloc des formules qui précède porte déjà sa
+   bordure basse et ses 26px, les redoubler creusait un trou. La marge basse, en
+   revanche, manquait — la note sur les suspensions venait buter dans le titre
+   « Avancement de la saison » qui suit. */
+.account-cheques {
+  margin-bottom: 26px;
+}
+
+.account-cheques-list {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.account-cheques-item {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+}
+
+.account-cheques-amount {
+  min-width: 92px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary, #2b2b28);
+}
+
+.account-cheques-state {
+  color: var(--text-secondary, #6b6b64);
+  font-size: 0.9375rem;
+}
+
+.account-cheques-number {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.8125rem;
+  color: var(--text-light, #8d8d84);
+}
+
+/* La règle des suspensions écrite là où la question se pose, plutôt que laissée
+   à un échange de mails : « j'ai suspendu trois semaines, on me rembourse ? »
+   revient sinon à chaque saison. */
+.account-cheques-note {
+  margin: 16px 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--text-light, #8d8d84);
+}
