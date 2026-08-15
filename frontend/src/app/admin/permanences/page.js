@@ -5,6 +5,7 @@ import api from '../../../lib/api';
 import { useModal } from '../../../contexts/ModalContext';
 import ShiftModal from '../../../components/admin/ShiftModal';
 import ShiftDuplicateModal from '../../../components/admin/ShiftDuplicateModal';
+import AdminPagination from '../../../components/admin/AdminPagination';
 import { longDate, plural } from '../../../lib/format';
 import '../../../styles/admin/shifts-da.css';
 
@@ -34,20 +35,21 @@ export default function AdminPermanencesPage() {
   const { showConfirm, showSuccess, showError } = useModal();
 
   const [shifts, setShifts] = useState([]);
-  const [total, setTotal] = useState(0);
+  const [pagination, setPagination] = useState({ total: 0, page: 1, totalPages: 1 });
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('upcoming');
   const [editing, setEditing] = useState(null);
   const [duplicating, setDuplicating] = useState(null);
 
-  const fetchShifts = useCallback(async (key) => {
+  const fetchShifts = useCallback(async (key, wanted) => {
     setLoading(true);
     try {
       const definition = FILTERS.find(item => item.key === key) ?? FILTERS[0];
-      const response = await api.shifts.getAll(definition.params);
+      const response = await api.shifts.getAll({ page: wanted, ...definition.params });
 
-      setShifts(response.data);
-      setTotal(response.meta?.total ?? response.data.length);
+      setShifts(response.data.shifts);
+      setPagination(response.data.pagination);
     } catch (error) {
       showError('Erreur', 'Impossible de charger les permanences.');
     } finally {
@@ -56,15 +58,23 @@ export default function AdminPermanencesPage() {
   }, [showError]);
 
   useEffect(() => {
-    fetchShifts(filter);
-  }, [filter, fetchShifts]);
+    fetchShifts(filter, page);
+  }, [filter, page, fetchShifts]);
+
+  /* Changer de filtre remet à la première page : rester en page 3 après un
+     passage de « Passées » à « À venir » affiche un écran vide alors que la
+     liste, elle, n'est pas vide. */
+  const changeFilter = (key) => {
+    setFilter(key);
+    setPage(1);
+  };
 
   const closeModal = (shouldRefresh, message) => {
     setEditing(null);
     setDuplicating(null);
     if (shouldRefresh) {
       showSuccess('Permanence enregistrée', message ?? 'La permanence a été enregistrée.');
-      fetchShifts(filter);
+      fetchShifts(filter, page);
     }
   };
 
@@ -80,7 +90,7 @@ export default function AdminPermanencesPage() {
         try {
           await api.shifts.delete(shift.id);
           showSuccess('Permanence supprimée', 'La permanence a été retirée du calendrier.');
-          fetchShifts(filter);
+          fetchShifts(filter, page);
         } catch (error) {
           showError('Erreur', error.message);
         }
@@ -93,16 +103,18 @@ export default function AdminPermanencesPage() {
   const markCrew = async (shift, volunteer, status) => {
     try {
       await api.shifts.setVolunteerStatus(shift.id, volunteer.user.id, { status });
-      fetchShifts(filter);
+      fetchShifts(filter, page);
     } catch (error) {
       showError('Erreur', error.message);
     }
   };
 
-  /* Le bandeau d'alerte ne s'affiche que sur le filtre « À venir » : c'est la
-     seule liste dont on tient l'intégralité sous les yeux, donc la seule où le
-     compte des permanences incomplètes est exact. */
+  /* Le bandeau d'alerte ne s'affiche que sur le filtre « À venir » : ailleurs,
+     compter les permanences incomplètes n'a pas de sens. Il compte ce qui est
+     à l'écran, donc la page courante — d'où le « sur cette page » quand la
+     liste déborde, pour ne pas faire passer un décompte partiel pour un total. */
   const understaffed = filter === 'upcoming' ? shifts.filter(shift => !shift.isFull).length : 0;
+  const partial = pagination.totalPages > 1;
 
   return (
     <div className="admin-shifts">
@@ -122,7 +134,7 @@ export default function AdminPermanencesPage() {
         <div className="notice-band admin-shifts-band">
           <span className="notice-band-dot" />
           <span className="notice-band-text">
-            {understaffed} {plural(understaffed, 'permanence à venir cherche', 'permanences à venir cherchent')} encore des bénévoles.
+            {understaffed} {plural(understaffed, 'permanence à venir cherche', 'permanences à venir cherchent')} encore des bénévoles{partial ? ' sur cette page' : ''}.
           </span>
         </div>
       )}
@@ -134,16 +146,16 @@ export default function AdminPermanencesPage() {
               key={item.key}
               type="button"
               className={`admin-pill ${filter === item.key ? 'admin-pill-active' : ''}`}
-              onClick={() => setFilter(item.key)}
+              onClick={() => changeFilter(item.key)}
             >
               {item.label}
             </button>
           ))}
         </div>
         <span className="admin-toolbar-count">
-          {shifts.length < total
-            ? `${shifts.length} affichées sur ${total}`
-            : `${total} ${plural(total, 'permanence', 'permanences')}`}
+          {shifts.length < pagination.total
+            ? `${shifts.length} affichées sur ${pagination.total}`
+            : `${pagination.total} ${plural(pagination.total, 'permanence', 'permanences')}`}
         </span>
       </div>
 
@@ -250,6 +262,12 @@ export default function AdminPermanencesPage() {
           })}
         </div>
       )}
+
+      <AdminPagination
+        page={pagination.page}
+        totalPages={pagination.totalPages}
+        onPageChange={setPage}
+      />
 
       {editing && (
         <ShiftModal shift={editing.id ? editing : null} onClose={closeModal} />

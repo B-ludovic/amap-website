@@ -80,7 +80,7 @@ export default function SubscriptionRequestModal({ request, onClose }) {
     <div className="modal-overlay" onClick={() => onClose(false)}>
       <div className="modal modal-lg" ref={containerRef} role="dialog" aria-modal="true" aria-labelledby="modal-title-sub-request" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2 id="modal-title-sub-request">Demande d'abonnement</h2>
+          <h2 id="modal-title-sub-request">Demande d’abonnement</h2>
           <button className="modal-close" onClick={() => onClose(false)}>
             <X size={24} />
           </button>

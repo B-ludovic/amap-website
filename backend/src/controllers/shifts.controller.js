@@ -27,10 +27,13 @@ async function refuseIfClosed(date) {
 
 // RÉCUPÉRER TOUTES LES PERMANENCES
 const getAllShifts = asyncHandler(async (req, res) => {
-  const { upcoming, past, limit = 20 } = req.query;
+  const { upcoming, past, page = 1, limit = 20 } = req.query;
   const now = new Date();
   const isAdmin = req.user.role === 'ADMIN';
+  const parsedPage = Math.max(parseInt(page) || 1, 1);
   const parsedLimit = Math.min(Math.max(parseInt(limit) || 20, 1), 100);
+
+  const skip = (parsedPage - 1) * parsedLimit;
 
   let where = {};
 
@@ -46,6 +49,7 @@ const getAllShifts = asyncHandler(async (req, res) => {
     prisma.shift.count({ where }),
     prisma.shift.findMany({
       where,
+      skip,
       take: parsedLimit,
       include: {
         volunteers: {
@@ -67,9 +71,13 @@ const getAllShifts = asyncHandler(async (req, res) => {
           }
         }
       },
-      orderBy: {
-        distributionDate: upcoming === 'true' ? 'asc' : 'desc'
-      }
+      /* L'`id` départage les dates identiques. Deux permanences peuvent tomber
+         le même jour : sans ce second critère, l'ordre entre elles est libre et
+         une même permanence pourrait apparaître sur deux pages, ou sur aucune. */
+      orderBy: [
+        { distributionDate: upcoming === 'true' ? 'asc' : 'desc' },
+        { id: 'asc' }
+      ]
     })
   ]);
 
@@ -83,8 +91,15 @@ const getAllShifts = asyncHandler(async (req, res) => {
 
   res.json({
     success: true,
-    data: shiftsWithStatus,
-    meta: { total, returned: shiftsWithStatus.length }
+    data: {
+      shifts: shiftsWithStatus,
+      pagination: {
+        total,
+        page: parsedPage,
+        limit: parsedLimit,
+        totalPages: Math.ceil(total / parsedLimit)
+      }
+    }
   });
 });
 

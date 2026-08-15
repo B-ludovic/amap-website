@@ -99,7 +99,7 @@ export default function SubscriptionDetailModal({ subscription, onClose, onUpdat
       <div className="modal modal-lg" ref={containerRef} role="dialog" aria-modal="true" aria-labelledby="modal-title-subscription-detail" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <div>
-            <h2 id="modal-title-subscription-detail">Détails de l'abonnement</h2>
+            <h2 id="modal-title-subscription-detail">Détails de l’abonnement</h2>
             <p className="modal-subtitle">{subscription.subscriptionNumber}</p>
           </div>
           <button className="modal-close" onClick={onClose}>

@@ -96,7 +96,7 @@ export default function RecipesPage() {
                         <div className="empty-state">
                             <ChefHat size={64} aria-hidden="true" />
                             <h3>Aucune recette trouvée</h3>
-                            <p>Essayez avec d'autres termes de recherche</p>
+                            <p>Essayez avec d’autres termes de recherche</p>
                         </div>
                     ) : (
                         <>

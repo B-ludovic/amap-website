@@ -41,7 +41,7 @@ function ForgotPasswordPage() {
               </div>
               <h1 className="auth-title">Email envoyé !</h1>
               <p className="auth-description">
-                Si un compte existe avec l'adresse <strong>{email}</strong>, vous recevrez 
+                Si un compte existe avec l’adresse <strong>{email}</strong>, vous recevrez
                 un email contenant un lien de réinitialisation de votre mot de passe.
               </p>
               <p className="auth-description">

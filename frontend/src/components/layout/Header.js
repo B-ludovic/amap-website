@@ -114,7 +114,7 @@ function Header() {
           {/* Logo */}
           <Link href="/" className="header-logo" onClick={closeMenu}>
             <Image src="/icons/logo.png" alt="Logo Aux P'tits Pois" width={42} height={42} className="logo-icon" />
-            <span className="logo-text">Aux P'tits Pois</span>
+            <span className="logo-text">Aux P&apos;tits Pois</span>
           </Link>
 
           {/* Navigation desktop */}
@@ -192,7 +192,7 @@ function Header() {
           <div className="mobile-menu-header">
             <Link href="/" className="mobile-logo" onClick={closeMenu}>
               <Image src="/icons/logo.png" alt="Logo Aux P'tits Pois" width={32} height={32} className="logo-icon" />
-              <span className="logo-text">Aux P'tits Pois</span>
+              <span className="logo-text">Aux P&apos;tits Pois</span>
             </Link>
           </div>
           <nav className="mobile-nav">

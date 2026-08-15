@@ -57,7 +57,7 @@ export default function ContractModal({ subscription, onClose }) {
           <div className="contract-modal-header-title">
             <FileText size={20} />
             <div>
-              <h2 id="modal-title-contract">Contrat d'abonnement</h2>
+              <h2 id="modal-title-contract">Contrat d’abonnement</h2>
               <p className="modal-subtitle">{subscription.subscriptionNumber}</p>
             </div>
           </div>

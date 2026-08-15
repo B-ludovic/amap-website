@@ -78,7 +78,7 @@ export default function ProducerInquiryModal({ inquiry, onClose }) {
             </h3>
             <div className="detail-grid">
               <div className="detail-item">
-                <span className="detail-label">Nom de l'exploitation</span>
+                <span className="detail-label">Nom de l’exploitation</span>
                 <span className="detail-value">{inquiry.farmName}</span>
               </div>
               <div className="detail-item">
@@ -213,7 +213,7 @@ export default function ProducerInquiryModal({ inquiry, onClose }) {
                 <span className="badge badge-warning">En attente de traitement</span>
               )}
               {inquiry.status === 'IN_PROGRESS' && (
-                <span className="badge badge-info">En cours d'évaluation</span>
+                <span className="badge badge-info">En cours d’évaluation</span>
               )}
               {inquiry.status === 'ACCEPTED' && (
                 <span className="badge badge-success">Acceptée - Producteur créé</span>
