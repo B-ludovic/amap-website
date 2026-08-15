@@ -12,6 +12,7 @@ import {
   httpStatusCodes
 } from '../utils/httpErrors.js';
 import { logAudit } from '../services/audit.service.js';
+import { createSubscriptionWithNumber } from '../services/subscriptionNumber.service.js';
 import { computeRemainingPickups } from '../utils/subscriptionSchedule.js';
 import {
   computeSubscriptionPrice,
@@ -115,20 +116,6 @@ const stampsFor = (status, payment, now) => ({
   FAILED: { paidAt: null },
   RETURNED: { depositedAt: null, paidAt: null }
 }[status]);
-
-// Générer un numéro d'abonnement unique
-const generateSubscriptionNumber = async () => {
-  const year = new Date().getFullYear();
-  const count = await prisma.subscription.count({
-    where: {
-      subscriptionNumber: {
-        startsWith: `SUB-${year}-`
-      }
-    }
-  });
-  const number = (count + 1).toString().padStart(3, '0');
-  return `SUB-${year}-${number}`;
-};
 
 // GRILLE TARIFAIRE (PUBLIC)
 // Le formulaire d'abonnement affichait sa propre copie des prix, qui a fini par
@@ -392,13 +379,10 @@ const createSubscription = asyncHandler(async (req, res) => {
     throw new HttpNotFoundError('Point de retrait introuvable');
   }
 
-  // Générer le numéro d'abonnement
-  const subscriptionNumber = await generateSubscriptionNumber();
-
-  const subscription = await prisma.subscription.create({
+  // Le numéro d'abonnement est attribué par le service, au moment de l'insertion.
+  const subscription = await createSubscriptionWithNumber({
     data: {
       userId,
-      subscriptionNumber,
       type,
       basketSize,
       pricingType: pricingType || 'NORMAL',

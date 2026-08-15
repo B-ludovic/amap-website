@@ -9,6 +9,7 @@ import {
   httpStatusCodes
 } from '../utils/httpErrors.js';
 import { logAudit } from '../services/audit.service.js';
+import { createSubscriptionWithNumber } from '../services/subscriptionNumber.service.js';
 import { SubscriptionRequestSchema } from '../utils/validation.schemas.js';
 import { computeSubscriptionPrice, computeEndDate } from '../utils/subscriptionPricing.js';
 
@@ -240,19 +241,7 @@ export const approveAndCreateSubscription = asyncHandler(async (req, res) => {
   const endDate = computeEndDate(request.type, startDate);
   const price = computeSubscriptionPrice(request);
 
-  // 5. Générer le numéro d'abonnement
-  const year = new Date().getFullYear();
-  const count = await prisma.subscription.count({
-    where: {
-      subscriptionNumber: {
-        startsWith: `SUB-${year}-`
-      }
-    }
-  });
-  const number = (count + 1).toString().padStart(3, '0');
-  const subscriptionNumber = `SUB-${year}-${number}`;
-
-  // 6. Récupérer le point de retrait par défaut
+  // 5. Récupérer le point de retrait par défaut
   const pickupLocation = await prisma.pickupLocation.findFirst({
     where: { isActive: true }
   });
@@ -261,11 +250,10 @@ export const approveAndCreateSubscription = asyncHandler(async (req, res) => {
     throw new HttpBadRequestError('Aucun point de retrait actif trouvé');
   }
 
-  // 7. Créer l'abonnement
-  const subscription = await prisma.subscription.create({
+  // 6. Créer l'abonnement — le numéro lui est attribué à l'insertion
+  const subscription = await createSubscriptionWithNumber({
     data: {
       userId: user.id,
-      subscriptionNumber,
       type: request.type,
       basketSize: request.basketSize,
       pricingType: request.pricingType,
@@ -290,7 +278,7 @@ export const approveAndCreateSubscription = asyncHandler(async (req, res) => {
     }
   });
 
-  // 8. Mettre à jour le statut de la demande
+  // 7. Mettre à jour le statut de la demande
   await prisma.subscriptionRequest.update({
     where: { id },
     data: {
@@ -301,7 +289,7 @@ export const approveAndCreateSubscription = asyncHandler(async (req, res) => {
     }
   });
 
-  // 9. Envoyer email de confirmation
+  // 8. Envoyer email de confirmation
   await emailService.sendSubscriptionConfirmation(subscription, user);
 
   await logAudit(req, 'APPROVE_SUBSCRIPTION_REQUEST', 'IMPORTANT', { type: 'SUBSCRIPTION_REQUEST', id, label: user.email }, { subscriptionNumber: subscription.subscriptionNumber });
