@@ -41,6 +41,8 @@ vi.mock('../../src/config/database.js', () => ({
       findMany: async ({ where }) => base.paniers.filter((p) =>
         (where.isPublished === undefined || p.isPublished === where.isPublished)
         && (!where.distributionDate?.gte || p.distributionDate >= where.distributionDate.gte)
+        // « notifyingSince: { not: null } » : une boucle commencée, jamais close.
+        && (where.notifyingSince?.not !== null || p.notifyingSince !== null)
       ),
 
       update: async ({ where, data }) => {
@@ -239,6 +241,18 @@ describe('La reprise après un processus mort', () => {
      « voici ce que vous aurez mercredi » n'annonce plus rien. */
   it('n\'annonce pas un panier dont la distribution a eu lieu', async () => {
     poserBase({ distributionDate: ilYA(24 * HEURES), notifyingSince: ilYA(3 * HEURES) });
+
+    await reprendreNotificationsPaniers();
+
+    expect(envois).toHaveLength(0);
+  });
+
+  /* Le piège de la mise en service : un panier publié avant que ce mécanisme
+     existe n'a aucune trace dans EmailLog, et sa distribution peut être encore
+     à venir. Le prendre pour une boucle interrompue le renotifierait en entier.
+     Son drapeau nul dit qu'aucune boucle n'a jamais commencé ici. */
+  it('ignore un panier publié avant que la reprise existe', async () => {
+    poserBase({ notifyingSince: null, traces: [] });
 
     await reprendreNotificationsPaniers();
 

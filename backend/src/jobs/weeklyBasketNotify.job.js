@@ -34,9 +34,18 @@ const itemsInclude = {
 
 export async function reprendreNotificationsPaniers() {
   try {
+    /* notifyingSince non nul est la condition qui compte : c'est la marque
+       d'une boucle commencée et jamais terminée. Une boucle qui va au bout
+       relâche le drapeau, et le panier sort d'ici pour toujours.
+
+       Sans elle, tout panier publié dont la distribution est à venir serait
+       candidat — y compris ceux publiés avant que ce mécanisme existe, qui
+       n'ont aucune trace dans EmailLog et à qui la reprise réécrirait
+       intégralement. C'est ce qui serait arrivé à la mise en service. */
     const candidats = await prisma.weeklyBasket.findMany({
       where: {
         isPublished: true,
+        notifyingSince: { not: null },
         distributionDate: { gte: new Date() },
       },
       include: itemsInclude,
