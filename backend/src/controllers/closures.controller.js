@@ -14,6 +14,7 @@ import {
 } from '../utils/closurePeriod.js';
 import { formatDateFR } from '../services/closure.service.js';
 import { resolveNewsletterRecipients } from '../services/newsletterAudience.service.js';
+import { EMAIL_PALETTE } from '../services/emailTheme.js';
 import { logAudit } from '../services/audit.service.js';
 
 /* Le motif est écrit par un administrateur, mais il finit dans un e-mail : on
@@ -46,22 +47,28 @@ const escapeHtml = (value) => String(value)
    en une seule ligne pour ne rien donner à convertir, et stylé en ligne. Les
    styles en ligne ne sont pas un pis-aller ici, c'est la règle du courrier
    électronique : une bonne partie des clients de messagerie ignorent ou retirent
-   les blocs <style>, et celui-ci était de toute façon supprimé avant l'envoi. */
+   les blocs <style>, et celui-ci était de toute façon supprimé avant l'envoi.
+
+   Les couleurs viennent d'EMAIL_PALETTE et non de valeurs écrites ici : le
+   fragment reste autonome — il s'affiche même si le client de messagerie jette
+   la feuille de style du gabarit — sans pour autant devenir un endroit de plus
+   où la charte peut dériver. */
 function buildClosureEmailHtml(startDate, endDate, reason, isUpdate) {
   const start = formatDateFR(startDate);
   const end = formatDateFR(endDate);
-  const title = isUpdate ? 'Fermeture de l\'AMAP — dates modifiées' : 'Fermeture de l\'AMAP';
+  /* Pas de titre dans le fragment : le gabarit coiffe désormais le message avec
+     le sujet de la newsletter, qui dit déjà « Fermeture de l'AMAP du … au … ».
+     Un titre ici le répéterait deux lignes plus bas. */
   const lead = isUpdate
     ? 'Les dates de fermeture annoncées précédemment ont changé.'
     : 'Bonjour,';
 
-  const highlight = 'background:#fef9c3;border-left:4px solid #ca8a04;padding:12px 16px;border-radius:4px;margin:0 0 16px;';
+  const highlight = `background:${EMAIL_PALETTE.sand};border-left:3px solid ${EMAIL_PALETTE.terracotta};padding:16px 20px;border-radius:0 4px 4px 0;margin:0 0 16px;`;
   const motif = reason
-    ? `<p style="color:#374151;margin:0 0 16px;"><strong>Motif :</strong> ${escapeHtml(reason)}</p>`
+    ? `<p style="color:${EMAIL_PALETTE.textSecondary};margin:0 0 16px;"><strong>Motif :</strong> ${escapeHtml(reason)}</p>`
     : '';
 
   return [
-    `<h2 style="color:#166534;margin:0 0 16px;font-size:20px;">${title}</h2>`,
     `<p style="margin:0 0 16px;">${lead}</p>`,
     `<div style="${highlight}">`,
     `<p style="margin:0;">L'AMAP sera <strong>fermée du ${start} au ${end}</strong>.`,
