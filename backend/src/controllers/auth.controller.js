@@ -10,7 +10,7 @@ import {
   HttpNotFoundError,
   httpStatusCodes,
 } from '../utils/httpErrors.js';
-import { normalizeFirstName, normalizeLastName, normalizeTitleCase } from '../utils/normalize.js';
+import { normalizeFirstName, normalizeLastName, normalizeTitleCase, normalizeEmail } from '../utils/normalize.js';
 import { PasswordSchema, RegisterSchema } from '../utils/validation.schemas.js';
 import { logAudit } from '../services/audit.service.js';
 
@@ -108,7 +108,7 @@ const login = asyncHandler(async (req, res) => {
     }
 
     // Trouver l'utilisateur par email
-    const user = await prisma.user.findUnique({ where: { email: email.trim().toLowerCase() } });
+    const user = await prisma.user.findUnique({ where: { email: normalizeEmail(email) } });
     if (!user) {
         throw new HttpUnauthorizedError('Email ou mot de passe incorrect.');
     }
@@ -219,7 +219,7 @@ const resendConfirmationEmail = asyncHandler(async (req, res) => {
         throw new HttpBadRequestError('Email est requis.');
     }
 
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.user.findUnique({ where: { email: normalizeEmail(email) } });
 
     // Ne pas révéler si l'utilisateur existe ou non
     if (!user || user.emailVerified) {
@@ -275,8 +275,8 @@ const forgotPassword = asyncHandler(async (req, res) => {
         throw new HttpBadRequestError('Email est requis.');
     }
 
-    const user = await prisma.user.findUnique({ where: { email } });
-    
+    const user = await prisma.user.findUnique({ where: { email: normalizeEmail(email) } });
+
     // Ne pas révéler si l'utilisateur existe ou non (sécurité)
     if (!user) {
         return res.json({

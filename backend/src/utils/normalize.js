@@ -26,4 +26,11 @@ const normalizeTitleCase = (str) => {
     .join(' ');
 };
 
-export { normalizeFirstName, normalizeLastName, normalizeTitleCase };
+// Normalise un email : sans espaces autour, tout en minuscules.
+// RegisterSchema écrit déjà l'email sous cette forme en base ; toute lecture par
+// email doit donc appliquer exactement la même transformation, sinon un clavier
+// de téléphone qui met une majuscule automatique suffit à ne plus trouver le compte.
+
+const normalizeEmail = (str) => String(str ?? '').trim().toLowerCase();
+
+export { normalizeFirstName, normalizeLastName, normalizeTitleCase, normalizeEmail };
