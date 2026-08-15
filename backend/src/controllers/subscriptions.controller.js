@@ -60,63 +60,6 @@ const generateSubscriptionNumber = async () => {
   return `SUB-${year}-${number}`;
 };
 
-// SOUMETTRE UNE DEMANDE D'ABONNEMENT (PUBLIC)
-const submitSubscriptionRequest = asyncHandler(async (req, res) => {
-  const {
-    firstName,
-    lastName,
-    email,
-    phone,
-    type,
-    basketSize,
-    pricingType,
-    message
-  } = req.body;
-
-  // Validation
-  if (!firstName || !lastName || !email || !phone || !type || !basketSize) {
-    throw new HttpBadRequestError('Tous les champs obligatoires doivent être remplis');
-  }
-
-  if (!z.string().email().safeParse(email).success) {
-    throw new HttpBadRequestError('Email invalide');
-  }
-
-  // Vérifier que l'utilisateur n'a pas déjà une demande en attente
-  const existingRequest = await prisma.subscriptionRequest.findFirst({
-    where: {
-      email,
-      status: 'PENDING'
-    }
-  });
-
-  if (existingRequest) {
-    throw new HttpConflictError('Vous avez déjà une demande en attente');
-  }
-
-  const request = await prisma.subscriptionRequest.create({
-    data: {
-      firstName,
-      lastName,
-      email,
-      phone,
-      type,
-      basketSize,
-      pricingType: pricingType || 'NORMAL',
-      message
-    }
-  });
-
-  // TODO: Envoyer email de confirmation au demandeur
-  // TODO: Notifier les admins
-
-  res.status(httpStatusCodes.CREATED).json({
-    success: true,
-    message: 'Votre demande a été envoyée avec succès. Nous vous recontacterons rapidement pour finaliser votre inscription.',
-    data: request
-  });
-});
-
 // RÉCUPÉRER TOUTES LES DEMANDES D'ABONNEMENT (ADMIN)
 const getSubscriptionRequests = asyncHandler(async (req, res) => {
   const { status, page = 1, limit = 20 } = req.query;
@@ -814,7 +757,6 @@ export {
   pauseSubscription,
   resumeSubscription,
   getMySubscription,
-  submitSubscriptionRequest,
   getSubscriptionRequests,
   getSubscriptionStats,
   generateContractFromSubscription
