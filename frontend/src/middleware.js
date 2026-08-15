@@ -25,6 +25,38 @@ export function middleware(request) {
     ...(isProd ? ["upgrade-insecure-requests"] : []),
   ].join('; ');
 
+  /* CE MIDDLEWARE NE GARDE AUCUNE ROUTE, ET C'EST DÉLIBÉRÉ.
+
+     /admin n'est pas filtré ici. Le contrôle d'accès est côté API — authMiddleware
+     puis adminOnly sur /api/admin/* — et il doit y rester : le navigateur ne
+     décide pas qui est administrateur. Un visiteur non authentifié qui ouvre
+     /admin/utilisateurs reçoit une coquille sans données, ses appels repartent en
+     401, et AdminLayoutClient le redirige. Rien ne fuit.
+
+     La tentation, à la lecture, est d'ajouter ici un test de confort du genre :
+
+       if (pathname.startsWith('/admin') && !request.cookies.has('authToken'))
+         return NextResponse.redirect(new URL('/auth/login', request.url));
+
+     Ne pas le faire sans changer autre chose d'abord. Le cookie d'authentification
+     est posé par l'API sans attribut Domain — vérifié sur l'en-tête Set-Cookie
+     réellement émis —, il est donc host-only : il appartient à api.auxptitspois.fr
+     et n'est jamais envoyé à auxptitspois.fr, où tourne ce middleware. Le test
+     ci-dessus serait donc toujours faux en production et redirigerait les
+     administrateurs vers la page de connexion en boucle, /admin devenant
+     inaccessible.
+
+     Le piège est qu'il fonctionne parfaitement en local : le front est sur
+     localhost:3000, l'API sur localhost:4000, et les cookies ignorent le port —
+     même hôte, donc cookie visible. C'est le scénario « ça marche chez moi » dans
+     sa forme la plus coûteuse, puisqu'il ne casse qu'une fois déployé.
+
+     Deux voies si le confort devient nécessaire : donner au cookie une portée de
+     domaine (domain: '.auxptitspois.fr'), ce qui l'expose alors à tous les
+     sous-domaines et se décide en connaissance de cause ; ou servir l'API sous le
+     même hôte que le front via des rewrites Next. Dans les deux cas, cela reste un
+     confort d'affichage, jamais un contrôle d'accès. */
+
   // Seul x-nonce a besoin d'être transmis au rendu : la CSP est un en-tête de
   // réponse, la poser sur la requête n'a aucun effet.
   const requestHeaders = new Headers(request.headers);
