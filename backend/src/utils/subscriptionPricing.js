@@ -27,6 +27,56 @@ const TYPE_LABEL = { ANNUAL: 'Annuel', DISCOVERY: 'Découverte' };
    pour qu'aucune erreur de représentation flottante n'atteigne un contrat. */
 const toCents = (value) => Number(value.toFixed(2));
 
+/* ÉCRITURE DES MONTANTS
+
+   La façon d'écrire un prix appartient à la grille au même titre que le prix
+   lui-même : c'est la même phrase que l'adhérent lit sur le formulaire puis
+   relit sur le contrat qu'il signe, et deux règles d'écriture vivant chacune de
+   leur côté finissent par produire deux phrases pour un seul montant.
+
+   Écrite à la main plutôt que déléguée à Intl : Node et les navigateurs ne
+   choisissent pas les mêmes caractères d'espace, si bien que le même nombre
+   s'écrirait différemment selon l'endroit où il est rendu. Le formulaire public
+   applique déjà cette interdiction, pour la même raison.
+
+   Les espaces sont insécables, et posées en échappement plutôt que collées
+   telles quelles : un caractère invisible dans la source est un caractère qu'on
+   perd à la première copie. Elles empêchent le symbole €, comme une tranche de
+   milliers, de partir seul à la ligne. */
+const NBSP = '\u00A0';
+
+const groupThousands = (value) => value.replace(/\B(?=(\d{3})+(?!\d))/g, NBSP);
+
+/* « 19 », « 29,80 », « 1 460,20 » — virgule décimale, milliers séparés, et pas
+   de décimales inutiles sur un montant rond. */
+export function formatEuro(value) {
+  const [whole, cents] = Number(value).toFixed(2).split('.');
+  const grouped = groupThousands(whole);
+
+  return cents === '00' ? grouped : `${grouped},${cents}`;
+}
+
+export const euroAmount = (value) => `${formatEuro(value)}${NBSP}€`;
+
+/* Énoncé d'un échelonnement : « 3 chèques de 365 € et 1 chèque de 365,20 € ».
+   Les chèques de même montant sont regroupés, si bien que seul le dernier se
+   détache lorsqu'il porte réellement un reliquat — quatre chèques identiques
+   s'annoncent « 4 chèques de 57 € » et non « 3 puis 1 » —, et qu'un règlement en
+   une fois donne simplement « 1 chèque de 292,04 € ». */
+export function formatInstallments(amounts) {
+  const groups = [];
+
+  for (const amount of amounts) {
+    const previous = groups[groups.length - 1];
+    if (previous && previous.amount === amount) previous.count += 1;
+    else groups.push({ amount, count: 1 });
+  }
+
+  return groups
+    .map(({ amount, count }) => `${count} chèque${count > 1 ? 's' : ''} de ${euroAmount(amount)}`)
+    .join(' et ');
+}
+
 export function computeSubscriptionPrice({ type, basketSize, pricingType = 'NORMAL' }) {
   const weekly = WEEKLY_PRICE[basketSize];
   const weeks = DELIVERED_WEEKS[type];
@@ -72,9 +122,18 @@ export function splitPayment(price, paymentType = '1') {
   return [toCents(price)];
 }
 
-/* Les trois ventilations possibles d'un même montant, indexées par modalité. */
+/* Les trois ventilations possibles d'un même montant, indexées par modalité.
+
+   Chacune porte les montants et leur énoncé. Le texte n'est pas un confort
+   d'affichage : c'est la phrase exacte que le contrat imprimera, envoyée telle
+   quelle au formulaire pour que l'adhérent lise à l'écran ce qu'il relira sur le
+   papier. La recomposer dans le navigateur rouvrirait l'écart qu'on vient de
+   fermer, cette fois sur les mots et non sur les nombres. */
 const installmentsFor = (price) => Object.fromEntries(
-  PAYMENT_TYPES.map((paymentType) => [paymentType, splitPayment(price, paymentType)])
+  PAYMENT_TYPES.map((paymentType) => {
+    const amounts = splitPayment(price, paymentType);
+    return [paymentType, { amounts, text: formatInstallments(amounts) }];
+  })
 );
 
 /* Grille complète, telle que le formulaire public et l'administration doivent

@@ -3,37 +3,20 @@ import handlebars from 'handlebars';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { WEEKLY_PRICE, DELIVERED_WEEKS, splitPayment } from '../utils/subscriptionPricing.js';
-
-/* Écriture française d'un montant, telle qu'elle figurait en dur dans le
-   gabarit : « 19 » sans décimale inutile, « 29,80 » avec la virgule. */
-const formatEuro = (value) => (
-  Number.isInteger(value) ? String(value) : value.toFixed(2).replace('.', ',')
-);
-
-/* Insécable écrite en échappement et non collée telle quelle dans la source :
-   un caractère invisible dans le code est un caractère qu'on finit par perdre à
-   la première copie. Elle empêche le symbole € de partir seul à la ligne. */
-const NBSP = '\u00A0';
-const euroAmount = (value) => `${formatEuro(value)}${NBSP}€`;
-
-/* Énoncé d'un échelonnement en toutes lettres : « 3 chèques de 73 € et 1 chèque
-   de 73,04 € ». Les chèques de même montant sont regroupés, si bien que seul le
-   dernier se détache lorsqu'il porte le reliquat, et qu'un règlement en une
-   fois donne simplement « 1 chèque de 292,04 € ». */
-const formatInstallments = (amounts) => {
-  const groups = [];
-
-  for (const amount of amounts) {
-    const previous = groups[groups.length - 1];
-    if (previous && previous.amount === amount) previous.count += 1;
-    else groups.push({ amount, count: 1 });
-  }
-
-  return groups
-    .map(({ amount, count }) => `${count} chèque${count > 1 ? 's' : ''} de ${euroAmount(amount)}`)
-    .join(' et ');
-};
+/* Le PDF ne sait ni calculer un prix, ni le découper en chèques, ni l'écrire :
+   il importe les trois de la grille tarifaire et se contente d'imprimer. C'est
+   ce qui garantit que le contrat signé et le formulaire public énoncent le même
+   montant avec les mêmes mots — ces règles vivaient ici, dans le service qui
+   fabrique le PDF, elles ne pouvaient donc pas servir au navigateur, qui en
+   tenait forcément sa propre version. */
+import {
+  WEEKLY_PRICE,
+  DELIVERED_WEEKS,
+  splitPayment,
+  formatEuro,
+  euroAmount,
+  formatInstallments,
+} from '../utils/subscriptionPricing.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

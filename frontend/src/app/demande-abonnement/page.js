@@ -36,31 +36,6 @@ function SubscriptionRequestPage() {
     message: ''
   });
 
-  /* Mise en forme d'une ventilation reçue du serveur : « 3 × 365,00 € + 1 ×
-     365,20 € ». Les chèques de même montant sont regroupés, si bien que seul
-     celui qui porte le reliquat se détache.
-
-     Le calcul, lui, n'est plus fait ici. Cette page avait sa propre règle
-     d'arrondi, écrite dans le navigateur, à côté de celle du serveur qui
-     imprime le contrat. Les deux tombaient juste, mais par accord tacite : rien
-     n'obligeait la copie du navigateur à suivre l'autre si elle changeait. Or
-     c'est le même nombre que l'adhérent lit ici puis recopie sur son chèque.
-
-     Montants passés par euro() : la grille renvoie des flottants, et un grand
-     panier annuel s'affichait « 1460.2 € » — point décimal anglais et centime
-     tronqué. */
-  const formatBreakdown = (amounts) => {
-    if (amounts.length === 1) return euro(amounts[0]);
-
-    const groups = [];
-    for (const amount of amounts) {
-      const previous = groups[groups.length - 1];
-      if (previous && previous.amount === amount) previous.count += 1;
-      else groups.push({ amount, count: 1 });
-    }
-
-    return groups.map(({ amount, count }) => `${count} × ${euro(amount)}`).join(' + ');
-  };
 
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
@@ -128,7 +103,15 @@ function SubscriptionRequestPage() {
     ? (isSolidarity ? currentSubscription.priceSolidarity : currentSubscription.price)
     : null;
 
-  /* Les chèques de la modalité choisie, tels que le serveur les a découpés. */
+  /* La modalité choisie, telle que le serveur l'a découpée et rédigée.
+
+     Cette page n'écrit plus elle-même l'échelonnement. Elle en tenait sa propre
+     version — d'abord le calcul, puis la mise en forme — pendant que le serveur
+     en tenait une autre pour le contrat PDF. Les deux tombaient juste, mais
+     rédigeaient différemment : « 3 × 365,00 € + 1 × 365,20 € » à l'écran contre
+     « 3 chèques de 365 € et 1 chèque de 365,20 € » sur le papier. C'est le même
+     engagement, lu à deux minutes d'intervalle par la même personne : il n'y a
+     aucune raison qu'il change de mots en chemin. */
   const displayedInstallments = (isSolidarity
     ? currentSubscription?.installmentsSolidarity
     : currentSubscription?.installments)?.[formData.paymentType] ?? null;
@@ -403,7 +386,7 @@ function SubscriptionRequestPage() {
                   {errors.paymentType && <span className="field-error">{errors.paymentType}</span>}
                   {displayedInstallments && (
                     <p className="subrequest-breakdown">
-                      {formatBreakdown(displayedInstallments)}
+                      {displayedInstallments.text}
                     </p>
                   )}
                 </div>
