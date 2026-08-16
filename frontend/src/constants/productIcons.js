@@ -61,10 +61,11 @@ const PRODUCT_ICONS = [
   ['nectarine', '/icons/peche.svg'],
   ['abricot', '/icons/peche.svg'],
   ['melon', '/icons/melon.svg'],
-  ['pasteque', '/icons/melon.svg'],
+  ['pasteque', '/icons/pasteque.svg'],
+  ['kiwi', '/icons/kiwi.svg'],
   ['citron', '/icons/citron.svg'],
-  ['clementine', '/icons/orange.svg'],
-  ['mandarine', '/icons/orange.svg'],
+  ['clementine', '/icons/mandarine.svg'],
+  ['mandarine', '/icons/mandarine.svg'],
   ['orange', '/icons/orange.svg'],
   ['banane', '/icons/banane.svg'],
   ['mangue', '/icons/mangue.svg'],
@@ -73,6 +74,10 @@ const PRODUCT_ICONS = [
   ['grenade', '/icons/grenade.svg'],
   ['noisette', '/icons/noisette.svg'],
   ['cacahuete', '/icons/cacahuete.svg'],
+  /* En dernier, et pas ailleurs : « poivron corne de bœuf » se normalise en
+     « poivron corne de boeuf », qui contient « oeuf ». Placé avant « poivron »,
+     ce motif coifferait le poivron d'un œuf. */
+  ['oeuf', '/icons/oeuf.svg'],
 ];
 
 // « Œufs fermiers » → « oeufs fermiers » : minuscules, sans accent ni tiret
