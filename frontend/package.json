@@ -8,6 +8,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "postinstall": "node scripts/copy-orejime.js"
   },
   "dependencies": {
@@ -25,7 +27,8 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.6",
     "eslint": "^9",
-    "eslint-config-next": "^15"
+    "eslint-config-next": "^15",
+    "vitest": "^4.1.10"
   },
   "overrides": {
     "postcss": "^8.5.26",

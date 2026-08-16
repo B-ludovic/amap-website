@@ -108,6 +108,19 @@ async function RootLayout({ children }) {
   const headersList = await headers();
   const nonce = headersList.get('x-nonce') ?? '';
 
+  /* Le middleware pose cet en-tête quand il réécrit la requête vers la porte
+     d'invitation. L'URL demandée n'ayant pas bougé, usePathname ne peut pas
+     distinguer ce cas : c'est l'en-tête qui le dit. La coquille se réduit alors
+     à la modale — ni navigation, ni pied de page, ni bandeau de cookies à
+     accepter avant d'avoir seulement vu le site. */
+  if (headersList.get('x-invite-gate') === '1') {
+    return (
+      <html lang="fr" className={fontVariables}>
+        <body>{children}</body>
+      </html>
+    );
+  }
+
   return (
     <html lang="fr" className={fontVariables}>
       <body>

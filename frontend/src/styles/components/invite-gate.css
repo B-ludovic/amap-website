@@ -1,0 +1,47 @@
+/* Porte d'invitation — même panneau que la modale générique, posé sur une page
+   vide : le voile n'a rien à flouter, il porte donc le fond lui-même. */
+
+.invite-gate-overlay {
+  background-color: var(--text-primary);
+  background-image: radial-gradient(120% 90% at 50% 0%, #2E3630 0%, #1F2421 62%);
+  backdrop-filter: none;
+}
+
+.invite-gate {
+  max-width: 440px;
+}
+
+.invite-gate-head {
+  text-align: center;
+  padding: var(--spacing-xl) var(--spacing-xl) var(--spacing-lg);
+}
+
+.invite-gate-head img {
+  margin-bottom: var(--spacing-md);
+}
+
+.invite-gate-head .modal-title {
+  margin-bottom: var(--spacing-sm);
+}
+
+.invite-gate-form {
+  display: grid;
+  gap: var(--spacing-md);
+  padding: 0 var(--spacing-xl) var(--spacing-xl);
+}
+
+.invite-gate-submit {
+  width: 100%;
+  height: 46px;
+  margin-top: var(--spacing-xs);
+}
+
+@media (max-width: 480px) {
+  .invite-gate-head {
+    padding: var(--spacing-lg) var(--spacing-lg) var(--spacing-md);
+  }
+
+  .invite-gate-form {
+    padding: 0 var(--spacing-lg) var(--spacing-lg);
+  }
+}

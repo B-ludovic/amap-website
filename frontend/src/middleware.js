@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server';
+import { INVITE_COOKIE, readInviteConfig, readInviteToken } from './lib/inviteGate';
 
-export function middleware(request) {
+// La page rewritée par la porte et le point d'entrée qui la déverrouille.
+const GATE_PAGE = '/invitation';
+const GATE_ENDPOINT = '/api/invitation';
+
+export async function middleware(request) {
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64');
 
   const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
@@ -25,7 +30,7 @@ export function middleware(request) {
     ...(isProd ? ["upgrade-insecure-requests"] : []),
   ].join('; ');
 
-  /* CE MIDDLEWARE NE GARDE AUCUNE ROUTE, ET C'EST DÉLIBÉRÉ.
+  /* CE MIDDLEWARE NE GARDE QUE LA PORTE D'INVITATION.
 
      /admin n'est pas filtré ici. Le contrôle d'accès est côté API — authMiddleware
      puis adminOnly sur /api/admin/* — et il doit y rester : le navigateur ne
@@ -55,16 +60,40 @@ export function middleware(request) {
      domaine (domain: '.auxptitspois.fr'), ce qui l'expose alors à tous les
      sous-domaines et se décide en connaissance de cause ; ou servir l'API sous le
      même hôte que le front via des rewrites Next. Dans les deux cas, cela reste un
-     confort d'affichage, jamais un contrôle d'accès. */
+     confort d'affichage, jamais un contrôle d'accès.
+
+     Le laissez-passer d'invitation, lui, se vérifie bien ici : il est posé par
+     /api/invitation, servi par le même hôte que ce middleware, donc lisible. */
+
+  const { pathname } = request.nextUrl;
+  const invite = readInviteConfig();
+  let gated = false;
+
+  if (invite.enabled) {
+    const holder = invite.ready
+      ? await readInviteToken(request.cookies.get(INVITE_COOKIE)?.value, invite)
+      : null;
+
+    // Sans ce laissez-passer il faut pouvoir atteindre la porte pour le demander.
+    gated = holder === null && pathname !== GATE_ENDPOINT;
+
+    // Une fois entré, la porte n'a plus rien à montrer.
+    if (holder !== null && pathname === GATE_PAGE) {
+      return NextResponse.redirect(new URL('/', request.url));
+    }
+  }
 
   // Seul x-nonce a besoin d'être transmis au rendu : la CSP est un en-tête de
   // réponse, la poser sur la requête n'a aucun effet.
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set('x-nonce', nonce);
+  if (gated) requestHeaders.set('x-invite-gate', '1');
 
-  const response = NextResponse.next({
-    request: { headers: requestHeaders },
-  });
+  const init = { request: { headers: requestHeaders } };
+  const response = gated
+    ? NextResponse.rewrite(new URL(GATE_PAGE, request.url), init)
+    : NextResponse.next(init);
+
   response.headers.set('Content-Security-Policy', csp);
   response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
   response.headers.set('Cross-Origin-Opener-Policy', 'same-origin');
@@ -75,14 +104,13 @@ export function middleware(request) {
   return response;
 }
 
+/* Le matcher excluait auparavant les requêtes de préchargement du routeur, pour
+   ne pas leur calculer une CSP dont elles n'ont pas l'usage. La porte d'invitation
+   interdit cette exclusion : un préchargement rapporte la charge utile RSC de la
+   page, en-têtes Next-Router-Prefetch et RSC qu'un simple curl peut poser. La
+   dispense d'en-tête devenait une dispense de mot de passe. */
 export const config = {
   matcher: [
-    {
-      source: '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|gif|webp|svg|ico|css|js|woff|woff2)$).*)',
-      missing: [
-        { type: 'header', key: 'next-router-prefetch' },
-        { type: 'header', key: 'purpose', value: 'prefetch' },
-      ],
-    },
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|gif|webp|svg|ico|css|js|woff|woff2)$).*)',
   ],
 };

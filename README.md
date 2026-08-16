@@ -249,11 +249,79 @@ PUPPETEER_DISABLE_SANDBOX= # « true » seulement si Chromium refuse de démarre
 ```
 NEXT_PUBLIC_API_URL=https://api.auxptitspois.fr/api
 NEXT_PUBLIC_GA_ID=...          # ID Google Analytics (ex: G-XXXXXXXXXX)
+
+# Ouverture sur invitation — les trois ensemble, ou aucune (voir ci-dessous)
+INVITE_EMAILS=bureau@auxptitspois.fr,tresorerie@auxptitspois.fr
+INVITE_PASSWORD=...            # mot de passe commun aux invités
+INVITE_SECRET=...              # clé de signature du laissez-passer (openssl rand -hex 32)
 ```
 
 > Le cookie d'authentification est posé en `SameSite=Lax`. Une prévisualisation Vercel sur `*.vercel.app` est donc cross-site par rapport à l'API et perd la session : seuls les domaines listés dans les origines CORS (`auxptitspois.fr`, `www.auxptitspois.fr`, `FRONTEND_URL`, `localhost`) sont authentifiables.
 
 > Sur Render en version gratuite, le backend se met en veille après 15 min d'inactivité. Première requête un peu lente, c'est normal.
+
+### Ouverture sur invitation
+
+Le site peut être mis en ligne sans être ouvert au public. Une porte se referme
+alors devant toutes les URL : tant qu'elle n'est pas franchie, aucune page du
+site n'est ni rendue ni envoyée au navigateur.
+
+```
+   requête sur n'importe quelle URL
+              │
+              ▼
+      middleware.js ─── cookie « inviteAccess » présent, signé, non périmé,
+              │         et adresse toujours sur la liste ?
+              │
+       non ───┴─── oui
+        │            └──► la page demandée, telle quelle
+        ▼
+   réécriture vers /invitation
+   (l'URL affichée ne bouge pas)
+        │
+        ▼
+   modale « Accès sur invitation »
+        │  POST /api/invitation  { email, mot de passe }
+        ▼
+   pose du cookie signé, valable 30 jours
+        │
+        ▼
+   rechargement : le middleware laisse passer
+```
+
+Trois variables commandent l'ensemble, et c'est **la seule présence
+d'`INVITE_EMAILS` qui ouvre ou ferme la porte** :
+
+| Variable | Rôle |
+|---|---|
+| `INVITE_EMAILS` | Adresses invitées, séparées par des virgules. Absente ou vide : le site est public, la porte n'existe pas. |
+| `INVITE_PASSWORD` | Le mot de passe, commun à tous les invités. |
+| `INVITE_SECRET` | La clé qui signe le laissez-passer. `openssl rand -hex 32`. |
+
+Poser la liste sans le mot de passe ou sans le secret **ferme** le site au lieu
+de l'ouvrir : une configuration à moitié faite ne laisse entrer personne, et la
+porte le dit franchement plutôt que de s'effacer.
+
+Pour ouvrir le site à tous le jour du lancement, il suffit de supprimer
+`INVITE_EMAILS` sur Vercel et de redéployer. Rien d'autre à défaire : `robots.txt`
+et `sitemap.xml`, eux aussi réécrits vers la porte tant qu'elle est fermée,
+redeviennent normaux d'eux-mêmes.
+
+Retirer une adresse de la liste coupe son accès à la requête suivante, sans
+attendre les 30 jours : l'appartenance à la liste est revérifiée à chaque
+passage, pas seulement au moment de l'entrée.
+
+Deux limites à connaître :
+
+- La porte garde les **pages**, pas les fichiers déjà publics — images, polices,
+  bundles JavaScript compilés. Ce sont des ressources sans données ; le contenu
+  du site, lui, ne part jamais.
+- Le lien de désabonnement des newsletters (`/desabonnement`, présent dans chaque
+  message et dans l'en-tête `List-Unsubscribe`) passe **aussi** par la porte.
+  Tant que les seuls destinataires sont les invités, c'est sans conséquence. Avant
+  d'écrire à des adhérents qui n'ont pas le mot de passe, il faut rouvrir ce
+  chemin — sans quoi la désinscription devient impossible, ce qui est un
+  manquement au RGPD et abîme la réputation d'envoi.
 
 ### Retours du relais (webhook Brevo)
 
