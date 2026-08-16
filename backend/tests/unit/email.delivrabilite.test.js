@@ -12,7 +12,13 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { boiteDEnvoi, viderBoite, viderRegistre, dernierMessage } from '../helpers/boiteDEnvoi.js';
 import { messagesSortants } from '../fixtures/messagesSortants.js';
-import { lettreDInformation, annonceDeService, adherente } from '../fixtures/destinataires.js';
+import {
+  lettreDInformation,
+  annonceDeService,
+  adherente,
+  panierHebdomadaire,
+  ligneDeRemise,
+} from '../fixtures/destinataires.js';
 
 vi.mock('nodemailer', async () => (await import('../helpers/boiteDEnvoi.js')).fauxNodemailer);
 vi.mock('../../src/config/database.js', async () => (await import('../helpers/boiteDEnvoi.js')).fausseBase);
@@ -166,6 +172,114 @@ describe('L\'en-tête de désabonnement natif de Gmail', () => {
        messages tant que l'abonnement court. Un bouton « se désabonner » qui ne
        désabonne de rien vaut moins que pas de bouton du tout. */
     expect(dernierMessage().headers).toBeUndefined();
+  });
+});
+
+describe('La ligne de prévisualisation de la boîte de réception', () => {
+  /* Sous le sujet, le client mail affiche le début du corps. Sans texte prévu
+     pour cet emplacement, il y met la salutation : « Bonjour Marie, Le panier
+     de la semaine est prêt ! Voici ce que… ». Une ligne dépensée pour rien, à
+     l'endroit précis où l'on décide d'ouvrir. */
+  it('dit combien de produits attendent, plutôt que « Bonjour Marie »', async () => {
+    await emails.sendWeeklyBasketNotification(panierHebdomadaire, [{ ...adherente }]);
+
+    const { html } = dernierMessage();
+    const avantLeCorps = html.split('<div class="wrapper">')[0];
+
+    expect(avantLeCorps).toContain('2 produits de saison vous attendent');
+    expect(avantLeCorps).toContain('pensez à vos sacs et cabas');
+  });
+
+  it('donne au trésorier le montant à déposer', async () => {
+    await emails.sendTreasurerChequeDigest([ligneDeRemise]);
+
+    expect(dernierMessage().html.split('<div class="wrapper">')[0]).toMatch(/365,00\s?€ à déposer/);
+  });
+
+  it('reste invisible à l\'ouverture du message', async () => {
+    await emails.sendWeeklyBasketNotification(panierHebdomadaire, [{ ...adherente }]);
+
+    const bloc = dernierMessage().html.match(/<div class="preheader"[^>]*>/)[0];
+
+    /* Une seule déclaration ne suffit pas : display:none est ignoré par
+       certains webmails, mso-hide ne parle qu'à Outlook. Les quatre ensemble
+       couvrent le parc. */
+    expect(bloc).toContain('display:none');
+    expect(bloc).toContain('max-height:0');
+    expect(bloc).toContain('opacity:0');
+    expect(bloc).toContain('mso-hide:all');
+  });
+
+  it('ne laisse pas son rembourrage tomber dans la version texte', async () => {
+    await emails.sendWeeklyBasketNotification(panierHebdomadaire, [{ ...adherente }]);
+
+    const { text } = dernierMessage();
+
+    /* Les entités invisibles qui empêchent Gmail de compléter la ligne ne sont
+       pas décodées par le convertisseur : laissées passer, elles ouvriraient la
+       version texte sur soixante « &#847; ». */
+    expect(text).not.toContain('&#847;');
+    expect(text).not.toContain('&zwnj;');
+    expect(text).not.toContain('produits de saison vous attendent');
+    // Le lecteur en texte brut retrouve le message tel qu'il s'ouvre à l'écran.
+    expect(text.startsWith('Panier de la semaine')).toBe(true);
+  });
+
+  it('n\'écrit aucun bloc quand le message n\'en pose pas', async () => {
+    /* La majorité des messages ouvrent sur un premier paragraphe déjà
+       informatif. Le paramètre est facultatif, et son absence ne doit pas
+       laisser une balise vide en tête de chaque email. */
+    await emails.sendWelcomeEmail(adherente);
+
+    expect(dernierMessage().html).not.toContain('class="preheader"');
+  });
+});
+
+describe('Outlook sur Windows, dont le moteur de rendu est celui de Word', () => {
+  it('reçoit une largeur en attribut, seule forme qu\'il respecte', async () => {
+    await emails.sendWelcomeEmail(adherente);
+
+    const { html } = dernierMessage();
+
+    /* Word ignore max-width : sans cette table, le message s'étale sur toute la
+       largeur de l'écran. Elle vit dans un commentaire conditionnel, donc
+       n'existe que pour Outlook. */
+    expect(html).toContain('<!--[if mso]><table role="presentation" width="600"');
+    expect(html).toContain('<!--[if mso]></td></tr></table><![endif]-->');
+  });
+
+  it('et cette table ne se voit ni ailleurs, ni en texte brut', async () => {
+    await emails.sendWelcomeEmail(adherente);
+
+    const { html, text } = dernierMessage();
+
+    // Ouvertures et fermetures appariées : un commentaire mal fermé afficherait son contenu partout.
+    expect(html.match(/<!--\[if mso\]>/g)).toHaveLength(2);
+    expect(html.match(/<!\[endif\]-->/g)).toHaveLength(2);
+    expect(text).not.toMatch(/endif|role="presentation"/);
+  });
+});
+
+describe('Les sujets ne redisent pas le nom de l\'expéditeur', () => {
+  /* « Aux P'tits Pois » s'affiche déjà comme nom d'expéditeur, juste à gauche
+     du sujet. Répété en suffixe, il consommait dix-huit caractères de l'espace
+     visible sur mobile pour ne rien apprendre à personne.
+
+     Ce qui est proscrit, c'est le suffixe mécanique, pas le nom lui-même : « Bienvenue
+     chez Aux P'tits Pois » le porte à l'intérieur d'une phrase, où il désigne
+     le lieu dans lequel on accueille quelqu'un. */
+  it.each(MESSAGES)('$nom', async ({ envoyer }) => {
+    await envoyer();
+
+    expect(dernierMessage().subject).not.toMatch(/ - Aux P'tits Pois$/);
+  });
+
+  it('et tiennent dans ce qu\'un mobile affiche', async () => {
+    for (const { envoyer } of MESSAGES) {
+      await envoyer();
+
+      expect(dernierMessage().subject.length).toBeLessThanOrEqual(62);
+    }
   });
 });
 

@@ -275,10 +275,34 @@ const styles = `
 const ADDRESS = 'Aux P\'tits Pois — AMAP Solidaire';
 const ADDRESS_LINE = '14, rue du Château, 45300 Yèvre-la-Ville';
 
+/* La deuxième ligne de la liste de la boîte de réception.
+
+   Sous le sujet, un client mail affiche le début du corps du message. Sans
+   texte prévu pour cet emplacement, il y met ce qu'il trouve : « Bonjour
+   Marie, Le panier de la semaine est prêt ! Voici ce que… ». Une ligne entière
+   dépensée en salutation, là où l'adhérente déciderait d'ouvrir ou non.
+
+   Le bloc est caché par quatre déclarations plutôt qu'une, parce qu'aucune ne
+   suffit partout : display:none est ignoré par certains webmails, d'où la
+   hauteur et l'opacité nulles, et mso-hide pour le moteur de Word. Les entités
+   invisibles qui suivent le texte sont un rembourrage : sans elles, Gmail
+   complète la ligne avec le début du corps et l'on retrouve le « Bonjour »
+   qu'on voulait éviter. */
+const preheaderBlock = (texte) => (texte
+  ? `<div class="preheader" style="display:none;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px;color:${P.page};">${texte}${'&#847;&zwnj;&nbsp;'.repeat(60)}</div>`
+  : '');
+
 /* Le squelette commun. `title` coiffe le bandeau, `content` est le corps propre
    au message, `footerNote` la mention qui change d'un envoi à l'autre — la
-   raison pour laquelle ce message précis arrive dans cette boîte précise. */
-export function renderEmail({ title, eyebrow = 'AMAP Solidaire', content, footerNote = '' }) {
+   raison pour laquelle ce message précis arrive dans cette boîte précise, et
+   `preheader` la ligne de prévisualisation décrite juste au-dessus.
+
+   Le commentaire conditionnel autour du conteneur n'est lu que par Outlook sur
+   Windows, dont le moteur de rendu est celui de Word : il ignore max-width, et
+   le message s'étalerait sur toute la largeur de l'écran. Une table porte donc
+   les 600 pixels en attribut, seule forme que Word respecte. Elle est invisible
+   pour tous les autres clients, qui ne voient là qu'un commentaire HTML. */
+export function renderEmail({ title, eyebrow = 'AMAP Solidaire', content, footerNote = '', preheader = '' }) {
   return `<!DOCTYPE html>
 <html lang="fr">
   <head>
@@ -289,7 +313,9 @@ export function renderEmail({ title, eyebrow = 'AMAP Solidaire', content, footer
     <style>${styles}</style>
   </head>
   <body>
+    ${preheaderBlock(preheader)}
     <div class="wrapper">
+      <!--[if mso]><table role="presentation" width="600" align="center" cellpadding="0" cellspacing="0" border="0"><tr><td><![endif]-->
       <div class="container">
         <div class="header">
           ${logoTag()}
@@ -306,6 +332,7 @@ ${content}
           ${footerNote ? `<p>${footerNote}</p>` : ''}
         </div>
       </div>
+      <!--[if mso]></td></tr></table><![endif]-->
     </div>
   </body>
 </html>`;
@@ -322,6 +349,11 @@ export function emailToText(html) {
     .replace(/<!DOCTYPE[^>]*>/gi, ' ')
     .replace(/<(style|script|head|title)\b[^>]*>[\s\S]*?<\/\1>/gi, ' ')
     .replace(/<!--[\s\S]*?-->/g, ' ')
+    /* Le préheader part avec son rembourrage : il est écrit pour la liste de la
+       boîte de réception, pas pour être lu. Le laisser passer ferait commencer
+       la version texte par soixante entités invisibles — que ce convertisseur ne
+       décode pas, et qui s'afficheraient donc telles quelles. */
+    .replace(/<div class="preheader"[\s\S]*?<\/div>/gi, ' ')
     // Les liens d'abord : après le retrait des balises, l'adresse serait perdue.
     .replace(
       /<a\b[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi,

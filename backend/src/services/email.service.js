@@ -204,7 +204,7 @@ class EmailService {
     return this.#send({
       from: EMAIL_FROM,
       to: user.email,
-      subject: 'Confirmez votre adresse email - Aux P\'tits Pois',
+      subject: 'Confirmez votre adresse email',
       html: renderEmail({
         title: 'Confirmez votre email',
         content: `
@@ -233,7 +233,7 @@ class EmailService {
     return this.#send({
       from: EMAIL_FROM,
       to: user.email,
-      subject: 'Tentative de création de compte - Aux P\'tits Pois',
+      subject: 'Tentative de création de compte',
       html: renderEmail({
         title: 'Vous avez déjà un compte',
         content: `
@@ -280,7 +280,7 @@ class EmailService {
     return this.#send({
       from: EMAIL_FROM,
       to: user.email,
-      subject: 'Votre mot de passe a été modifié - Aux P\'tits Pois',
+      subject: 'Votre mot de passe a été modifié',
       html: renderEmail({
         title: 'Votre mot de passe a été modifié',
         content: `
@@ -303,7 +303,7 @@ class EmailService {
     return this.#send({
       from: EMAIL_FROM,
       to: user.email,
-      subject: 'Votre compte a été supprimé - Aux P\'tits Pois',
+      subject: 'Votre compte a été supprimé',
       html: renderEmail({
         title: 'Votre compte a été supprimé',
         content: `
@@ -342,7 +342,7 @@ class EmailService {
     return this.#send({
       from: EMAIL_FROM,
       to: user.email,
-      subject: 'Votre rôle a changé - Aux P\'tits Pois',
+      subject: 'Votre rôle a changé',
       html: renderEmail({
         title: 'Votre rôle a changé',
         content: `
@@ -360,7 +360,7 @@ class EmailService {
     return this.#send({
       from: EMAIL_FROM,
       to: request.email,
-      subject: 'Demande d\'abonnement reçue - Aux P\'tits Pois',
+      subject: 'Demande d\'abonnement reçue',
       html: renderEmail({
         title: 'Demande d\'abonnement reçue',
         content: `
@@ -404,7 +404,7 @@ class EmailService {
     return this.#send({
       from: EMAIL_FROM,
       to: request.email,
-      subject: 'Votre demande est en liste d\'attente - Aux P\'tits Pois',
+      subject: 'Votre demande est en liste d\'attente',
       html: renderEmail({
         title: 'Votre demande est en liste d\'attente',
         content: `
@@ -430,7 +430,7 @@ class EmailService {
     return this.#send({
       from: EMAIL_FROM,
       to: request.email,
-      subject: 'Réponse à votre demande d\'abonnement - Aux P\'tits Pois',
+      subject: 'Réponse à votre demande d\'abonnement',
       html: renderEmail({
         title: 'Réponse à votre demande',
         content: `
@@ -449,7 +449,7 @@ class EmailService {
     return this.#send({
       from: EMAIL_FROM,
       to: inquiry.email,
-      subject: 'Candidature reçue - Aux P\'tits Pois',
+      subject: 'Candidature reçue',
       html: renderEmail({
         title: 'Candidature reçue',
         content: `
@@ -671,7 +671,7 @@ class EmailService {
     return this.#send({
       from: EMAIL_FROM,
       to: user.email,
-      subject: 'Votre abonnement Aux P\'tits Pois expire bientôt',
+      subject: 'Votre abonnement expire bientôt',
       html: renderEmail({
         title: 'Votre abonnement expire bientôt',
         content: `
@@ -777,6 +777,9 @@ class EmailService {
       html: renderEmail({
         title: 'Chèques à porter en banque',
         eyebrow: 'Trésorerie',
+        /* Le sujet donne le nombre de chèques, la prévisualisation donne le
+           montant : de quoi décider d'un passage en agence sans ouvrir. */
+        preheader: `${euroAmount(total)} à déposer${retards > 0 ? `, dont ${retards} chèque${retards > 1 ? 's' : ''} en retard` : ''}.`,
         content: `
             <p>Bonjour,</p>
             <p>${lignes.length} chèque${lignes.length > 1 ? 's arrivent' : ' arrive'} à échéance. Voici la remise à préparer :</p>
@@ -808,7 +811,7 @@ class EmailService {
     return this.#send({
       from: EMAIL_FROM,
       to: user.email,
-      subject: 'Confirmation d\'inscription à une permanence - Aux P\'tits Pois',
+      subject: 'Confirmation d\'inscription à une permanence',
       html: renderEmail({
         title: 'Inscription confirmée',
         content: `
@@ -833,7 +836,7 @@ class EmailService {
     return this.#send({
       from: EMAIL_FROM,
       to: user.email,
-      subject: 'Permanence annulée - Aux P\'tits Pois',
+      subject: 'Permanence annulée',
       html: renderEmail({
         title: 'Permanence annulée',
         content: `
@@ -857,7 +860,7 @@ class EmailService {
     return this.#send({
       from: EMAIL_FROM,
       to: user.email,
-      subject: 'Votre abonnement Aux P\'tits Pois a été annulé',
+      subject: 'Votre abonnement a été annulé',
       html: renderEmail({
         title: 'Abonnement annulé',
         content: `
@@ -883,7 +886,7 @@ class EmailService {
     return this.#send({
       from: EMAIL_FROM,
       to: user.email,
-      subject: 'Votre pause est enregistrée - Aux P\'tits Pois',
+      subject: 'Votre pause est enregistrée',
       html: renderEmail({
         title: 'Votre pause est enregistrée',
         content: `
@@ -908,7 +911,7 @@ class EmailService {
     return this.#send({
       from: EMAIL_FROM,
       to: user.email,
-      subject: 'Votre abonnement reprend - Aux P\'tits Pois',
+      subject: 'Votre abonnement reprend',
       html: renderEmail({
         title: 'Votre abonnement reprend',
         content: `
@@ -957,7 +960,7 @@ class EmailService {
     return this.#send({
       from: EMAIL_FROM,
       to: inquiry.email,
-      subject: 'Votre candidature a été acceptée - Aux P\'tits Pois',
+      subject: 'Votre candidature a été acceptée',
       html: renderEmail({
         title: 'Candidature acceptée',
         content: `
@@ -983,7 +986,7 @@ class EmailService {
     return this.#send({
       from: EMAIL_FROM,
       to: inquiry.email,
-      subject: 'Votre candidature - Aux P\'tits Pois',
+      subject: 'Réponse à votre candidature de producteur',
       html: renderEmail({
         title: 'Réponse à votre candidature',
         content: `
@@ -1023,6 +1026,9 @@ class EmailService {
             html: renderEmail({
               title: 'Au menu cette semaine',
               eyebrow: 'Panier de la semaine',
+              /* Ce que le sujet ne dit pas : combien de produits, et le geste à
+                 faire avant de partir. Le sujet donne déjà la date. */
+              preheader: `${basket.items.length} produit${basket.items.length > 1 ? 's' : ''} de saison vous attendent — pensez à vos sacs et cabas.`,
               content: `
                   <p>Bonjour ${escapeHtml(recipient.firstName)},</p>
                   <p>Le panier de la semaine est prêt. Voici ce que nos producteurs ont récolté pour votre distribution du <strong>${distDate}</strong> :</p>
@@ -1067,7 +1073,7 @@ class EmailService {
     return this.#send({
       from: EMAIL_FROM,
       to: user.email,
-      subject: 'Désinscription confirmée - Aux P\'tits Pois',
+      subject: 'Désinscription confirmée',
       html: renderEmail({
         title: 'Désinscription confirmée',
         content: `
