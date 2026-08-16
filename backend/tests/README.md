@@ -35,7 +35,7 @@ devienne lente et capricieuse sans que personne l'ait décidé.
 
 | Fichier | Ce qu'il verrouille |
 | --- | --- |
-| `unit/email.mentions.test.js` | Les mentions obligatoires du pied de page des emails : adresse postale, motif de réception, exercice des droits RGPD. Défaut m7. |
+| `unit/email.mentions.test.js` | Les mentions obligatoires du pied de page des emails : adresse postale, motif de réception, exercice des droits RGPD. Vérifie aussi que l'adresse de contact n'est recopiée nulle part : la suite tourne avec une `CONTACT_EMAIL` de test, toute adresse en dur ressort donc au grand jour. Défauts m7 et m3. |
 | `unit/email.tracabilite.test.js` | La trace laissée par chaque envoi, réussi ou raté : ligne en base, log qui ne recopie pas l'adresse en production, envoi de masse qui ne s'arrête pas au premier refus. Défaut C2. |
 | `unit/newsletter.envoi.test.js` | Le sort de `status` et `sentAt` à l'envoi : relâchés quand rien n'est parti (C3), pris avant la boucle par compare-and-set pour qu'un second clic ne double pas l'envoi (M2), et réponse 202 pendant que la diffusion continue derrière (M10). Vaut aussi pour l'annonce de fermeture. |
 | `unit/annonce-fermeture.rendu.test.js` | Ce que l'adhérent voit d'une annonce de fermeture, lu sur le message remis au transporteur : plus de lignes vides dues à l'indentation du gabarit, plus de classes orphelines ni de second document imbriqué, styles en ligne préservés, motif échappé. La contre-épreuve garde les sauts de ligne d'une lettre écrite au clavier. Défaut M5. |

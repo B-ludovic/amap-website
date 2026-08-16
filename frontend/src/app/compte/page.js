@@ -8,6 +8,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useModal } from '../../contexts/ModalContext';
 import api, { auth as authApi } from '../../lib/api';
 import { dayMonthYearLong } from '../../lib/format';
+import { CONTACT_EMAIL } from '../../constants/association';
 import '../../styles/public/compte.css';
 
 /* Formatage maison plutôt qu'Intl : le rendu doit être identique côté serveur
@@ -713,8 +714,8 @@ export default function ComptePage() {
               Une absence imprévue, un panier non retiré, une question sur le contrat : écrivez au
               collectif, on répond sous 48 h.
             </p>
-            <a href="mailto:auxptitspois@gmail.com" className="account-help-mail">
-              auxptitspois@gmail.com
+            <a href={`mailto:${CONTACT_EMAIL}`} className="account-help-mail">
+              {CONTACT_EMAIL}
             </a>
           </article>
         </div>

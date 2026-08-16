@@ -328,8 +328,9 @@ export const auth = {
     return fetchAPI('/auth/me');
   },
 
+  // POST : une passerelle de messagerie qui inspecte le lien ne le consomme pas.
   confirmEmail: async (token) => {
-    return fetchAPI(`/auth/confirm/${token}`);
+    return fetchAPI(`/auth/confirm/${token}`, { method: 'POST' });
   },
 
   resendConfirmation: async (email) => {

@@ -5,6 +5,7 @@ import ConditionalHeader from '../components/layout/ConditionalHeader';
 import ConditionalFooter from '../components/layout/ConditionalFooter';
 import Providers from '../components/Providers';
 import JsonLd from '../components/JsonLd';
+import { CONTACT_EMAIL } from '../constants/association';
 import '../../public/orejime/orejime-standard.css';
 import '../styles/components/orejime.css';
 import '../styles/variables.css';
@@ -77,7 +78,7 @@ const organizationJsonLd = {
   description: 'AMAP solidaire proposant des paniers de légumes bio et locaux auprès de producteurs partenaires.',
   url: 'https://auxptitspois.fr',
   '@id': 'https://auxptitspois.fr/#organization',
-  email: 'auxptitspois@gmail.com',
+  email: CONTACT_EMAIL,
   address: {
     '@type': 'PostalAddress',
     streetAddress: '340 Avenue du Général de Gaulle',

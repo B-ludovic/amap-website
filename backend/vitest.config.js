@@ -21,6 +21,10 @@ export default defineConfig({
       /* Sans elle, le récapitulatif du trésorier refuse de partir : il n'a pas
          de destinataire à qui l'adresser. */
       TREASURER_EMAIL: 'tresorerie@auxptitspois.test',
+      /* Volontairement différente de l'adresse de repli : c'est ce qui rend le
+         test capable de distinguer « la variable est lue » de « le repli est
+         codé en dur au bon endroit ». */
+      CONTACT_EMAIL: 'contact@auxptitspois.test',
       /* Elle commande la variante « un clic » de l'en-tête de désabonnement :
          la suite éprouve le chemin nominal, et un test dédié couvre le repli
          quand elle manque. */

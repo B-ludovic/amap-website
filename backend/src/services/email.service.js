@@ -1,6 +1,7 @@
 import nodemailer from 'nodemailer';
 import DOMPurify from 'isomorphic-dompurify';
 import { prisma } from '../config/database.js';
+import { CONTACT_EMAIL } from '../config/association.js';
 import { euroAmount, splitPayment, formatInstallments } from '../utils/subscriptionPricing.js';
 import { overridesOptOut } from './newsletterAudience.service.js';
 import { unsubscribePageUrl, unsubscribeHeaders } from '../utils/unsubscribeToken.js';
@@ -75,8 +76,8 @@ const dateEtHeure = (value) => new Intl.DateTimeFormat('fr-FR', {
   timeStyle: 'short',
 }).format(new Date(value));
 
-// Recopiée dans six messages avant d'être rassemblée ici.
-const AMAP_EMAIL = 'auxptitspois@gmail.com';
+// Recopiée dans six messages avant d'être rassemblée dans config/association.js.
+const AMAP_EMAIL = CONTACT_EMAIL;
 
 // Les mêmes mots que l'espace adhérent et l'écran des utilisateurs.
 const ROLE_LABELS = { MEMBER: 'Adhérent', VOLUNTEER: 'Bénévole', ADMIN: 'Administrateur' };

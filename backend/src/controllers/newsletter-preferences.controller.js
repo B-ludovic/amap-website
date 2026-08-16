@@ -11,6 +11,7 @@
    quiconque a oublié son mot de passe. */
 
 import { prisma } from '../config/database.js';
+import { CONTACT_EMAIL } from '../config/association.js';
 import { asyncHandler } from '../middlewares/error.middleware.js';
 import { HttpBadRequestError } from '../utils/httpErrors.js';
 import { isValidUnsubscribeToken } from '../utils/unsubscribeToken.js';
@@ -45,7 +46,7 @@ async function userFromSignedLink(query) {
 
 /* Un lien mort et un lien forgé reçoivent la même réponse : le second ne doit
    rien apprendre que le premier ne dirait. */
-const INVALID_LINK = 'Ce lien de désabonnement n\'est plus valide. Écrivez-nous à auxptitspois@gmail.com, nous le ferons manuellement.';
+const INVALID_LINK = `Ce lien de désabonnement n'est plus valide. Écrivez-nous à ${CONTACT_EMAIL}, nous le ferons manuellement.`;
 
 // ÉTAT DU LIEN — la page affiche à qui elle parle avant de proposer le bouton
 const getUnsubscribeStatus = asyncHandler(async (req, res) => {

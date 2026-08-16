@@ -21,8 +21,14 @@ router.post('/register', register);
 // Route de connexion
 router.post('/login', login);
 
-// Confirmation de l'email
-router.get('/confirm/:token', confirmEmail);
+/* Confirmation de l'email — en POST, et non en GET.
+   Le lien du message ouvre une page du site, pas cette route. Mais certaines
+   passerelles de messagerie d'entreprise ouvrent les liens dans un navigateur
+   sans tête pour les inspecter, JavaScript compris : une confirmation déclenchée
+   au chargement de la page serait consommée par l'inspection, et l'adhérent
+   trouverait un lien mort en arrivant. Aucune de ces passerelles ne fabrique de
+   requête POST, qui reste donc réservée à un geste humain. */
+router.post('/confirm/:token', confirmEmail);
 
 // Renvoyer l'email de confirmation
 router.post('/resend-confirmation', resendConfirmationEmail);

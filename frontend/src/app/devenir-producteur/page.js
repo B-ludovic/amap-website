@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useModal } from '../../contexts/ModalContext';
 import api from '../../lib/api';
+import { CONTACT_EMAIL } from '../../constants/association';
 import '../../styles/public/become-producer.css';
 
 const BENEFITS = [
@@ -353,8 +354,8 @@ export default function BecomeProducerPage() {
             ))}
           </ol>
 
-          <a href="mailto:auxptitspois@gmail.com" className="producer-apply-mail">
-            auxptitspois@gmail.com
+          <a href={`mailto:${CONTACT_EMAIL}`} className="producer-apply-mail">
+            {CONTACT_EMAIL}
           </a>
         </aside>
 

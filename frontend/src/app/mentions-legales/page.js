@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { CONTACT_EMAIL } from '../../constants/association';
 import '../../styles/public/legal.css';
 
 const SECTIONS = [
@@ -62,8 +63,8 @@ export default function MentionsLegalesPage() {
               <div className="def-row">
                 <dt className="def-label">Contact</dt>
                 <dd className="def-value">
-                  <a href="mailto:auxptitspois@gmail.com" className="legal-mail">
-                    auxptitspois@gmail.com
+                  <a href={`mailto:${CONTACT_EMAIL}`} className="legal-mail">
+                    {CONTACT_EMAIL}
                   </a>
                 </dd>
               </div>

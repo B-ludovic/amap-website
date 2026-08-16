@@ -28,7 +28,9 @@ const MESSAGES = messagesSortants(emails);
 const ADRESSE_POSTALE = '14, rue du Château, 45300 Yèvre-la-Ville';
 const PHRASE_DES_DROITS = 'consulter, modifier ou supprimer vos données';
 const ESPACE_ADHERENT = 'https://auxptitspois.test/compte';
-const ADRESSE_AMAP = 'auxptitspois@gmail.com';
+/* Lue, et non recopiée : un test qui répéterait l'adresse en clair resterait
+   vert le jour où le code cesserait de suivre la variable d'environnement. */
+const { CONTACT_EMAIL: ADRESSE_AMAP } = await import('../../src/config/association.js');
 
 beforeAll(() => {
   /* Le service annonce chaque envoi sur la console hors production ; la suite
@@ -172,6 +174,39 @@ describe('L\'adresse du destinataire est reprise telle quelle, jamais interprét
 
     expect(pied).toContain('&lt;script&gt;');
     expect(pied).not.toContain('<script>');
+  });
+});
+
+describe('L\'adresse de contact n\'a qu\'une source', () => {
+  /* Elle était recopiée dans six gabarits et dans l'écran de désabonnement. Le
+     jour d'un changement de boîte, chaque copie oubliée invite les adhérents à
+     écrire dans le vide — et le formulaire de contact poste au même endroit.
+
+     La suite tourne avec CONTACT_EMAIL réglée sur une adresse de test : toute
+     recopie de l'ancienne adresse ressort donc au grand jour. */
+  const ADRESSE_ABANDONNEE = 'auxptitspois@gmail.com';
+
+  it.each(MESSAGES)('$nom ne recopie aucune adresse en dur', async ({ envoyer }) => {
+    await envoyer();
+
+    const { html, text, to } = dernierMessage();
+
+    expect(html).not.toContain(ADRESSE_ABANDONNEE);
+    expect(text).not.toContain(ADRESSE_ABANDONNEE);
+    expect(to).not.toBe(ADRESSE_ABANDONNEE);
+  });
+
+  it('achemine le formulaire de contact vers la boîte configurée', async () => {
+    await emails.sendContactMessage({
+      name: 'Paul Girard',
+      email: 'paul@example.org',
+      subject: 'Une question',
+      message: 'Bonjour',
+    });
+
+    expect(dernierMessage().to).toBe(ADRESSE_AMAP);
+    // Répondre au message doit écrire à son auteur, pas à l'association.
+    expect(dernierMessage().replyTo).toBe('paul@example.org');
   });
 });
 

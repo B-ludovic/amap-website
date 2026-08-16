@@ -3,7 +3,7 @@ import { HttpError, httpStatusCodes } from '../utils/httpErrors.js';
 const isProduction = () => process.env.NODE_ENV === 'production';
 
 /* Un jeton n'a rien à faire dans un journal. Certaines routes en portent un dans
-   leur chemin — GET /api/auth/confirm/:token —, si bien qu'une erreur survenant
+   leur chemin — POST /api/auth/confirm/:token —, si bien qu'une erreur survenant
    là écrirait une clé d'activation valide, en clair, dans des logs qui se
    conservent. Les jetons du projet sont des chaînes hexadécimales de 64
    caractères (crypto.randomBytes(32)) ; on masque tout ce qui y ressemble, sans

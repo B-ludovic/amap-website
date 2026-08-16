@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import { CONTACT_EMAIL } from '../../constants/association';
 
 function Footer() {
   const currentYear = new Date().getFullYear();
@@ -24,8 +25,8 @@ function Footer() {
               Votre AMAP locale à Clamart. Des produits frais, bio et de saison,
               en circuit court.
             </p>
-            <a href="mailto:auxptitspois@gmail.com" className="footer-mail">
-              auxptitspois@gmail.com
+            <a href={`mailto:${CONTACT_EMAIL}`} className="footer-mail">
+              {CONTACT_EMAIL}
             </a>
           </div>
 

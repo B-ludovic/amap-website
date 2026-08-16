@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { CONTACT_EMAIL } from '../../constants/association';
 import '../../styles/public/contact.css';
 
 // Suggestions de sujet : elles remplissent le champ, qui reste libre.
@@ -277,8 +278,8 @@ export default function ContactPage() {
             <div className="side-card-body">
               <div className="side-block">
                 <div className="side-block-label">Email</div>
-                <a href="mailto:auxptitspois@gmail.com" className="contact-mail">
-                  auxptitspois@gmail.com
+                <a href={`mailto:${CONTACT_EMAIL}`} className="contact-mail">
+                  {CONTACT_EMAIL}
                 </a>
               </div>
               <div className="side-block">
