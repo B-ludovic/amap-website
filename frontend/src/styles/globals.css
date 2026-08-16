@@ -149,7 +149,7 @@ a {
   transition: color var(--transition-fast);
 }
 
-a:not(.btn):hover {
+:where(a:not(.btn)):hover {
   color: var(--terracotta-dark);
 }
 

@@ -272,7 +272,7 @@
               border-color var(--transition-fast);
 }
 
-.contact-faq-link:hover {
+.contact-faq .contact-faq-link:hover {
   background-color: rgba(239, 234, 224, 0.08);
   border-color: var(--on-forest);
   color: var(--on-forest);

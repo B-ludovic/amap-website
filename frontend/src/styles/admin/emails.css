@@ -1,0 +1,138 @@
+/* Suivi des emails — Aux P'tits Pois */
+
+.emails-tiles {
+  margin-bottom: 24px;
+}
+
+/* Le bandeau du webhook muet : la seule information de l'écran qui ne se lit
+   pas dans un chiffre, puisqu'elle dit justement que les chiffres ne veulent
+   rien dire. */
+.emails-alerte {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+  margin-bottom: 20px;
+  padding: 14px 16px;
+  border: 1px solid var(--notice-border, var(--border-card));
+  border-radius: var(--border-radius-md);
+  background-color: var(--notice-bg);
+  color: var(--notice-strong);
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
+.emails-alerte svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.emails-alerte code {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+}
+
+.emails-section {
+  margin-bottom: 32px;
+}
+
+.emails-section-title {
+  margin-bottom: 6px;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+.emails-section-note {
+  max-width: 70ch;
+  margin-bottom: 16px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+
+.emails-barre {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-bottom: 16px;
+}
+
+.emails-filtres {
+  display: flex;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
+.emails-recherche {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.emails-recherche input {
+  height: 42px;
+  min-width: 220px;
+  padding: 0 12px;
+  border: 1px solid var(--input-border-color);
+  border-radius: var(--border-radius-md);
+  background-color: var(--surface-page);
+  font-family: inherit;
+  font-size: 13.5px;
+  color: var(--text-primary);
+}
+
+.emails-recherche input:focus {
+  outline: 2px solid var(--text-primary);
+  outline-offset: -1px;
+}
+
+/* L'adresse est la donnée qu'on vient chercher : en chasse fixe, elle se
+   compare d'une ligne à l'autre sans que l'œil glisse. */
+.emails-adresse {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+}
+
+.emails-date {
+  white-space: nowrap;
+  font-size: var(--font-size-sm);
+}
+
+.emails-detail {
+  max-width: 32ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+}
+
+.emails-attente {
+  font-size: var(--font-size-xs);
+  color: var(--text-light);
+}
+
+.emails-btn-reprendre {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 12px;
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+
+@media (max-width: 700px) {
+  .emails-barre {
+    align-items: stretch;
+  }
+
+  .emails-recherche {
+    flex-direction: column;
+  }
+
+  .emails-recherche input {
+    min-width: 0;
+    width: 100%;
+  }
+}

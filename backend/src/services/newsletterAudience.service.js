@@ -20,12 +20,24 @@
    à quelle liste. */
 
 import { prisma } from '../config/database.js';
+import { adressesSupprimees, normaliserAdresse } from './emailSuppression.service.js';
 
 /* Les alertes échappent au désabonnement : elles portent une information de
    service, pas une sollicitation. */
 export const overridesOptOut = (type) => type === 'ALERT';
 
 const RECIPIENT_FIELDS = { id: true, email: true, firstName: true };
+
+/* Les adresses mortes sortent de la liste ici plutôt qu'au moment d'écrire :
+   écartées une par une à l'envoi, elles laisseraient une ligne FAILED par
+   message et par adresse, ce qui ferait passer un envoi sain pour un envoi en
+   panne. */
+async function sansAdressesMortes(destinataires) {
+  const ecartees = await adressesSupprimees(destinataires.map((d) => d.email));
+  if (ecartees.size === 0) return destinataires;
+
+  return destinataires.filter((d) => !ecartees.has(normaliserAdresse(d.email)));
+}
 
 export async function resolveNewsletterRecipients({ target, type }) {
   /* Un compte supprimé ne reçoit plus rien, alerte comprise : la porte se ferme
@@ -35,10 +47,10 @@ export async function resolveNewsletterRecipients({ target, type }) {
 
   switch (target) {
     case 'ALL':
-      return prisma.user.findMany({
+      return sansAdressesMortes(await prisma.user.findMany({
         where: userFilter,
         select: RECIPIENT_FIELDS,
-      });
+      }));
 
     case 'ACTIVE_SUBSCRIBERS':
     case 'SOLIDARITY': {
@@ -55,7 +67,7 @@ export async function resolveNewsletterRecipients({ target, type }) {
          même adresse — un panier annuel et une découverte offerte à un proche —
          y feraient arriver le message en double. La Map ne garde qu'une entrée
          par identifiant. */
-      return [...new Map(subscriptions.map(({ user }) => [user.id, user])).values()];
+      return sansAdressesMortes([...new Map(subscriptions.map(({ user }) => [user.id, user])).values()]);
     }
 
     default:

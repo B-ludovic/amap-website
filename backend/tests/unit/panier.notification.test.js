@@ -11,7 +11,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 const { base, envois } = vi.hoisted(() => ({
-  base: { paniers: [], abonnements: [], traces: [] },
+  base: { paniers: [], abonnements: [], traces: [], adressesEcartees: [] },
   envois: [],
 }));
 
@@ -80,6 +80,14 @@ vi.mock('../../src/config/database.js', () => ({
       },
       count: async ({ where }) => base.traces.filter((l) => correspond(l, where)).length,
     },
+
+    // Les adresses que le relais a déclarées mortes : elles ne comptent plus
+    // parmi les abonnés à servir.
+    emailSuppression: {
+      findMany: async ({ where }) => base.adressesEcartees
+        .filter((email) => where?.email?.in?.includes(email) ?? true)
+        .map((email) => ({ email })),
+    },
   },
 }));
 
@@ -102,6 +110,7 @@ function poserBase({
   notifyingSince = null,
   nombreAbonnes = 5,
   traces = [],
+  adressesEcartees = [],
 } = {}) {
   base.paniers = [{
     id: 'panier-0001',
@@ -116,6 +125,7 @@ function poserBase({
   }];
   base.abonnements = abonnes(nombreAbonnes);
   base.traces = traces;
+  base.adressesEcartees = adressesEcartees;
 }
 
 const traceSent = (i) => ({ kind: 'WEEKLY_BASKET', status: 'SENT', ref: 'panier-0001', to: `adherent${i}@example.org` });
@@ -143,6 +153,19 @@ describe('Qui reste à prévenir', () => {
 
     expect(restants.map((r) => r.email)).toEqual([
       'adherent2@example.org', 'adherent3@example.org', 'adherent4@example.org',
+    ]);
+  });
+
+  /* Une adresse déclarée morte par le relais n'obtiendra jamais de trace SENT :
+     sans ce retrait, elle figurerait parmi les restants à chaque passage et la
+     reprise ne s'arrêterait plus. */
+  it('écarte l\'abonné dont l\'adresse a rebondi pour de bon', async () => {
+    poserBase({ adressesEcartees: ['adherent2@example.org'] });
+
+    const restants = await destinatairesRestants('panier-0001');
+
+    expect(restants.map((r) => r.email)).toEqual([
+      'adherent0@example.org', 'adherent1@example.org', 'adherent3@example.org', 'adherent4@example.org',
     ]);
   });
 

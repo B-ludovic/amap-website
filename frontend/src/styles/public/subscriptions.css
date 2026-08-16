@@ -335,7 +335,7 @@
   transition: background-color var(--transition-fast), border-color var(--transition-fast);
 }
 
-.plan-cta:hover {
+a.plan-cta:hover {
   background-color: var(--terracotta-dark);
   border-color: var(--terracotta-dark);
   color: var(--surface-page);

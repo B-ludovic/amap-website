@@ -28,6 +28,7 @@ import distributionRoutes from './routes/distribution.routes.js';
 import recipesRoutes from './routes/recipes.routes.js';
 import contactRoutes from './routes/contact.routes.js';
 import closuresRoutes from './routes/closures.routes.js';
+import emailsRoutes from './routes/emails.routes.js';
 import { startRenewalReminderJob } from './jobs/renewalReminder.job.js';
 import { startDataRetentionJob } from './jobs/dataRetention.job.js';
 import { startWeeklyBasketGenerationJob } from './jobs/weeklyBasketGeneration.job.js';
@@ -105,6 +106,12 @@ const globalLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   message: { success: false, error: { message: 'Trop de requêtes, réessayez dans 15 minutes.' } },
+  /* Le webhook Brevo a son propre plafond, plus haut. Une newsletter à deux
+     cents adhérents fait revenir deux cents événements depuis une poignée
+     d'adresses IP : sous le plafond commun, le compte-rendu de l'envoi se
+     ferait couper au milieu, et les rebonds perdus sont précisément ceux qu'on
+     voulait voir. */
+  skip: (req) => req.path === '/emails/brevo',
 });
 app.use('/api', globalLimiter);
 
@@ -177,6 +184,20 @@ const unsubscribeLimiter = rateLimit({
   message: { success: false, error: { message: 'Trop de requêtes, réessayez dans 15 minutes.' } },
 });
 
+/* Rate limiting — webhook Brevo
+
+   Large, parce que le débit normal l'est : chaque message envoyé produit au
+   moins un événement, et un envoi de masse les fait tous revenir en quelques
+   minutes. Le plafond ne protège pas d'un abus — le secret s'en charge — mais
+   d'un emballement qui remplirait la base. */
+const webhookLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 2000,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, error: { message: 'Trop de requêtes.' } },
+});
+
 // Rate limiting — recherche utilisateur par email (anti-énumération)
 // Rate limiting — routes admin générales
 const adminLimiter = rateLimit({
@@ -234,6 +255,8 @@ app.use('/api/recipes', recipesRoutes);
 app.use('/api/contact', publicLimiter);
 app.use('/api/contact', contactRoutes);
 app.use('/api/closures', closuresRoutes);
+app.use('/api/emails/brevo', webhookLimiter);
+app.use('/api/emails', emailsRoutes);
 
 // Route 404 - si aucune route ne correspond
 app.use((_req, res) => {

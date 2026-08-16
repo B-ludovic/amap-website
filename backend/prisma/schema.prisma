@@ -741,6 +741,9 @@ enum AuditAction {
   DELETE_CLOSURE
   UPDATE_WEEKLY_PICKUP
   EXPORT_DISTRIBUTION_LIST
+  // Remettre en circulation une adresse que le relais avait déclarée morte :
+  // le geste se retourne contre la réputation du domaine s'il est répété à tort.
+  LIFT_EMAIL_SUPPRESSION
   // Critique — de l'argent entre en base, ou en sort
   RECORD_CHEQUES_RECEIVED
   UPDATE_PAYMENT_STATUS
@@ -802,17 +805,73 @@ model EmailLog {
   messageId String?
   error     String?  @db.Text
 
+  // Ce que le relais a fait du message APRÈS l'avoir accepté, rapporté par le
+  // webhook Brevo. Champ distinct de `status`, qui garde son sens — « confié au
+  // relais » — et que la reprise du panier interroge : un SENT devenu BOUNCED
+  // serait relu comme « jamais servi » et relancerait l'envoi à l'infini.
+  delivery   EmailDelivery?
+  deliveredAt DateTime?
+
   sentAt    DateTime @default(now())
 
   @@index([to])
   @@index([kind])
   @@index([status])
   @@index([sentAt])
+  // La jointure du webhook : un événement arrive avec le seul message-id.
+  @@index([messageId])
+  @@index([delivery])
 }
 
 enum EmailStatus {
   SENT
   FAILED
+}
+
+// Le sort d'un message après acceptation par le relais. `invalid_email` de
+// Brevo tombe dans HARD_BOUNCE : même cause, même effet.
+enum EmailDelivery {
+  DELIVERED
+  DEFERRED
+  SOFT_BOUNCE
+  HARD_BOUNCE
+  BLOCKED
+  SPAM_COMPLAINT
+}
+
+/* Les adresses auxquelles on cesse d'écrire.
+
+   Continuer d'écrire à une boîte qui n'existe plus n'atteint personne et abîme
+   la réputation d'expéditeur du domaine : les rebonds répétés font basculer les
+   messages de toute l'AMAP en indésirables, y compris ceux qui arrivaient.
+   Cette table est la mémoire de ce qu'on a appris — une ligne par adresse, et
+   le service refuse d'écrire à qui y figure.
+
+   La plainte pour spam n'entre pas ici : elle coupe la lettre d'information
+   (newsletterOptIn) sans toucher aux messages qui exécutent le contrat. */
+model EmailSuppression {
+  id     String   @id @default(uuid())
+  // Normalisée en minuscules à l'écriture : Brevo renvoie l'adresse telle
+  // qu'elle a été saisie, la garde doit la retrouver quoi qu'il arrive.
+  email  String   @unique
+
+  reason SuppressionReason
+  detail String?  @db.Text
+
+  createdAt DateTime @default(now())
+  // Un rebond de plus sur une adresse déjà connue ne crée pas de ligne, il
+  // repousse cette date : c'est ce qui distingue une adresse morte hier d'une
+  // adresse morte il y a deux ans.
+  lastEventAt DateTime @default(now())
+
+  @@index([reason])
+  @@index([lastEventAt])
+}
+
+enum SuppressionReason {
+  HARD_BOUNCE
+  BLOCKED
+  MANUAL
 }
 
 // Un membre par expéditeur du service. L'énumération plutôt qu'une chaîne

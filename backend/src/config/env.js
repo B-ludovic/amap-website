@@ -64,3 +64,13 @@ if (!process.env.TREASURER_EMAIL) {
   }
   console.warn('⚠️  TREASURER_EMAIL manquante : aucun rappel de dépôt de chèques ne partira.');
 }
+
+/* Secret du webhook Brevo. Son absence ne casse rien de visible — le site
+   envoie ses emails exactement comme avant — mais la route refuse alors tous
+   les appels, et plus aucun rebond ne remonte : les adresses mortes
+   redeviennent silencieuses. C'est une panne qui ne se voit pas, d'où
+   l'avertissement au démarrage plutôt qu'un simple oubli dans .env.example. */
+if (!process.env.BREVO_WEBHOOK_SECRET) {
+  console.warn('⚠️  BREVO_WEBHOOK_SECRET manquant : le webhook Brevo refusera tous les appels,');
+  console.warn('   aucun rebond ni plainte pour spam ne sera enregistré.');
+}

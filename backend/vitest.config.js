@@ -25,6 +25,8 @@ export default defineConfig({
          la suite éprouve le chemin nominal, et un test dédié couvre le repli
          quand elle manque. */
       PUBLIC_API_URL: 'https://api.auxptitspois.test/api',
+      // Le laissez-passer du webhook Brevo, sans lequel la route refuse tout.
+      BREVO_WEBHOOK_SECRET: 'secret-de-webhook-sans-valeur-hors-de-cette-suite',
     },
   },
 });

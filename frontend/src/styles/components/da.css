@@ -589,7 +589,7 @@
   transition: background-color var(--transition-fast), border-color var(--transition-fast);
 }
 
-.forest-card-link:hover {
+.forest-card .forest-card-link:hover {
   background-color: rgba(239, 234, 224, 0.08);
   border-color: var(--on-forest);
   color: var(--on-forest);
@@ -602,7 +602,7 @@
   color: var(--surface-page);
 }
 
-.forest-card-link-primary:hover {
+.forest-card .forest-card-link-primary:hover {
   background-color: var(--terracotta-dark);
   border-color: var(--terracotta-dark);
   color: var(--surface-page);
@@ -735,7 +735,7 @@
   border: none;
 }
 
-.btn-cta-primary:hover {
+a.btn-cta-primary:hover {
   background-color: var(--terracotta-dark);
   color: var(--surface-page);
 }
@@ -746,7 +746,7 @@
   border: var(--border-width) solid var(--border-strong);
 }
 
-.btn-cta-ghost:hover {
+a.btn-cta-ghost:hover {
   background-color: var(--surface-sand);
   border-color: var(--text-primary);
   color: var(--text-primary);

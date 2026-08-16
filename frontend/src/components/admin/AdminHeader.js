@@ -22,6 +22,7 @@ const VIEW_TITLES = {
   '/admin/permanences': 'Permanences',
   '/admin/messages': 'Messages de contact',
   '/admin/communication': 'Communication',
+  '/admin/emails': 'Suivi des emails',
   '/admin/fermetures': 'Fermetures AMAP',
   '/admin/journal': 'Journal d\'audit',
   '/admin/parametres': 'Paramètres'

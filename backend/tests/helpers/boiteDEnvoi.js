@@ -93,6 +93,53 @@ export function simulerPanneDeBase(actif = true) {
   panneDeBase = actif;
 }
 
+/* La liste des adresses auxquelles on n'écrit plus, en mémoire. Même rôle que
+   registreEmails : les tests la relisent au lieu de vérifier qu'un appel Prisma
+   a eu lieu. */
+export const registreSuppressions = [];
+
+export function viderSuppressions() {
+  registreSuppressions.length = 0;
+}
+
+export function ecarterAdresse(email, reason = 'HARD_BOUNCE') {
+  const ligne = {
+    id: `suppression-${registreSuppressions.length + 1}`,
+    email: email.toLowerCase(),
+    reason,
+    detail: null,
+    createdAt: new Date(),
+    lastEventAt: new Date(),
+  };
+  registreSuppressions.push(ligne);
+
+  return ligne;
+}
+
+/* Les comptes, réduits à ce que le webhook y touche : l'opposition à la lettre
+   d'information. */
+export const registreComptes = [];
+
+export function viderComptes() {
+  registreComptes.length = 0;
+}
+
+export function inscrireCompte(email, { newsletterOptIn = true } = {}) {
+  const compte = { id: `compte-${registreComptes.length + 1}`, email, newsletterOptIn, newsletterOptOutAt: null };
+  registreComptes.push(compte);
+
+  return compte;
+}
+
+const correspond = (ligne, where) => {
+  if (where.email?.equals) {
+    return String(ligne.email).toLowerCase() === String(where.email.equals).toLowerCase();
+  }
+  if (where.email) return ligne.email === where.email;
+
+  return true;
+};
+
 /* config/database.js instancie un client Prisma dès son import, et le service
    d'emails l'entraîne dans son sillage. Un test unitaire n'a rien à faire avec
    une vraie base : ce double en tient lieu, et n'implémente que ce que le
@@ -107,6 +154,50 @@ export const fausseBase = {
         registreEmails.push(ligne);
 
         return ligne;
+      },
+
+      updateMany: async ({ where, data }) => {
+        const cibles = registreEmails.filter((ligne) => where.messageId?.in?.includes(ligne.messageId));
+        cibles.forEach((ligne) => Object.assign(ligne, data));
+
+        return { count: cibles.length };
+      },
+    },
+
+    emailSuppression: {
+      findUnique: async ({ where }) => {
+        if (panneDeBase) throw new Error('base injoignable');
+
+        return registreSuppressions.find((ligne) => ligne.email === where.email) ?? null;
+      },
+
+      findMany: async ({ where }) =>
+        registreSuppressions.filter((ligne) => where?.email?.in?.includes(ligne.email) ?? true),
+
+      upsert: async ({ where, create, update }) => {
+        const existante = registreSuppressions.find((ligne) => ligne.email === where.email);
+
+        if (existante) {
+          Object.assign(existante, update);
+          return existante;
+        }
+
+        const ligne = { id: `suppression-${registreSuppressions.length + 1}`, createdAt: new Date(), lastEventAt: new Date(), ...create };
+        registreSuppressions.push(ligne);
+
+        return ligne;
+      },
+    },
+
+    user: {
+      updateMany: async ({ where, data }) => {
+        const cibles = registreComptes.filter((compte) =>
+          correspond(compte, where)
+          && (where.newsletterOptIn === undefined || compte.newsletterOptIn === where.newsletterOptIn));
+
+        cibles.forEach((compte) => Object.assign(compte, data));
+
+        return { count: cibles.length };
       },
     },
   },

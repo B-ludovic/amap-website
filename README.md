@@ -209,9 +209,32 @@ NODE_ENV=production
 FRONTEND_URL=https://auxptitspois.fr
 BREVO_SMTP_USER=...        # login SMTP Brevo (Settings → SMTP et API)
 BREVO_SMTP_KEY=...         # clé SMTP Brevo
-EMAIL_FROM=...             # adresse d'expédition
+EMAIL_FROM=...             # adresse d'expédition, sur le domaine signé chez Brevo
+BREVO_WEBHOOK_SECRET=...   # laissez-passer du webhook (openssl rand -hex 32)
+PUBLIC_API_URL=https://api.auxptitspois.fr/api   # suffixe /api compris
 PUPPETEER_DISABLE_SANDBOX= # « true » seulement si Chromium refuse de démarrer
 ```
+
+> `EMAIL_FROM` doit porter le domaine authentifié chez Brevo, celui dont les clés
+> DKIM (`brevo1`/`brevo2._domainkey`) sont posées dans la zone : c'est
+> l'alignement entre ce domaine et la signature qui fait passer DMARC. Une
+> adresse `@gmail.com` est refusée d'office, Google n'autorisant personne à
+> signer en son nom.
+
+> `BREVO_WEBHOOK_SECRET` garde la route par laquelle Brevo raconte ce qu'il a
+> fait de chaque message. Elle est nécessairement ouverte sur l'extérieur — Brevo
+> n'a pas de compte sur le site — et Brevo ne signe pas ses appels : ce secret
+> est la seule chose qui distingue son serveur de n'importe qui d'autre. Sans
+> lui, la route refuse tout et plus aucun rebond ne remonte ; l'écran de suivi
+> le dit alors franchement plutôt que d'afficher zéro rebond, qui se lirait comme
+> une bonne nouvelle. Voir « Retours du relais » ci-dessous pour le branchement.
+
+> `PUBLIC_API_URL` ne sert qu'aux en-têtes de désabonnement des newsletters.
+> Gmail et Yahoo affichent leur propre bouton « Se désabonner » et postent
+> dessus sans que le message soit ouvert (RFC 8058), ce qui exige une adresse
+> qui réponde à un POST — l'API, donc, pas le site Next.js. Sans elle rien ne
+> casse : l'en-tête retombe sur la page `/desabonnement` et le bouton natif
+> disparaît, en silence. C'est la variable qu'on oublie sans s'en apercevoir.
 
 > La génération des contrats PDF démarre Chromium avec son bac à sable, qui
 > confine le moteur de rendu au cas où une faille y serait exploitée. Si
@@ -230,6 +253,74 @@ NEXT_PUBLIC_GA_ID=...          # ID Google Analytics (ex: G-XXXXXXXXXX)
 
 > Sur Render en version gratuite, le backend se met en veille après 15 min d'inactivité. Première requête un peu lente, c'est normal.
 
+### Retours du relais (webhook Brevo)
+
+Un envoi se passe en deux temps, et l'application ne connaissait que le premier.
+Brevo accepte le message en quelques millisecondes — c'est la ligne `SENT` dans
+`EmailLog` — puis met des secondes ou des heures à le remettre, ou à échouer. Une
+boîte fermée depuis six mois passait donc pour servie : le mercredi, l'adhérente
+ne recevait rien, et personne au bureau ne pouvait le savoir.
+
+Le webhook rapporte ce second temps. À brancher une fois, dans la console Brevo,
+**Transactional → Settings → Webhook**, en pointant sur :
+
+```
+https://api.auxptitspois.fr/api/emails/brevo?s=LE-SECRET
+```
+
+Événements à cocher : `delivered`, `soft_bounce`, `hard_bounce`, `blocked`,
+`invalid_email`, `spam`, `deferred`, `unsubscribed`. Les ouvertures et les clics
+sont inutiles ici — ils ne disent rien qu'on ait besoin de garder, et remplir la
+base d'un événement par lecture n'apprendrait rien à personne.
+
+Ce que chaque retour déclenche :
+
+| Événement Brevo | Trace `EmailLog` | Effet |
+|---|---|---|
+| `delivered`, `deferred`, `soft_bounce` | le sort est noté | aucun — un rejet passager se résout tout seul |
+| `hard_bounce`, `invalid_email`, `blocked` | le sort est noté | l'adresse entre dans `EmailSuppression` : plus aucun envoi |
+| `spam`, `unsubscribed` | le sort est noté | la lettre d'information est coupée, les messages du contrat continuent |
+
+La plainte pour spam ne coupe pas tout, et c'est délibéré : l'adhérent a un
+contrat en cours, l'avis de dépôt de son chèque doit continuer d'arriver. Il s'est
+plaint de la lettre d'information, c'est elle qu'on arrête.
+
+Tout se lit ensuite dans **Administration → Suivi des emails**, où les adresses
+écartées se remettent en circulation d'un bouton, une fois l'adresse corrigée avec
+l'adhérent. Le geste est journalisé : réactiver à répétition une adresse qui
+rebondit abîme la réputation du domaine, et il faut pouvoir dire qui l'a fait.
+
+> La jointure entre l'événement et la trace se fait sur le `Message-ID`. Si le
+> relais le réécrit en chemin, la trace reste « en attente » mais l'adresse, elle,
+> est bien traitée — l'écran affiche alors des adresses écartées sans que les
+> lignes correspondantes changent d'état. C'est dégradé, jamais cassé.
+
+### Migrations de base au déploiement
+
+Rien dans le dépôt ne joue les migrations tout seul : `npm start` lance le
+serveur, sans plus. C'est la **Build Command** de Render qui doit s'en charger,
+et elle doit contenir les deux gestes, dans cet ordre :
+
+```
+npm install && npx prisma generate && npx prisma migrate deploy
+```
+
+`prisma generate` régénère le client à partir du schéma ; `prisma migrate deploy`
+applique au schéma de la base les migrations qui n'y sont pas encore. Sans le
+second, le serveur démarre contre une base d'un schéma antérieur — et comme
+Prisma énumère les colonnes au lieu d'écrire `SELECT *`, Postgres répond que la
+colonne n'existe pas et l'écran concerné rend 500. Ce n'est pas une
+fonctionnalité en moins, c'est un écran cassé.
+
+> Render construit d'abord et bascule le trafic ensuite : pendant une minute ou
+> deux, l'ancienne instance tourne contre le nouveau schéma. Une migration qui
+> **ajoute** des colonnes traverse cette fenêtre sans rien casser — du code qui
+> les ignore s'accommode de leur présence. Une migration qui en **supprime** une
+> fait rendre 500 à l'ancien code pendant ce court moment, le temps de la
+> bascule. Déployer une suppression de colonne à une heure creuse suffit ; la
+> parade orthodoxe, qui consiste à déployer le code puis la migration en deux
+> fois, coûte plus cher qu'elle ne rapporte à cette échelle.
+
 ## ✨ Fonctionnalités principales
 
 ### Pour les adhérents
@@ -244,7 +335,7 @@ NEXT_PUBLIC_GA_ID=...          # ID Google Analytics (ex: G-XXXXXXXXXX)
 - Suppression du compte (RGPD art. 17)
 
 ### Pour les administrateurs
-Espace dédié de 15 écrans, pagination unifiée sur toutes les listes :
+Espace dédié de 16 écrans, pagination unifiée sur toutes les listes :
 - **Demandes d'abonnement** : validation, refus, rattachement au compte utilisateur, génération du contrat PDF pré-rempli (Puppeteer + Handlebars)
 - **Abonnements** : activation, résiliation, pause individuelle (limite 2 semaines/an)
 - **Fermetures** : fermetures collectives de l'AMAP (limite 3 semaines/an) avec newsletter automatique, contrôle de collision avec les permanences existantes
@@ -255,6 +346,7 @@ Espace dédié de 15 écrans, pagination unifiée sur toutes les listes :
 - **Demandes producteurs** : traitement des candidatures avec emails d'acceptation/refus
 - **Communication** : newsletters rich-text (Tiptap), envoi groupé, programmation, brouillons
 - **Messages** : boîte de réception du formulaire de contact (lu / non-lu / archivé)
+- **Suivi des emails** : ce qui est parti et ce que le relais en a fait (remis, rejeté, signalé indésirable), adresses écartées des envois après un rejet définitif et remise en circulation d'un bouton — voir « Retours du relais » plus haut
 - **Utilisateurs** : gestion des comptes et des rôles
 - **Journal** : journal d'audit des actions sensibles, filtrable par sévérité
 - **Paramètres** : suppression des jeux de données d'exemple (producteurs, produits, points de retrait marqués comme exemples), action irréversible et journalisée
@@ -327,6 +419,8 @@ Le schéma Prisma comprend :
 - **Newsletter** - Communications (type, cible, programmation)
 - **ContactMessage** - Messages de contact
 - **AuditLog** - Journal d'audit des actions d'administration
+- **EmailLog** - Trace de chaque message sortant : l'enveloppe, jamais le corps. `status` dit s'il a été confié au relais, `delivery` ce que le relais en a fait ensuite
+- **EmailSuppression** - Adresses écartées des envois après un rejet définitif
 - **ThemeConfig** - Table héritée de l'ancien système de thèmes saisonniers, plus lue par l'application
 
 ## 🎨 Personnalisation

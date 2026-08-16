@@ -22,6 +22,7 @@ const MENU_ITEMS = [
   { title: 'Permanences', path: '/admin/permanences' },
   { title: 'Messages', path: '/admin/messages', badge: 'messages' },
   { title: 'Communication', path: '/admin/communication' },
+  { title: 'Suivi des emails', path: '/admin/emails' },
   { title: 'Fermetures AMAP', path: '/admin/fermetures' },
   { title: 'Journal d\'audit', path: '/admin/journal' },
   { title: 'Paramètres', path: '/admin/parametres' }

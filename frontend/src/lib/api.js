@@ -463,6 +463,37 @@ const api = {
     },
   },
 
+  // Suivi des envois : la trace de chaque message et les adresses écartées.
+  emails: {
+    getLogs: async (params = {}) => {
+      const query = new URLSearchParams();
+      if (params.status)   query.set('status',   params.status);
+      if (params.delivery) query.set('delivery', params.delivery);
+      if (params.kind)     query.set('kind',     params.kind);
+      if (params.email)    query.set('email',    params.email);
+      if (params.probleme) query.set('probleme', 'true');
+      if (params.page)     query.set('page',     params.page);
+      if (params.limit)    query.set('limit',    params.limit);
+
+      return fetchAPI(`/emails?${query.toString()}`, { requiresAuth: true });
+    },
+
+    getSummary: async () => {
+      return fetchAPI('/emails/summary', { requiresAuth: true });
+    },
+
+    getSuppressions: async () => {
+      return fetchAPI('/emails/suppressions', { requiresAuth: true });
+    },
+
+    liftSuppression: async (id) => {
+      return fetchAPI(`/emails/suppressions/${id}`, {
+        method: 'DELETE',
+        requiresAuth: true,
+      });
+    },
+  },
+
   shifts: {
     getAll: async (params = {}) => {
       const queryString = new URLSearchParams(params).toString();

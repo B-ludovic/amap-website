@@ -20,6 +20,7 @@
 
 import { prisma } from '../config/database.js';
 import emailService from './email.service.js';
+import { adressesSupprimees, normaliserAdresse } from './emailSuppression.service.js';
 
 /* Au-delà, le processus qui tenait le drapeau est considéré mort. Large devant
    les quelques minutes que demande la plus longue boucle : reprendre trop tôt
@@ -73,9 +74,18 @@ export async function destinatairesRestants(basketId) {
 
   const servis = new Set(dejaServis.map((ligne) => ligne.to));
 
-  return abonnements
+  const attendus = abonnements
     .map((abonnement) => abonnement.user)
     .filter((user) => user?.email && !servis.has(user.email));
+
+  /* Les adresses mortes sortent d'ici, sans quoi la reprise ne s'arrêterait
+     jamais : elles ne peuvent pas obtenir de trace SENT, donc elles figureraient
+     parmi les restants à chaque passage du balayage. */
+  const ecartees = await adressesSupprimees(attendus.map((user) => user.email));
+
+  return ecartees.size === 0
+    ? attendus
+    : attendus.filter((user) => !ecartees.has(normaliserAdresse(user.email)));
 }
 
 /* Recompté depuis EmailLog plutôt qu'accumulé : après une reprise, une addition

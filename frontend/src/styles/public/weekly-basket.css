@@ -318,7 +318,7 @@
   transition: background-color var(--transition-fast);
 }
 
-.basket-join-link:hover {
+.forest-card .basket-join-link:hover {
   background-color: var(--terracotta-dark);
   color: var(--surface-page);
 }

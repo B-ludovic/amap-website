@@ -4,6 +4,7 @@ import { prisma } from '../config/database.js';
 import { euroAmount } from '../utils/subscriptionPricing.js';
 import { overridesOptOut } from './newsletterAudience.service.js';
 import { unsubscribePageUrl, unsubscribeHeaders } from '../utils/unsubscribeToken.js';
+import { estSupprimee } from './emailSuppression.service.js';
 import { renderEmail, emailButton, emailToText } from './emailTheme.js';
 
 /* Pool : sans lui chaque message rouvrait une connexion TCP + TLS + auth.
@@ -84,10 +85,35 @@ const rgpdNoteSansCompte = (email, raison) =>
 
 class EmailService {
 
+  /* La liste des adresses mortes, consultée juste avant d'écrire.
+
+     Ce filet attrape les messages unitaires — bienvenue, réinitialisation — que
+     les listes filtrées en amont ne voient pas. Une erreur de lecture laisse
+     passer le message : une base indisponible ne doit pas couper le courrier,
+     elle rendrait muette une application par ailleurs saine. */
+  async #adresseSupprimee(email) {
+    try {
+      return await estSupprimee(email);
+    } catch (error) {
+      console.error(`[Email] liste des adresses supprimées illisible : ${error.message}`);
+      return null;
+    }
+  }
+
   /* Point de passage unique de tout message sortant : une ligne de log pour
      l'équipe, une ligne en base pour répondre à « untel a-t-il reçu son
      message le 12 mars ? », qu'aucun log rotatif ne sait tenir. */
   async #send(mailOptions, { kind, ref = null }) {
+    const supprimee = await this.#adresseSupprimee(mailOptions.to);
+
+    if (supprimee) {
+      const motif = `adresse écartée (${supprimee.reason})`;
+      console.warn(`[Email:${kind}] non envoyé : ${motif}`);
+      await this.#trace({ kind, ref, mailOptions, status: 'FAILED', error: motif });
+
+      return { success: false, error: motif };
+    }
+
     try {
       // Ajoutée ici seulement : seul endroit par lequel les 19 messages passent.
       const message = mailOptions.html && !mailOptions.text

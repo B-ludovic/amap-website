@@ -32,6 +32,13 @@ const ORPHAN_REQUEST_RETENTION_DAYS = 365;
    ce que ce job refuse par ailleurs — elles vieillissent seules. */
 const EMAIL_LOG_RETENTION_DAYS = 365;
 
+/* Une adresse écartée l'est sur la foi d'un rebond, pas d'un consentement : la
+   garder indéfiniment reviendrait à tenir un fichier d'adresses sans terme.
+   Deux ans sans nouvel événement, et on redonne sa chance à la boîte — si elle
+   est toujours morte, le premier message la remettra dans la liste, au prix
+   d'un rebond tous les deux ans. */
+const EMAIL_SUPPRESSION_RETENTION_DAYS = 2 * 365;
+
 const daysAgo = (days) => {
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - days);
@@ -220,6 +227,21 @@ async function purgeEmailLogs() {
   }
 }
 
+/* Les adresses écartées à la main ne vieillissent pas : quelqu'un les a mises
+   là en connaissance de cause, ce n'est pas au calendrier de défaire ce geste. */
+async function purgeEmailSuppressions() {
+  const cutoff = daysAgo(EMAIL_SUPPRESSION_RETENTION_DAYS);
+
+  const { count } = await prisma.emailSuppression.deleteMany({
+    where: { reason: { not: 'MANUAL' }, lastEventAt: { lte: cutoff } },
+  });
+
+  if (count > 0) {
+    await logAudit(null, 'PURGE_USER_DATA', 'IMPORTANT', { type: 'EMAIL_SUPPRESSION', label: 'Adresses écartées des envois' }, { count, retentionDays: EMAIL_SUPPRESSION_RETENTION_DAYS });
+    console.log(`[RetentionJob] ${count} adresse(s) écartée(s) remise(s) en circulation (>${EMAIL_SUPPRESSION_RETENTION_DAYS}j)`);
+  }
+}
+
 async function runRetentionJob() {
   try {
     await purgeDeletedAccounts();
@@ -228,6 +250,7 @@ async function runRetentionJob() {
     await purgeProducerInquiries();
     await purgeOrphanSubscriptionRequests();
     await purgeEmailLogs();
+    await purgeEmailSuppressions();
   } catch (error) {
     console.error('[RetentionJob] Erreur lors de la purge des données:', error);
   }
