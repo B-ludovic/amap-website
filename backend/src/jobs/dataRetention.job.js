@@ -94,6 +94,8 @@ async function purgeDeletedAccounts() {
     await logAudit(null, 'PURGE_USER_DATA', 'CRITICAL', { type: 'USER', label: 'Comptes supprimés depuis plus de 90 jours' }, { count, retentionDays: DELETED_ACCOUNT_RETENTION_DAYS });
     console.log(`[RetentionJob] ${count} compte(s) supprimé(s) définitivement (>90j)`);
   }
+
+  return count;
 }
 
 async function purgeUnverifiedAccounts() {
@@ -111,6 +113,8 @@ async function purgeUnverifiedAccounts() {
     await logAudit(null, 'PURGE_USER_DATA', 'IMPORTANT', { type: 'USER', label: 'Comptes non vérifiés' }, { count, retentionDays: UNVERIFIED_ACCOUNT_RETENTION_DAYS });
     console.log(`[RetentionJob] ${count} inscription(s) non vérifiée(s) supprimée(s) (>30j)`);
   }
+
+  return count;
 }
 
 /* On ne purge que ce qui a été traité. Un message jamais ouvert ou une
@@ -143,6 +147,8 @@ async function purgeContactMessages() {
     where: { status: 'UNREAD', createdAt: { lte: cutoff } },
   });
   await warnAboutUntreated('message(s) de contact non lu(s)', untreated, CONTACT_MESSAGE_RETENTION_DAYS);
+
+  return count;
 }
 
 async function purgeProducerInquiries() {
@@ -172,6 +178,8 @@ async function purgeProducerInquiries() {
     where: { status: { in: ['PENDING', 'IN_PROGRESS'] }, createdAt: { lte: cutoff } },
   });
   await warnAboutUntreated('candidature(s) producteur sans réponse', untreated, PRODUCER_INQUIRY_RETENTION_DAYS);
+
+  return count;
 }
 
 /* Les demandes rattachées à un compte ne sont pas concernées : elles suivent le
@@ -213,6 +221,8 @@ async function purgeOrphanSubscriptionRequests() {
     where: { userId: null, status: { in: ['PENDING', 'IN_PROGRESS'] }, createdAt: { lte: cutoff } },
   });
   await warnAboutUntreated('demande(s) d\'abonnement sans compte non traitée(s)', untreated, ORPHAN_REQUEST_RETENTION_DAYS);
+
+  return count;
 }
 
 // Pas de garde-fou « non traité » : une trace n'attend de geste de personne.
@@ -227,6 +237,8 @@ async function purgeEmailLogs() {
     await logAudit(null, 'PURGE_USER_DATA', 'IMPORTANT', { type: 'EMAIL_LOG', label: 'Traces d\'envoi d\'emails' }, { count, retentionDays: EMAIL_LOG_RETENTION_DAYS });
     console.log(`[RetentionJob] ${count} trace(s) d'email purgée(s) (>${EMAIL_LOG_RETENTION_DAYS}j)`);
   }
+
+  return count;
 }
 
 /* Les adresses écartées à la main ne vieillissent pas : quelqu'un les a mises
@@ -242,19 +254,59 @@ async function purgeEmailSuppressions() {
     await logAudit(null, 'PURGE_USER_DATA', 'IMPORTANT', { type: 'EMAIL_SUPPRESSION', label: 'Adresses écartées des envois' }, { count, retentionDays: EMAIL_SUPPRESSION_RETENTION_DAYS });
     console.log(`[RetentionJob] ${count} adresse(s) écartée(s) remise(s) en circulation (>${EMAIL_SUPPRESSION_RETENTION_DAYS}j)`);
   }
+
+  return count;
 }
 
-async function runRetentionJob() {
+/* Le passage laisse une trace même quand il n'a rien trouvé à purger, et c'est
+   tout l'intérêt de cette ligne : les sept purges ci-dessus ne journalisent que
+   sous « count > 0 », si bien qu'un journal muet ne disait pas si le job avait
+   tourné à vide ou n'avait pas tourné du tout. Or les deux se ressemblent
+   exactement, et l'un des deux est une panne — celle décrite plus bas, où une
+   instance endormie ne laisse jamais la minuterie arriver à son terme.
+
+   C'est aussi ce qui permet de démontrer qu'une politique de conservation est
+   appliquée, et pas seulement écrite : le registre porte alors la preuve de
+   chaque passage, pas uniquement celle des suppressions. */
+export async function runRetentionJob() {
+  const startedAt = Date.now();
+
   try {
-    await purgeDeletedAccounts();
-    await purgeUnverifiedAccounts();
-    await purgeContactMessages();
-    await purgeProducerInquiries();
-    await purgeOrphanSubscriptionRequests();
-    await purgeEmailLogs();
-    await purgeEmailSuppressions();
+    // Séquentiel, comme avant : l'ordre des clés est celui des appels.
+    const counts = {
+      deletedAccounts: await purgeDeletedAccounts(),
+      unverifiedAccounts: await purgeUnverifiedAccounts(),
+      contactMessages: await purgeContactMessages(),
+      producerInquiries: await purgeProducerInquiries(),
+      orphanSubscriptionRequests: await purgeOrphanSubscriptionRequests(),
+      emailLogs: await purgeEmailLogs(),
+      emailSuppressions: await purgeEmailSuppressions(),
+    };
+
+    const total = Object.values(counts).reduce((somme, n) => somme + n, 0);
+    const durationMs = Date.now() - startedAt;
+
+    await logAudit(
+      null,
+      'RETENTION_JOB_RUN',
+      'IMPORTANT',
+      { type: 'JOB', label: 'Passage de rétention' },
+      { ...counts, total, durationMs },
+    );
+    console.log(`[RetentionJob] Passage terminé — ${total} enregistrement(s) purgé(s) en ${durationMs} ms`);
   } catch (error) {
     console.error('[RetentionJob] Erreur lors de la purge des données:', error);
+
+    /* Un passage interrompu laisse la base à moitié purgée, sans que rien ne le
+       dise au registre : les purges déjà faites y figurent, celles qui n'ont pas
+       eu lieu ne s'y distinguent pas d'un rien à faire. */
+    await logAudit(
+      null,
+      'RETENTION_JOB_FAILED',
+      'CRITICAL',
+      { type: 'JOB', label: 'Passage de rétention interrompu' },
+      { message: error?.message ?? String(error), durationMs: Date.now() - startedAt },
+    );
   }
 }
 

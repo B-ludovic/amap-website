@@ -752,6 +752,11 @@ enum AuditAction {
   RECORD_CHEQUES_RECEIVED
   UPDATE_PAYMENT_STATUS
   FAILED_PAYMENT_REAUTH
+  /* Passage du job de rétention, consigné même quand il n'a rien purgé : sans
+     cette ligne, un registre muet ne distingue pas « rien à faire » de « le job
+     n'a pas tourné ». Voir jobs/dataRetention.job.js. */
+  RETENTION_JOB_RUN
+  RETENTION_JOB_FAILED
 }
 
 enum AuditSeverity {

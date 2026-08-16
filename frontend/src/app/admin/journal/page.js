@@ -26,6 +26,8 @@ const ACTION_LABELS = {
   REJECT_SUBSCRIPTION_REQUEST:  'Refus demande abonnement',
   CANCEL_SUBSCRIPTION:          'Annulation abonnement',
   UPDATE_SUBSCRIPTION_STATUS:   'Mise à jour abonnement',
+  RETENTION_JOB_RUN:            'Passage de rétention',
+  RETENTION_JOB_FAILED:         'Rétention interrompue',
 };
 
 export default function AdminJournalPage() {
