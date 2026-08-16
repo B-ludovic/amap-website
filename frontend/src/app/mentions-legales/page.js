@@ -358,6 +358,12 @@ export default function MentionsLegalesPage() {
                 </dt>
                 <dd className="split-value">1 an</dd>
               </div>
+              <div className="split-row">
+                <dt className="split-label">
+                  Adresse écartée des envois après un refus définitif
+                </dt>
+                <dd className="split-value">2 ans</dd>
+              </div>
             </dl>
             <p className="legal-text legal-text-loose">
               Les données liées à un abonnement en cours sont conservées le temps de la

@@ -1,4 +1,4 @@
-/* Modal - Aux P'tits Pois */
+/* Modale générique — panneau crème dans une voile forêt. */
 
 .modal-overlay {
   position: fixed;
@@ -6,13 +6,14 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(31, 36, 33, 0.68);
+  backdrop-filter: blur(3px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 9999;
-  padding: var(--spacing-md);
-  animation: fadeIn 0.2s ease-out;
+  padding: 24px;
+  animation: fadeIn var(--transition-fast) ease-out;
 }
 
 @keyframes fadeIn {
@@ -25,16 +26,18 @@
 }
 
 .modal-container {
-  background-color: var(--white);
-  border-radius: var(--border-radius-lg);
-  box-shadow: var(--shadow-xl);
+  background-color: var(--surface-page);
+  border: var(--border-width) solid var(--border-card);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-float);
   max-width: 500px;
   width: 100%;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
   position: relative;
-  animation: slideUp 0.3s ease-out;
+  overflow: hidden;
+  animation: slideUp var(--transition-base) ease-out;
 }
 
 .modal-container.modal-large {
@@ -113,30 +116,32 @@
 
 .modal-close-btn {
   position: absolute;
-  top: var(--spacing-md);
-  right: var(--spacing-md);
-  background: none;
-  border: none;
+  top: 14px;
+  right: 14px;
+  width: 34px;
+  height: 34px;
+  background-color: transparent;
+  border: var(--border-width) solid transparent;
   cursor: pointer;
-  color: var(--text-muted);
-  padding: var(--spacing-xs);
-  border-radius: var(--border-radius-sm);
+  color: var(--text-light);
+  padding: 0;
+  border-radius: var(--border-radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all var(--transition-base);
+  transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
 }
 
 .modal-close-btn:hover {
-  background-color: var(--background-color);
-  color: var(--text-dark);
+  background-color: var(--surface-sand);
+  border-color: var(--border-card);
+  color: var(--text-primary);
 }
 
 .modal-icon-container {
   display: flex;
   justify-content: center;
-  margin-bottom: var(--spacing-lg);
-  margin-top: var(--spacing-lg);
+  margin: 38px 24px 20px;
 }
 
 .modal-icon {
@@ -144,60 +149,73 @@
 }
 
 .modal-icon-success {
-  color: var(--success-color);
+  color: var(--badge-live-fg);
 }
 
 .modal-icon-error {
-  color: var(--error-color);
+  color: var(--error-text);
 }
 
 .modal-icon-warning {
-  color: var(--warning-color);
+  color: var(--notice-strong);
 }
 
 .modal-icon-confirm {
-  color: var(--primary-color);
+  color: var(--terracotta);
 }
 
 .modal-icon-info {
-  color: var(--accent-color);
+  color: var(--brass);
 }
 
 .modal-content {
   text-align: center;
-  margin-bottom: var(--spacing-xl);
+  padding: 0 40px;
+  margin-bottom: 28px;
 }
 
 .modal-title {
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-semibold);
-  color: var(--text-dark);
-  margin: 0 0 var(--spacing-md) 0;
+  font-family: var(--font-display);
+  font-size: 27px;
+  font-weight: var(--font-weight-normal);
+  line-height: 1.15;
+  letter-spacing: var(--display-tracking);
+  color: var(--text-primary);
+  margin: 0 0 12px;
 }
 
 .modal-message {
-  font-size: var(--font-size-base);
-  color: var(--text-muted);
+  font-size: 14.5px;
+  color: var(--text-secondary);
   line-height: 1.6;
   margin: 0;
 }
 
 .modal-actions {
   display: flex;
-  gap: var(--spacing-md);
+  gap: 10px;
   justify-content: center;
-  margin-bottom: var(--spacing-lg);
+  padding: 0 24px 28px;
+  margin: 0;
 }
 
 .modal-actions .btn {
   min-width: 120px;
+  height: 46px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal-overlay,
+  .modal-container {
+    animation: none;
+  }
 }
 
 /* Responsive */
 @media (max-width: 768px) {
   /* L'overlay reste le même, mais le rembourrage est réduit */
   .modal-overlay {
-    padding: var(--spacing-sm);
+    padding: 12px;
     /* On ajoute un align-items: flex-end pour les très petits écrans,
        faisant remonter la modale du bas (optionnel, mais courant) */
     /* align-items: flex-end; */ 
@@ -229,12 +247,16 @@
     /* Les boutons s'empilent verticalement, avec le bouton principal en bas */
     flex-direction: column-reverse;
     gap: var(--spacing-sm); /* Réduction de l'espace entre les boutons empilés */
-    padding: 0 var(--spacing-md); /* Ajout de padding horizontal pour éviter que les boutons touchent les bords */
+    padding: 0 20px 20px; /* Ajout de padding horizontal pour éviter que les boutons touchent les bords */
   }
 
   .modal-actions .btn {
     width: 100%; /* Les boutons prennent toute la largeur sur mobile */
     min-width: unset;
+  }
+
+  .modal-content {
+    padding: 0 28px;
   }
   
   /* S'assurer que le modal-footer a aussi du padding si les actions sont dedans */
