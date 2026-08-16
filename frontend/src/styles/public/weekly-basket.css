@@ -120,6 +120,11 @@
   border-bottom: var(--border-width) solid var(--border-section);
 }
 
+/* L'étiquette et la citation se calent sur leur ligne de base commune. Aligner
+   les deux blocs par le haut obligeait à décaler l'étiquette à la main pour
+   rattraper l'écart entre 11 px et 25 px : le compte tombait juste tant que le
+   texte courait sur plusieurs lignes, et se voyait dès qu'il n'en faisait
+   qu'une. La ligne de base, elle, ne dépend pas de la longueur du texte. */
 .basket-note-inner {
   max-width: var(--container-max-width);
   margin: 0 auto;
@@ -127,13 +132,12 @@
   display: grid;
   grid-template-columns: auto 1fr;
   gap: 32px;
-  align-items: start;
+  align-items: baseline;
 }
 
 .basket-note .eyebrow {
   display: block;
   white-space: nowrap;
-  padding-top: 5px;
 }
 
 .basket-note-text {

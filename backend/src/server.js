@@ -28,6 +28,7 @@ import distributionRoutes from './routes/distribution.routes.js';
 import recipesRoutes from './routes/recipes.routes.js';
 import contactRoutes from './routes/contact.routes.js';
 import closuresRoutes from './routes/closures.routes.js';
+import producerAbsencesRoutes from './routes/producer-absences.routes.js';
 import emailsRoutes from './routes/emails.routes.js';
 import { startRenewalReminderJob } from './jobs/renewalReminder.job.js';
 import { startDataRetentionJob } from './jobs/dataRetention.job.js';
@@ -259,6 +260,7 @@ app.use('/api/recipes', recipesRoutes);
 app.use('/api/contact', publicLimiter);
 app.use('/api/contact', contactRoutes);
 app.use('/api/closures', closuresRoutes);
+app.use('/api/producer-absences', producerAbsencesRoutes);
 app.use('/api/emails/brevo', webhookLimiter);
 app.use('/api/emails', emailsRoutes);
 

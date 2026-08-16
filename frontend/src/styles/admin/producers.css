@@ -27,6 +27,52 @@
   margin-bottom: 16px;
 }
 
+/* Absences déclarées : une ligne par période, la plus récente en tête. */
+.admin-field-hint {
+  margin: 0 0 16px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-light);
+}
+
+.admin-absence-list {
+  list-style: none;
+  margin: 0 0 18px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.admin-absence-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 10px 12px;
+  background-color: var(--surface-sand);
+  border: 1px solid var(--border-card);
+  border-radius: var(--border-radius-sm);
+  font-size: 13.5px;
+}
+
+.admin-absence-period {
+  font-family: var(--font-mono);
+  white-space: nowrap;
+}
+
+.admin-absence-reason {
+  color: var(--text-light);
+  /* Le motif cède la place avant la période et le bouton, qui ne se coupent pas. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-absence-remove {
+  margin-left: auto;
+  white-space: nowrap;
+}
+
 @media (max-width: 1100px) {
   .admin-producers-table {
     --admin-cols: 1.2fr 1.6fr 1.3fr 0.7fr 0.8fr;

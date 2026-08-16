@@ -143,12 +143,37 @@ model Producer {
   partnerSince    Int?      // année d'entrée dans l'AMAP
 
   products    Product[]
+  absences    ProducerAbsence[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@index([email])
   @@index([isActive])
+}
+
+/* Une ferme peut manquer une distribution sans cesser d'être partenaire :
+   congés, récolte perdue, camion en panne. Pendant la période déclarée, le
+   tirage du panier écarte ses produits.
+
+   Le patron est celui d'AmapClosure, avec une portée différente : une fermeture
+   suspend la distribution pour tout le monde, une absence ne retire qu'une
+   ferme de l'étal. isActive dit « c'est une ferme partenaire », cette table dit
+   « elle n'est pas là cette semaine » — les deux ne se remplacent pas. */
+model ProducerAbsence {
+  id         String   @id @default(uuid())
+  producerId String
+  startDate  DateTime
+  endDate    DateTime
+  reason     String?
+
+  producer   Producer @relation(fields: [producerId], references: [id], onDelete: Cascade)
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([producerId])
+  @@index([startDate, endDate])
 }
 
 enum ProducerCertification {

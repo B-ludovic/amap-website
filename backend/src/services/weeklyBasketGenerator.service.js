@@ -1,4 +1,5 @@
 import { prisma } from '../config/database.js';
+import { findAbsentProducerIds } from './producerAbsence.service.js';
 
 const BASKET_LIMITS = {
   SMALL: 5,
@@ -101,18 +102,31 @@ export async function generateWeeklyBasket({ distributionDate, season, notes = n
 
   if (existingBasket) return resolveExistingBasket(existingBasket, isPublished);
 
+  /* Une ferme absente ce jour-là n'apporte rien à l'étal : ses produits sortent
+     du tirage, même s'ils sont actifs et de saison. La liste est vide dans le
+     cas courant, et la clause `notIn` ne coûte alors rien. */
+  const absentProducerIds = await findAbsentProducerIds(distributionDate);
+
   const products = await prisma.product.findMany({
     where: {
       isActive: true,
       seasons: { has: season },
-      producer: { isActive: true }
+      producer: { isActive: true },
+      ...(absentProducerIds.length > 0 && { producerId: { notIn: absentProducerIds } })
     },
     select: { id: true, basketSizes: true }
   });
 
+  /* Le tirage prend ce qu'il trouve : un panier de trois variétés au lieu de
+     cinq reste un panier, et l'écart se voit sur l'écran d'administration. Seul
+     l'étal complètement vide arrête la génération, parce qu'il n'y a alors plus
+     rien à annoncer. */
   const items = createItemsByBasketSize(products);
   if (items.length === 0) {
-    throw new Error(`Aucun produit actif n'est éligible pour la saison ${season}`);
+    const cause = absentProducerIds.length > 0
+      ? ` (${absentProducerIds.length} ferme(s) absente(s) cette semaine)`
+      : '';
+    throw new Error(`Aucun produit actif n'est éligible pour la saison ${season}${cause}`);
   }
 
   try {

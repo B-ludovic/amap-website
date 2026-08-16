@@ -1032,6 +1032,32 @@ const api = {
       requiresAuth: true,
     }),
   },
+
+  /* Absences des fermes : une ferme en congés reste partenaire, mais ses
+     produits sortent du tirage du panier le temps de la période déclarée. */
+  producerAbsences: {
+    getAll: async (producerId) => fetchAPI(
+      producerId ? `/producer-absences?producerId=${encodeURIComponent(producerId)}` : '/producer-absences',
+      { requiresAuth: true }
+    ),
+
+    create: async (data) => fetchAPI('/producer-absences', {
+      method: 'POST',
+      body: data,
+      requiresAuth: true,
+    }),
+
+    update: async (id, data) => fetchAPI(`/producer-absences/${id}`, {
+      method: 'PUT',
+      body: data,
+      requiresAuth: true,
+    }),
+
+    delete: async (id) => fetchAPI(`/producer-absences/${id}`, {
+      method: 'DELETE',
+      requiresAuth: true,
+    }),
+  },
 };
 
 export default api;

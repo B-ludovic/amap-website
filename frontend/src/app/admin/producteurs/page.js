@@ -7,6 +7,26 @@ import AdminModal from '../../../components/admin/AdminModal';
 import { phone, plural } from '../../../lib/format';
 import '../../../styles/admin/producers.css';
 
+/* Les dates arrivent et repartent en jour civil : le champ date du navigateur
+   parle en « 2026-08-19 », la base enregistre ce jour à minuit UTC. Passer par
+   toLocaleDateString ferait glisser la veille pour les fuseaux à l'est. */
+function toDateInput(value) {
+  return new Date(value).toISOString().slice(0, 10);
+}
+
+function frenchDate(value) {
+  const [year, month, day] = toDateInput(value).split('-');
+  return `${day}/${month}/${year}`;
+}
+
+function describePeriod(absence) {
+  const start = frenchDate(absence.startDate);
+  const end = frenchDate(absence.endDate);
+  return start === end ? `Le ${start}` : `Du ${start} au ${end}`;
+}
+
+const EMPTY_ABSENCE = { startDate: '', endDate: '', reason: '' };
+
 /* La maquette n'offrait qu'une case « Certifiée Agriculture Biologique », or
    ProducerCertification compte trois états et la page publique affiche « En
    conversion ». Une case à cocher ne sait pas dire ce troisième état. */
@@ -63,6 +83,12 @@ export default function AdminProducersPage() {
   const [saving, setSaving] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
 
+  /* Les absences vivent hors du formulaire de la fiche : elles s'enregistrent
+     une par une, sans attendre que la fiche entière soit soumise. */
+  const [absences, setAbsences] = useState([]);
+  const [absenceForm, setAbsenceForm] = useState(EMPTY_ABSENCE);
+  const [absenceBusy, setAbsenceBusy] = useState(false);
+
   const fetchProducers = useCallback(async () => {
     setLoading(true);
     try {
@@ -110,10 +136,63 @@ export default function AdminProducersPage() {
     setIsDirty(false);
   };
 
+  const loadAbsences = useCallback(async (producerId) => {
+    try {
+      const response = await api.producerAbsences.getAll(producerId);
+      setAbsences(response.data.absences);
+    } catch (error) {
+      showError('Erreur', 'Impossible de charger les absences de cette ferme.');
+    }
+  }, [showError]);
+
   const openEdit = (producer) => {
     setEditing(producer);
     setForm(toForm(producer));
     setIsDirty(false);
+    setAbsences([]);
+    setAbsenceForm(EMPTY_ABSENCE);
+    loadAbsences(producer.id);
+  };
+
+  /* Une absence d'un seul jour se déclare en ne remplissant que la date de
+     début : répéter la même date des deux côtés n'apprend rien à personne. */
+  const handleAddAbsence = async () => {
+    const startDate = absenceForm.startDate;
+    const endDate = absenceForm.endDate || startDate;
+
+    if (!startDate) {
+      showError('Date manquante', 'Indiquez au moins le jour où la ferme est absente.');
+      return;
+    }
+
+    setAbsenceBusy(true);
+    try {
+      await api.producerAbsences.create({
+        producerId: editing.id,
+        startDate,
+        endDate,
+        reason: absenceForm.reason
+      });
+      setAbsenceForm(EMPTY_ABSENCE);
+      await loadAbsences(editing.id);
+      showSuccess('Absence déclarée', 'Les produits de cette ferme sortiront du panier sur cette période.');
+    } catch (error) {
+      showError('Erreur', error.message);
+    } finally {
+      setAbsenceBusy(false);
+    }
+  };
+
+  const handleDeleteAbsence = async (absence) => {
+    setAbsenceBusy(true);
+    try {
+      await api.producerAbsences.delete(absence.id);
+      await loadAbsences(editing.id);
+    } catch (error) {
+      showError('Erreur', error.message);
+    } finally {
+      setAbsenceBusy(false);
+    }
   };
 
   const setField = (field) => (event) => {
@@ -415,6 +494,88 @@ export default function AdminProducersPage() {
                 </div>
               </div>
             </div>
+
+            {/* Pas de <form> imbriqué : les champs vivent dans celui de la
+                fiche, et le bouton enregistre l'absence pour son compte. */}
+            {editing.id && (
+              <div className="admin-farm-section">
+                <span className="admin-mono-label admin-farm-section-label">
+                  Absences — la ferme ne vient pas
+                </span>
+
+                <p className="admin-field-hint">
+                  Sur ces périodes, ses produits sont écartés du tirage du panier. Elle reste
+                  partenaire et sa fiche reste en ligne.
+                </p>
+
+                {absences.length > 0 && (
+                  <ul className="admin-absence-list">
+                    {absences.map((absence) => (
+                      <li key={absence.id} className="admin-absence-row">
+                        <span className="admin-absence-period">{describePeriod(absence)}</span>
+                        {absence.reason && (
+                          <span className="admin-absence-reason">{absence.reason}</span>
+                        )}
+                        <button
+                          type="button"
+                          className="admin-btn-link admin-absence-remove"
+                          onClick={() => handleDeleteAbsence(absence)}
+                          disabled={absenceBusy}
+                        >
+                          Annuler
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                <div className="admin-form">
+                  <div className="admin-form-row" style={{ '--admin-form-cols': 3 }}>
+                    <div className="admin-form-field">
+                      <label htmlFor="pr-absence-start" className="admin-field-label">Du</label>
+                      <input
+                        id="pr-absence-start"
+                        type="date"
+                        className="admin-input"
+                        value={absenceForm.startDate}
+                        onChange={(event) => setAbsenceForm(current => ({ ...current, startDate: event.target.value }))}
+                      />
+                    </div>
+                    <div className="admin-form-field">
+                      <label htmlFor="pr-absence-end" className="admin-field-label">Au (facultatif)</label>
+                      <input
+                        id="pr-absence-end"
+                        type="date"
+                        className="admin-input"
+                        min={absenceForm.startDate || undefined}
+                        value={absenceForm.endDate}
+                        onChange={(event) => setAbsenceForm(current => ({ ...current, endDate: event.target.value }))}
+                      />
+                    </div>
+                    <div className="admin-form-field">
+                      <label htmlFor="pr-absence-reason" className="admin-field-label">Motif</label>
+                      <input
+                        id="pr-absence-reason"
+                        type="text"
+                        className="admin-input"
+                        placeholder="Ex : congés"
+                        value={absenceForm.reason}
+                        onChange={(event) => setAbsenceForm(current => ({ ...current, reason: event.target.value }))}
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    className="admin-btn-ghost"
+                    onClick={handleAddAbsence}
+                    disabled={absenceBusy}
+                  >
+                    {absenceBusy ? 'Enregistrement…' : 'Déclarer cette absence'}
+                  </button>
+                </div>
+              </div>
+            )}
 
             <div className="admin-modal-actions">
               <button type="submit" className="admin-btn-primary" disabled={saving}>

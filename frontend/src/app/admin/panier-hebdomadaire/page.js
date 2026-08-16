@@ -270,7 +270,7 @@ export default function AdminWeeklyBasketPage() {
                     setIsNotesDirty(false);
                   }}
                 >
-                  Message de la semaine
+                  Le mot de la semaine
                 </button>
               </div>
             </div>
@@ -471,7 +471,7 @@ export default function AdminWeeklyBasketPage() {
                 setIsNotesDirty(false);
               }}
             >
-              Message de la semaine
+              Le mot de la semaine
             </button>
             <span className="admin-modal-actions-end">
               <button type="button" className="admin-btn-danger" onClick={() => handleDelete(inspected)}>
@@ -484,7 +484,7 @@ export default function AdminWeeklyBasketPage() {
 
       {notesTarget && (
         <AdminModal
-          title="Message de la semaine"
+          title="Le mot de la semaine"
           width="560px"
           onClose={() => setNotesTarget(null)}
           isDirty={isNotesDirty}
@@ -498,7 +498,7 @@ export default function AdminWeeklyBasketPage() {
                 id="admin-basket-notes"
                 className="admin-textarea"
                 rows={4}
-                placeholder="Message de la semaine pour les adhérents…"
+                placeholder="Le mot de la semaine, pour les adhérents…"
                 value={notesDraft}
                 onChange={(event) => {
                   setNotesDraft(event.target.value);

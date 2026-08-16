@@ -184,14 +184,14 @@ export default function WeeklyBasketModal({ basket, onClose }) {
 
 
             <div className="form-group">
-              <label htmlFor="notes">Notes (optionnel)</label>
+              <label htmlFor="notes">Le mot de la semaine (optionnel)</label>
               <textarea
                 id="notes"
                 name="notes"
                 rows="3"
                 value={formData.notes}
                 onChange={handleChange}
-                placeholder="Message de la semaine pour les adhérents..."
+                placeholder="Le mot de la semaine, pour les adhérents…"
               />
             </div>
             {!basket && (

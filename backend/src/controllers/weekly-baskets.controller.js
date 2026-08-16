@@ -11,6 +11,7 @@ import {
   httpStatusCodes
 } from '../utils/httpErrors.js';
 import { logAudit } from '../services/audit.service.js';
+import { getUtcDayBounds } from '../utils/closurePeriod.js';
 import {
   reserverNotification,
   destinatairesRestants,
@@ -110,12 +111,20 @@ const getCurrentWeeklyBasket = asyncHandler(async (req, res) => {
   if (basketSize && !['SMALL', 'LARGE'].includes(basketSize)) {
     throw new HttpBadRequestError('Format de panier invalide');
   }
-  const now = new Date();
+  /* Le jour civil, pas l'instant. La date de distribution est enregistrée à midi
+     UTC : comparée à l'heure courante, elle sortait du « panier de la semaine »
+     dès le mercredi début d'après-midi, soit quelques heures avant la
+     distribution qu'elle annonce. La page publique tombait alors sur son écran
+     vide jusqu'à la génération du panier suivant, le jeudi à 2 h.
+
+     Ramené au début du jour, le panier du mercredi reste courant toute sa
+     journée, et la bascule vers le suivant tombe au moment où le job le crée. */
+  const { start: today } = getUtcDayBounds(new Date());
 
   const basket = await prisma.weeklyBasket.findFirst({
     where: {
       isPublished: true,
-      distributionDate: { gte: now }
+      distributionDate: { gte: today }
     },
     include: itemsInclude,
     orderBy: { distributionDate: 'asc' }
