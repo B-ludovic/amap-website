@@ -758,6 +758,56 @@ class EmailService {
     }, { kind: 'SUBSCRIPTION_CANCELLATION', ref: subscription.id });
   }
 
+  /* La pause est demandée de vive voix et saisie par un bénévole : ce message est
+     la seule trace écrite que l'adhérent en garde, d'où les dates et le quota
+     restant, qu'il ne peut lire nulle part ailleurs. */
+  async sendSubscriptionPaused(subscription, user, { startDate, endDate, joursRestants }) {
+    return this.#send({
+      from: EMAIL_FROM,
+      to: user.email,
+      subject: 'Votre pause est enregistrée - Aux P\'tits Pois',
+      html: renderEmail({
+        title: 'Votre pause est enregistrée',
+        content: `
+            <p>Bonjour ${escapeHtml(user.firstName)},</p>
+            <p>Vos paniers sont suspendus <strong>du ${longDate(startDate)} au ${longDate(endDate)}</strong>. Aucun panier ne sera préparé pendant cette période, vous n'avez rien à faire.</p>
+            <p>Votre abonnement reprend ensuite tout seul, sans démarche de votre part : vous recevrez un message le jour venu.</p>
+            <div class="info-box">
+              <h3>Votre abonnement</h3>
+              <p><strong>N° :</strong> ${escapeHtml(subscription.subscriptionNumber)}</p>
+              <p><strong>Pause restante cette saison :</strong> ${joursRestants} jour${joursRestants > 1 ? 's' : ''} sur 14</p>
+            </div>
+            <p>À bientôt,<br>L'équipe Aux P'tits Pois</p>`,
+        footerNote: rgpdNote(user.email, 'suite à la mise en pause de votre contrat'),
+      }),
+    }, { kind: 'SUBSCRIPTION_PAUSED', ref: subscription.id });
+  }
+
+  /* Le pendant du précédent, et le seul qui compte vraiment : une reprise que
+     personne n'annonce, c'est un panier préparé pour quelqu'un qui ne viendra
+     pas le chercher. */
+  async sendSubscriptionResumed(subscription, user) {
+    return this.#send({
+      from: EMAIL_FROM,
+      to: user.email,
+      subject: 'Votre abonnement reprend - Aux P\'tits Pois',
+      html: renderEmail({
+        title: 'Votre abonnement reprend',
+        content: `
+            <p>Bonjour ${escapeHtml(user.firstName)},</p>
+            <p>Votre pause est terminée : votre abonnement Aux P'tits Pois est de nouveau <strong>actif</strong>, et un panier vous est préparé dès la prochaine distribution.</p>
+            <div class="highlight">
+              <h3>Retrait de votre panier</h3>
+              <p><strong>Chaque mercredi de 18h15 à 19h15</strong><br>
+              ${escapeHtml(subscription.pickupLocation.name)}<br>
+              ${escapeHtml(subscription.pickupLocation.address)}</p>
+            </div>
+            <p>À mercredi,<br>L'équipe Aux P'tits Pois</p>`,
+        footerNote: rgpdNote(user.email, 'suite à la reprise de votre contrat'),
+      }),
+    }, { kind: 'SUBSCRIPTION_RESUMED', ref: subscription.id });
+  }
+
   /* Candidature producteur : Acceptée */
   async sendProducerInquiryAccepted(inquiry) {
     return this.#send({

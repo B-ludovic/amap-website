@@ -56,6 +56,18 @@ export function messagesSortants(emails) {
       envoyer: () => emails.sendSubscriptionConfirmation(contratEnAttente, adherente, { paymentType: '4' }),
     },
     {
+      nom: 'pause enregistrée', methode: 'sendSubscriptionPaused', kind: 'SUBSCRIPTION_PAUSED', public: 'adherent',
+      envoyer: () => emails.sendSubscriptionPaused(contrat, adherente, {
+        startDate: new Date('2026-08-01T12:00:00Z'),
+        endDate: new Date('2026-08-08T12:00:00Z'),
+        joursRestants: 7,
+      }),
+    },
+    {
+      nom: 'abonnement repris', methode: 'sendSubscriptionResumed', kind: 'SUBSCRIPTION_RESUMED', public: 'adherent',
+      envoyer: () => emails.sendSubscriptionResumed(contrat, adherente),
+    },
+    {
       nom: 'contrat bientôt échu', methode: 'sendRenewalReminderEmail', kind: 'RENEWAL_REMINDER', public: 'adherent',
       envoyer: () => emails.sendRenewalReminderEmail(contrat, adherente),
     },

@@ -862,7 +862,10 @@ const pauseSubscription = asyncHandler(async (req, res) => {
     throw new HttpBadRequestError('La date de fin de pause doit être postérieure à la date de début');
   }
 
-  const subscription = await prisma.subscription.findUnique({ where: { id } });
+  const subscription = await prisma.subscription.findUnique({
+    where: { id },
+    include: { user: { select: { id: true, email: true, firstName: true } } }
+  });
 
   if (!subscription) {
     throw new HttpNotFoundError('Abonnement introuvable');
@@ -894,20 +897,35 @@ const pauseSubscription = asyncHandler(async (req, res) => {
     }
   });
 
-  // Mettre à jour le statut
-  await prisma.subscription.update({
-    where: { id },
-    data: { status: 'PAUSED' }
-  });
+  /* Le statut ne bascule que si la pause court déjà. Une pause annoncée pour le
+     mois prochain coupait les paniers dès la saisie : l'adhérent qui prévenait
+     tôt de ses vacances les perdait d'avance. Celles-là, le balayage horaire les
+     endort le jour venu. */
+  const dejaCommencee = pauseStartDate <= new Date();
+
+  if (dejaCommencee) {
+    await prisma.subscription.update({
+      where: { id },
+      data: { status: 'PAUSED' }
+    });
+  }
 
   /* Une pause suspend des livraisons dues et consomme un quota de quatorze jours
      par saison : c'est une modification du contrat, au même titre que
      l'activation et la résiliation qui, elles, étaient déjà journalisées. */
-  await logAudit(req, 'PAUSE_SUBSCRIPTION', 'IMPORTANT', { type: 'SUBSCRIPTION', id, label: subscription.subscriptionNumber }, { startDate: pauseStartDate, endDate: pauseEndDate, reason: reason ?? null, daysUsedBefore: daysUsed, daysRequested });
+  await logAudit(req, 'PAUSE_SUBSCRIPTION', 'IMPORTANT', { type: 'SUBSCRIPTION', id, label: subscription.subscriptionNumber }, { startDate: pauseStartDate, endDate: pauseEndDate, reason: reason ?? null, daysUsedBefore: daysUsed, daysRequested, applied: dejaCommencee });
+
+  await emailService.sendSubscriptionPaused(subscription, subscription.user, {
+    startDate: pauseStartDate,
+    endDate: pauseEndDate,
+    joursRestants: 14 - daysUsed - daysRequested
+  });
 
   res.json({
     success: true,
-    message: 'Abonnement mis en pause avec succès',
+    message: dejaCommencee
+      ? 'Abonnement mis en pause avec succès'
+      : `Pause enregistrée : elle prendra effet le ${pauseStartDate.toLocaleDateString('fr-FR')}`,
     data: pause
   });
 });
@@ -916,7 +934,13 @@ const pauseSubscription = asyncHandler(async (req, res) => {
 const resumeSubscription = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
-  const subscription = await prisma.subscription.findUnique({ where: { id } });
+  const subscription = await prisma.subscription.findUnique({
+    where: { id },
+    include: {
+      user: { select: { id: true, email: true, firstName: true } },
+      pickupLocation: true
+    }
+  });
 
   if (!subscription) {
     throw new HttpNotFoundError('Abonnement introuvable');
@@ -936,6 +960,8 @@ const resumeSubscription = asyncHandler(async (req, res) => {
      deux se distinguent ainsi dans le journal : une reprise anticipée n'est pas
      une fin de pause. */
   await logAudit(req, 'RESUME_SUBSCRIPTION', 'IMPORTANT', { type: 'SUBSCRIPTION', id, label: subscription.subscriptionNumber });
+
+  await emailService.sendSubscriptionResumed(subscription, subscription.user);
 
   res.json({
     success: true,

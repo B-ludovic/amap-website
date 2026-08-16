@@ -50,8 +50,8 @@ export default function PauseModal({ subscription, onClose }) {
         setLoading(true);
         try {
           const { default: api } = await import('../../lib/api');
-          await api.subscriptions.pause(subscription.id, { startDate, endDate, reason: reason || undefined });
-          onClose(true);
+          const reponse = await api.subscriptions.pause(subscription.id, { startDate, endDate, reason: reason || undefined });
+          onClose(true, reponse?.message);
         } catch (err) {
           setError(err.message);
         } finally {

@@ -66,10 +66,11 @@ export default function SubscriptionDetailModal({ subscription, onClose, onUpdat
     );
   };
 
-  const handlePauseClose = (shouldRefresh) => {
+  // Le serveur distingue la pause qui prend effet de celle qui attend sa date.
+  const handlePauseClose = (shouldRefresh, message) => {
     setIsPauseModalOpen(false);
     if (shouldRefresh) {
-      showSuccess('Succès', 'Abonnement mis en pause');
+      showSuccess('Succès', message ?? 'Abonnement mis en pause');
       onUpdate();
       onClose();
     }
@@ -245,6 +246,10 @@ export default function SubscriptionDetailModal({ subscription, onClose, onUpdat
                     <span>
                       Du {formatDate(pause.startDate)} au {formatDate(pause.endDate)}
                     </span>
+                    {/* Une pause à venir laisse le contrat actif jusqu'à sa date
+                        de début : sans cette mention, le badge « Actif » donnerait
+                        l'impression que la saisie n'a rien enregistré. */}
+                    {new Date(pause.startDate) > new Date() && <span className="pause-reason">• à venir</span>}
                     {pause.reason && <span className="pause-reason">• {pause.reason}</span>}
                   </div>
                 ))}
