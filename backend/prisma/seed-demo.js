@@ -1,12 +1,22 @@
-/* Jeu de démonstration : producteurs, produits et panier de la semaine.
+/* Catalogue saisonnier et fermes de démonstration.
 
-   Les produits reprennent les cultures réellement franciliennes, rangées par
-   saison : le champ Product.seasons accepte plusieurs valeurs, une carotte
-   couvrirait les quatre là où une figue n'en porte qu'une.
+   Deux jeux de nature différente, et c'est le drapeau isExample qui les sépare :
 
-   Tout ce qui est créé ici porte isExample: true, ce qui le rend supprimable
-   d'un seul geste depuis l'administration (Paramètres → Exemples), sans toucher
-   aux données réelles saisies à côté.
+   — Le CATALOGUE : les cultures réellement franciliennes, rangées par saison
+     (Product.seasons accepte plusieurs valeurs). Ce sont des données de
+     référence, destinées à rester. Elles ne portent donc PAS isExample et
+     survivent au bouton « supprimer les exemples ».
+
+     Elles sont rattachées à un producteur porteur, parce que Product.producerId
+     est obligatoire. Ce porteur est isActive: false : il n'apparaît pas dans
+     l'annuaire public, qui ne liste que les producteurs actifs. Il reste en
+     revanche visible sur /panier-semaine, où les produits sont groupés par
+     producteur — d'où son nom présentable plutôt qu'un libellé technique.
+
+   — Les FERMES : six exploitations inventées, pour donner corps à la page des
+     producteurs le temps de la démonstration. Elles portent isExample: true et
+     n'ont aucun produit, ce qui les rend supprimables d'un geste sans emporter
+     le catalogue avec elles.
 
    Aucune suppression, aucune écrasure : le script vérifie l'existence avant
    chaque création et peut être relancé sans produire de doublon. À l'inverse de
@@ -22,7 +32,149 @@ const prisma = new PrismaClient({
 
 const TOUTE_ANNEE = ['SPRING', 'SUMMER', 'AUTUMN', 'WINTER'];
 
-const PRODUCERS = [
+/* Le TLD .invalid est réservé par la RFC 2606 aux adresses qui ne doivent
+   jamais exister : rien ne partira jamais vers cette boîte. */
+const CATALOG_PRODUCER = {
+  email: 'catalogue@auxptitspois.invalid',
+  name: 'Producteurs partenaires',
+  specialty: 'Cultures de saison en Île-de-France',
+  description:
+    "Porteur du catalogue saisonnier en attendant que chaque culture soit rattachée à sa ferme. Réaffectez les produits depuis l'administration au fur et à mesure que les partenaires réels sont saisis.",
+  isActive: false,
+  isExample: false,
+};
+
+const PRODUCTS = [
+  // ---------- Printemps ----------
+  { name: 'Roquette', category: 'VEGETABLES', seasons: ['SPRING'] },
+  { name: 'Oseille', category: 'VEGETABLES', seasons: ['SPRING'] },
+  { name: 'Cerfeuil', category: 'VEGETABLES', seasons: ['SPRING'] },
+  { name: 'Ciboule', category: 'VEGETABLES', seasons: ['SPRING'] },
+  {
+    name: 'Cresson de fontaine',
+    category: 'VEGETABLES',
+    seasons: ['SPRING'],
+    description: "La grande spécialité de l'Essonne, cultivée en fosse dans l'eau de source autour de Méréville.",
+  },
+  {
+    name: 'Pissenlit blanc',
+    category: 'VEGETABLES',
+    seasons: ['SPRING'],
+    description: 'Blanchi par forçage, sans amertume, à manger en salade tiède.',
+  },
+  {
+    name: 'Ail frais',
+    category: 'VEGETABLES',
+    seasons: ['SPRING'],
+    description: 'Récolté en vert, avant que la tête ne se divise en gousses sèches.',
+  },
+  { name: 'Échalote nouvelle', category: 'VEGETABLES', seasons: ['SPRING'] },
+
+  // ---------- Été ----------
+  { name: 'Pourpier', category: 'VEGETABLES', seasons: ['SUMMER'] },
+  { name: 'Poivron corne de bœuf', category: 'VEGETABLES', seasons: ['SUMMER'] },
+  {
+    name: 'Tétragone',
+    category: 'VEGETABLES',
+    seasons: ['SUMMER'],
+    description: "L'épinard d'été : il tient la chaleur là où l'épinard commun monte en graine.",
+  },
+  { name: 'Haricot plat', category: 'VEGETABLES', seasons: ['SUMMER'] },
+  { name: 'Haricot beurre', category: 'VEGETABLES', seasons: ['SUMMER'] },
+  { name: 'Groseille à maquereau', category: 'FRUITS', seasons: ['SUMMER'] },
+  {
+    name: 'Figue',
+    category: 'FRUITS',
+    seasons: ['SUMMER'],
+    description: 'Variétés rustiques du bassin parisien, qui mûrissent sans serre.',
+  },
+  {
+    name: 'Pêche',
+    category: 'FRUITS',
+    seasons: ['SUMMER'],
+    description: 'Issue des micro-vergers replantés en Île-de-France.',
+  },
+
+  // ---------- Automne ----------
+  { name: 'Cerfeuil tubéreux', category: 'VEGETABLES', seasons: ['AUTUMN'] },
+  { name: 'Héliantis', category: 'VEGETABLES', seasons: ['AUTUMN'] },
+  { name: 'Chou-rave', category: 'VEGETABLES', seasons: ['AUTUMN'] },
+  { name: 'Rutabaga', category: 'VEGETABLES', seasons: ['AUTUMN'] },
+  { name: 'Scorsonère', category: 'VEGETABLES', seasons: ['AUTUMN'] },
+  { name: 'Chicorée frisée', category: 'VEGETABLES', seasons: ['AUTUMN'] },
+  { name: 'Scarole', category: 'VEGETABLES', seasons: ['AUTUMN'] },
+  {
+    name: 'Trévise',
+    category: 'VEGETABLES',
+    seasons: ['AUTUMN'],
+    description: 'La chicorée rouge, amère et ferme, qui supporte la poêle autant que la salade.',
+  },
+  {
+    name: 'Châtaigne',
+    category: 'FRUITS',
+    seasons: ['AUTUMN'],
+    description: 'Ramassée dans les forêts et vergers franciliens dès la mi-octobre.',
+  },
+  {
+    name: 'Noisette fraîche',
+    category: 'FRUITS',
+    seasons: ['AUTUMN'],
+    description: 'Cueillie encore humide, à consommer dans la quinzaine.',
+  },
+
+  // ---------- Hiver ----------
+  {
+    name: 'Crosne',
+    category: 'VEGETABLES',
+    seasons: ['WINTER'],
+    description: "Le tubercule qui doit son nom à Crosne, en Essonne, d'où il fut diffusé en 1882.",
+  },
+  { name: 'Panais rond', category: 'VEGETABLES', seasons: ['WINTER'] },
+  {
+    name: 'Chou cabus de garde',
+    category: 'VEGETABLES',
+    seasons: ['WINTER'],
+    description: "Pommé serré, il se conserve en cave jusqu'au printemps suivant.",
+  },
+  {
+    name: 'Pissenlit forcé en cave',
+    category: 'VEGETABLES',
+    seasons: ['WINTER'],
+    description: "Repris en cave obscure au cœur de l'hiver, quand plus rien ne pousse dehors.",
+  },
+  {
+    name: "Pourpier d'hiver",
+    category: 'VEGETABLES',
+    seasons: ['WINTER'],
+    description: 'Aussi appelé claytone de Cuba : une salade charnue qui ne craint pas le gel.',
+  },
+
+  // ---------- Aromatiques de pleine terre ----------
+  { name: 'Menthe poivrée', category: 'VEGETABLES', seasons: ['SPRING', 'SUMMER', 'AUTUMN'] },
+  { name: 'Estragon', category: 'VEGETABLES', seasons: ['SPRING', 'SUMMER'] },
+  { name: 'Mélisse', category: 'VEGETABLES', seasons: ['SPRING', 'SUMMER', 'AUTUMN'] },
+  { name: 'Coriandre de pleine terre', category: 'VEGETABLES', seasons: ['SPRING', 'SUMMER'] },
+  {
+    name: 'Sauge',
+    category: 'VEGETABLES',
+    seasons: TOUTE_ANNEE,
+    description: 'Vivace : la touffe se récolte été comme hiver.',
+  },
+  { name: 'Thym', category: 'VEGETABLES', seasons: TOUTE_ANNEE },
+  { name: 'Laurier-sauce', category: 'VEGETABLES', seasons: TOUTE_ANNEE },
+
+  // ---------- Sans saison ----------
+  { name: 'Œufs (boîte de 6)', category: 'EGGS', seasons: TOUTE_ANNEE },
+  /* Ces trois-là se conservent : aucune saison, et ils complètent le panier
+     quand la saison en cours n'offre pas assez de produits. */
+  { name: 'Farine de blé T80', category: 'GROCERY', seasons: [] },
+  { name: 'Lentilles vertes', category: 'GROCERY', seasons: [] },
+  { name: 'Pois chiches', category: 'GROCERY', seasons: [] },
+];
+
+/* Fermes de démonstration : inventées, sans produit, marquées isExample pour
+   partir d'un seul geste le jour où les vrais partenaires sont saisis. */
+const DEMO_FARMS = [
   {
     email: 'exemple-maraichage@auxptitspois.test',
     name: 'Ferme des Trois Chênes',
@@ -37,62 +189,6 @@ const PRODUCERS = [
     farmDetailLabel: 'Surface',
     farmDetail: '4 hectares · 2 serres froides',
     partnerSince: 2019,
-    products: [
-      // Printemps — feuilles et primeurs
-      { name: 'Roquette', category: 'VEGETABLES', seasons: ['SPRING'] },
-      { name: 'Oseille', category: 'VEGETABLES', seasons: ['SPRING'] },
-      { name: 'Cerfeuil', category: 'VEGETABLES', seasons: ['SPRING'] },
-      { name: 'Ciboule', category: 'VEGETABLES', seasons: ['SPRING'] },
-      {
-        name: 'Ail frais',
-        category: 'VEGETABLES',
-        seasons: ['SPRING'],
-        description: 'Récolté en vert, avant que la tête ne se divise en gousses sèches.',
-      },
-      { name: 'Échalote nouvelle', category: 'VEGETABLES', seasons: ['SPRING'] },
-
-      // Été
-      { name: 'Pourpier', category: 'VEGETABLES', seasons: ['SUMMER'] },
-      { name: 'Poivron corne de bœuf', category: 'VEGETABLES', seasons: ['SUMMER'] },
-      {
-        name: 'Tétragone',
-        category: 'VEGETABLES',
-        seasons: ['SUMMER'],
-        description: "L'épinard d'été : il tient la chaleur là où l'épinard commun monte en graine.",
-      },
-      { name: 'Haricot plat', category: 'VEGETABLES', seasons: ['SUMMER'] },
-      { name: 'Haricot beurre', category: 'VEGETABLES', seasons: ['SUMMER'] },
-
-      // Automne — racines, oubliés et chicorées
-      { name: 'Cerfeuil tubéreux', category: 'VEGETABLES', seasons: ['AUTUMN'] },
-      { name: 'Héliantis', category: 'VEGETABLES', seasons: ['AUTUMN'] },
-      { name: 'Chou-rave', category: 'VEGETABLES', seasons: ['AUTUMN'] },
-      { name: 'Rutabaga', category: 'VEGETABLES', seasons: ['AUTUMN'] },
-      { name: 'Scorsonère', category: 'VEGETABLES', seasons: ['AUTUMN'] },
-      { name: 'Chicorée frisée', category: 'VEGETABLES', seasons: ['AUTUMN'] },
-      { name: 'Scarole', category: 'VEGETABLES', seasons: ['AUTUMN'] },
-      {
-        name: 'Trévise',
-        category: 'VEGETABLES',
-        seasons: ['AUTUMN'],
-        description: 'La chicorée rouge, amère et ferme, qui supporte la poêle autant que la salade.',
-      },
-
-      // Hiver
-      {
-        name: 'Crosne',
-        category: 'VEGETABLES',
-        seasons: ['WINTER'],
-        description: "Le tubercule qui doit son nom à Crosne, en Essonne, d'où il fut diffusé en 1882.",
-      },
-      { name: 'Panais rond', category: 'VEGETABLES', seasons: ['WINTER'] },
-      {
-        name: 'Chou cabus de garde',
-        category: 'VEGETABLES',
-        seasons: ['WINTER'],
-        description: 'Pommé serré, il se conserve en cave jusqu\'au printemps suivant.',
-      },
-    ],
   },
   {
     email: 'exemple-cressonniere@auxptitspois.test',
@@ -108,32 +204,6 @@ const PRODUCERS = [
     farmDetailLabel: 'Installation',
     farmDetail: '14 fosses alimentées à la source · caves de forçage',
     partnerSince: 2022,
-    products: [
-      {
-        name: 'Cresson de fontaine',
-        category: 'VEGETABLES',
-        seasons: ['SPRING'],
-        description: 'La grande spécialité de l\'Essonne, cultivée en fosse dans l\'eau de source.',
-      },
-      {
-        name: 'Pissenlit blanc',
-        category: 'VEGETABLES',
-        seasons: ['SPRING'],
-        description: 'Blanchi par forçage, sans amertume, à manger en salade tiède.',
-      },
-      {
-        name: 'Pissenlit forcé en cave',
-        category: 'VEGETABLES',
-        seasons: ['WINTER'],
-        description: 'Repris en cave obscure au cœur de l\'hiver, quand plus rien ne pousse dehors.',
-      },
-      {
-        name: 'Pourpier d\'hiver',
-        category: 'VEGETABLES',
-        seasons: ['WINTER'],
-        description: 'Aussi appelé claytone de Cuba : une salade charnue qui ne craint pas le gel.',
-      },
-    ],
   },
   {
     email: 'exemple-verger@auxptitspois.test',
@@ -149,33 +219,6 @@ const PRODUCERS = [
     farmDetailLabel: 'Verger',
     farmDetail: '3 hectares · châtaigneraie et micro-vergers de pêchers',
     partnerSince: 2021,
-    products: [
-      { name: 'Groseille à maquereau', category: 'FRUITS', seasons: ['SUMMER'] },
-      {
-        name: 'Figue',
-        category: 'FRUITS',
-        seasons: ['SUMMER'],
-        description: 'Variétés rustiques du bassin parisien, qui mûrissent sans serre.',
-      },
-      {
-        name: 'Pêche',
-        category: 'FRUITS',
-        seasons: ['SUMMER'],
-        description: 'Issue des micro-vergers de pêchers replantés autour de Vauhallan.',
-      },
-      {
-        name: 'Châtaigne',
-        category: 'FRUITS',
-        seasons: ['AUTUMN'],
-        description: 'Ramassée dans les forêts et vergers franciliens dès la mi-octobre.',
-      },
-      {
-        name: 'Noisette fraîche',
-        category: 'FRUITS',
-        seasons: ['AUTUMN'],
-        description: 'Cueillie encore humide, à consommer dans la quinzaine.',
-      },
-    ],
   },
   {
     email: 'exemple-simples@auxptitspois.test',
@@ -191,20 +234,6 @@ const PRODUCERS = [
     farmDetailLabel: 'Jardin',
     farmDetail: '6 000 m² en pleine terre · 40 espèces',
     partnerSince: 2024,
-    products: [
-      { name: 'Menthe poivrée', category: 'VEGETABLES', seasons: ['SPRING', 'SUMMER', 'AUTUMN'] },
-      { name: 'Estragon', category: 'VEGETABLES', seasons: ['SPRING', 'SUMMER'] },
-      { name: 'Mélisse', category: 'VEGETABLES', seasons: ['SPRING', 'SUMMER', 'AUTUMN'] },
-      { name: 'Coriandre de pleine terre', category: 'VEGETABLES', seasons: ['SPRING', 'SUMMER'] },
-      {
-        name: 'Sauge',
-        category: 'VEGETABLES',
-        seasons: TOUTE_ANNEE,
-        description: 'Vivace : la touffe se récolte été comme hiver.',
-      },
-      { name: 'Thym', category: 'VEGETABLES', seasons: TOUTE_ANNEE },
-      { name: 'Laurier-sauce', category: 'VEGETABLES', seasons: TOUTE_ANNEE },
-    ],
   },
   {
     email: 'exemple-volailles@auxptitspois.test',
@@ -212,7 +241,7 @@ const PRODUCERS = [
     phone: '0130521963',
     specialty: 'Œufs de plein air',
     description:
-      "Trois cents poules élevées en plein air sur un parcours arboré. Les œufs sont ramassés le matin même de la distribution.",
+      'Trois cents poules élevées en plein air sur un parcours arboré. Les œufs sont ramassés le matin même de la distribution.',
     city: 'Châteaufort',
     postalCode: '78117',
     distanceKm: 18,
@@ -220,7 +249,6 @@ const PRODUCERS = [
     farmDetailLabel: 'Cheptel',
     farmDetail: '300 poules · parcours de 2 hectares',
     partnerSince: 2023,
-    products: [{ name: 'Œufs (boîte de 6)', category: 'EGGS', seasons: TOUTE_ANNEE }],
   },
   {
     email: 'exemple-moulin@auxptitspois.test',
@@ -228,7 +256,7 @@ const PRODUCERS = [
     phone: '0164950238',
     specialty: 'Farines et légumes secs',
     description:
-      "Meunerie familiale à la meule de pierre. Blés et lentilles cultivés dans un rayon de dix kilomètres autour du moulin.",
+      'Meunerie familiale à la meule de pierre. Blés et lentilles cultivés dans un rayon de dix kilomètres autour du moulin.',
     city: 'Gometz-la-Ville',
     postalCode: '91400',
     distanceKm: 22,
@@ -236,13 +264,6 @@ const PRODUCERS = [
     farmDetailLabel: 'Production',
     farmDetail: 'Meule de pierre · 40 tonnes par an',
     partnerSince: 2020,
-    /* Sans saison : ces produits se conservent et sont proposés toute l'année.
-       Ils complètent le panier quand la saison en cours n'offre pas assez. */
-    products: [
-      { name: 'Farine de blé T80', category: 'GROCERY', seasons: [] },
-      { name: 'Lentilles vertes', category: 'GROCERY', seasons: [] },
-      { name: 'Pois chiches', category: 'GROCERY', seasons: [] },
-    ],
   },
 ];
 
@@ -274,50 +295,64 @@ function seasonOf(date) {
 }
 
 async function main() {
-  console.log('🌱 Jeu de démonstration (isExample) — aucune suppression\n');
+  console.log('🌱 Catalogue saisonnier et fermes de démonstration — aucune suppression\n');
 
-  const created = { producers: 0, products: 0 };
   const today = new Date();
   const season = seasonOf(today);
   const deSaison = [];
   const toutesSaisons = [];
+  let createdProducts = 0;
 
-  for (const { products, ...fields } of PRODUCERS) {
-    const existing = await prisma.producer.findUnique({ where: { email: fields.email } });
+  // --- Le catalogue, données de référence ---
+  const carrier =
+    (await prisma.producer.findUnique({ where: { email: CATALOG_PRODUCER.email } }))
+    ?? (await prisma.producer.create({ data: CATALOG_PRODUCER }));
 
-    const producer = existing
-      ?? (await prisma.producer.create({ data: { ...fields, isExample: true } }));
+  console.log(`📚 Catalogue porté par « ${carrier.name} » (hors annuaire public)`);
 
-    console.log(existing ? `⏭️  ${producer.name} — déjà présent` : `✅ ${producer.name}`);
-    if (!existing) created.producers += 1;
+  for (const product of PRODUCTS) {
+    const found = await prisma.product.findFirst({
+      where: { name: product.name, producerId: carrier.id },
+    });
 
-    for (const product of products) {
-      const found = await prisma.product.findFirst({
-        where: { name: product.name, producerId: producer.id },
-      });
+    const record = found
+      ?? (await prisma.product.create({
+        data: {
+          ...product,
+          producerId: carrier.id,
+          basketSizes: ['SMALL', 'LARGE'],
+          isExample: false,
+        },
+      }));
 
-      const record = found
-        ?? (await prisma.product.create({
-          data: {
-            ...product,
-            producerId: producer.id,
-            basketSizes: ['SMALL', 'LARGE'],
-            isExample: true,
-          },
-        }));
+    if (!found) createdProducts += 1;
+    if (product.seasons.includes(season)) deSaison.push(record);
+    else if (product.seasons.length === 0) toutesSaisons.push(record);
+  }
 
-      if (!found) created.products += 1;
-      if (product.seasons.includes(season)) deSaison.push(record);
-      else if (product.seasons.length === 0) toutesSaisons.push(record);
+  console.log(`   ${createdProducts} produit(s) créés sur ${PRODUCTS.length} — non purgeables\n`);
+
+  // --- Les fermes, jetables ---
+  let createdFarms = 0;
+
+  for (const farm of DEMO_FARMS) {
+    const existing = await prisma.producer.findUnique({ where: { email: farm.email } });
+
+    if (existing) {
+      console.log(`⏭️  ${farm.name} — déjà présente`);
+    } else {
+      await prisma.producer.create({ data: { ...farm, isExample: true } });
+      console.log(`✅ ${farm.name}`);
+      createdFarms += 1;
     }
   }
 
-  console.log(`\n   ${created.producers} producteur(s), ${created.products} produit(s) créés.`);
+  console.log(`   ${createdFarms} ferme(s) créées sur ${DEMO_FARMS.length} — purgeables\n`);
 
   /* Le panier de la semaine, sans lequel la page d'accueil et /panier-semaine
      n'ont rien à montrer. WeeklyBasket ne porte pas de drapeau isExample : il
-     échappe donc à la purge des exemples et se supprime à la main depuis
-     l'administration. Sa note le rappelle. */
+     échappe donc à la purge et se supprime à la main depuis l'administration.
+     Sa note le rappelle. */
   const distributionDate = nextWednesday(today);
   const { year, week } = isoWeek(distributionDate);
 
@@ -331,7 +366,7 @@ async function main() {
       season,
       isPublished: true,
       publishedAt: new Date(),
-      notes: 'Panier de démonstration — à supprimer avant l\'ouverture au public.',
+      notes: "Panier de démonstration — à supprimer avant l'ouverture au public.",
     },
     include: { items: true },
   });
@@ -354,13 +389,13 @@ async function main() {
     console.log(`⏭️  Panier semaine ${week}/${year} — déjà garni`);
   }
 
-  console.log('\n🧹 Pour tout retirer : administration → Paramètres → Exemples.');
-  console.log('   Le panier hebdomadaire, lui, se supprime depuis Panier hebdomadaire.');
+  console.log('\n🧹 Administration → Paramètres → Exemples retire les six fermes.');
+  console.log('   Le catalogue et le panier hebdomadaire, eux, restent.');
 }
 
 main()
   .catch((error) => {
-    console.error('❌ Échec du seed de démonstration :', error);
+    console.error('❌ Échec du seed :', error);
     process.exit(1);
   })
   .finally(() => prisma.$disconnect());
