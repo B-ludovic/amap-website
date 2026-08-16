@@ -48,6 +48,12 @@ export function messagesSortants(emails) {
       envoyer: () => emails.sendSubscriptionRequestConfirmation(demandeAbonnement),
     },
     {
+      /* Classé « candidat » à dessein : le compte est fermé quand ce message
+         part, renvoyer vers l'espace adhérent serait une porte close. */
+      nom: 'compte supprimé', methode: 'sendAccountDeleted', kind: 'ACCOUNT_DELETED', public: 'candidat',
+      envoyer: () => emails.sendAccountDeleted(adherente, { effaceLe: new Date('2026-11-14T12:00:00Z') }),
+    },
+    {
       nom: 'demande en liste d\'attente', methode: 'sendSubscriptionRequestWaitlisted', kind: 'SUBSCRIPTION_REQUEST_WAITLISTED', public: 'adherent',
       envoyer: () => emails.sendSubscriptionRequestWaitlisted(demandeAbonnement),
     },

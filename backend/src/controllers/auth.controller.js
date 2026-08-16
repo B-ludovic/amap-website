@@ -13,6 +13,7 @@ import {
 import { normalizeFirstName, normalizeLastName, normalizeTitleCase, normalizeEmail } from '../utils/normalize.js';
 import { PasswordSchema, RegisterSchema } from '../utils/validation.schemas.js';
 import { logAudit } from '../services/audit.service.js';
+import { DELETED_ACCOUNT_RETENTION_DAYS } from '../jobs/dataRetention.job.js';
 
 /* Coût du hachage des mots de passe.
 
@@ -618,6 +619,15 @@ const deleteMe = asyncHandler(async (req, res) => {
         id: user.id,
         label: user.email
     }, { initiatedByUser: true });
+
+    /* Sans accusé, l'adhérent qui exerce son droit à l'effacement n'a aucun
+       moyen de savoir si sa demande a abouti — et c'est ce doute-là qui finit en
+       réclamation. La date d'effacement vient du job de purge, pas d'un second
+       exemplaire du délai. */
+    const effaceLe = new Date();
+    effaceLe.setDate(effaceLe.getDate() + DELETED_ACCOUNT_RETENTION_DAYS);
+
+    await emailService.sendAccountDeleted(user, { effaceLe });
 
     res.clearCookie('authToken', { ...cookieOptions, maxAge: undefined });
     res.json({ success: true, message: 'Votre compte a été supprimé.' });

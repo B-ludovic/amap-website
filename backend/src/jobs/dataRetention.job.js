@@ -1,7 +1,9 @@
 import { prisma } from '../config/database.js';
 import { logAudit } from '../services/audit.service.js';
 
-const DELETED_ACCOUNT_RETENTION_DAYS = 90;
+/* Exportée : l'accusé de suppression annonce cette date à l'adhérent, et deux
+   exemplaires de ce nombre finiraient par diverger. */
+export const DELETED_ACCOUNT_RETENTION_DAYS = 90;
 const UNVERIFIED_ACCOUNT_RETENTION_DAYS = 30;
 
 /* Les deux formulaires publics déposent des données personnelles sans qu'un

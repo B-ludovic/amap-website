@@ -4,8 +4,12 @@ export function reponseFactice() {
   const res = {
     statutHttp: 200,
     corps: null,
+    cookies: {},
     status(code) { this.statutHttp = code; return this; },
     json(payload) { this.corps = payload; return this; },
+    // Les contrôleurs d'authentification posent et retirent le cookie de session.
+    cookie(nom, valeur) { this.cookies[nom] = valeur; return this; },
+    clearCookie(nom) { delete this.cookies[nom]; return this; },
   };
 
   return res;

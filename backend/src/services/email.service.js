@@ -292,6 +292,32 @@ class EmailService {
     }, { kind: 'PASSWORD_CHANGED', ref: user.id });
   }
 
+  /* Accusé d'effacement. Le compte est fermé sur-le-champ, les données partent
+     à échéance : dire les deux temps évite qu'un adhérent croie ses données
+     déjà détruites, ou au contraire conservées sans terme. C'est aussi la seule
+     fenêtre pendant laquelle une suppression accidentelle peut être défaite. */
+  async sendAccountDeleted(user, { effaceLe }) {
+    return this.#send({
+      from: EMAIL_FROM,
+      to: user.email,
+      subject: 'Votre compte a été supprimé - Aux P\'tits Pois',
+      html: renderEmail({
+        title: 'Votre compte a été supprimé',
+        content: `
+            <p>Bonjour ${escapeHtml(user.firstName)},</p>
+            <p>Votre compte Aux P'tits Pois est fermé : la connexion n'est plus possible et vous ne recevrez plus aucun message de notre part.</p>
+            <div class="info-box">
+              <h3>Ce que deviennent vos données</h3>
+              <p>Vos contrats, règlements, retraits de panier et demandes d'abonnement seront <strong>effacés définitivement le ${longDate(effaceLe)}</strong>.</p>
+              <p>Les recettes et lettres d'information que vous avez rédigées pour l'association restent en ligne : elles appartiennent à l'AMAP, et ne portent plus votre nom.</p>
+            </div>
+            <div class="warning">Cette suppression n'est pas ce que vous vouliez ? Écrivez-nous à <a href="mailto:${AMAP_EMAIL}">${AMAP_EMAIL}</a> avant cette date : passé ce délai, plus rien ne pourra être rétabli.</div>
+            <p>Merci pour le temps passé avec nous,<br>L'équipe Aux P'tits Pois</p>`,
+        footerNote: rgpdNoteSansCompte(user.email, 'pour accuser réception de la suppression de votre compte'),
+      }),
+    }, { kind: 'ACCOUNT_DELETED', ref: user.id });
+  }
+
   /* Envoie un email de confirmation de demande d'abonnement */
   async sendSubscriptionRequestConfirmation(request) {
     return this.#send({
