@@ -1,5 +1,9 @@
 /* Jeu de démonstration : producteurs, produits et panier de la semaine.
 
+   Les produits reprennent les cultures réellement franciliennes, rangées par
+   saison : le champ Product.seasons accepte plusieurs valeurs, une carotte
+   couvrirait les quatre là où une figue n'en porte qu'une.
+
    Tout ce qui est créé ici porte isExample: true, ce qui le rend supprimable
    d'un seul geste depuis l'administration (Paramètres → Exemples), sans toucher
    aux données réelles saisies à côté.
@@ -16,6 +20,8 @@ const prisma = new PrismaClient({
   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }),
 });
 
+const TOUTE_ANNEE = ['SPRING', 'SUMMER', 'AUTUMN', 'WINTER'];
+
 const PRODUCERS = [
   {
     email: 'exemple-maraichage@auxptitspois.test',
@@ -23,49 +29,181 @@ const PRODUCERS = [
     phone: '0169284412',
     specialty: 'Maraîchage diversifié',
     description:
-      "Vingt ans de maraîchage sur le plateau de Saclay. La ferme cultive une soixantaine de variétés en plein champ et sous serres froides, sans chauffage ni traitement de synthèse.",
+      "Vingt ans de maraîchage sur le plateau de Saclay. La ferme suit le calendrier francilien sans le forcer : primeurs au printemps, légumes de plein champ l'été, racines et légumes oubliés dès les premiers froids.",
     city: 'Saclay',
     postalCode: '91400',
-    distanceKm: 18,
+    distanceKm: 15,
     certification: 'ORGANIC',
     farmDetailLabel: 'Surface',
     farmDetail: '4 hectares · 2 serres froides',
     partnerSince: 2019,
     products: [
-      { name: 'Tomate ancienne', category: 'VEGETABLES', seasons: ['SUMMER'] },
-      { name: 'Courgette', category: 'VEGETABLES', seasons: ['SUMMER'] },
-      { name: 'Aubergine', category: 'VEGETABLES', seasons: ['SUMMER'] },
-      { name: 'Poivron', category: 'VEGETABLES', seasons: ['SUMMER'] },
-      { name: 'Concombre', category: 'VEGETABLES', seasons: ['SPRING', 'SUMMER'] },
-      { name: 'Haricot vert', category: 'VEGETABLES', seasons: ['SUMMER'] },
-      { name: 'Salade batavia', category: 'VEGETABLES', seasons: ['SPRING', 'SUMMER', 'AUTUMN'] },
-      { name: 'Carotte', category: 'VEGETABLES', seasons: ['SPRING', 'SUMMER', 'AUTUMN', 'WINTER'] },
-      { name: 'Poireau', category: 'VEGETABLES', seasons: ['AUTUMN', 'WINTER'] },
-      { name: 'Pomme de terre', category: 'VEGETABLES', seasons: ['SUMMER', 'AUTUMN', 'WINTER'] },
-      { name: 'Épinard', category: 'VEGETABLES', seasons: ['SPRING', 'AUTUMN'] },
-      { name: 'Potiron', category: 'VEGETABLES', seasons: ['AUTUMN', 'WINTER'] },
+      // Printemps — feuilles et primeurs
+      { name: 'Roquette', category: 'VEGETABLES', seasons: ['SPRING'] },
+      { name: 'Oseille', category: 'VEGETABLES', seasons: ['SPRING'] },
+      { name: 'Cerfeuil', category: 'VEGETABLES', seasons: ['SPRING'] },
+      { name: 'Ciboule', category: 'VEGETABLES', seasons: ['SPRING'] },
+      {
+        name: 'Ail frais',
+        category: 'VEGETABLES',
+        seasons: ['SPRING'],
+        description: 'Récolté en vert, avant que la tête ne se divise en gousses sèches.',
+      },
+      { name: 'Échalote nouvelle', category: 'VEGETABLES', seasons: ['SPRING'] },
+
+      // Été
+      { name: 'Pourpier', category: 'VEGETABLES', seasons: ['SUMMER'] },
+      { name: 'Poivron corne de bœuf', category: 'VEGETABLES', seasons: ['SUMMER'] },
+      {
+        name: 'Tétragone',
+        category: 'VEGETABLES',
+        seasons: ['SUMMER'],
+        description: "L'épinard d'été : il tient la chaleur là où l'épinard commun monte en graine.",
+      },
+      { name: 'Haricot plat', category: 'VEGETABLES', seasons: ['SUMMER'] },
+      { name: 'Haricot beurre', category: 'VEGETABLES', seasons: ['SUMMER'] },
+
+      // Automne — racines, oubliés et chicorées
+      { name: 'Cerfeuil tubéreux', category: 'VEGETABLES', seasons: ['AUTUMN'] },
+      { name: 'Héliantis', category: 'VEGETABLES', seasons: ['AUTUMN'] },
+      { name: 'Chou-rave', category: 'VEGETABLES', seasons: ['AUTUMN'] },
+      { name: 'Rutabaga', category: 'VEGETABLES', seasons: ['AUTUMN'] },
+      { name: 'Scorsonère', category: 'VEGETABLES', seasons: ['AUTUMN'] },
+      { name: 'Chicorée frisée', category: 'VEGETABLES', seasons: ['AUTUMN'] },
+      { name: 'Scarole', category: 'VEGETABLES', seasons: ['AUTUMN'] },
+      {
+        name: 'Trévise',
+        category: 'VEGETABLES',
+        seasons: ['AUTUMN'],
+        description: 'La chicorée rouge, amère et ferme, qui supporte la poêle autant que la salade.',
+      },
+
+      // Hiver
+      {
+        name: 'Crosne',
+        category: 'VEGETABLES',
+        seasons: ['WINTER'],
+        description: "Le tubercule qui doit son nom à Crosne, en Essonne, d'où il fut diffusé en 1882.",
+      },
+      { name: 'Panais rond', category: 'VEGETABLES', seasons: ['WINTER'] },
+      {
+        name: 'Chou cabus de garde',
+        category: 'VEGETABLES',
+        seasons: ['WINTER'],
+        description: 'Pommé serré, il se conserve en cave jusqu\'au printemps suivant.',
+      },
+    ],
+  },
+  {
+    email: 'exemple-cressonniere@auxptitspois.test',
+    name: 'Cressonnière de Méréville',
+    phone: '0164950176',
+    specialty: 'Cresson de fontaine et salades forcées',
+    description:
+      "Des fosses alimentées par des sources qui sortent de terre à douze degrés toute l'année. Méréville est la capitale française du cresson depuis le XIXᵉ siècle, et le forçage en cave y prolonge la saison des salades bien après les gelées.",
+    city: 'Méréville',
+    postalCode: '91660',
+    distanceKm: 55,
+    certification: 'ORGANIC',
+    farmDetailLabel: 'Installation',
+    farmDetail: '14 fosses alimentées à la source · caves de forçage',
+    partnerSince: 2022,
+    products: [
+      {
+        name: 'Cresson de fontaine',
+        category: 'VEGETABLES',
+        seasons: ['SPRING'],
+        description: 'La grande spécialité de l\'Essonne, cultivée en fosse dans l\'eau de source.',
+      },
+      {
+        name: 'Pissenlit blanc',
+        category: 'VEGETABLES',
+        seasons: ['SPRING'],
+        description: 'Blanchi par forçage, sans amertume, à manger en salade tiède.',
+      },
+      {
+        name: 'Pissenlit forcé en cave',
+        category: 'VEGETABLES',
+        seasons: ['WINTER'],
+        description: 'Repris en cave obscure au cœur de l\'hiver, quand plus rien ne pousse dehors.',
+      },
+      {
+        name: 'Pourpier d\'hiver',
+        category: 'VEGETABLES',
+        seasons: ['WINTER'],
+        description: 'Aussi appelé claytone de Cuba : une salade charnue qui ne craint pas le gel.',
+      },
     ],
   },
   {
     email: 'exemple-verger@auxptitspois.test',
     name: 'Le Verger de Vauhallan',
     phone: '0160191877',
-    specialty: 'Arboriculture',
+    specialty: 'Fruits et fruits à coque',
     description:
-      "Un verger conduit en agriculture biologique depuis 2011 : pommes, poires et fruits rouges de saison, cueillis à maturité la veille de la distribution.",
+      "Un verger conduit en agriculture biologique depuis 2011, complété d'une châtaigneraie et d'une haie de noisetiers. Les fruits sont cueillis à maturité la veille de la distribution, ce qui exclut les variétés qui voyagent bien mais ne se mangent pas.",
     city: 'Vauhallan',
     postalCode: '91430',
-    distanceKm: 14,
+    distanceKm: 12,
     certification: 'ORGANIC',
     farmDetailLabel: 'Verger',
-    farmDetail: '3 hectares · 12 variétés de pommes',
+    farmDetail: '3 hectares · châtaigneraie et micro-vergers de pêchers',
     partnerSince: 2021,
     products: [
-      { name: 'Pomme', category: 'FRUITS', seasons: ['AUTUMN', 'WINTER'] },
-      { name: 'Poire', category: 'FRUITS', seasons: ['AUTUMN'] },
-      { name: 'Fraise', category: 'FRUITS', seasons: ['SPRING', 'SUMMER'] },
-      { name: 'Framboise', category: 'FRUITS', seasons: ['SUMMER'] },
-      { name: 'Prune', category: 'FRUITS', seasons: ['SUMMER'] },
+      { name: 'Groseille à maquereau', category: 'FRUITS', seasons: ['SUMMER'] },
+      {
+        name: 'Figue',
+        category: 'FRUITS',
+        seasons: ['SUMMER'],
+        description: 'Variétés rustiques du bassin parisien, qui mûrissent sans serre.',
+      },
+      {
+        name: 'Pêche',
+        category: 'FRUITS',
+        seasons: ['SUMMER'],
+        description: 'Issue des micro-vergers de pêchers replantés autour de Vauhallan.',
+      },
+      {
+        name: 'Châtaigne',
+        category: 'FRUITS',
+        seasons: ['AUTUMN'],
+        description: 'Ramassée dans les forêts et vergers franciliens dès la mi-octobre.',
+      },
+      {
+        name: 'Noisette fraîche',
+        category: 'FRUITS',
+        seasons: ['AUTUMN'],
+        description: 'Cueillie encore humide, à consommer dans la quinzaine.',
+      },
+    ],
+  },
+  {
+    email: 'exemple-simples@auxptitspois.test',
+    name: 'Le Jardin des Simples',
+    phone: '0169411208',
+    specialty: 'Plantes aromatiques et médicinales',
+    description:
+      "Un jardin de simples cultivé en pleine terre, sans serre chauffée : les plantes y poussent à leur rythme et prennent le goût qu'elles n'ont pas en pot. Les vivaces — thym, sauge, laurier — se récoltent toute l'année.",
+    city: 'Bièvres',
+    postalCode: '91570',
+    distanceKm: 8,
+    certification: 'CONVERSION',
+    farmDetailLabel: 'Jardin',
+    farmDetail: '6 000 m² en pleine terre · 40 espèces',
+    partnerSince: 2024,
+    products: [
+      { name: 'Menthe poivrée', category: 'VEGETABLES', seasons: ['SPRING', 'SUMMER', 'AUTUMN'] },
+      { name: 'Estragon', category: 'VEGETABLES', seasons: ['SPRING', 'SUMMER'] },
+      { name: 'Mélisse', category: 'VEGETABLES', seasons: ['SPRING', 'SUMMER', 'AUTUMN'] },
+      { name: 'Coriandre de pleine terre', category: 'VEGETABLES', seasons: ['SPRING', 'SUMMER'] },
+      {
+        name: 'Sauge',
+        category: 'VEGETABLES',
+        seasons: TOUTE_ANNEE,
+        description: 'Vivace : la touffe se récolte été comme hiver.',
+      },
+      { name: 'Thym', category: 'VEGETABLES', seasons: TOUTE_ANNEE },
+      { name: 'Laurier-sauce', category: 'VEGETABLES', seasons: TOUTE_ANNEE },
     ],
   },
   {
@@ -77,12 +215,12 @@ const PRODUCERS = [
       "Trois cents poules élevées en plein air sur un parcours arboré. Les œufs sont ramassés le matin même de la distribution.",
     city: 'Châteaufort',
     postalCode: '78117',
-    distanceKm: 22,
+    distanceKm: 18,
     certification: 'CONVERSION',
     farmDetailLabel: 'Cheptel',
     farmDetail: '300 poules · parcours de 2 hectares',
     partnerSince: 2023,
-    products: [{ name: 'Œufs (boîte de 6)', category: 'EGGS', seasons: ['SPRING', 'SUMMER', 'AUTUMN', 'WINTER'] }],
+    products: [{ name: 'Œufs (boîte de 6)', category: 'EGGS', seasons: TOUTE_ANNEE }],
   },
   {
     email: 'exemple-moulin@auxptitspois.test',
@@ -93,11 +231,13 @@ const PRODUCERS = [
       "Meunerie familiale à la meule de pierre. Blés et lentilles cultivés dans un rayon de dix kilomètres autour du moulin.",
     city: 'Gometz-la-Ville',
     postalCode: '91400',
-    distanceKm: 28,
+    distanceKm: 22,
     certification: 'ORGANIC',
     farmDetailLabel: 'Production',
     farmDetail: 'Meule de pierre · 40 tonnes par an',
     partnerSince: 2020,
+    /* Sans saison : ces produits se conservent et sont proposés toute l'année.
+       Ils complètent le panier quand la saison en cours n'offre pas assez. */
     products: [
       { name: 'Farine de blé T80', category: 'GROCERY', seasons: [] },
       { name: 'Lentilles vertes', category: 'GROCERY', seasons: [] },
@@ -137,9 +277,10 @@ async function main() {
   console.log('🌱 Jeu de démonstration (isExample) — aucune suppression\n');
 
   const created = { producers: 0, products: 0 };
-  const seasonalProducts = [];
   const today = new Date();
   const season = seasonOf(today);
+  const deSaison = [];
+  const toutesSaisons = [];
 
   for (const { products, ...fields } of PRODUCERS) {
     const existing = await prisma.producer.findUnique({ where: { email: fields.email } });
@@ -151,11 +292,11 @@ async function main() {
     if (!existing) created.producers += 1;
 
     for (const product of products) {
-      const exists = await prisma.product.findFirst({
+      const found = await prisma.product.findFirst({
         where: { name: product.name, producerId: producer.id },
       });
 
-      const record = exists
+      const record = found
         ?? (await prisma.product.create({
           data: {
             ...product,
@@ -165,10 +306,9 @@ async function main() {
           },
         }));
 
-      if (!exists) created.products += 1;
-      if (product.seasons.length === 0 || product.seasons.includes(season)) {
-        seasonalProducts.push(record);
-      }
+      if (!found) created.products += 1;
+      if (product.seasons.includes(season)) deSaison.push(record);
+      else if (product.seasons.length === 0) toutesSaisons.push(record);
     }
   }
 
@@ -197,7 +337,9 @@ async function main() {
   });
 
   if (basket.items.length === 0) {
-    const chosen = seasonalProducts.slice(0, 8);
+    // La saison d'abord ; l'épicerie de garde ne comble que ce qui manque.
+    const chosen = [...deSaison, ...toutesSaisons].slice(0, 8);
+
     await prisma.weeklyBasketItem.createMany({
       data: chosen.map((product) => ({
         weeklyBasketId: basket.id,
@@ -205,7 +347,9 @@ async function main() {
         basketSizes: ['SMALL', 'LARGE'],
       })),
     });
+
     console.log(`✅ Panier semaine ${week}/${year} publié — ${chosen.length} produits`);
+    console.log(`   ${chosen.map((p) => p.name).join(', ')}`);
   } else {
     console.log(`⏭️  Panier semaine ${week}/${year} — déjà garni`);
   }
