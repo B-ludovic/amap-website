@@ -10,7 +10,7 @@ import {
 } from '../utils/httpErrors.js';
 import { logAudit } from '../services/audit.service.js';
 import { resolveNewsletterRecipients } from '../services/newsletterAudience.service.js';
-import { reserverNewsletter, lancerDiffusion } from '../services/newsletterDispatch.service.js';
+import { ETATS_DE_DEPART, reserverNewsletter, lancerDiffusion } from '../services/newsletterDispatch.service.js';
 
 // RÉCUPÉRER TOUTES LES NEWSLETTERS
 const getAllNewsletters = asyncHandler(async (req, res) => {
@@ -265,8 +265,11 @@ const scheduleNewsletter = asyncHandler(async (req, res) => {
         throw new HttpNotFoundError('Newsletter introuvable');
     }
 
-    if (newsletter.sentAt) {
-        throw new HttpConflictError('Cette newsletter a déjà été envoyée');
+    // Le statut fait foi, comme pour l'envoi : sentAt est posé dès le départ.
+    if (!ETATS_DE_DEPART.includes(newsletter.status)) {
+        throw new HttpConflictError(newsletter.status === 'SENDING'
+            ? 'Un envoi est déjà en cours pour cette newsletter'
+            : 'Cette newsletter a déjà été envoyée');
     }
 
     const scheduledDate = new Date(scheduledFor);

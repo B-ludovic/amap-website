@@ -224,10 +224,12 @@ PUPPETEER_DISABLE_SANDBOX= # « true » seulement si Chromium refuse de démarre
 > `BREVO_WEBHOOK_SECRET` garde la route par laquelle Brevo raconte ce qu'il a
 > fait de chaque message. Elle est nécessairement ouverte sur l'extérieur — Brevo
 > n'a pas de compte sur le site — et Brevo ne signe pas ses appels : ce secret
-> est la seule chose qui distingue son serveur de n'importe qui d'autre. Sans
-> lui, la route refuse tout et plus aucun rebond ne remonte ; l'écran de suivi
-> le dit alors franchement plutôt que d'afficher zéro rebond, qui se lirait comme
-> une bonne nouvelle. Voir « Retours du relais » ci-dessous pour le branchement.
+> est la seule chose qui distingue son serveur de n'importe qui d'autre. C'est
+> une valeur qu'on invente (`openssl rand -hex 32`) et qu'on recopie à
+> l'identique dans la console Brevo. Sans elle, la route refuse tout et plus
+> aucun rebond ne remonte ; l'écran de suivi le dit alors franchement plutôt que
+> d'afficher zéro rebond, qui se lirait comme une bonne nouvelle. Voir « Retours
+> du relais » ci-dessous pour le branchement.
 
 > `PUBLIC_API_URL` ne sert qu'aux en-têtes de désabonnement des newsletters.
 > Gmail et Yahoo affichent leur propre bouton « Se désabonner » et postent
@@ -265,8 +267,26 @@ Le webhook rapporte ce second temps. À brancher une fois, dans la console Brevo
 **Transactional → Settings → Webhook**, en pointant sur :
 
 ```
-https://api.auxptitspois.fr/api/emails/brevo?s=LE-SECRET
+https://api.auxptitspois.fr/api/emails/brevo
 ```
+
+L'authentification est un secret partagé — la valeur de `BREVO_WEBHOOK_SECRET`,
+inventée une fois (`openssl rand -hex 32`) et recopiée à l'identique des deux
+côtés. Brevo ne signe pas ses appels : ce secret est la seule chose qui distingue
+son serveur de n'importe qui d'autre. Quatre façons de le porter, toutes
+acceptées, pour que le branchement ne dépende pas de l'option que la console
+propose :
+
+| Forme | Ce que Brevo envoie |
+|---|---|
+| **Token** (recommandé) | `Authorization: Bearer LE-SECRET` |
+| Authentification basique | `Authorization: Basic …` — l'identifiant est ignoré, seul le mot de passe vaut preuve |
+| En-tête libre | `X-Webhook-Secret: LE-SECRET` |
+| Paramètre d'URL | `…/api/emails/brevo?s=LE-SECRET` |
+
+Le paramètre d'URL est le dernier choix : le secret se retrouve alors dans les
+journaux d'accès de Render et de tout proxy traversé, là où les trois autres
+formes le gardent dans un en-tête.
 
 Événements à cocher : `delivered`, `soft_bounce`, `hard_bounce`, `blocked`,
 `invalid_email`, `spam`, `deferred`, `unsubscribed`. Les ouvertures et les clics

@@ -36,6 +36,7 @@ import { startChequeReminderJob } from './jobs/chequeReminder.job.js';
 import { startPauseResumeJob } from './jobs/pauseResume.job.js';
 import { startOrphanFlagsJob } from './jobs/orphanFlags.job.js';
 import { startWeeklyBasketNotifyJob } from './jobs/weeklyBasketNotify.job.js';
+import { startScheduledNewsletterJob } from './jobs/scheduledNewsletter.job.js';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -154,8 +155,8 @@ const publicLimiter = rateLimit({
 
    Cinq par heure, donc, ce qui reste très au-dessus de l'usage réel : une AMAP
    écrit à ses adhérents une fois par semaine, pas cinq fois par heure. La
-   programmation d'une newsletter n'est volontairement pas limitée ici, puisque
-   aucun job ne lit scheduledFor : poser une date n'envoie rien. */
+   programmation partage le même plafond : poser une date, c'est déclencher un
+   envoi, seulement plus tard. */
 const newsletterSendLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 heure
   max: 5,
@@ -240,6 +241,7 @@ app.use('/api/shifts', shiftsRoutes);
 // Avant le routeur, comme pdfLimiter : monté après, il ne verrait jamais passer
 // la requête.
 app.use('/api/newsletters/:id/send', newsletterSendLimiter);
+app.use('/api/newsletters/:id/schedule', newsletterSendLimiter);
 app.use('/api/newsletters/unsubscribe', unsubscribeLimiter);
 app.use('/api/newsletters/resubscribe', unsubscribeLimiter);
 app.use('/api/newsletters', newslettersRoutes);
@@ -281,6 +283,7 @@ const startServer = async () => {
     startPauseResumeJob();
     startOrphanFlagsJob();
     startWeeklyBasketNotifyJob();
+    startScheduledNewsletterJob();
 
     app.listen(PORT, () => {
       console.log(`✅ Serveur backend démarré sur http://localhost:${PORT}`);

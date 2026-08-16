@@ -16,7 +16,7 @@ import { logAudit } from './audit.service.js';
 
 /* FAILED est un état de départ au même titre que DRAFT : une tentative qui n'a
    atteint personne ne condamne pas le texte. */
-const ETATS_DE_DEPART = ['DRAFT', 'FAILED'];
+export const ETATS_DE_DEPART = ['DRAFT', 'FAILED'];
 
 /* Compare-and-set atomique : c'est la base qui arbitre entre deux requêtes
    concurrentes. Même motif que renewalReminder.job.js — un e-mail parti ne se
@@ -25,8 +25,9 @@ export async function reserverNewsletter(id) {
   const { count } = await prisma.newsletter.updateMany({
     where: { id, status: { in: ETATS_DE_DEPART } },
     // Les deux compteurs repartent de zéro : ceux d'une tentative précédente
-    // décriraient un envoi qui n'est plus celui qu'on regarde.
-    data: { status: 'SENDING', sentAt: new Date(), sentCount: 0, failedCount: 0 },
+    // décriraient un envoi qui n'est plus celui qu'on regarde. Réserver consomme
+    // aussi la programmation, sans quoi un envoi échoué repartirait tout seul.
+    data: { status: 'SENDING', sentAt: new Date(), sentCount: 0, failedCount: 0, scheduledFor: null },
   });
 
   return count === 1;

@@ -15,21 +15,41 @@ import { retablirAdresse } from '../services/emailSuppression.service.js';
 import { logAudit } from '../services/audit.service.js';
 
 /* Brevo ne signe pas ses appels : il n'y a ni HMAC ni certificat client à
-   vérifier, seulement l'URL qu'on lui a donnée. Le secret y tient donc lieu de
-   preuve d'identité — dans un en-tête si la console Brevo permet d'en poser un,
-   sinon dans la chaîne de requête.
+   vérifier, seulement ce qu'on lui a demandé de porter. Le même secret est donc
+   accepté sous les quatre formes que sa console sait produire — token,
+   authentification basique, en-tête libre, ou paramètre d'URL — pour que le
+   branchement ne dépende pas de l'option qu'elle propose ce jour-là.
 
-   Comparaison à temps constant, comme pour le sceau de désabonnement : un ===
+   En authentification basique, l'identifiant est ignoré : il n'est pas secret,
+   voyage à côté du mot de passe dans le même base64, et rien ne serait gagné à
+   le comparer. Seul le mot de passe vaut preuve. */
+function secretPresente(req) {
+  const entete = String(req.get?.('authorization') ?? req.headers?.authorization ?? '').trim();
+
+  if (/^Bearer /i.test(entete)) {
+    return entete.slice(7).trim();
+  }
+
+  if (/^Basic /i.test(entete)) {
+    const couple = Buffer.from(entete.slice(6).trim(), 'base64').toString('utf8');
+    return couple.slice(couple.indexOf(':') + 1);
+  }
+
+  // Certaines consoles postent le jeton nu, sans préfixe de schéma.
+  if (entete) return entete;
+
+  return String(req.get?.('x-webhook-secret') ?? req.headers?.['x-webhook-secret'] ?? req.query?.s ?? '');
+}
+
+/* Comparaison à temps constant, comme pour le sceau de désabonnement : un ===
    s'arrête au premier caractère qui diffère et livre le secret octet par octet
    à qui mesure les temps de réponse. */
 function secretValide(req) {
   const attendu = process.env.BREVO_WEBHOOK_SECRET;
   if (!attendu) return false;
 
-  const recu = String(req.get?.('x-webhook-secret') ?? req.headers?.['x-webhook-secret'] ?? req.query?.s ?? '');
-
   const a = Buffer.from(attendu, 'utf8');
-  const b = Buffer.from(recu, 'utf8');
+  const b = Buffer.from(secretPresente(req), 'utf8');
 
   return a.length === b.length && crypto.timingSafeEqual(a, b);
 }

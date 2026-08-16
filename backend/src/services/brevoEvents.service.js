@@ -29,7 +29,9 @@ const EVENEMENTS = {
   soft_bounce:   { delivery: 'SOFT_BOUNCE' },
   hard_bounce:   { delivery: 'HARD_BOUNCE', suppression: 'HARD_BOUNCE' },
   // Adresse syntaxiquement ou structurellement invalide : même cause, même effet.
+  // Deux noms selon l'endroit où Brevo la nomme.
   invalid_email: { delivery: 'HARD_BOUNCE', suppression: 'HARD_BOUNCE' },
+  invalid:       { delivery: 'HARD_BOUNCE', suppression: 'HARD_BOUNCE' },
   blocked:       { delivery: 'BLOCKED', suppression: 'BLOCKED' },
   spam:          { delivery: 'SPAM_COMPLAINT', optOut: true },
   unsubscribed:  { optOut: true },
@@ -43,7 +45,14 @@ const formesDuMessageId = (brut) => {
   return nu ? [nu, `<${nu}>`] : [];
 };
 
-const lireEvenement = (charge) => String(charge?.event ?? '').trim().toLowerCase().replace(/[\s-]+/g, '_');
+/* Brevo nomme ses événements de deux façons : `hard_bounce` dans la charge
+   postée, `hardBounce` dans la liste d'abonnement de son API. On ramène tout au
+   même vocabulaire plutôt que de parier sur celui qui arrivera. */
+const lireEvenement = (charge) => String(charge?.event ?? '')
+  .trim()
+  .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+  .toLowerCase()
+  .replace(/[\s-]+/g, '_');
 
 /* La plainte pour spam ne supprime pas l'adresse : l'adhérent a un contrat en
    cours, il doit continuer de recevoir l'avis de dépôt de son chèque. Elle

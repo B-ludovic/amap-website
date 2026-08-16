@@ -41,10 +41,20 @@ const evenement = (event, options = {}) => ({
   reason: options.reason,
 });
 
-const poster = (corps, { secret = SECRET, dansLUrl = false } = {}) => appeler(receiveBrevoEvent, {
+/* Les quatre formes que la console Brevo sait produire. Le webhook doit les
+   accepter toutes : l'option offerte varie d'un écran à l'autre, et une seule
+   forme supportée transformerait ce choix en impasse. */
+const PORTEURS = {
+  entete:  (secret) => ({ headers: { 'x-webhook-secret': secret }, query: {} }),
+  url:     (secret) => ({ headers: {}, query: { s: secret } }),
+  bearer:  (secret) => ({ headers: { authorization: `Bearer ${secret}` }, query: {} }),
+  nu:      (secret) => ({ headers: { authorization: secret }, query: {} }),
+  basique: (secret) => ({ headers: { authorization: `Basic ${Buffer.from(`brevo:${secret}`).toString('base64')}` }, query: {} }),
+};
+
+const poster = (corps, { secret = SECRET, porteur = 'entete' } = {}) => appeler(receiveBrevoEvent, {
   body: corps,
-  headers: dansLUrl ? {} : { 'x-webhook-secret': secret },
-  query: dansLUrl ? { s: secret } : {},
+  ...PORTEURS[porteur](secret),
 });
 
 let erreursConsole;
@@ -89,11 +99,24 @@ describe('La porte du webhook', () => {
     expect(registreSuppressions).toHaveLength(0);
   });
 
-  it('accepte le secret porté par l\'URL, quand la console Brevo ne sait pas poser d\'en-tête', async () => {
-    const reponse = await poster(evenement('hard_bounce'), { dansLUrl: true });
+  it.each([
+    ['un en-tête libre',            'entete'],
+    ['un paramètre d\'URL',         'url'],
+    ['un token',                    'bearer'],
+    ['un token sans son préfixe',   'nu'],
+    ['une authentification basique', 'basique'],
+  ])('accepte le secret porté par %s', async (_forme, porteur) => {
+    const reponse = await poster(evenement('hard_bounce'), { porteur });
 
     expect(reponse.statut).toBe(200);
     expect(registreSuppressions).toHaveLength(1);
+  });
+
+  it('refuse un mot de passe basique qui n\'est pas le secret', async () => {
+    const reponse = await poster(evenement('hard_bounce'), { secret: 'pas-le-bon', porteur: 'basique' });
+
+    expect(reponse.statut).toBe(401);
+    expect(registreSuppressions).toHaveLength(0);
   });
 });
 
@@ -116,6 +139,20 @@ describe('Ce que chaque événement change', () => {
 
     expect(registreEmails[0].delivery).toBe('HARD_BOUNCE');
     expect(registreSuppressions).toHaveLength(1);
+  });
+
+  /* Brevo nomme ses événements `hard_bounce` dans la charge postée et
+     `hardBounce` dans la liste d'abonnement de son API. Parier sur une seule
+     graphie, c'est risquer de laisser passer un rejet sans le voir. */
+  it.each([
+    ['hardBounce',   'HARD_BOUNCE'],
+    ['softBounce',   'SOFT_BOUNCE'],
+    ['invalid',      'HARD_BOUNCE'],
+    ['hard-bounce',  'HARD_BOUNCE'],
+  ])('reconnaît « %s » comme les autres graphies', async (nom, attendu) => {
+    await poster(evenement(nom));
+
+    expect(registreEmails[0].delivery).toBe(attendu);
   });
 
   it('une boîte pleine ne fait que marquer la trace', async () => {
