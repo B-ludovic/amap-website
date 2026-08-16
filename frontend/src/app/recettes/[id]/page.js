@@ -30,10 +30,12 @@ export async function generateMetadata({ params }) {
   return {
     title: `${recipe.title} | Aux P'tits Pois`,
     description,
+    /* Une liste d'images vide n'est pas une absence de consigne : elle écrase la
+       vignette du site et la recette part sans aperçu. La clé se tait plutôt. */
     openGraph: {
       title: recipe.title,
       description,
-      images: recipe.image ? [{ url: recipe.image }] : [],
+      ...(recipe.image ? { images: [{ url: recipe.image }] } : {}),
     },
   };
 }

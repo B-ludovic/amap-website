@@ -5,6 +5,11 @@ import { INVITE_COOKIE, readInviteConfig, readInviteToken } from './lib/inviteGa
 const GATE_PAGE = '/invitation';
 const GATE_ENDPOINT = '/api/invitation';
 
+/* Les vignettes de partage franchissent la porte. Sans cela le lien envoyé à un
+   invité s'affiche avec un aperçu cassé, alors qu'elles ne montrent que ce que
+   le site publie déjà : le nom, la ville et l'heure de distribution. */
+const SHARE_IMAGES = ['/opengraph-image', '/twitter-image'];
+
 export async function middleware(request) {
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64');
 
@@ -75,7 +80,7 @@ export async function middleware(request) {
       : null;
 
     // Sans ce laissez-passer il faut pouvoir atteindre la porte pour le demander.
-    gated = holder === null && pathname !== GATE_ENDPOINT;
+    gated = holder === null && pathname !== GATE_ENDPOINT && !SHARE_IMAGES.includes(pathname);
 
     // Une fois entré, la porte n'a plus rien à montrer.
     if (holder !== null && pathname === GATE_PAGE) {
