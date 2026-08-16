@@ -112,6 +112,16 @@
   margin: 0;
 }
 
+.footer-place-link {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.footer-place-link:hover {
+  color: var(--terracotta-dark);
+}
+
 /* Responsive */
 @media (max-width: 1024px) {
   .footer-content {

@@ -122,7 +122,18 @@ function Footer() {
           <p className="footer-copyright">
             © {currentYear} Aux P&apos;tits Pois — Tous droits réservés
           </p>
-          <p className="footer-place">Clamart · Île-de-France</p>
+          <p className="footer-place">
+            Le site a été conçu et développé par{' '}
+            <a
+              href="https://www.lechoppeducode.com"
+              className="footer-place-link"
+              target="_blank"
+              rel="noreferrer"
+            >
+              L&apos;échoppe du Code
+            </a>
+            .
+          </p>
         </div>
       </div>
     </footer>
