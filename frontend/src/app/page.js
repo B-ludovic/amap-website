@@ -124,7 +124,7 @@ export default async function HomePage() {
       </section>
 
       {/* Le cycle */}
-      <section className="band-sand">
+      <section className="band-forest">
         <div className="container cycle">
           <div className="cycle-head">
             <div>
