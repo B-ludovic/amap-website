@@ -461,6 +461,13 @@ const api = {
         requiresAuth: true,
       });
     },
+
+    unschedule: async (id) => {
+      return fetchAPI(`/newsletters/${id}/schedule`, {
+        method: 'DELETE',
+        requiresAuth: true,
+      });
+    },
   },
 
   // Suivi des envois : la trace de chaque message et les adresses écartées.

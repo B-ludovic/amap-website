@@ -37,10 +37,15 @@ const TARGET_LABELS = {
 function stateOf(newsletter) {
   if (newsletter.status === 'SENDING') return { label: 'Envoi en cours', tone: 'admin-badge-amber' };
   if (newsletter.status === 'SENT') return { label: 'Envoyée', tone: 'admin-badge-green' };
-  if (newsletter.status === 'FAILED') return { label: 'Échec, à renvoyer', tone: 'admin-badge-red' };
+  // Un rendez-vous posé passe devant l'échec : c'est ce qui va se produire ensuite.
   if (newsletter.scheduledFor) return { label: 'Programmée', tone: 'admin-badge-amber' };
+  if (newsletter.status === 'FAILED') return { label: 'Échec, à renvoyer', tone: 'admin-badge-red' };
   return { label: 'Brouillon', tone: '' };
 }
+
+// Une date encore en attente de départ : celles qui sont parties l'ont consommée.
+const estProgrammee = (newsletter) =>
+  Boolean(newsletter.scheduledFor) && ['DRAFT', 'FAILED'].includes(newsletter.status);
 
 /* Le contenu est stocké en HTML : on n'en garde que le texte pour l'aperçu.
    Certaines newsletters — celles que génère l'annonce de fermeture — sont des
@@ -107,6 +112,17 @@ export default function AdminCommunicationPage() {
         }
       }
     );
+  };
+
+  const handleUnschedule = async (newsletter) => {
+    try {
+      await api.newsletters.unschedule(newsletter.id);
+      showSuccess('Programmation annulée', 'La newsletter redevient un brouillon, rien ne partira.');
+      fetchAll(page);
+    } catch (error) {
+      showError('Erreur', error.message);
+      fetchAll(page);
+    }
   };
 
   const closeModal = (shouldRefresh) => {
@@ -215,6 +231,11 @@ export default function AdminCommunicationPage() {
                   <button type="button" className="admin-btn-link" onClick={() => setEditing(newsletter)}>
                     Ouvrir
                   </button>
+                  {estProgrammee(newsletter) && (
+                    <button type="button" className="admin-btn-link" onClick={() => handleUnschedule(newsletter)}>
+                      Déprogrammer
+                    </button>
+                  )}
                   <button
                     type="button"
                     className="admin-btn-link admin-btn-link-delete"

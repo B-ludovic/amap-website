@@ -7,6 +7,7 @@ import {
   deleteNewsletter,
   sendNewsletter,
   scheduleNewsletter,
+  unscheduleNewsletter,
   getNewsletterStats
 } from '../controllers/newsletters.controller.js';
 import {
@@ -46,5 +47,6 @@ router.put('/:id', updateNewsletter);
 router.delete('/:id', deleteNewsletter);
 router.post('/:id/send', sendNewsletter);
 router.post('/:id/schedule', scheduleNewsletter);
+router.delete('/:id/schedule', unscheduleNewsletter);
 
 export default router;

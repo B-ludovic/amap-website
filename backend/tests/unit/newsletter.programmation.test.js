@@ -4,6 +4,7 @@
    un envoi manqué ne se rattrape pas indéfiniment. */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { appeler } from '../helpers/expressFactice.js';
 
 const { base, envois } = vi.hoisted(() => ({
   base: { newsletters: [], utilisateurs: [], destinataires: [], resultat: null },
@@ -28,6 +29,15 @@ vi.mock('../../src/services/newsletterAudience.service.js', () => ({
 
 vi.mock('../../src/services/audit.service.js', () => ({ logAudit: async () => {} }));
 
+// Prisma laisse intact un champ passé à undefined : le mock doit faire pareil.
+const appliquer = (cible, data) => {
+  for (const [champ, valeur] of Object.entries(data)) {
+    if (valeur !== undefined) cible[champ] = valeur;
+  }
+
+  return cible;
+};
+
 vi.mock('../../src/config/database.js', () => ({
   prisma: {
     newsletter: {
@@ -37,19 +47,19 @@ vi.mock('../../src/config/database.js', () => ({
         && where.status.in.includes(n.status)
       ),
 
-      update: async ({ where, data }) => {
-        const cible = base.newsletters.find((n) => n.id === where.id);
-        Object.assign(cible, data);
-        return cible;
-      },
+      findUnique: async ({ where }) => base.newsletters.find((n) => n.id === where.id) ?? null,
+
+      update: async ({ where, data }) => appliquer(base.newsletters.find((n) => n.id === where.id), data),
 
       // Compare-and-set : l'écriture n'est acceptée que si le statut est encore
       // un statut de départ au moment où elle s'exécute.
       updateMany: async ({ where, data }) => {
         const cible = base.newsletters.find((n) => n.id === where.id);
+        if (!cible) return { count: 0 };
         if (!where.status.in.includes(cible.status)) return { count: 0 };
+        if (where.scheduledFor?.not === null && cible.scheduledFor === null) return { count: 0 };
 
-        Object.assign(cible, data);
+        appliquer(cible, data);
         return { count: 1 };
       },
     },
@@ -61,6 +71,7 @@ vi.mock('../../src/config/database.js', () => ({
 }));
 
 const { envoyerNewslettersProgrammees } = await import('../../src/jobs/scheduledNewsletter.job.js');
+const { unscheduleNewsletter, updateNewsletter } = await import('../../src/controllers/newsletters.controller.js');
 
 const HEURE = 60 * 60 * 1000;
 const ilYA = (ms) => new Date(Date.now() - ms);
@@ -184,6 +195,105 @@ describe('Un rendez-vous trop ancien ne se rattrape pas', () => {
 
     expect(envois).toHaveLength(1);
     expect(base.newsletters[0].status).toBe('SENT');
+  });
+});
+
+describe('Annuler une programmation', () => {
+  const requete = { params: { id: 'newsletter-0001' }, user: { id: 'admin-0001' } };
+
+  it('efface la date et laisse la lettre en brouillon', async () => {
+    base.newsletters = [lettre({ scheduledFor: dans(24 * HEURE) })];
+
+    const { statut, message } = await appeler(unscheduleNewsletter, requete);
+
+    expect(statut).toBe(200);
+    expect(message).toBe('Programmation annulée');
+    expect(base.newsletters[0].scheduledFor).toBeNull();
+    expect(base.newsletters[0].status).toBe('DRAFT');
+
+    await envoyerNewslettersProgrammees();
+    expect(envois).toHaveLength(0);
+  });
+
+  it('refuse sur une lettre qui n\'attend aucun rendez-vous', async () => {
+    base.newsletters = [lettre()];
+
+    const { statut, message } = await appeler(unscheduleNewsletter, requete);
+
+    expect(statut).toBe(409);
+    expect(message).toBe('Cette newsletter n\'est pas programmée');
+  });
+
+  /* L'écran peut afficher « Programmée » alors que le balayage vient de la
+     prendre : c'est la base qui départage, pas la vue. */
+  it('refuse quand le balayage a déjà lancé l\'envoi', async () => {
+    base.newsletters = [lettre({ scheduledFor: ilYA(5 * 60 * 1000) })];
+    const vue = { ...base.newsletters[0] };
+
+    await envoyerNewslettersProgrammees();
+    base.newsletters[0].scheduledFor = vue.scheduledFor;
+    base.newsletters[0].status = 'SENDING';
+
+    const { statut, message } = await appeler(unscheduleNewsletter, requete);
+
+    expect(statut).toBe(409);
+    expect(message).toBe('L\'envoi de cette newsletter a déjà commencé');
+  });
+});
+
+describe('Programmer depuis l\'édition', () => {
+  const editer = (body) => appeler(updateNewsletter, {
+    params: { id: 'newsletter-0001' },
+    body,
+    user: { id: 'admin-0001' },
+  });
+
+  it('pose une date sur un brouillon', async () => {
+    base.newsletters = [lettre()];
+    const heure = dans(24 * HEURE).toISOString();
+
+    const { statut } = await editer({ subject: 'La lettre de rentrée', scheduledFor: heure });
+
+    expect(statut).toBe(200);
+    expect(base.newsletters[0].scheduledFor.toISOString()).toBe(heure);
+  });
+
+  it('déprogramme quand le champ revient vide', async () => {
+    base.newsletters = [lettre({ scheduledFor: dans(24 * HEURE) })];
+
+    await editer({ subject: 'La lettre de rentrée', scheduledFor: null });
+
+    expect(base.newsletters[0].scheduledFor).toBeNull();
+  });
+
+  it('ne touche pas à la date quand le champ n\'est pas du voyage', async () => {
+    const heure = dans(24 * HEURE);
+    base.newsletters = [lettre({ scheduledFor: heure })];
+
+    await editer({ subject: 'Objet corrigé' });
+
+    expect(base.newsletters[0].scheduledFor).toEqual(heure);
+  });
+
+  it('refuse une date déjà passée', async () => {
+    base.newsletters = [lettre()];
+
+    const { statut, message } = await editer({ scheduledFor: ilYA(HEURE).toISOString() });
+
+    expect(statut).toBe(400);
+    expect(message).toBe('La date doit être dans le futur');
+  });
+
+  /* Corriger une coquille dix minutes après l'heure prévue, avant que le
+     balayage ne passe : la date n'a pas bougé, elle n'a pas à être défendue. */
+  it('laisse corriger le texte d\'une lettre dont l\'heure vient de sonner', async () => {
+    const heure = ilYA(10 * 60 * 1000);
+    base.newsletters = [lettre({ scheduledFor: heure })];
+
+    const { statut } = await editer({ subject: 'Objet corrigé', scheduledFor: heure.toISOString() });
+
+    expect(statut).toBe(200);
+    expect(base.newsletters[0].subject).toBe('Objet corrigé');
   });
 });
 

@@ -8,6 +8,18 @@ import { useModal } from '../../contexts/ModalContext';
 import api from '../../lib/api';
 import AdminModal from './AdminModal';
 
+/* Un champ datetime-local parle l'heure de l'écran, l'API l'heure universelle.
+   Sans ces deux traductions, une lettre attendue à 9 h se rouvre à 7 h et recule
+   de deux heures à chaque enregistrement. */
+const versChamp = (iso) => {
+  if (!iso) return '';
+
+  const date = new Date(iso);
+  return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+};
+
+const versISO = (valeurChamp) => new Date(valeurChamp).toISOString();
+
 /* Types et destinataires viennent des enums NewsletterType et
    NewsletterTarget. La maquette en proposait d'autres — « Fermeture », « Appel
    à bénévoles », « Bénévoles » — qui n'existent pas en base. */
@@ -61,13 +73,16 @@ export default function NewsletterModal({ newsletter, onClose }) {
   const { showSuccess, showError } = useModal();
   const isEdit = !!newsletter;
 
+  // Une lettre partie ou en cours d'acheminement n'attend plus de rendez-vous.
+  const programmable = !isEdit || ['DRAFT', 'FAILED'].includes(newsletter.status);
+
   const [formData, setFormData] = useState({
     subject: newsletter?.subject ?? '',
     type: newsletter?.type ?? 'GENERAL',
     target: newsletter?.target ?? 'ALL'
   });
   const [sendMode, setSendMode] = useState(null);
-  const [scheduledFor, setScheduledFor] = useState(newsletter?.scheduledFor?.split('.')[0] ?? '');
+  const [scheduledFor, setScheduledFor] = useState(versChamp(newsletter?.scheduledFor));
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
@@ -89,9 +104,7 @@ export default function NewsletterModal({ newsletter, onClose }) {
       type: newsletter.type,
       target: newsletter.target
     });
-    if (newsletter.scheduledFor) {
-      setScheduledFor(newsletter.scheduledFor.split('.')[0]);
-    }
+    setScheduledFor(versChamp(newsletter.scheduledFor));
   }, [newsletter]);
 
   const validate = () => {
@@ -115,8 +128,17 @@ export default function NewsletterModal({ newsletter, onClose }) {
     setLoading(true);
     try {
       if (isEdit) {
+        /* Le champ vidé vaut null, pas « ne touche à rien » : c'est ainsi qu'on
+           déprogramme depuis l'édition. */
+        if (programmable) payload.scheduledFor = scheduledFor ? versISO(scheduledFor) : null;
+
         await api.newsletters.update(newsletter.id, payload);
-        showSuccess('Newsletter modifiée', 'Les modifications ont été enregistrées.');
+        showSuccess(
+          'Newsletter modifiée',
+          scheduledFor && programmable
+            ? 'Les modifications ont été enregistrées, l\'envoi partira à la date indiquée.'
+            : 'Les modifications ont été enregistrées.'
+        );
       } else {
         const response = await api.newsletters.create(payload);
 
@@ -129,7 +151,7 @@ export default function NewsletterModal({ newsletter, onClose }) {
           const envoi = await api.newsletters.send(response.data.id);
           showSuccess('Envoi lancé', envoi?.message ?? 'Le suivi s\'affiche dans la liste des newsletters.');
         } else if (sendMode === 'schedule') {
-          await api.newsletters.schedule(response.data.id, { scheduledFor });
+          await api.newsletters.schedule(response.data.id, { scheduledFor: versISO(scheduledFor) });
           showSuccess('Newsletter programmée', 'L\'envoi partira à la date indiquée.');
         } else {
           showSuccess('Brouillon enregistré', 'La newsletter est prête à être relue.');
@@ -221,9 +243,11 @@ export default function NewsletterModal({ newsletter, onClose }) {
             </div>
           )}
 
-          {sendMode === 'schedule' && (
+          {(sendMode === 'schedule' || (isEdit && programmable)) && (
             <div className="admin-form-field" style={{ maxWidth: '280px' }}>
-              <label htmlFor="nl-when" className="admin-field-label">Date et heure d&apos;envoi</label>
+              <label htmlFor="nl-when" className="admin-field-label">
+                {isEdit ? 'Programmation' : 'Date et heure d\'envoi'}
+              </label>
               <input
                 id="nl-when"
                 type="datetime-local"
@@ -234,6 +258,18 @@ export default function NewsletterModal({ newsletter, onClose }) {
                   setIsDirty(true);
                 }}
               />
+              {isEdit && (scheduledFor ? (
+                <button
+                  type="button"
+                  className="admin-btn-link"
+                  style={{ justifySelf: 'start' }}
+                  onClick={() => { setScheduledFor(''); setIsDirty(true); }}
+                >
+                  Retirer la programmation
+                </button>
+              ) : (
+                <span className="admin-form-note">Sans date, la newsletter reste un brouillon.</span>
+              ))}
               {errors.scheduledFor && <span className="admin-form-error">{errors.scheduledFor}</span>}
             </div>
           )}

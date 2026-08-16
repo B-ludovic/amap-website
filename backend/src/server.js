@@ -241,7 +241,8 @@ app.use('/api/shifts', shiftsRoutes);
 // Avant le routeur, comme pdfLimiter : monté après, il ne verrait jamais passer
 // la requête.
 app.use('/api/newsletters/:id/send', newsletterSendLimiter);
-app.use('/api/newsletters/:id/schedule', newsletterSendLimiter);
+// Sur le POST seul : annuler une programmation ne déclenche aucun envoi.
+app.post('/api/newsletters/:id/schedule', newsletterSendLimiter);
 app.use('/api/newsletters/unsubscribe', unsubscribeLimiter);
 app.use('/api/newsletters/resubscribe', unsubscribeLimiter);
 app.use('/api/newsletters', newslettersRoutes);

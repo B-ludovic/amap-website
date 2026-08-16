@@ -133,10 +133,31 @@ const createNewsletter = asyncHandler(async (req, res) => {
     });
 });
 
+/* Absent du corps, `scheduledFor` ne bouge pas ; nul ou vide, il s'efface ;
+   daté, il n'exige une date future que s'il change réellement — sans quoi
+   corriger une coquille dans une lettre attendue dans dix minutes deviendrait
+   impossible dès que ces dix minutes sont passées. */
+function programmationDemandee(scheduledFor, actuelle) {
+    if (scheduledFor === undefined) return undefined;
+    if (scheduledFor === null || scheduledFor === '') return null;
+
+    const date = new Date(scheduledFor);
+
+    if (Number.isNaN(date.getTime())) {
+        throw new HttpBadRequestError('Date de programmation invalide');
+    }
+
+    if (date.getTime() !== actuelle?.getTime() && date <= new Date()) {
+        throw new HttpBadRequestError('La date doit être dans le futur');
+    }
+
+    return date;
+}
+
 // MODIFIER UNE NEWSLETTER
 const updateNewsletter = asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const { subject, content, type, target } = req.body;
+    const { subject, content, type, target, scheduledFor } = req.body;
 
     const newsletter = await prisma.newsletter.findUnique({ where: { id } });
 
@@ -144,8 +165,10 @@ const updateNewsletter = asyncHandler(async (req, res) => {
         throw new HttpNotFoundError('Newsletter introuvable');
     }
 
-    if (newsletter.sentAt) {
-        throw new HttpConflictError('Impossible de modifier une newsletter déjà envoyée');
+    if (!ETATS_DE_DEPART.includes(newsletter.status)) {
+        throw new HttpConflictError(newsletter.status === 'SENDING'
+            ? 'Un envoi est déjà en cours pour cette newsletter'
+            : 'Impossible de modifier une newsletter déjà envoyée');
     }
 
     const updated = await prisma.newsletter.update({
@@ -154,7 +177,8 @@ const updateNewsletter = asyncHandler(async (req, res) => {
             subject,
             content: content ? DOMPurify.sanitize(content) : undefined,
             type,
-            target
+            target,
+            scheduledFor: programmationDemandee(scheduledFor, newsletter.scheduledFor)
         },
         include: {
             author: {
@@ -291,6 +315,37 @@ const scheduleNewsletter = asyncHandler(async (req, res) => {
     });
 });
 
+// ANNULER LA PROGRAMMATION
+const unscheduleNewsletter = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+
+    const newsletter = await prisma.newsletter.findUnique({ where: { id } });
+
+    if (!newsletter) {
+        throw new HttpNotFoundError('Newsletter introuvable');
+    }
+
+    if (!newsletter.scheduledFor) {
+        throw new HttpConflictError('Cette newsletter n\'est pas programmée');
+    }
+
+    /* Le balayage a pu la prendre entre l'affichage de l'écran et ce clic :
+       c'est la base qui tranche, comme pour la réservation d'un envoi. */
+    const { count } = await prisma.newsletter.updateMany({
+        where: { id, status: { in: ETATS_DE_DEPART }, scheduledFor: { not: null } },
+        data: { scheduledFor: null }
+    });
+
+    if (count === 0) {
+        throw new HttpConflictError('L\'envoi de cette newsletter a déjà commencé');
+    }
+
+    res.json({
+        success: true,
+        message: 'Programmation annulée'
+    });
+});
+
 // STATISTIQUES
 const getNewsletterStats = asyncHandler(async (req, res) => {
     const [total, sent, scheduled, byType] = await Promise.all([
@@ -328,5 +383,6 @@ export {
     deleteNewsletter,
     sendNewsletter,
     scheduleNewsletter,
+    unscheduleNewsletter,
     getNewsletterStats
 };

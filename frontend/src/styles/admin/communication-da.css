@@ -109,6 +109,9 @@
   display: flex;
   gap: 14px;
   align-items: center;
+  /* Trois actions au lieu de deux dès qu'une lettre attend son heure : en carte
+     pleine largeur, elles passent à la ligne plutôt que de déborder. */
+  flex-wrap: wrap;
 }
 
 /* ÉDITEUR
