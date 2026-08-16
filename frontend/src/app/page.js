@@ -230,6 +230,15 @@ export default async function HomePage() {
             target="_blank"
             rel="noopener noreferrer"
           >
+            {/* Décorative : le lien est déjà nommé par les trois libellés qui
+                suivent, un alt descriptif ne ferait que rallonger son énoncé. */}
+            <Image
+              src="/images/eglise-clamart.webp"
+              alt=""
+              fill
+              sizes="(max-width: 900px) 100vw, 460px"
+              className="map-slot-photo"
+            />
             <span className="eyebrow eyebrow-on-forest">Plan d&apos;accès</span>
             <span className="map-slot-text">
               340 avenue du Général de Gaulle, Clamart

@@ -423,6 +423,43 @@
   color: var(--on-forest);
 }
 
+/* La photo du lieu occupe tout le cadre ; le voile qui la surmonte garde
+   lisibles l'adresse et la mention posées en bas. */
+.map-slot-photo {
+  object-fit: cover;
+  transition: transform var(--transition-base);
+}
+
+.map-slot::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(31, 36, 33, 0.86) 0%,
+    rgba(31, 36, 33, 0.45) 42%,
+    rgba(31, 36, 33, 0.08) 100%
+  );
+}
+
+/* Sans cela le voile passerait par-dessus les libellés. */
+.map-slot > span {
+  position: relative;
+  z-index: 1;
+}
+
+.map-slot:hover .map-slot-photo {
+  transform: scale(1.03);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .map-slot-photo,
+  .map-slot:hover .map-slot-photo {
+    transition: none;
+    transform: none;
+  }
+}
+
 .map-slot-text {
   font-size: 15.5px;
   line-height: 1.6;
