@@ -22,11 +22,17 @@ export const contrat = {
   type: 'ANNUAL',
   basketSize: 'SMALL',
   pricingType: 'NORMAL',
+  status: 'ACTIVE',
+  price: 931,
   pickupLocation: {
     name: 'Salle des fêtes',
     address: '2 place de la Mairie, 45300 Yèvre-la-Ville',
   },
 };
+
+// Le même contrat au sortir de l'approbation d'une demande : le règlement n'est
+// pas encore arrivé, et c'est ce qui décide du texte du message.
+export const contratEnAttente = { ...contrat, status: 'PENDING' };
 
 /* La demande d'abonnement porte son userId : c'est ce qui décide de la porte
    proposée dans le pied de page. La variante sans compte est construite dans le

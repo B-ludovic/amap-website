@@ -289,8 +289,9 @@ export const approveAndCreateSubscription = asyncHandler(async (req, res) => {
     }
   });
 
-  // 8. Envoyer email de confirmation
-  await emailService.sendSubscriptionConfirmation(subscription, user);
+  // 8. Envoyer email de confirmation — la modalité vient de la demande, le
+  // contrat ne la porte pas : c'est elle qui dit combien de chèques préparer.
+  await emailService.sendSubscriptionConfirmation(subscription, user, { paymentType: request.paymentType });
 
   await logAudit(req, 'APPROVE_SUBSCRIPTION_REQUEST', 'IMPORTANT', { type: 'SUBSCRIPTION_REQUEST', id, label: user.email }, { subscriptionNumber: subscription.subscriptionNumber });
 

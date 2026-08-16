@@ -11,6 +11,7 @@ import {
   adherente,
   candidateProductrice,
   contrat,
+  contratEnAttente,
   demandeAbonnement,
   permanence,
   cheque,
@@ -49,6 +50,10 @@ export function messagesSortants(emails) {
     {
       nom: 'contrat activé', methode: 'sendSubscriptionConfirmation', kind: 'SUBSCRIPTION_CONFIRMATION', public: 'adherent',
       envoyer: () => emails.sendSubscriptionConfirmation(contrat, adherente),
+    },
+    {
+      nom: 'contrat enregistré, règlement attendu', methode: 'sendSubscriptionConfirmation', kind: 'SUBSCRIPTION_CONFIRMATION', public: 'adherent',
+      envoyer: () => emails.sendSubscriptionConfirmation(contratEnAttente, adherente, { paymentType: '4' }),
     },
     {
       nom: 'contrat bientôt échu', methode: 'sendRenewalReminderEmail', kind: 'RENEWAL_REMINDER', public: 'adherent',

@@ -528,7 +528,12 @@ const recordChequesReceived = asyncHandler(async (req, res) => {
 
   const subscription = await prisma.subscription.findUnique({
     where: { id },
-    include: { payments: { select: { id: true } } }
+    include: {
+      payments: { select: { id: true } },
+      // Pour le message d'activation, quand la remise fait basculer le contrat.
+      user: { select: { id: true, email: true, firstName: true } },
+      pickupLocation: true
+    }
   });
 
   if (!subscription) {
@@ -604,6 +609,16 @@ const recordChequesReceived = asyncHandler(async (req, res) => {
     before: { status: subscription.status, paidAmount: subscription.paidAmount },
     after: { status: updated.status, paidAmount: updated.paidAmount }
   });
+
+  /* L'autre moitié du message d'enregistrement, qui annonçait l'activation « à
+     réception de votre règlement » : sans celui-ci, l'adhérent ne sait jamais
+     que c'est arrivé. `updated` sort de la transaction sans ses relations. */
+  if (subscription.status === 'PENDING' && updated.status === 'ACTIVE') {
+    await emailService.sendSubscriptionConfirmation(
+      { ...updated, pickupLocation: subscription.pickupLocation },
+      subscription.user
+    );
+  }
 
   res.status(httpStatusCodes.CREATED).json({
     success: true,

@@ -1,7 +1,7 @@
 import nodemailer from 'nodemailer';
 import DOMPurify from 'isomorphic-dompurify';
 import { prisma } from '../config/database.js';
-import { euroAmount } from '../utils/subscriptionPricing.js';
+import { euroAmount, splitPayment, formatInstallments } from '../utils/subscriptionPricing.js';
 import { overridesOptOut } from './newsletterAudience.service.js';
 import { unsubscribePageUrl, unsubscribeHeaders } from '../utils/unsubscribeToken.js';
 import { estSupprimee } from './emailSuppression.service.js';
@@ -501,30 +501,47 @@ class EmailService {
   }
 
   /* Envoie un email de confirmation d'abonnement créé */
-  async sendSubscriptionConfirmation(subscription, user) {
+  /* Deux chemins mènent ici : l'administration qui crée un contrat déjà actif,
+     et l'approbation d'une demande, qui le laisse en attente de règlement.
+     Annoncer « activé » dans le second cas envoie l'adhérent à une distribution
+     où il ne figure sur aucune liste. Le statut du contrat commande donc le
+     texte, et le doute penche vers l'attente : on n'annonce jamais une
+     activation dont on n'est pas sûr. */
+  async sendSubscriptionConfirmation(subscription, user, { paymentType = null } = {}) {
+    const active = subscription.status === 'ACTIVE';
+
+    const echeances = paymentType
+      ? ` : ${formatInstallments(splitPayment(subscription.price, paymentType))} à l'ordre d'Aux P'tits Pois, à remettre lors d'une distribution`
+      : ', par chèque à l\'ordre d\'Aux P\'tits Pois, à remettre lors d\'une distribution';
+
     return this.#send({
       from: EMAIL_FROM,
       to: user.email,
-      subject: 'Votre abonnement est activé !',
+      subject: active ? 'Votre abonnement est activé !' : 'Votre abonnement est enregistré',
       html: renderEmail({
-        title: 'Bienvenue dans l\'aventure',
+        title: active ? 'Bienvenue dans l\'aventure' : 'Votre abonnement est enregistré',
         content: `
             <p>Bonjour ${escapeHtml(user.firstName)},</p>
-            <p>Félicitations ! Votre abonnement Aux P'tits Pois est maintenant <strong>activé</strong>.</p>
+            ${active
+              ? '<p>Félicitations ! Votre abonnement Aux P\'tits Pois est maintenant <strong>activé</strong>.</p>'
+              : '<p>Votre demande est validée : le contrat est enregistré à votre nom.</p>'}
             <div class="info-box">
               <h3>Votre abonnement</h3>
               <p><strong>N° :</strong> ${escapeHtml(subscription.subscriptionNumber)}</p>
               <p><strong>Type :</strong> ${subscription.type === 'ANNUAL' ? 'Abonnement Annuel' : 'Abonnement Découverte'}</p>
               <p><strong>Panier :</strong> ${subscription.basketSize === 'SMALL' ? 'Petit panier (2-4 kg)' : 'Grand panier (6-8 kg)'}</p>
             </div>
+            ${active ? '' : `<div class="warning"><strong>Il reste une étape :</strong> votre abonnement sera activé à réception de votre règlement${echeances}. Tant qu'il ne l'est pas, aucun panier ne vous est réservé le mercredi.</div>`}
             <div class="highlight">
-              <h3>Retrait de votre panier</h3>
+              <h3>${active ? 'Retrait de votre panier' : 'Votre point de retrait'}</h3>
               <p><strong>Chaque mercredi de 18h15 à 19h15</strong><br>
               ${escapeHtml(subscription.pickupLocation.name)}<br>
               ${escapeHtml(subscription.pickupLocation.address)}</p>
             </div>
             <p>À très bientôt,<br>L'équipe Aux P'tits Pois</p>`,
-        footerNote: rgpdNote(user.email, 'suite à l\'activation de votre contrat'),
+        footerNote: rgpdNote(user.email, active
+          ? 'suite à l\'activation de votre contrat'
+          : 'suite à l\'enregistrement de votre contrat'),
       }),
     }, { kind: 'SUBSCRIPTION_CONFIRMATION', ref: subscription.id });
   }
