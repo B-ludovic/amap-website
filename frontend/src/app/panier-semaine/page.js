@@ -459,8 +459,8 @@ export default function WeeklyBasketPublicPage() {
           <div>
             <h2 className="basket-cta-title">Ce panier, chaque mercredi.</h2>
             <p className="basket-cta-text">
-              Un contrat à l&apos;année, un prix qui ne bouge pas, et des légumes que vous
-              voyez pousser à trente kilomètres.
+              Un contrat à l&apos;année, un prix qui ne bouge pas, et des légumes dont vous
+              connaissez la ferme et le nom de celui qui les cultive.
             </p>
           </div>
           <div className="basket-cta-actions">

@@ -14,7 +14,7 @@ const asset = name => readFile(path.join(process.cwd(), 'public', name));
 const dataUri = (buffer, mime) => `data:${mime};base64,${buffer.toString('base64')}`;
 
 const STATS = [
-  { value: '30 km', label: 'rayon maximum de nos fermes partenaires' },
+  { value: '0', label: 'intermédiaire entre la ferme et le panier' },
   { value: '49', label: 'semaines de distribution par an' },
   { value: '−80 %', label: 'tarif solidaire avec le Secours Catholique' },
 ];

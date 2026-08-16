@@ -1,6 +1,6 @@
 export const metadata = {
-  title: 'Contact - Aux P\'tits Pois',
-  description: 'Contactez notre AMAP pour toute question sur les abonnements, les paniers ou nos producteurs partenaires.',
+  title: 'Nous contacter',
+  description: "Contactez l'AMAP Aux P'tits Pois à Clamart pour toute question sur les abonnements, les paniers ou les fermes partenaires.",
 };
 
 export default function Layout({ children }) {

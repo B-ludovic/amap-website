@@ -1,41 +1,56 @@
-# Aux P'tits Pois — AMAP locale
+# Aux P'tits Pois — AMAP à Clamart (Hauts-de-Seine)
 
 ## À propos
 Aux P'tits Pois est une AMAP (Association pour le Maintien d'une Agriculture Paysanne) solidaire
-basée à Yèvre-la-Ville (45300), France. Elle propose des paniers de légumes frais, biologiques
-et de saison issus de producteurs locaux partenaires.
+qui distribue ses paniers à Clamart (92140), dans les Hauts-de-Seine, en Île-de-France. Chaque
+mercredi de 18h15 à 19h15, ses adhérents retirent un panier de légumes bio et de saison remis en
+direct par les fermes partenaires, sans grossiste ni centrale d'achat.
+
+## Zone desservie
+Clamart et les communes voisines : Meudon, Issy-les-Moulineaux, Vanves, Malakoff, Châtillon,
+Fontenay-aux-Roses, Le Plessis-Robinson, Bagneux, Sceaux.
+
+## Point de retrait
+- Lieu : Paroisse Saint François de Sales de Clamart
+- Adresse : 340 avenue du Général de Gaulle, 92140 Clamart
+- Créneau : chaque mercredi, de 18h15 à 19h15
+- Coordonnées : 48.7998, 2.2677
+
+## Informations clés
+- Nom : Aux P'tits Pois
+- Type : Association loi 1901 (AMAP)
+- Distribution : Clamart (92140), Hauts-de-Seine, Île-de-France
+- Siège social de l'association : 14, rue du Château, 45300 Yèvre-la-Ville (adresse administrative,
+  ce n'est pas un lieu de distribution ni un lieu ouvert au public)
+- Email : auxptitspois@gmail.com
+- Site : https://auxptitspois.fr
+- Directrice de publication : Kerina DAVIGNY
+
+## Fonctionnement de l'abonnement
+- 49 paniers par an (52 semaines moins 3 semaines de fermeture annoncées à l'avance)
+- Deux tailles : petit panier (2 à 4 kg) et grand panier (6 à 8 kg)
+- Engagement d'un an, réglé par chèques échelonnés
+- Tarif solidaire avec le Secours Catholique, ramenant la part de l'adhérent à 20 % du prix
+- Deux semaines de pause possibles par an
+- Permanence tenue par deux adhérents à chaque distribution, environ trois fois par an et par foyer
+
+## Producteurs partenaires
+- LES TROIS PARCELLES — Simon RONCERAY, maraîcher bio, 14 rue du Château, 45300 Yèvre-la-Ville (Loiret).
+  La ferme livre directement au point de retrait de Clamart, sans passer par un entrepôt.
+
+La liste à jour des fermes partenaires est publiée sur https://auxptitspois.fr/nos-producteurs
 
 ## Contenu autorisé
-Les pages publiques de ce site (accueil, abonnements, producteurs, recettes, FAQ, contact) peuvent
-être indexées et utilisées à des fins d'information et de référencement.
+Les pages publiques de ce site (accueil, abonnements, producteurs, panier de la semaine, FAQ,
+contact) peuvent être indexées et utilisées à des fins d'information et de référencement.
 
 ## Contenu exclu
 - /admin — Interface d'administration (accès restreint)
 - /api — Endpoints API (données brutes)
 - /auth — Pages d'authentification
 - /compte — Espace membre personnel
-
-## Informations clés
-- Nom : Aux P'tits Pois
-- Type : Association loi 1901 (AMAP)
-- Adresse : 14, rue du Château, 45300 Yèvre-la-Ville, France
-- Email : auxptitspois@gmail.com
-- Site : https://auxptitspois.fr
-- Directrice de publication : Kerina DAVIGNY
-
-## Point de retrait
-- Lieu : Paroisse Saint François de Sales de Clamart
-- Adresse : 340 Avenue du Général de Gaulle, 92140 Clamart
-- Horaires : Chaque mercredi de 18h15 à 19h15
-
-## Fonctionnalités clés
-- Paniers hebdomadaires de légumes bio et locaux
-- Suggestions de recettes personnalisées en fonction des légumes présents dans le panier de la semaine
-- Recettes traduites en français (source : TheMealDB)
-
-## Producteurs partenaires
-- LES TROIS PARCELLES — Simon RONCERAY (maraîcher bio)
+- /recettes/[id] — Fiches recettes traduites depuis TheMealDB : contenu tiers, non indexé
 
 ## Utilisation du contenu
-Ce contenu est fourni à des fins d'information publique sur l'agriculture locale et les circuits courts.
-Toute reproduction commerciale sans autorisation est interdite.
+Ce contenu est fourni à des fins d'information publique sur l'agriculture locale et les circuits
+courts. Toute reproduction commerciale sans autorisation est interdite.

@@ -355,7 +355,7 @@ export default function RecipeDetailClient() {
             <h2 className="recipe-cta-title">Ces légumes viennent d&apos;ici.</h2>
             <p className="recipe-cta-text">
               Les légumes de saison de cette recette se retrouvent dans le panier de la
-              semaine, cultivés à moins de 30 km de Clamart.
+              semaine, remis chaque mercredi à Clamart par ceux qui les cultivent.
             </p>
           </div>
           <div className="recipe-cta-actions">

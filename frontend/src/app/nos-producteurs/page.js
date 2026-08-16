@@ -1,20 +1,7 @@
-'use client';
-
-import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
-import { useModal } from '../../contexts/ModalContext';
-import api from '../../lib/api';
 import { spellNumber, spellNumberLower } from '../../constants/numberWords';
+import { fetchPublicProducers, producerPhoto, producerPlace } from '../../lib/producers';
 import '../../styles/public/producers.css';
-
-/* Photos d'illustration, faute de clichés des fermes elles-mêmes : elles
-   tournent dans l'ordre des fiches. Dès qu'un producteur a une image en base,
-   c'est la sienne qui passe. */
-const ILLUSTRATIONS = [
-  '/placeholder/legumes-terre.webp',
-  '/placeholder/legumes-jardin.webp',
-  '/placeholder/legumes-ht.webp',
-];
 
 const CERTIFICATIONS = {
   ORGANIC: { label: 'Certifiée AB', className: 'badge-veggie' },
@@ -31,62 +18,18 @@ function buildTitle(count) {
   return `${word} fermes, ${lower} noms, ${lower} visages.`;
 }
 
-function buildPlace(producer) {
-  const parts = [];
-  if (producer.city) {
-    parts.push(producer.postalCode ? `${producer.city} (${producer.postalCode})` : producer.city);
-  } else if (producer.postalCode) {
-    parts.push(producer.postalCode);
-  }
-  if (producer.distanceKm || producer.distanceKm === 0) {
-    parts.push(`${producer.distanceKm} km du point de retrait`);
-  }
-  return parts.join(' · ');
-}
 
-function ProducersPage() {
-  const [producers, setProducers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const { showError } = useModal();
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const fetchProducers = async () => {
-      try {
-        const response = await api.producers.getAll();
-        const active = response.data.producers.filter((producer) => producer.isActive);
-        if (!cancelled) setProducers(active);
-      } catch (error) {
-        if (!cancelled) showError('Erreur', 'Impossible de charger les producteurs');
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    };
-
-    fetchProducers();
-    return () => { cancelled = true; };
-    // Chargement unique : showError est recréé à chaque rendu du contexte et
-    // le placer en dépendance relancerait la requête à chaque ouverture de modale.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="producers-page">
-        <section className="farms-hero">
-          <div className="eyebrow">Les fermes partenaires</div>
-          <p className="farms-lede">Chargement des fermes…</p>
-        </section>
-      </div>
-    );
-  }
+/* Rendu sur le serveur : les fiches partent dans le HTML. Les robots des
+   moteurs génératifs n'exécutent pas le JavaScript, et la page qui répond à
+   « qui fournit cette AMAP ? » leur arrivait vide. */
+export default async function ProducersPage() {
+  const producers = await fetchPublicProducers();
 
   /* Chiffres du hero : chacun n'apparaît que si la donnée existe derrière. */
   const certified = producers.filter((p) => p.certification && p.certification !== 'NONE');
-  const distances = producers
-    .map((p) => p.distanceKm)
-    .filter((km) => typeof km === 'number');
+  const partnerships = producers
+    .map((p) => p.partnerSince)
+    .filter((year) => typeof year === 'number');
 
   const facts = [];
   if (producers.length > 0) {
@@ -99,8 +42,8 @@ function ProducersPage() {
     const share = Math.round((certified.length / producers.length) * 100);
     facts.push({ value: `${share} %`, label: 'bio ou en conversion' });
   }
-  if (distances.length > 0) {
-    facts.push({ value: `${Math.max(...distances)} km`, label: 'la plus éloignée' });
+  if (partnerships.length > 0) {
+    facts.push({ value: String(Math.min(...partnerships)), label: 'partenaire depuis' });
   }
 
   return (
@@ -114,8 +57,8 @@ function ProducersPage() {
             <h1 className="farms-title">{buildTitle(producers.length)}</h1>
             <p className="farms-lede">
               Nous n&apos;achetons pas à des grossistes. Chaque légume du panier vient de
-              l&apos;une de ces exploitations, toutes à moins de trente kilomètres, toutes
-              visitées par des adhérents.
+              l&apos;une de ces exploitations, toutes visitées par des adhérents, et arrive
+              au point de retrait de Clamart sans passer par un entrepôt.
             </p>
           </div>
 
@@ -159,24 +102,19 @@ function ProducersPage() {
         <section className="farms-list">
           {producers.map((producer, index) => {
             const certification = CERTIFICATIONS[producer.certification];
-            const place = buildPlace(producer);
+            const place = producerPlace(producer);
             const crops = producer.products || [];
             const visible = crops.slice(0, 6);
             const extra = crops.length - visible.length;
-            const hasOwnPhoto = Boolean(producer.image);
-            const photo = hasOwnPhoto
-              ? producer.image
-              : ILLUSTRATIONS[index % ILLUSTRATIONS.length];
+            const photo = producerPhoto(producer, index);
 
             return (
               <article className="farm" key={producer.id}>
                 <div className="farm-visual">
                   <div className="farm-frame">
                     <img
-                      src={photo}
-                      /* Illustration générique : elle ne montre pas cette ferme,
-                         elle ne doit donc rien annoncer aux lecteurs d'écran. */
-                      alt={hasOwnPhoto ? producer.name : ''}
+                      src={photo.src}
+                      alt={photo.alt}
                       loading="lazy"
                       className="farm-photo"
                     />
@@ -253,7 +191,7 @@ function ProducersPage() {
       <section className="band-forest farms-cta">
         <div className="farms-cta-inner">
           <div className="farms-cta-block">
-            <div className="eyebrow eyebrow-on-forest">Vous produisez à moins de 30 km</div>
+            <div className="eyebrow eyebrow-on-forest">Vous cultivez, vous élevez</div>
             <h2 className="farms-cta-title">Il reste de la place à l&apos;étal.</h2>
             <p className="farms-cta-text">
               Nous cherchons surtout des fromages, du miel et des légumes d&apos;hiver.
@@ -278,13 +216,5 @@ function ProducersPage() {
         </div>
       </section>
     </div>
-  );
-}
-
-export default function Page() {
-  return (
-    <Suspense>
-      <ProducersPage />
-    </Suspense>
   );
 }

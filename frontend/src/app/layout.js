@@ -5,7 +5,7 @@ import ConditionalHeader from '../components/layout/ConditionalHeader';
 import ConditionalFooter from '../components/layout/ConditionalFooter';
 import Providers from '../components/Providers';
 import JsonLd from '../components/JsonLd';
-import { CONTACT_EMAIL } from '../constants/association';
+import { organizationJsonLd, pickupPlaceJsonLd } from '../constants/structuredData';
 import '../../public/orejime/orejime-standard.css';
 import '../styles/components/orejime.css';
 import '../styles/variables.css';
@@ -38,22 +38,22 @@ const fontVariables = `${fraunces.variable} ${jakarta.variable} ${geistMono.vari
 
 export const metadata = {
   title: {
-    default: 'Aux P\'tits Pois - AMAP locale',
-    template: '%s | Aux P\'tits Pois',
+    default: 'Aux P\'tits Pois - AMAP à Clamart (92140)',
+    template: '%s | Aux P\'tits Pois, AMAP à Clamart',
   },
-  description: 'Commandez vos paniers de produits locaux et bio auprès de nos producteurs partenaires. AMAP solidaire avec tarif accessible à tous.',
-  keywords: ['AMAP', 'panier bio', 'légumes locaux', 'circuit court', 'agriculture biologique', 'producteurs locaux'],
+  description: "AMAP à Clamart, Hauts-de-Seine : un panier de légumes bio et de saison chaque mercredi de 18h15 à 19h15, remis en direct par les fermes partenaires. Tarif solidaire accessible à tous.",
+  keywords: ['AMAP Clamart', 'AMAP Hauts-de-Seine', 'panier bio Clamart', 'légumes bio 92140', 'circuit court Île-de-France', 'agriculture biologique', 'producteurs locaux'],
   openGraph: {
-    title: 'Aux P\'tits Pois - AMAP locale',
-    description: 'Commandez vos paniers de produits locaux et bio auprès de nos producteurs partenaires.',
+    title: 'Aux P\'tits Pois - AMAP à Clamart (92140)',
+    description: 'Un panier de légumes bio et de saison chaque mercredi à Clamart, remis en direct par les fermes partenaires.',
     type: 'website',
     locale: 'fr_FR',
     siteName: 'Aux P\'tits Pois',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Aux P\'tits Pois - AMAP locale',
-    description: 'Commandez vos paniers de produits locaux et bio auprès de nos producteurs partenaires.',
+    title: 'Aux P\'tits Pois - AMAP à Clamart (92140)',
+    description: 'Un panier de légumes bio et de saison chaque mercredi à Clamart, remis en direct par les fermes partenaires.',
   },
   metadataBase: new URL('https://auxptitspois.fr'),
   alternates: {
@@ -66,40 +66,6 @@ export const metadata = {
   verification: {
     google: 'z6no3ktuJhB7CymkNr7GSXEXmiOh3E9i4FtbD-h4nQY',
   },
-};
-
-const organizationJsonLd = {
-  '@context': 'https://schema.org',
-  '@type': ['Organization', 'LocalBusiness'],
-  name: "Aux P'tits Pois",
-  alternateName: "AMAP Aux P'tits Pois",
-  description: 'AMAP solidaire proposant des paniers de légumes bio et locaux auprès de producteurs partenaires.',
-  url: 'https://auxptitspois.fr',
-  '@id': 'https://auxptitspois.fr/#organization',
-  email: CONTACT_EMAIL,
-  address: {
-    '@type': 'PostalAddress',
-    streetAddress: '340 Avenue du Général de Gaulle',
-    addressLocality: 'Clamart',
-    postalCode: '92140',
-    addressCountry: 'FR',
-  },
-  geo: {
-    '@type': 'GeoCoordinates',
-    latitude: 48.7998,
-    longitude: 2.2677,
-  },
-  openingHoursSpecification: {
-    '@type': 'OpeningHoursSpecification',
-    dayOfWeek: 'Wednesday',
-    opens: '18:15',
-    closes: '19:15',
-  },
-  sameAs: [
-    'https://hautsdeseine.secours-catholique.org/notre-actualite/lamap-aux-ptits-pois-de-clamart',
-    'https://www.wedemain.fr/sauver-la-planete/initiatives-ecologiques-locales/initiatives-et-innovations-ecologiques-en-ile-de-france/aux-ptits-pois-une-association-solidaire-pour-manger-mieux-1135361',
-  ],
-  inLanguage: 'fr',
 };
 
 async function RootLayout({ children }) {
@@ -124,6 +90,7 @@ async function RootLayout({ children }) {
       <body>
         <a href="#main-content" className="skip-link">Aller au contenu principal</a>
         <JsonLd data={organizationJsonLd} nonce={nonce} />
+        <JsonLd data={pickupPlaceJsonLd} nonce={nonce} />
         <Providers>
           <ConditionalHeader />
           <main className="main-content" id="main-content">

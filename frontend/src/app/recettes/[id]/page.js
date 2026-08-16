@@ -18,7 +18,8 @@ export async function generateMetadata({ params }) {
 
   if (!recipe) {
     return {
-      title: 'Recette | Aux P\'tits Pois',
+      title: 'Recette',
+      robots: { index: false, follow: true },
     };
   }
 
@@ -28,8 +29,13 @@ export async function generateMetadata({ params }) {
     : `Recette ${recipe.title}${parts ? ` — ${parts}` : ''}`;
 
   return {
-    title: `${recipe.title} | Aux P'tits Pois`,
+    title: recipe.title,
     description,
+    /* Les fiches viennent de TheMealDB, traduites : les indexer reviendrait à
+       publier sous notre domaine des milliers de pages dont le contenu existe
+       déjà ailleurs, et à diluer sur elles l'autorité qui doit aller à l'AMAP
+       de Clamart. Les moteurs suivent les liens sans retenir la page. */
+    robots: { index: false, follow: true },
     /* Une liste d'images vide n'est pas une absence de consigne : elle écrase la
        vignette du site et la recette part sans aperçu. La clé se tait plutôt. */
     openGraph: {

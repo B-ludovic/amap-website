@@ -1,14 +1,18 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import SeasonTable from '../components/home/SeasonTable';
+import { fetchPublicProducers, producerPhoto, producerPlace } from '../lib/producers';
+import { spellNumber } from '../constants/numberWords';
 import '../styles/public/home.css';
 
 export const metadata = {
-  title: "Aux P'tits Pois - AMAP locale à Clamart",
-  description: "Abonnez-vous à notre AMAP et recevez chaque semaine des légumes bio et locaux de producteurs partenaires à moins de 30 km de Clamart. Tarif solidaire disponible.",
+  /* Absolu : le gabarit du layout racine ajouterait une seconde fois le nom de
+     l'association à un titre qui le porte déjà. */
+  title: { absolute: "Aux P'tits Pois - AMAP à Clamart (92140)" },
+  description: "AMAP à Clamart, Hauts-de-Seine : chaque mercredi de 18h15 à 19h15, un panier de légumes bio et de saison remis en direct par le producteur, sans grossiste. Tarif solidaire avec le Secours Catholique.",
   openGraph: {
-    title: "Aux P'tits Pois - AMAP locale à Clamart",
-    description: "Légumes bio et locaux livrés chaque semaine. Rejoignez notre AMAP solidaire à Clamart.",
+    title: "Aux P'tits Pois - AMAP à Clamart (92140)",
+    description: "Un panier de légumes bio et de saison chaque mercredi à Clamart. AMAP solidaire, en vente directe du producteur.",
   },
 };
 
@@ -47,8 +51,21 @@ function basketPreview(basket) {
   };
 }
 
+/* Le compte est écrit en lettres tant que la table des nombres le permet. */
+function farmsLede(count) {
+  if (count === 1) {
+    return "Une ferme cultive le contenu de votre panier et vous le remet en direct : ni grossiste, ni centrale d'achat entre le champ et le point de retrait.";
+  }
+  const word = spellNumber(count) || count;
+  return `${word} exploitations cultivent le contenu de votre panier et vous le remettent en direct : ni grossiste, ni centrale d'achat entre le champ et le point de retrait.`;
+}
+
 export default async function HomePage() {
-  const basket = basketPreview(await fetchCurrentBasket());
+  const [basket, producers] = await Promise.all([
+    fetchCurrentBasket().then(basketPreview),
+    fetchPublicProducers(),
+  ]);
+  const farms = producers.slice(0, 3);
 
   return (
     <div className="landing">
@@ -65,9 +82,9 @@ export default async function HomePage() {
             <h1 className="hero-title">Du champ à votre panier, sans un détour.</h1>
 
             <p className="hero-lede">
-              Une AMAP à Clamart. Des maraîchers à moins de 30 km, un panier chaque
-              mercredi, et un prix qui tient sur toute l&apos;année — solidaire pour celles
-              et ceux qui en ont besoin.
+              Une AMAP à Clamart, dans les Hauts-de-Seine. Des légumes bio remis en main
+              propre par ceux qui les cultivent, un panier chaque mercredi, et un prix qui
+              tient sur toute l&apos;année — solidaire pour celles et ceux qui en ont besoin.
             </p>
 
             <div className="hero-actions">
@@ -81,8 +98,8 @@ export default async function HomePage() {
 
             <dl className="hero-stats">
               <div className="hero-stat">
-                <dt className="hero-stat-value">30 km</dt>
-                <dd className="hero-stat-label">rayon maximum de nos fermes partenaires</dd>
+                <dt className="hero-stat-value">0</dt>
+                <dd className="hero-stat-label">intermédiaire entre la ferme et le panier</dd>
               </div>
               <div className="hero-stat">
                 <dt className="hero-stat-value">49</dt>
@@ -248,75 +265,45 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Les fermes */}
+      {/* Les fermes — la section se tait plutôt que d'annoncer des partenaires
+          que l'API n'a pas confirmés. */}
+      {farms.length > 0 && (
       <section className="farms" id="producteurs">
         <div className="container">
           <div className="farms-head">
             <div className="eyebrow">Les fermes partenaires</div>
             <h2 className="section-display">On sait qui cultive, et où.</h2>
-            <p className="farms-lede">
-              Trois exploitations bio ou en conversion, toutes à moins de trente kilomètres
-              du point de retrait.
-            </p>
+            <p className="farms-lede">{farmsLede(producers.length)}</p>
           </div>
 
-          <div className="farms-grid">
-            <article className="farm-card">
-              <div className="farm-photo">
-                <Image
-                  src="/images/ferme-maraichage.webp"
-                  alt="Maraîchage de plein champ"
-                  width={1078}
-                  height={1076}
-                />
-              </div>
-              <div className="farm-body">
-                <div className="eyebrow">Maraîchage · 12 km</div>
-                <h3 className="farm-name">Ferme des Trois Chênes</h3>
-                <p className="farm-text">
-                  Légumes de plein champ et sous serre froide. Certifiée AB depuis 2016.
-                </p>
-              </div>
-            </article>
+          <div
+            className="farms-grid"
+            style={{ '--farms-columns': Math.min(farms.length, 3) }}
+          >
+            {farms.map((producer, index) => {
+              const photo = producerPhoto(producer, index);
+              const place = producerPlace(producer);
+              const eyebrow = [producer.specialty, place].filter(Boolean).join(' · ');
 
-            <article className="farm-card">
-              <div className="farm-photo">
-                <Image
-                  src="/images/ferme-petits-fruits.webp"
-                  alt="Jardin maraîcher"
-                  width={1408}
-                  height={768}
-                />
-              </div>
-              <div className="farm-body">
-                <div className="eyebrow">Petits fruits · 24 km</div>
-                <h3 className="farm-name">Le Clos Bertaud</h3>
-                <p className="farm-text">
-                  Fraises, framboises et groseilles de mai à septembre. En conversion bio.
-                </p>
-              </div>
-            </article>
-
-            <article className="farm-card">
-              <div className="farm-photo">
-                <Image
-                  src="/agriculteurs.png"
-                  alt="Producteurs partenaires"
-                  width={1024}
-                  height={1024}
-                />
-              </div>
-              <div className="farm-body">
-                <div className="eyebrow">Œufs &amp; farine · 28 km</div>
-                <h3 className="farm-name">GAEC de la Vallée</h3>
-                <p className="farm-text">
-                  Poules élevées en plein air et blé meunier écrasé à la ferme.
-                </p>
-              </div>
-            </article>
+              return (
+                <article className="farm-card" key={producer.id}>
+                  <div className="farm-photo">
+                    <img src={photo.src} alt={photo.alt} loading="lazy" />
+                  </div>
+                  <div className="farm-body">
+                    {eyebrow && <div className="eyebrow">{eyebrow}</div>}
+                    <h3 className="farm-name">{producer.name}</h3>
+                    {producer.description && (
+                      <p className="farm-text">{producer.description}</p>
+                    )}
+                  </div>
+                </article>
+              );
+            })}
           </div>
         </div>
       </section>
+      )}
 
       {/* Les abonnements */}
       <section className="band-sand" id="abonnements">
@@ -368,7 +355,7 @@ export default async function HomePage() {
         <div className="container">
           <div className="join-card">
             <div>
-              <h2 className="join-title">Vous produisez à moins de 30 km ?</h2>
+              <h2 className="join-title">Vous cultivez, vous élevez, vous transformez ?</h2>
               <p className="join-text">
                 Rejoignez le réseau et bénéficiez de débouchés garantis, contractualisés
                 à l&apos;année.

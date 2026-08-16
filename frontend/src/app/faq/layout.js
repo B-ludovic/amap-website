@@ -89,8 +89,8 @@ const faqSchema = {
 };
 
 export const metadata = {
-  title: 'FAQ - Aux P\'tits Pois',
-  description: 'Toutes les réponses à vos questions sur les abonnements, les paniers, les paiements et votre compte sur notre AMAP locale.',
+  title: 'Questions fréquentes',
+  description: "Abonnements, contenu des paniers, tarif solidaire, permanences, paiement : les réponses aux questions courantes sur l'AMAP Aux P'tits Pois à Clamart (92140).",
 };
 
 export default async function FaqLayout({ children }) {

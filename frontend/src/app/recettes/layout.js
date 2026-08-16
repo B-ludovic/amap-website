@@ -1,6 +1,6 @@
 export const metadata = {
-  title: 'Recettes - Aux P\'tits Pois',
-  description: 'Des idées de recettes pour cuisiner vos légumes du panier bio et local : simples, savoureuses et de saison.',
+  title: 'Recettes de saison',
+  description: 'Des idées simples et de saison pour cuisiner les légumes du panier de la semaine.',
 };
 
 export default function Layout({ children }) {

@@ -19,7 +19,7 @@ const BENEFITS = [
   },
   {
     title: 'Circuit ultra-court',
-    text: 'Livraison directe au point de retrait, à moins de 30 km. Aucun intermédiaire, contact direct avec les mangeurs.',
+    text: "Livraison directe au point de retrait, sans entrepôt ni centrale d'achat. Aucun intermédiaire, contact direct avec les mangeurs.",
   },
   {
     title: 'Planification facilitée',
@@ -42,7 +42,7 @@ const CRITERIA = [
   },
   {
     title: 'Localisation',
-    text: 'Un rayon de 30 km maximum autour du point de retrait, à Clamart.',
+    text: "Île-de-France ou département limitrophe, avec une livraison possible au point de retrait de Clamart.",
   },
   {
     title: 'Production de saison',
@@ -253,8 +253,8 @@ export default function BecomeProducerPage() {
 
         <dl className="facts">
           <div className="fact">
-            <dt className="fact-value">30 km</dt>
-            <dd className="fact-label">rayon maximum autour du point de retrait</dd>
+            <dt className="fact-value">AB</dt>
+            <dd className="fact-label">certification exigée, ou conversion en cours</dd>
           </div>
           <div className="fact">
             <dt className="fact-value">48 h</dt>

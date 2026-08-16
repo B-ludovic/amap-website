@@ -297,15 +297,6 @@
   margin: 0;
 }
 
-.produce-farm {
-  font-family: var(--font-mono);
-  font-size: var(--label-size);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--text-light);
-  line-height: 1.5;
-}
-
 .produce-status {
   margin-top: auto;
   padding-top: 8px;
@@ -500,13 +491,17 @@
   max-width: 40em;
 }
 
+/* Le nombre de colonnes suit le nombre de fermes publiées. La largeur plafond
+   des cartes ne change rien à trois de front, et évite qu'une ferme seule
+   s'étire sur toute la bande. */
 .farms-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(var(--farms-columns, 3), 1fr);
   gap: 24px;
 }
 
 .farm-card {
+  max-width: 420px;
   background-color: var(--surface-page);
   border: var(--border-width) solid var(--border-card);
   border-radius: var(--border-radius-md);
