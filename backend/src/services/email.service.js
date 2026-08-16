@@ -66,6 +66,15 @@ const longDate = (value) => {
   return `${jour === 1 ? '1er' : jour} ${MOIS[date.getMonth()]} ${date.getFullYear()}`;
 };
 
+/* Fuseau nommé plutôt qu'hérité : l'hébergeur tourne en UTC, où 23 h 30 à Paris
+   est encore la veille — dans un message qui sert à reconnaître son propre
+   geste, l'heure doit être celle de l'horloge du destinataire. */
+const dateEtHeure = (value) => new Intl.DateTimeFormat('fr-FR', {
+  timeZone: 'Europe/Paris',
+  dateStyle: 'long',
+  timeStyle: 'short',
+}).format(new Date(value));
+
 // Recopiée dans six messages avant d'être rassemblée ici.
 const AMAP_EMAIL = 'auxptitspois@gmail.com';
 
@@ -258,6 +267,29 @@ class EmailService {
         footerNote: rgpdNote(user.email, 'suite à une demande de réinitialisation faite sur notre site'),
       }),
     }, { kind: 'PASSWORD_RESET', ref: user.id });
+  }
+
+  /* Le seul message qui permette à un adhérent de découvrir qu'on lui a pris son
+     compte. Il conseille de sécuriser la messagerie avant de reprendre la main
+     ici : le lien de réinitialisation y est arrivé, reprendre le mot de passe
+     sans fermer cette porte ne ferait que rejouer la scène. */
+  async sendPasswordChanged(user, changeLe = new Date()) {
+    return this.#send({
+      from: EMAIL_FROM,
+      to: user.email,
+      subject: 'Votre mot de passe a été modifié - Aux P\'tits Pois',
+      html: renderEmail({
+        title: 'Votre mot de passe a été modifié',
+        content: `
+            <p>Bonjour ${escapeHtml(user.firstName)},</p>
+            <p>Le mot de passe de votre compte Aux P'tits Pois a été modifié le ${dateEtHeure(changeLe)}.</p>
+            <p>Vos appareils déjà connectés ont été déconnectés : il faut désormais vous reconnecter avec le nouveau mot de passe.</p>
+            <p><strong>Si c'était vous</strong>, il n'y a rien d'autre à faire.</p>
+            <div class="warning"><strong>Si ce n'était pas vous :</strong> le lien de réinitialisation est arrivé dans cette boîte email, quelqu'un d'autre y a donc accès. Changez d'abord le mot de passe de votre messagerie, puis <a href="${process.env.FRONTEND_URL}/auth/forgot-password">reprenez la main sur votre compte</a>, et prévenez-nous à <a href="mailto:${AMAP_EMAIL}">${AMAP_EMAIL}</a>.</div>
+            <p>L'équipe Aux P'tits Pois</p>`,
+        footerNote: rgpdNote(user.email, 'car le mot de passe de votre compte vient d\'être modifié'),
+      }),
+    }, { kind: 'PASSWORD_CHANGED', ref: user.id });
   }
 
   /* Envoie un email de confirmation de demande d'abonnement */

@@ -454,6 +454,12 @@ const resetPassword = asyncHandler(async (req, res) => {
         },
     });
 
+    /* Prévenir vaut détection : une prise de contrôle par la boîte email ne
+       laisse aucune autre trace visible du côté de l'adhérent, qui se découvre
+       seulement déconnecté. Un envoi refusé ne remet pas en cause le changement,
+       déjà écrit — le service trace son échec sans lever. */
+    await emailService.sendPasswordChanged(user);
+
     res.json({
         success: true,
         message: 'Mot de passe réinitialisé avec succès!',

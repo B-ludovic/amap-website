@@ -1,4 +1,4 @@
-/* Le catalogue des dix-huit messages du site, partagé par les tests.
+/* Le catalogue des messages du site, partagé par les tests.
 
    Écrit à la main plutôt que dérivé du service : c'est l'écart entre les deux
    que le test de complétude doit voir.
@@ -37,6 +37,10 @@ export function messagesSortants(emails) {
     {
       nom: 'mot de passe oublié', methode: 'sendPasswordResetEmail', kind: 'PASSWORD_RESET', public: 'adherent',
       envoyer: () => emails.sendPasswordResetEmail(adherente, 'jeton-de-test'),
+    },
+    {
+      nom: 'mot de passe modifié', methode: 'sendPasswordChanged', kind: 'PASSWORD_CHANGED', public: 'adherent',
+      envoyer: () => emails.sendPasswordChanged(adherente),
     },
     {
       nom: 'demande d\'abonnement reçue', methode: 'sendSubscriptionRequestConfirmation', kind: 'SUBSCRIPTION_REQUEST_CONFIRMATION', public: 'adherent',

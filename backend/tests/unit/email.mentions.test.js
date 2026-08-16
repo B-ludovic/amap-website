@@ -46,9 +46,9 @@ beforeEach(() => {
 });
 
 describe('Le catalogue des messages est complet', () => {
-  /* Sans ce test, ajouter un dix-neuvième email sans pied de page passerait
-     inaperçu : la suite resterait verte en ne testant que les dix-huit
-     précédents. Ici, tout `send…` du service doit figurer au catalogue. */
+  /* Sans ce test, ajouter un email sans pied de page passerait inaperçu : la
+     suite resterait verte en ne testant que les précédents. Ici, tout `send…`
+     du service doit figurer au catalogue. */
   it('couvre chaque expéditeur du service', () => {
     const expediteurs = Object.getOwnPropertyNames(Object.getPrototypeOf(emails))
       .filter((nom) => nom.startsWith('send'))

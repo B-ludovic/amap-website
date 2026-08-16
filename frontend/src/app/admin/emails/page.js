@@ -27,6 +27,7 @@ const KIND_LABELS = {
   EMAIL_VERIFICATION:               'Vérification d\'adresse',
   ACCOUNT_ALREADY_EXISTS:           'Compte déjà existant',
   PASSWORD_RESET:                   'Mot de passe oublié',
+  PASSWORD_CHANGED:                 'Mot de passe modifié',
   SUBSCRIPTION_REQUEST_CONFIRMATION:'Demande d\'abonnement reçue',
   SUBSCRIPTION_CONFIRMATION:        'Abonnement activé',
   RENEWAL_REMINDER:                 'Rappel de renouvellement',
