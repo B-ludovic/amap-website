@@ -29,6 +29,7 @@ const KIND_LABELS = {
   PASSWORD_RESET:                   'Mot de passe oublié',
   PASSWORD_CHANGED:                 'Mot de passe modifié',
   ACCOUNT_DELETED:                  'Compte supprimé',
+  ROLE_CHANGED:                     'Rôle modifié',
   SUBSCRIPTION_REQUEST_CONFIRMATION:'Demande d\'abonnement reçue',
   SUBSCRIPTION_REQUEST_WAITLISTED:  'Demande en liste d\'attente',
   SUBSCRIPTION_REQUEST_REJECTED:    'Demande refusée',

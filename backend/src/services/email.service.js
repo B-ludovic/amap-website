@@ -78,6 +78,9 @@ const dateEtHeure = (value) => new Intl.DateTimeFormat('fr-FR', {
 // Recopiée dans six messages avant d'être rassemblée ici.
 const AMAP_EMAIL = 'auxptitspois@gmail.com';
 
+// Les mêmes mots que l'espace adhérent et l'écran des utilisateurs.
+const ROLE_LABELS = { MEMBER: 'Adhérent', VOLUNTEER: 'Bénévole', ADMIN: 'Administrateur' };
+
 /* Deux portes pour deux publics : l'adhérent a un espace, le candidat
    producteur n'a pas de compte — l'y envoyer serait une porte fermée. */
 const droitsViaEspace = () =>
@@ -316,6 +319,40 @@ class EmailService {
         footerNote: rgpdNoteSansCompte(user.email, 'pour accuser réception de la suppression de votre compte'),
       }),
     }, { kind: 'ACCOUNT_DELETED', ref: user.id });
+  }
+
+  /* Trois rôles, mais une seule porte : seul ADMIN ouvre l'administration.
+     Le message annonce donc ce qui change vraiment — un accès qui s'ouvre, un
+     accès qui se ferme, ou un libellé — sans promettre à un bénévole des droits
+     qu'aucun contrôle ne lui donne. */
+  async sendRoleChanged(user, { role, ancienRole }) {
+    const gagneLAdministration = role === 'ADMIN';
+    const perdLAdministration = ancienRole === 'ADMIN' && role !== 'ADMIN';
+    const libelle = ROLE_LABELS[role] ?? role;
+
+    const corps = gagneLAdministration
+      ? `<p>Vous avez désormais accès à <strong>l'espace d'administration</strong> d'Aux P'tits Pois. Vous y trouverez les adhérents, les contrats, les paniers et les permanences.</p>
+         <div class="warning">Vous y voyez les coordonnées, les contrats et les règlements des autres adhérents. Ces données ne quittent pas l'association et ne servent qu'à la faire tourner.</div>
+         ${emailButton(`${process.env.FRONTEND_URL}/admin`, 'Ouvrir l\'administration')}`
+      : perdLAdministration
+        ? `<p>Votre accès à l'espace d'administration a été retiré ; votre profil est désormais « ${libelle} ».</p>
+           <p>Votre compte reste ouvert et votre abonnement n'est pas touché.</p>`
+        : `<p>Votre profil est désormais « ${libelle} » dans l'espace adhérent.</p>`;
+
+    return this.#send({
+      from: EMAIL_FROM,
+      to: user.email,
+      subject: 'Votre rôle a changé - Aux P\'tits Pois',
+      html: renderEmail({
+        title: 'Votre rôle a changé',
+        content: `
+            <p>Bonjour ${escapeHtml(user.firstName)},</p>
+            ${corps}
+            <p>Une question ? Écrivez-nous à <a href="mailto:${AMAP_EMAIL}">${AMAP_EMAIL}</a>.</p>
+            <p>L'équipe Aux P'tits Pois</p>`,
+        footerNote: rgpdNote(user.email, 'car votre rôle vient d\'être modifié par l\'association'),
+      }),
+    }, { kind: 'ROLE_CHANGED', ref: user.id });
   }
 
   /* Envoie un email de confirmation de demande d'abonnement */

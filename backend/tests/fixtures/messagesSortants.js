@@ -54,6 +54,10 @@ export function messagesSortants(emails) {
       envoyer: () => emails.sendAccountDeleted(adherente, { effaceLe: new Date('2026-11-14T12:00:00Z') }),
     },
     {
+      nom: 'rôle modifié', methode: 'sendRoleChanged', kind: 'ROLE_CHANGED', public: 'adherent',
+      envoyer: () => emails.sendRoleChanged(adherente, { role: 'ADMIN', ancienRole: 'MEMBER' }),
+    },
+    {
       nom: 'demande en liste d\'attente', methode: 'sendSubscriptionRequestWaitlisted', kind: 'SUBSCRIPTION_REQUEST_WAITLISTED', public: 'adherent',
       envoyer: () => emails.sendSubscriptionRequestWaitlisted(demandeAbonnement),
     },

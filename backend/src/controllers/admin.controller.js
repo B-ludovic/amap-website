@@ -8,6 +8,7 @@ import {
 } from '../utils/httpErrors.js';
 import { ProducerSchema, UpdateProducerSchema, ProductSchema, UpdateProductSchema, BasketTypeSchema, BlogPostSchema } from '../utils/validation.schemas.js';
 import { logAudit } from '../services/audit.service.js';
+import emailService from '../services/email.service.js';
 import { normalizeTitleCase } from '../utils/normalize.js';
 
 
@@ -632,6 +633,13 @@ const changeUserRole = asyncHandler(async (req, res) => {
   });
 
   await logAudit(req, 'CHANGE_USER_ROLE', 'CRITICAL', { type: 'USER', id: userId, label: user.email }, { oldRole: user.role, newRole: role });
+
+  /* Le rôle est relu en base à chaque requête : l'accès s'ouvre ou se ferme
+     sur-le-champ, sans reconnexion. Sans message, la personne concernée
+     découvre un écran apparu ou disparu sans explication. */
+  if (user.role !== role) {
+    await emailService.sendRoleChanged(updatedUser, { role, ancienRole: user.role });
+  }
 
   res.json({
     success: true,
