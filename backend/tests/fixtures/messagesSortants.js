@@ -48,6 +48,14 @@ export function messagesSortants(emails) {
       envoyer: () => emails.sendSubscriptionRequestConfirmation(demandeAbonnement),
     },
     {
+      nom: 'demande en liste d\'attente', methode: 'sendSubscriptionRequestWaitlisted', kind: 'SUBSCRIPTION_REQUEST_WAITLISTED', public: 'adherent',
+      envoyer: () => emails.sendSubscriptionRequestWaitlisted(demandeAbonnement),
+    },
+    {
+      nom: 'demande refusée', methode: 'sendSubscriptionRequestRejected', kind: 'SUBSCRIPTION_REQUEST_REJECTED', public: 'adherent',
+      envoyer: () => emails.sendSubscriptionRequestRejected(demandeAbonnement),
+    },
+    {
       nom: 'contrat activé', methode: 'sendSubscriptionConfirmation', kind: 'SUBSCRIPTION_CONFIRMATION', public: 'adherent',
       envoyer: () => emails.sendSubscriptionConfirmation(contrat, adherente),
     },

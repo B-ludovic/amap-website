@@ -326,6 +326,61 @@ class EmailService {
     }, { kind: 'SUBSCRIPTION_REQUEST_CONFIRMATION', ref: request.id });
   }
 
+  /* Même règle de pied de page que la confirmation, pour la même raison : une
+     demande peut venir de quelqu'un qui n'a pas de compte. */
+  #piedDeDemande(request, raison) {
+    return request.userId
+      ? rgpdNote(request.email, raison)
+      : rgpdNoteSansCompte(request.email, raison);
+  }
+
+  /* Liste d'attente : sans ce message, la demande reste sans réponse aussi
+     longtemps qu'une place ne se libère pas — c'est-à-dire parfois une saison
+     entière, pendant laquelle le candidat ignore s'il a été oublié. */
+  async sendSubscriptionRequestWaitlisted(request) {
+    return this.#send({
+      from: EMAIL_FROM,
+      to: request.email,
+      subject: 'Votre demande est en liste d\'attente - Aux P\'tits Pois',
+      html: renderEmail({
+        title: 'Votre demande est en liste d\'attente',
+        content: `
+            <p>Bonjour ${escapeHtml(request.firstName)},</p>
+            <p>Nous avons étudié votre demande d'abonnement. Nous n'avons pas de panier disponible dans l'immédiat : votre demande est <strong>placée en liste d'attente</strong>.</p>
+            <p>Elle reste enregistrée et nous vous recontactons dès qu'une place se libère. Vous n'avez aucune démarche à faire.</p>
+            <div class="info-box">
+              <h3>Votre demande</h3>
+              <p><strong>Type :</strong> ${request.type === 'ANNUAL' ? 'Abonnement Annuel' : 'Abonnement Découverte (3 mois)'}</p>
+              <p><strong>Panier :</strong> ${request.basketSize === 'SMALL' ? 'Petit panier (2-4 kg)' : 'Grand panier (6-8 kg)'}</p>
+            </div>
+            <p>Pour toute question, écrivez-nous à <a href="mailto:${AMAP_EMAIL}">${AMAP_EMAIL}</a>.</p>
+            <p>À bientôt,<br>L'équipe Aux P'tits Pois</p>`,
+        footerNote: this.#piedDeDemande(request, 'suite à votre demande d\'abonnement'),
+      }),
+    }, { kind: 'SUBSCRIPTION_REQUEST_WAITLISTED', ref: request.id });
+  }
+
+  /* Le pendant du refus de candidature producteur, qui existait déjà : une
+     demande refusée sans réponse laisse quelqu'un attendre indéfiniment. Les
+     notes de l'administration restent internes, elles ne partent pas d'ici. */
+  async sendSubscriptionRequestRejected(request) {
+    return this.#send({
+      from: EMAIL_FROM,
+      to: request.email,
+      subject: 'Réponse à votre demande d\'abonnement - Aux P\'tits Pois',
+      html: renderEmail({
+        title: 'Réponse à votre demande',
+        content: `
+            <p>Bonjour ${escapeHtml(request.firstName)},</p>
+            <p>Nous avons bien étudié votre demande d'abonnement et nous vous remercions de l'intérêt que vous portez à notre AMAP.</p>
+            <p>Après examen, nous ne sommes malheureusement pas en mesure d'y donner suite.</p>
+            <p>Les places évoluent d'une saison à l'autre : n'hésitez pas à retenter votre chance, ou à nous écrire à <a href="mailto:${AMAP_EMAIL}">${AMAP_EMAIL}</a> si vous souhaitez en parler.</p>
+            <p>Cordialement,<br>L'équipe Aux P'tits Pois</p>`,
+        footerNote: this.#piedDeDemande(request, 'suite à votre demande d\'abonnement'),
+      }),
+    }, { kind: 'SUBSCRIPTION_REQUEST_REJECTED', ref: request.id });
+  }
+
   /* Envoie un email de confirmation de demande producteur */
   async sendProducerInquiryConfirmation(inquiry) {
     return this.#send({

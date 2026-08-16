@@ -184,6 +184,17 @@ export const updateRequestStatus = asyncHandler(async (req, res) => {
     await logAudit(req, 'REJECT_SUBSCRIPTION_REQUEST', 'IMPORTANT', { type: 'SUBSCRIPTION_REQUEST', id, label: request.email });
   }
 
+  /* L'email ne part qu'au changement d'état : le bouton « Enregistrer les
+     notes » repasse le statut courant, et sans cette garde chaque note écrite
+     renverrait un refus au candidat. */
+  if (request.status !== status) {
+    if (status === 'IN_PROGRESS') {
+      await emailService.sendSubscriptionRequestWaitlisted(request);
+    } else if (status === 'REJECTED') {
+      await emailService.sendSubscriptionRequestRejected(request);
+    }
+  }
+
   res.json({
     success: true,
     message: 'Statut mis à jour avec succès',
