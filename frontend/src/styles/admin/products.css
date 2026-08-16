@@ -4,6 +4,17 @@
   --admin-cols: 1.3fr 1.4fr 1fr 0.9fr 0.8fr;
 }
 
+.admin-products-add-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.admin-products-add-icon {
+  display: none;
+}
+
 .admin-products-table .admin-table-head {
   background-color: var(--surface-sand);
   padding: 12px 20px;
@@ -30,6 +41,34 @@
 }
 
 @media (max-width: 700px) {
+  .admin-products-add-button {
+    width: 44px;
+    min-width: 44px;
+    padding: 0;
+    border-radius: var(--border-radius-sm);
+    box-shadow: 0 3px 8px rgba(174, 80, 56, 0.2);
+  }
+
+  .admin-products-add-button:active {
+    transform: scale(0.96);
+  }
+
+  .admin-products-add-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .admin-products-add-icon {
+    display: block;
+  }
+
   .admin-products-table {
     --admin-cols: 1fr;
     --admin-col-gap: 4px;

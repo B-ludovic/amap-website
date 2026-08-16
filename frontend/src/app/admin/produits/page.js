@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Plus } from 'lucide-react';
 import api from '../../../lib/api';
 import { useModal } from '../../../contexts/ModalContext';
 import AdminModal from '../../../components/admin/AdminModal';
@@ -197,8 +198,9 @@ export default function AdminProductsPage() {
             {products.length} {plural(products.length, 'référence disponible', 'références disponibles')} pour composer les paniers.
           </p>
         </div>
-        <button type="button" className="admin-btn-primary" onClick={openCreate}>
-          Ajouter un produit
+        <button type="button" className="admin-btn-primary admin-products-add-button" onClick={openCreate}>
+          <Plus className="admin-products-add-icon" aria-hidden="true" size={18} strokeWidth={2.5} />
+          <span className="admin-products-add-label">Ajouter un produit</span>
         </button>
       </div>
 

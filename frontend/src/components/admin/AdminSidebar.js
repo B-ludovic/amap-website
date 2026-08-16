@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import { X } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useModal } from '../../contexts/ModalContext';
 import api from '../../lib/api';
@@ -25,10 +26,11 @@ const MENU_ITEMS = [
   { title: 'Suivi des emails', path: '/admin/emails' },
   { title: 'Fermetures AMAP', path: '/admin/fermetures' },
   { title: 'Journal d\'audit', path: '/admin/journal' },
-  { title: 'Paramètres', path: '/admin/parametres' }
+  { title: 'Paramètres', path: '/admin/parametres' },
+  { title: 'Aide', path: '/admin/aide' }
 ];
 
-export default function AdminSidebar({ currentPath }) {
+export default function AdminSidebar({ currentPath, isOpen, onClose }) {
   const router = useRouter();
   const { logout } = useAuth();
   const { showConfirm } = useModal();
@@ -75,7 +77,10 @@ export default function AdminSidebar({ currentPath }) {
   );
 
   return (
-    <aside className="admin-sidebar">
+    <aside
+      id="admin-sidebar"
+      className={`admin-sidebar ${isOpen ? 'admin-sidebar-open' : ''}`}
+    >
       <div className="admin-sidebar-header">
         <Link href="/admin" className="admin-logo">
           <Image src="/icons/pea.png" alt="" width={30} height={30} />
@@ -84,6 +89,14 @@ export default function AdminSidebar({ currentPath }) {
             <span className="admin-logo-kicker">Administration</span>
           </span>
         </Link>
+        <button
+          type="button"
+          className="admin-sidebar-close"
+          onClick={onClose}
+          aria-label="Fermer le menu d'administration"
+        >
+          <X aria-hidden="true" size={20} strokeWidth={2} />
+        </button>
       </div>
 
       <nav className="admin-sidebar-nav" aria-label="Navigation de l'administration">
@@ -96,6 +109,7 @@ export default function AdminSidebar({ currentPath }) {
               href={item.path}
               className={`admin-nav-item ${isActive(item) ? 'admin-nav-item-active' : ''}`}
               aria-current={isActive(item) ? 'page' : undefined}
+              onClick={onClose}
             >
               <span>{item.title}</span>
               {count > 0 && <span className="admin-nav-count">{count}</span>}

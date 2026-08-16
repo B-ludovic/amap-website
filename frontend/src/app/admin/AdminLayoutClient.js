@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "../../contexts/AuthContext";
 import AdminSidebar from "../../components/admin/AdminSidebar";
@@ -13,6 +13,7 @@ export default function AdminLayoutClient({ children }) {
     const router = useRouter();
     const pathname = usePathname();
     const { isAuthenticated, user, loading } = useAuth();
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     useEffect(() => {
         if (!loading) {
@@ -40,9 +41,23 @@ export default function AdminLayoutClient({ children }) {
 
     return (
         <div className="admin-layout">
-            <AdminSidebar currentPath={pathname} />
+            <AdminSidebar
+                currentPath={pathname}
+                isOpen={isSidebarOpen}
+                onClose={() => setIsSidebarOpen(false)}
+            />
+            <button
+                type="button"
+                className={`admin-sidebar-backdrop ${isSidebarOpen ? 'admin-sidebar-backdrop-visible' : ''}`}
+                onClick={() => setIsSidebarOpen(false)}
+                aria-label="Fermer le menu d'administration"
+                tabIndex={isSidebarOpen ? 0 : -1}
+            />
             <div className="admin-main">
-                <AdminHeader />
+                <AdminHeader
+                    isSidebarOpen={isSidebarOpen}
+                    onToggleSidebar={() => setIsSidebarOpen(open => !open)}
+                />
                 <div className="admin-content">
                     {children}
                 </div>

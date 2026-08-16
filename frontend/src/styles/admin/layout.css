@@ -27,6 +27,12 @@
   color: var(--on-forest);
 }
 
+.admin-sidebar-close,
+.admin-sidebar-toggle,
+.admin-sidebar-backdrop {
+  display: none;
+}
+
 .admin-sidebar-header {
   display: flex;
   align-items: center;
@@ -286,21 +292,98 @@
   }
 
   .admin-sidebar {
-    position: static;
-    height: auto;
-    min-height: 0;
+    position: fixed;
+    z-index: 50;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: min(320px, 86vw);
+    height: 100dvh;
+    min-height: 100dvh;
+    transform: translateX(-100%);
+    visibility: hidden;
+    transition: transform 200ms ease;
+    box-shadow: 16px 0 32px rgba(20, 49, 40, 0.24);
+  }
+
+  .admin-sidebar-open {
+    transform: translateX(0);
+    visibility: visible;
   }
 
   .admin-sidebar-nav {
-    display: flex;
-    gap: 4px;
-    overflow-x: auto;
-    padding: 10px;
+    display: block;
   }
 
   .admin-nav-item {
-    width: auto;
-    white-space: nowrap;
+    width: 100%;
+    white-space: normal;
+  }
+
+  .admin-sidebar-close,
+  .admin-sidebar-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    flex: 0 0 44px;
+    border: 1px solid var(--border-card);
+    border-radius: var(--border-radius-sm);
+    background-color: transparent;
+    color: inherit;
+    cursor: pointer;
+    transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease;
+  }
+
+  .admin-sidebar-close {
+    margin-left: auto;
+    border-color: rgba(239, 234, 224, 0.3);
+    color: var(--surface-page);
+  }
+
+  .admin-sidebar-toggle {
+    border-color: var(--surface-forest);
+    background-color: var(--surface-forest);
+    color: var(--surface-page);
+    box-shadow: 0 3px 8px rgba(20, 49, 40, 0.18);
+  }
+
+  .admin-sidebar-toggle:hover,
+  .admin-sidebar-toggle:focus-visible {
+    background-color: var(--terracotta-dark);
+    border-color: var(--terracotta-dark);
+    color: var(--surface-page);
+  }
+
+  .admin-sidebar-toggle:active {
+    transform: scale(0.96);
+  }
+
+  .admin-sidebar-toggle-open {
+    background-color: var(--terracotta);
+    border-color: var(--terracotta);
+  }
+
+  .admin-sidebar-backdrop {
+    display: block;
+    position: fixed;
+    z-index: 40;
+    inset: 0;
+    width: 100%;
+    border: 0;
+    padding: 0;
+    background: rgba(20, 49, 40, 0.24);
+    opacity: 0;
+    pointer-events: none;
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    transition: opacity 200ms ease;
+  }
+
+  .admin-sidebar-backdrop-visible {
+    opacity: 1;
+    pointer-events: auto;
   }
 
   .admin-header {

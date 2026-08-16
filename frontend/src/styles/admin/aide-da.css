@@ -1,0 +1,302 @@
+/* Aide — une carte par écran de l'administration, groupées par famille.
+   Vue de lecture : pas de tableau, pas de chiffre, seulement du texte suivi. */
+
+.admin-help {
+  /* Hauteur commune à toutes les cartes, calée sur la plus fournie d'entre
+     elles. C'est le seul chiffre à toucher pour les rendre plus hautes ou plus
+     basses : le corps de chaque carte défile pour tenir dedans. */
+  --admin-help-card-height: 26rem;
+  padding-bottom: 24px;
+}
+
+.admin-help .admin-page-head {
+  margin-bottom: 20px;
+}
+
+.admin-help .admin-title-lead {
+  max-width: 72ch;
+}
+
+/* SOMMAIRE
+   Les ancres reprennent les pastilles de filtre du kit : même objet visuel,
+   même cible de clic. */
+
+.admin-help-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 36px;
+}
+
+.admin-help-summary .admin-pill {
+  text-decoration: none;
+}
+
+/* FAMILLES */
+
+.admin-help-family {
+  margin-bottom: 40px;
+  scroll-margin-top: 24px;
+}
+
+.admin-help-family-head {
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-section);
+}
+
+.admin-help-family-title {
+  margin: 0 0 6px;
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-normal);
+  font-size: 24px;
+  letter-spacing: var(--display-tracking);
+  color: var(--text-primary);
+}
+
+.admin-help-family-lead {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-light);
+  max-width: 76ch;
+}
+
+/* CARTES
+   Toutes les cartes font la même hauteur, d'une rangée à l'autre comme d'une
+   famille à l'autre. Le titre reste en haut, le lien d'ouverture en bas, et
+   c'est la matière entre les deux qui défile. */
+
+.admin-help-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 16px;
+}
+
+.admin-help-card {
+  display: flex;
+  flex-direction: column;
+  height: var(--admin-help-card-height);
+  padding: 22px 24px;
+  border: 1px solid var(--border-card);
+  border-radius: var(--border-radius-md);
+  background-color: var(--surface-page);
+}
+
+/* min-height: 0 est ce qui autorise le corps à devenir plus petit que son
+   contenu — sans lui, un enfant flex refuse de se comprimer et la carte
+   déborderait au lieu de défiler. */
+.admin-help-card-body {
+  flex: 1;
+  min-height: 0;
+  padding-right: 8px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+
+/* Safari ignore scrollbar-width : la barre y reste discrète mais visible, seul
+   indice qu'il y a du texte sous le pli. */
+.admin-help-card-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.admin-help-card-body::-webkit-scrollbar-thumb {
+  border-radius: var(--border-radius-full);
+  background-color: var(--border-strong);
+}
+
+.admin-help-card-title {
+  margin: 0 0 8px;
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-normal);
+  font-size: 19px;
+  color: var(--text-primary);
+}
+
+.admin-help-card-purpose {
+  margin: 0 0 18px;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.admin-help-card-label {
+  display: block;
+  margin-bottom: 10px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-soft);
+  color: var(--text-light);
+}
+
+.admin-help-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-help-list li {
+  position: relative;
+  padding-left: 16px;
+  margin-bottom: 9px;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+/* Tiret cadratin plutôt qu'une puce ronde : c'est la ponctuation de liste du
+   reste du site. */
+.admin-help-list li::before {
+  content: '—';
+  position: absolute;
+  left: 0;
+  color: var(--text-light);
+}
+
+.admin-help-list li:last-child {
+  margin-bottom: 0;
+}
+
+.admin-help-hint {
+  margin: 14px 0 0;
+  padding: 12px 14px;
+  border-radius: var(--border-radius-sm);
+  background-color: var(--surface-sand);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.admin-help-hint .admin-mono-label {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--brass);
+}
+
+/* Le filet marque la fin de la zone qui défile : sans lui, rien ne dit que le
+   texte s'arrête là parce qu'il est coupé. */
+.admin-help-card-link {
+  margin-top: 16px;
+  padding-top: 16px;
+  align-self: stretch;
+  border-top: 1px solid var(--border-soft);
+  text-decoration: none;
+}
+
+.admin-help-card-link:hover {
+  color: var(--terracotta-dark);
+}
+
+/* PIED DE PAGE */
+
+.admin-help-closing {
+  padding: 24px;
+  border: 1px solid var(--border-card);
+  border-radius: var(--border-radius-md);
+  background-color: var(--surface-sand);
+}
+
+.admin-help-closing-title {
+  margin: 0 0 6px;
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-normal);
+  font-size: 18px;
+  color: var(--text-primary);
+}
+
+.admin-help-closing-note {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  max-width: 70ch;
+}
+
+/* Adresse soulignée en laiton, comme partout ailleurs sur le site. Le
+   monospace la donne à recopier caractère par caractère. */
+.admin-help-mail {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--brass);
+  text-decoration: none;
+  border-bottom: 1px solid var(--border-brass);
+  white-space: nowrap;
+}
+
+.admin-help-mail:hover {
+  color: var(--terracotta-dark);
+  border-bottom-color: var(--terracotta-dark);
+}
+
+/* RESPONSIVE
+   Les paliers suivent ceux de l'administration : la barre latérale se resserre
+   à 1200px, passe en bandeau à 900px. La grille, elle, tombe à une colonne vers
+   780px — c'est là que la hauteur commune cesse d'avoir un sens. */
+
+@media (max-width: 900px) {
+  /* Colonnes plus étroites une fois la barre latérale passée au-dessus : deux
+     cartes tiennent encore côte à côte, mais le texte s'y allonge, d'où la
+     hauteur un peu plus généreuse. */
+  .admin-help-grid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
+
+  .admin-help {
+    --admin-help-card-height: 28rem;
+  }
+}
+
+/* Une seule carte par rangée : la hauteur commune n'aligne plus rien, et un
+   cadre qui défile sous le doigt empêcherait de faire défiler la page. Les
+   cartes reprennent donc leur hauteur naturelle. */
+@media (max-width: 780px) {
+  .admin-help-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-help-card {
+    height: auto;
+  }
+
+  .admin-help-card-body {
+    padding-right: 0;
+    overflow-y: visible;
+  }
+}
+
+@media (max-width: 700px) {
+  .admin-help-summary {
+    margin-bottom: 28px;
+  }
+
+  .admin-help-card {
+    padding: 20px;
+  }
+
+  .admin-help-family-title {
+    font-size: 21px;
+  }
+}
+
+/* À l'impression, une carte tronquée perdrait la moitié de son mode d'emploi :
+   tout se déplie, et rien n'est coupé au milieu d'une carte. */
+@media print {
+  .admin-help-summary {
+    display: none;
+  }
+
+  .admin-help-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-help-card {
+    height: auto;
+    break-inside: avoid;
+  }
+
+  .admin-help-card-body {
+    padding-right: 0;
+    overflow-y: visible;
+  }
+}

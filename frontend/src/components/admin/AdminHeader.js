@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
+import { Menu } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import api from '../../lib/api';
 
@@ -25,7 +26,8 @@ const VIEW_TITLES = {
   '/admin/emails': 'Suivi des emails',
   '/admin/fermetures': 'Fermetures AMAP',
   '/admin/journal': 'Journal d\'audit',
-  '/admin/parametres': 'Paramètres'
+  '/admin/parametres': 'Paramètres',
+  '/admin/aide': 'Aide'
 };
 
 function resolveTitle(pathname) {
@@ -35,7 +37,7 @@ function resolveTitle(pathname) {
     .map(prefix => VIEW_TITLES[prefix])[0] ?? 'Administration';
 }
 
-export default function AdminHeader() {
+export default function AdminHeader({ isSidebarOpen, onToggleSidebar }) {
   const pathname = usePathname();
   const { user } = useAuth();
   const [currentWeek, setCurrentWeek] = useState(null);
@@ -52,6 +54,17 @@ export default function AdminHeader() {
   return (
     <header className="admin-header">
       <div className="admin-header-crumbs">
+        <button
+          type="button"
+          className={`admin-sidebar-toggle ${isSidebarOpen ? 'admin-sidebar-toggle-open' : ''}`}
+          onClick={onToggleSidebar}
+          aria-label={isSidebarOpen ? "Fermer le menu d'administration" : "Ouvrir le menu d'administration"}
+          aria-expanded={isSidebarOpen}
+          aria-controls="admin-sidebar"
+          title={isSidebarOpen ? "Fermer le menu d'administration" : "Ouvrir le menu d'administration"}
+        >
+          <Menu aria-hidden="true" size={20} strokeWidth={2} />
+        </button>
         <span className="admin-header-scope">Admin</span>
         <span className="admin-header-sep" aria-hidden="true">/</span>
         <span className="admin-header-title">{resolveTitle(pathname)}</span>
