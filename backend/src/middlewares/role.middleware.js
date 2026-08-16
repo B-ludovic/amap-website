@@ -15,17 +15,10 @@ const adminOnly = (req, res, next) => {
   next();
 };
 
-// Middleware pour vérifier que l'utilisateur est admin OU producteur
-const adminOrProducer = (req, res, next) => {
-  if (!req.user) {
-    throw new HttpForbiddenError('Accès refusé. Authentification requise.');
-  }
+/* Un `adminOrProducer` vivait ici, monté sur aucune route et laissant passer un
+   rôle PRODUCER absent de l'enum UserRole : il ne pouvait qu'autoriser un
+   administrateur, sous un nom qui promettait l'inverse. Le retirer évite qu'on
+   le monte un jour en croyant ouvrir une porte aux producteurs — l'écran des
+   utilisateurs avait déjà trébuché sur ce rôle fantôme. */
 
-  if (req.user.role !== 'ADMIN' && req.user.role !== 'PRODUCER') {
-    throw new HttpForbiddenError('Accès refusé. Droits administrateur ou producteur requis.');
-  }
-
-  next();
-};
-
-export { adminOnly, adminOrProducer };
+export { adminOnly };

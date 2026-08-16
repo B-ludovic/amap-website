@@ -56,10 +56,14 @@ model User {
   @@index([emailVerifyToken])
 }
 
+/* VOLUNTEER n'ouvre aucune porte que MEMBER n'ait déjà : aucun contrôle d'accès
+   ne les distingue, seuls l'écran des utilisateurs et l'espace adhérent portent
+   la mention. Le commentaire annonçait un « accès permanences » qui n'a jamais
+   existé — inscrire une permanence est ouvert à tout adhérent connecté. */
 enum UserRole {
   MEMBER      // Adhérent simple
-  VOLUNTEER   // Bénévole (+ accès permanences)
-  ADMIN       // Administrateur
+  VOLUNTEER   // Bénévole — distinction d'affichage, pas de droit supplémentaire
+  ADMIN       // Administrateur — seul rôle qui ouvre /admin
 }
 
 model ContactMessage {
