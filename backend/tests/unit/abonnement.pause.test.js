@@ -44,6 +44,8 @@ vi.mock('../../src/config/database.js', () => ({
          de l'autre. */
       findMany: async ({ where }) => base.contrats.filter((contrat) => {
         if (contrat.status !== where.status) return false;
+        // La reprise borne sur l'échéance du contrat ; l'endormissement non.
+        if (where.endDate && contrat.endDate < where.endDate.gte) return false;
 
         const { some, none } = where.pauses;
 
@@ -85,10 +87,11 @@ const ilYA = (jours) => new Date(Date.now() - jours * JOUR);
 const dans = (jours) => new Date(Date.now() + jours * JOUR);
 const jourISO = (date) => date.toISOString().slice(0, 10);
 
-const contrat = (statut, pauses = []) => ({
+const contrat = (statut, pauses = [], fin = dans(60)) => ({
   id: 'contrat-0001',
   subscriptionNumber: 'AMAP-2026-0142',
   status: statut,
+  endDate: fin,
   pauses,
   user: { id: 'user-0001', email: 'camille@example.org', firstName: 'Camille' },
   pickupLocation: { name: 'Salle des fêtes', address: '2 place de la Mairie, 45300 Yèvre-la-Ville' },
@@ -180,6 +183,17 @@ describe('La reprise se dit, sans quoi un panier attend personne', () => {
     await applyPauseTransitions();
 
     expect(messages.filter((m) => m.type === 'reprise')).toHaveLength(1);
+  });
+
+  /* Une pause qui s'achève après le terme du contrat ne rouvre rien : c'est le
+     job de clôture qui prend la main, et annoncer un panier serait faux. */
+  it('n\'annonce rien pour un contrat dont l\'échéance est passée', async () => {
+    base.contrats = [contrat('PAUSED', [{ startDate: ilYA(8), endDate: ilYA(1) }], ilYA(3))];
+
+    await applyPauseTransitions();
+
+    expect(trouver('contrat-0001').status).toBe('PAUSED');
+    expect(messages).toHaveLength(0);
   });
 
   it('laisse en pause un contrat dont une seconde pause court encore', async () => {

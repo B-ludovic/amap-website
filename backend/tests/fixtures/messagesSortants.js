@@ -68,6 +68,10 @@ export function messagesSortants(emails) {
       envoyer: () => emails.sendSubscriptionResumed(contrat, adherente),
     },
     {
+      nom: 'contrat arrivé à échéance', methode: 'sendSubscriptionExpired', kind: 'SUBSCRIPTION_EXPIRED', public: 'adherent',
+      envoyer: () => emails.sendSubscriptionExpired({ ...contrat, endDate: new Date('2026-12-31T12:00:00Z') }, adherente),
+    },
+    {
       nom: 'contrat bientôt échu', methode: 'sendRenewalReminderEmail', kind: 'RENEWAL_REMINDER', public: 'adherent',
       envoyer: () => emails.sendRenewalReminderEmail(contrat, adherente),
     },

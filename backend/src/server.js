@@ -37,6 +37,7 @@ import { startPauseResumeJob } from './jobs/pauseResume.job.js';
 import { startOrphanFlagsJob } from './jobs/orphanFlags.job.js';
 import { startWeeklyBasketNotifyJob } from './jobs/weeklyBasketNotify.job.js';
 import { startScheduledNewsletterJob } from './jobs/scheduledNewsletter.job.js';
+import { startSubscriptionExpiryJob } from './jobs/subscriptionExpiry.job.js';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -285,6 +286,7 @@ const startServer = async () => {
     startOrphanFlagsJob();
     startWeeklyBasketNotifyJob();
     startScheduledNewsletterJob();
+    startSubscriptionExpiryJob();
 
     app.listen(PORT, () => {
       console.log(`✅ Serveur backend démarré sur http://localhost:${PORT}`);

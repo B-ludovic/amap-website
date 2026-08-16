@@ -34,6 +34,7 @@ const KIND_LABELS = {
   SUBSCRIPTION_CANCELLATION:        'Abonnement annulé',
   SUBSCRIPTION_PAUSED:              'Pause enregistrée',
   SUBSCRIPTION_RESUMED:             'Abonnement repris',
+  SUBSCRIPTION_EXPIRED:             'Abonnement échu',
   CHEQUE_DEPOSIT_NOTICE:            'Avis de dépôt de chèque',
   TREASURER_CHEQUE_DIGEST:          'Remise de chèques (trésorier)',
   SHIFT_CONFIRMATION:               'Permanence confirmée',

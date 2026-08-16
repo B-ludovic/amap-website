@@ -808,6 +808,32 @@ class EmailService {
     }, { kind: 'SUBSCRIPTION_RESUMED', ref: subscription.id });
   }
 
+  /* Le rappel envoyé un mois plus tôt annonce une clôture « automatique à
+     l'échéance » : ce message est celui qui la constate. Sans lui, l'adhérent
+     ignore que son contrat est clos et que la voie du réabonnement est ouverte. */
+  async sendSubscriptionExpired(subscription, user) {
+    return this.#send({
+      from: EMAIL_FROM,
+      to: user.email,
+      subject: 'Votre abonnement est arrivé à échéance',
+      html: renderEmail({
+        title: 'Votre abonnement est arrivé à échéance',
+        content: `
+            <p>Bonjour ${escapeHtml(user.firstName)},</p>
+            <p>Votre abonnement Aux P'tits Pois s'est achevé le ${longDate(subscription.endDate)}. Il est désormais clos, et aucun panier ne vous est plus préparé.</p>
+            <div class="info-box">
+              <h3>Abonnement clos</h3>
+              <p><strong>N° :</strong> ${escapeHtml(subscription.subscriptionNumber)}</p>
+              <p><strong>Type :</strong> ${subscription.type === 'ANNUAL' ? 'Abonnement Annuel' : 'Abonnement Découverte'}</p>
+            </div>
+            <p>Nous serions heureux de vous compter à nouveau parmi nos adhérents : une nouvelle demande se fait en quelques minutes.</p>
+            ${emailButton(`${process.env.FRONTEND_URL}/nos-abonnements`, 'Se réabonner')}
+            <p>Merci pour cette saison,<br>L'équipe Aux P'tits Pois</p>`,
+        footerNote: rgpdNote(user.email, 'suite à l\'échéance de votre contrat'),
+      }),
+    }, { kind: 'SUBSCRIPTION_EXPIRED', ref: subscription.id });
+  }
+
   /* Candidature producteur : Acceptée */
   async sendProducerInquiryAccepted(inquiry) {
     return this.#send({

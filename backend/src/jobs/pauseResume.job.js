@@ -65,11 +65,15 @@ async function pauseStartingSubscriptions(now) {
    terminée, et aucune qui s'étende encore jusqu'à aujourd'hui. La seconde
    condition suffirait presque, mais elle réveillerait aussi un contrat marqué en
    pause sans qu'aucune pause ne soit enregistrée — une incohérence qu'il vaut
-   mieux laisser visible que réparer en silence. */
+   mieux laisser visible que réparer en silence.
+
+   L'échéance du contrat borne le tout : une pause qui s'achève après le terme
+   ne rouvre rien, et annoncer un panier à qui n'en a plus serait faux. */
 async function resumeExpiredSubscriptions(now) {
   const toResume = await prisma.subscription.findMany({
     where: {
       status: 'PAUSED',
+      endDate: { gte: now },
       pauses: {
         some: { endDate: { lt: now } },
         none: { endDate: { gte: now } },
