@@ -1,9 +1,15 @@
 // Classe de base pour toutes nos erreurs HTTP custom
 class HttpError extends Error {
-  constructor(message, statusCode) {
+  /* `code` est un identifiant stable, destiné au front : le message change au
+     gré des relectures, lui non. Il ne sert que là où le client doit distinguer
+     deux refus de même statut — un mot de passe faux et une adresse non
+     confirmée sont tous deux des 401, mais l'un se corrige en réessayant,
+     l'autre appelle un renvoi de lien. */
+  constructor(message, statusCode, code) {
     super(message);
     this.name = this.constructor.name; // Donne le nom de la classe
     this.statusCode = statusCode;
+    this.code = code;
     Error.captureStackTrace(this, this.constructor);
   }
 }
@@ -19,8 +25,8 @@ class HttpBadRequestError extends HttpError {
 
 // 401 - user pas connecté ou token invalide
 class HttpUnauthorizedError extends HttpError {
-  constructor(message = 'Authentification requise. Veuillez vous connecter.') {
-    super(message, httpStatusCodes.UNAUTHORIZED);
+  constructor(message = 'Authentification requise. Veuillez vous connecter.', code) {
+    super(message, httpStatusCodes.UNAUTHORIZED, code);
   }
 }
 

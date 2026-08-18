@@ -83,6 +83,10 @@
   border-color: var(--text-primary);
 }
 
+.login-unconfirmed {
+  margin-top: 20px;
+}
+
 /* ---------- Liens sous le formulaire ---------- */
 
 .login-links {

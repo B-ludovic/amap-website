@@ -217,6 +217,24 @@
   flex-wrap: wrap;
 }
 
+.register-done-help {
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: var(--text-light);
+  margin: 28px 0 0;
+}
+
+.register-done-help-link {
+  color: var(--text-secondary);
+  border-bottom: var(--border-width) solid var(--border-rule);
+  padding-bottom: 1px;
+}
+
+.register-done-help-link:hover {
+  color: var(--text-primary);
+  border-bottom-color: var(--text-primary);
+}
+
 /* ---------- Colonne d'appui ---------- */
 
 .register-aside {

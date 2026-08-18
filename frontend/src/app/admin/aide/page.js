@@ -77,7 +77,7 @@ const FAMILIES = [
           'Renvoyer l’email de confirmation à qui n’a jamais validé son adresse.',
           'Supprimer un compte.'
         ],
-        hint: 'Le rôle administrateur donne accès à toute cette administration : à confier avec parcimonie.'
+        hint: 'Le rôle administrateur donne accès à toute cette administration : à confier avec parcimonie. La relance de l’email de confirmation reste un dépannage : l’adhérent peut la demander lui-même depuis la page de connexion, voir « Quand quelqu’un n’arrive pas à se connecter » en bas de cette page.'
       },
       {
         title: 'Demandes d’abonnements',
@@ -236,6 +236,27 @@ const FAMILIES = [
   }
 ];
 
+/* Les questions qui arrivent par téléphone ou sur le stand, et la réponse à
+   donner sans avoir à ouvrir l'administration. */
+const SITUATIONS = [
+  {
+    question: 'Je n’ai pas reçu l’email de confirmation.',
+    answer: 'Le site sait le renvoyer tout seul. Sur la page de connexion, après une tentative avec une adresse non confirmée, un message propose « faites-vous en renvoyer un ». L’adresse directe, à dicter au téléphone, est auxptitspois.fr/auth/renvoyer-confirmation. Avant de relancer, faites regarder dans les courriers indésirables : c’est là qu’ils atterrissent neuf fois sur dix. Le site n’accepte qu’un renvoi toutes les cinq minutes, inutile d’insister entre-temps.'
+  },
+  {
+    question: 'Le lien de confirmation dit qu’il a expiré.',
+    answer: 'C’est normal passé vingt-quatre heures : chaque lien a une durée de vie, faute de quoi une vieille boîte mail piratée rouvrirait un compte des mois plus tard. La page qui annonce l’échec propose un bouton « Recevoir un nouveau lien », il n’y a rien d’autre à faire.'
+  },
+  {
+    question: 'Le lien ouvre une page qui réclame un code d’accès.',
+    answer: 'Tant que le site n’est pas ouvert au public, toutes ses pages sont derrière le code d’invitation, y compris les liens de confirmation. Le code est retenu sur l’appareil qui l’a saisi : quelqu’un qui s’inscrit sur son ordinateur puis ouvre le lien sur son téléphone retombe donc sur la porte. Il faut entrer le code une fois sur ce téléphone, puis rouvrir le lien. Cette question disparaîtra d’elle-même à l’ouverture publique.'
+  },
+  {
+    question: 'La personne assure n’avoir jamais rien reçu, même après relance.',
+    answer: 'Ouvrez Utilisateurs et relisez l’adresse enregistrée, lettre à lettre : une faute de frappe à l’inscription envoie tous les messages dans le vide. Une adresse ne se corrige pas depuis l’administration ; dans ce cas, supprimez le compte et faites refaire l’inscription avec la bonne adresse.'
+  }
+];
+
 export default function AdminAidePage() {
   return (
     <div className="admin-help">
@@ -255,6 +276,9 @@ export default function AdminAidePage() {
             {family.title}
           </a>
         ))}
+        <a href="#connexion" className="admin-pill">
+          Problèmes de connexion
+        </a>
       </nav>
 
       {FAMILIES.map((family) => (
@@ -295,6 +319,25 @@ export default function AdminAidePage() {
           </div>
         </section>
       ))}
+
+      <section id="connexion" className="admin-help-family">
+        <div className="admin-help-family-head">
+          <h2 className="admin-help-family-title">Quand quelqu’un n’arrive pas à se connecter</h2>
+          <p className="admin-help-family-lead">
+            Un compte ne s’ouvre qu’une fois l’adresse email confirmée. Voici ce qui bloque
+            le plus souvent, et la réponse à donner.
+          </p>
+        </div>
+
+        <dl className="admin-help-situations">
+          {SITUATIONS.map((situation) => (
+            <div key={situation.question} className="admin-help-situation">
+              <dt className="admin-help-situation-question">{situation.question}</dt>
+              <dd className="admin-help-situation-answer">{situation.answer}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
 
       <section className="admin-help-closing">
         <h2 className="admin-help-closing-title">Une question qui n’a pas sa réponse ici ?</h2>

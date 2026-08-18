@@ -219,7 +219,10 @@ const login = asyncHandler(async (req, res) => {
     }
 
     if (!user.emailVerified) {
-        throw new HttpUnauthorizedError('Veuillez confirmer votre adresse email avant de vous connecter.');
+        throw new HttpUnauthorizedError(
+            'Veuillez confirmer votre adresse email avant de vous connecter.',
+            'EMAIL_NOT_VERIFIED'
+        );
     }
 
     // Generer un token JWT (avec version pour révocation) et le poser en cookie HttpOnly

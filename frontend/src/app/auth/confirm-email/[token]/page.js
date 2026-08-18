@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { CheckCircle, XCircle, Loader, MailCheck } from 'lucide-react';
 import { auth as authApi } from '../../../../lib/api';
 
@@ -87,6 +88,9 @@ export default function ConfirmEmailPage() {
               <h1 className="auth-title">Confirmation échouée</h1>
               <p className="auth-description">{message}</p>
               <div className="auth-success-actions">
+                <Link href="/auth/renvoyer-confirmation" className="btn btn-primary">
+                  Recevoir un nouveau lien
+                </Link>
                 <button className="btn btn-secondary" onClick={() => router.push('/auth/login')}>
                   Retour à la connexion
                 </button>

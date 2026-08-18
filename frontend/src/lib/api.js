@@ -1,10 +1,13 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
 
 export class ApiError extends Error {
-  constructor(message, status) {
+  /* `code` vient du serveur et reste stable quand le message est réécrit : c'est
+     lui qu'on teste pour reconnaître un refus précis, jamais le texte affiché. */
+  constructor(message, status, code) {
     super(message);
     this.name = 'ApiError';
     this.status = status;
+    this.code = code;
   }
 }
 
@@ -54,7 +57,8 @@ async function fetchAPI(endpoint, options = {}) {
     const payload = await response.json().catch(() => ({}));
     const error = new ApiError(
       payload.error?.message || payload.message || 'Une erreur est survenue',
-      response.status
+      response.status,
+      payload.error?.code
     );
 
     if (response.status === 401 && requiresAuth) {

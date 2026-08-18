@@ -190,6 +190,37 @@
 
 /* PIED DE PAGE */
 
+/* SITUATIONS
+   Une liste de définitions plutôt que des cartes : ces entrées se lisent à la
+   suite, du problème vers la réponse, et n'ont pas d'écran à ouvrir au bout. */
+.admin-help-situations {
+  margin: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.admin-help-situation {
+  padding: 16px 18px;
+  border: 1px solid var(--border-card);
+  border-radius: var(--border-radius-md);
+  background-color: var(--surface-page);
+}
+
+.admin-help-situation-question {
+  margin: 0 0 6px;
+  font-weight: var(--font-weight-semibold);
+  font-size: 14.5px;
+  color: var(--text-primary);
+}
+
+.admin-help-situation-answer {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  max-width: 82ch;
+}
+
 .admin-help-closing {
   padding: 24px;
   border: 1px solid var(--border-card);

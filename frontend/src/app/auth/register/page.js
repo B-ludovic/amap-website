@@ -102,6 +102,18 @@ function RegisterPage() {
               Créer un autre compte
             </button>
           </div>
+
+          <p className="register-done-help">
+            Rien reçu au bout de quelques minutes ? Regardez dans vos courriers
+            indésirables, puis{' '}
+            <Link
+              href={`/auth/renvoyer-confirmation?email=${encodeURIComponent(sentTo)}`}
+              className="register-done-help-link"
+            >
+              demandez un nouveau lien
+            </Link>
+            .
+          </p>
         </div>
       ) : (
         <div className="register-main">

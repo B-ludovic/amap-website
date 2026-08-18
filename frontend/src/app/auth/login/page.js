@@ -15,9 +15,11 @@ function LoginPage() {
   const { user, loading: authLoading, login, logout } = useAuth();
   const { showError } = useModal();
   const [loading, setLoading] = useState(false);
+  const [unconfirmedEmail, setUnconfirmedEmail] = useState('');
 
   const handleLogin = async (credentials) => {
     setLoading(true);
+    setUnconfirmedEmail('');
 
     try {
       const data = await authApi.login(credentials);
@@ -28,7 +30,14 @@ function LoginPage() {
       // Redirection vers la page d'accueil
       router.push('/');
     } catch (err) {
-      showError('Erreur de connexion', err.message);
+      /* Une adresse non confirmée n'est pas une faute de saisie : réessayer n'y
+         changera rien. On garde donc la page ouverte sur le recours plutôt que
+         de fermer une fenêtre d'erreur qui laisserait l'adhérent au même point. */
+      if (err.code === 'EMAIL_NOT_VERIFIED') {
+        setUnconfirmedEmail(credentials.email);
+      } else {
+        showError('Erreur de connexion', err.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -71,6 +80,23 @@ function LoginPage() {
               </p>
 
               <LoginForm onSubmit={handleLogin} loading={loading} />
+
+              {unconfirmedEmail && (
+                <div className="notice-band login-unconfirmed">
+                  <span className="notice-band-dot" aria-hidden="true" />
+                  <span className="notice-band-text">
+                    Cette adresse n&apos;est pas encore confirmée. Ouvrez le lien reçu à
+                    l&apos;inscription, ou{' '}
+                    <Link
+                      href={`/auth/renvoyer-confirmation?email=${encodeURIComponent(unconfirmedEmail)}`}
+                      className="login-link-strong"
+                    >
+                      faites-vous en renvoyer un
+                    </Link>
+                    .
+                  </span>
+                </div>
+              )}
 
               <div className="login-links">
                 <span className="login-links-text">
