@@ -28,6 +28,18 @@
    est écrit juste en dessous. */
 const logoTag = () => `<img src="${process.env.FRONTEND_URL}/logo-email.png" alt="" width="64" height="64" style="display:block;margin:0 auto 18px;border:0;">`;
 
+/* Le motif de la marge, posé en attribut plutôt que dans la feuille de style :
+   celle-ci est une constante évaluée à l'import, quand FRONTEND_URL n'est pas
+   encore garanti lu. Sa tuile fait 489 pixels de large, la période exacte du
+   motif, donc elle se répète sans couture.
+
+   Le fond crème du wrapper reste dessous et n'est pas décoratif : la plupart
+   des clients ne chargent aucune image tant que le lecteur ne l'a pas demandé,
+   et Outlook sur Windows n'affiche jamais d'image de fond sur autre chose
+   qu'une cellule VML. Le message doit donc être identique, motif ou pas. */
+const motifWrapper = () =>
+  `background-image:url('${process.env.FRONTEND_URL}/motif-email.png');background-repeat:repeat;`;
+
 // Reprises telles quelles de frontend/src/styles/variables.css
 export const EMAIL_PALETTE = {
   page: '#FAF7F2',          // crème, fond de message
@@ -314,7 +326,7 @@ export function renderEmail({ title, eyebrow = 'AMAP Solidaire', content, footer
   </head>
   <body>
     ${preheaderBlock(preheader)}
-    <div class="wrapper">
+    <div class="wrapper" style="${motifWrapper()}">
       <!--[if mso]><table role="presentation" width="600" align="center" cellpadding="0" cellspacing="0" border="0"><tr><td><![endif]-->
       <div class="container">
         <div class="header">
