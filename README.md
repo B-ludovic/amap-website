@@ -25,6 +25,7 @@ Ce projet est un site complet permettant de gérer une AMAP de A à Z :
 - 🛒 Gestion des paniers hebdomadaires (création manuelle ou génération automatique depuis le catalogue saisonnier)
 - 👥 Gestion des adhérents, demandes et abonnements
 - 💶 Grille tarifaire calculée en un seul endroit, du formulaire public au contrat PDF signé
+- 🧾 Suivi de trésorerie : le cycle des chèques, de la pochette du trésorier à l'encaissement
 - 🚜 Présentation des producteurs et des produits locaux
 - 📅 Organisation des permanences de distribution et de l'émargement
 - 📧 Communication avec les membres (newsletters, emails transactionnels)
@@ -51,6 +52,7 @@ Ce projet est un site complet permettant de gérer une AMAP de A à Z :
 - **Puppeteer + Handlebars** - Génération de contrats PDF
 - **Nodemailer + Brevo SMTP** - Envoi d'emails transactionnels et newsletters
 - **isomorphic-dompurify** - Sanitisation XSS des contenus utilisateur envoyés par email
+- **Vitest** - Tests unitaires, sans base ni réseau
 - **TheMealDB API** - Base de données de recettes
 - **google-translate-api-x** - Traduction automatique des recettes en français (sans clé API)
 
@@ -61,7 +63,7 @@ amap-website/
 ├── frontend/          # Application Next.js
 │   ├── src/
 │   │   ├── app/         # Pages, routes, sitemap.js, robots.js
-│   │   │   └── admin/   # Espace d'administration (15 écrans)
+│   │   │   └── admin/   # Espace d'administration (18 écrans)
 │   │   ├── components/  # Composants (admin, auth, common, home, layout)
 │   │   ├── constants/   # Icônes produits, listes de recettes, nombres en toutes lettres
 │   │   ├── contexts/    # Contextes React (Auth, Modal)
@@ -75,19 +77,21 @@ amap-website/
 └── backend/           # API Express
     ├── src/
     │   ├── config/       # Chargement et contrôle de la configuration, connexion Prisma / PostgreSQL
-    │   ├── controllers/  # Logique métier (14 contrôleurs)
+    │   ├── controllers/  # Logique métier (17 contrôleurs)
     │   ├── routes/       # Routes API
     │   ├── middlewares/  # Auth (cookie JWT), rôles, gestion d'erreurs
     │   ├── services/     # Email, contrats PDF, recettes, audit, clôtures, génération de paniers
-    │   ├── jobs/         # Tâches planifiées (rappels, purge RGPD, panier auto)
+    │   ├── jobs/         # 9 tâches planifiées (rappels, purge RGPD, paniers, chèques…)
     │   └── utils/        # Schémas Zod, erreurs HTTP, grille tarifaire, calendrier
     ├── templates/        # Gabarit Handlebars du contrat PDF
-    ├── scripts/          # create-admin.js, extractLogo.js
+    ├── scripts/          # create-admin.js, envoi-test.js, extractLogo.js
+    ├── tests/            # Vitest : unit/, integration/, e2e/, fixtures/, helpers/
     └── prisma/
         ├── schema.prisma  # Modèle de données
-        ├── seed.js        # Jeu de données de démonstration
+        ├── seed.js        # Jeu de données d'exemple
         ├── seed-safe.js   # Seed non destructif
-        └── migrations/    # 20 migrations
+        ├── seed-demo.js   # Catalogue saisonnier francilien + fermes de démonstration
+        └── migrations/    # 39 migrations
 ```
 
 ## 🛠️ Installation
@@ -137,6 +141,7 @@ Puis initialiser la base :
 npm run migrate            # npx prisma migrate dev
 npm run seed               # optionnel : données d'exemple
 # ou npm run seed:safe     # seed non destructif sur une base déjà remplie
+# ou npm run seed:demo     # catalogue saisonnier + fermes de démonstration, sans rien effacer
 ```
 
 4. **Configuration Frontend**
@@ -412,7 +417,7 @@ fonctionnalité en moins, c'est un écran cassé.
 ## ✨ Fonctionnalités principales
 
 ### Pour les adhérents
-- Inscription, connexion, réinitialisation de mot de passe, vérification d'email
+- Inscription, connexion, réinitialisation de mot de passe, vérification d'email (avec renvoi possible de l'email de confirmation)
 - Demande d'abonnement en ligne (formule annuelle ou découverte, petit ou grand panier, tarif normal ou solidaire, règlement en 1, 2 ou 4 chèques) avec les montants exacts affichés avant l'envoi
 - Consultation du panier de la semaine avec horaire et adresse de retrait
 - Suggestions et recherche de recettes basées sur les légumes du panier
@@ -423,28 +428,42 @@ fonctionnalité en moins, c'est un écran cassé.
 - Suppression du compte (RGPD art. 17)
 
 ### Pour les administrateurs
-Espace dédié de 16 écrans, pagination unifiée sur toutes les listes :
+Espace dédié de 18 écrans, pagination unifiée sur toutes les listes :
 - **Demandes d'abonnement** : validation, refus, rattachement au compte utilisateur, génération du contrat PDF pré-rempli (Puppeteer + Handlebars)
 - **Abonnements** : activation, résiliation, pause individuelle (limite 2 semaines/an)
 - **Fermetures** : fermetures collectives de l'AMAP (limite 3 semaines/an) avec newsletter automatique, contrôle de collision avec les permanences existantes
-- **Panier hebdomadaire** : composition manuelle ou génération automatique depuis le catalogue saisonnier, publication avec notification email aux abonnés actifs (envoi par batch)
+- **Panier hebdomadaire** : composition manuelle ou génération automatique depuis le catalogue saisonnier — les fermes déclarées absentes sont écartées du tirage —, publication avec notification email aux abonnés actifs (envoi par batch)
 - **Distribution** : liste d'émargement, pointage optimiste des retraits, recherche instantanée d'un adhérent, note par adhérent, statistiques, export CSV généré par le serveur (compatible Excel, UTF-8 BOM) et tracé au journal d'audit
 - **Permanences** : création, duplication, gestion des bénévoles inscrits
-- **Producteurs / Produits** : fiches fermes détaillées (commune, distance au point de retrait, certification, détail libre type « Surface : 4 hectares », année d'entrée dans l'AMAP), saisonnalité des produits, tailles de panier éligibles
+- **Producteurs / Produits** : fiches fermes détaillées (commune, distance au point de retrait, certification, détail libre type « Surface : 4 hectares », année d'entrée dans l'AMAP), saisonnalité des produits, tailles de panier éligibles, déclaration des absences d'une ferme (ses produits sortent de la génération du panier le temps de l'absence)
 - **Demandes producteurs** : traitement des candidatures avec emails d'acceptation/refus
 - **Communication** : newsletters rich-text (Tiptap), envoi groupé, programmation, brouillons
+- **Trésorerie** : le cycle de vie des chèques (en main → en banque → encaissé ou rejeté), organisé autour de la remise du mois, avec les mêmes libellés que sur la fiche d'abonnement
 - **Messages** : boîte de réception du formulaire de contact (lu / non-lu / archivé)
 - **Suivi des emails** : ce qui est parti et ce que le relais en a fait (remis, rejeté, signalé indésirable), adresses écartées des envois après un rejet définitif et remise en circulation d'un bouton — voir « Retours du relais » plus haut
 - **Utilisateurs** : gestion des comptes et des rôles
 - **Journal** : journal d'audit des actions sensibles, filtrable par sévérité
 - **Paramètres** : suppression des jeux de données d'exemple (producteurs, produits, points de retrait marqués comme exemples), action irréversible et journalisée
 - **Tableau de bord** : statistiques de l'association
+- **Aide** : guide d'utilisation intégré, écran par écran, à destination des bénévoles du bureau
 
 ### Automatisations
-Trois tâches tournent avec le serveur, sans planificateur externe :
+Neuf tâches tournent avec le serveur, sans planificateur externe :
 - **Rappel de renouvellement** : email aux abonnés dont le contrat expire dans 30 jours (une seule fois par abonnement)
-- **Purge RGPD** : suppression définitive des comptes supprimés depuis 90 jours et des inscriptions non vérifiées depuis 30 jours, en transaction et sur prédicat relationnel (un compte restauré entre-temps échappe à la purge)
-- **Génération du panier** : chaque jeudi à 2h (Europe/Paris) pour la distribution du mercredi suivant, tirage dans le catalogue de la saison en cours, sautée si une fermeture couvre la semaine
+- **Clôture des abonnements échus** : passage en `EXPIRED` des contrats arrivés au terme, avec email d'avis — sauf pour les contrats échus depuis plus de 7 jours, clôturés en silence
+- **Entrée et sortie de pause** : balayage horaire de toute la base pour activer et terminer les pauses individuelles à leur date, tracé au journal d'audit
+- **Rappels du cycle du chèque** : l'adhérent est prévenu 30 jours avant le dépôt de son chèque, le trésorier reçoit la liste de remise 7 jours avant, avec relance des chèques toujours en pochette
+- **Purge RGPD** : suppression définitive des comptes supprimés depuis 90 jours et des inscriptions non vérifiées depuis 30 jours, en transaction et sur prédicat relationnel (un compte restauré entre-temps échappe à la purge) ; chaque passage est consigné au journal d'audit, même quand il n'a rien purgé
+- **Génération du panier** : chaque jeudi à 2h (Europe/Paris) pour la distribution du mercredi suivant, tirage dans le catalogue de la saison en cours et hors fermes absentes, sautée si une fermeture couvre la semaine
+- **Reprise d'annonce de panier** : une notification de publication interrompue en plein envoi (redéploiement, crash) est terminée au redémarrage, sans doubler les adresses déjà servies
+- **Newsletters programmées** : envoi de celles dont l'heure est passée, avec garde-fou contre l'envoi en rafale de textes périmés après un long arrêt du serveur
+- **Drapeaux orphelins** : les verrous d'envoi laissés levés par un processus mort sont relâchés, pour que l'envoi concerné puisse être retenté
+
+> Ces tâches vivent dans le processus web lui-même : sur un hébergeur qui endort
+> le service inactif (Render en version gratuite), elles ne se déclenchent que si
+> le serveur est éveillé à l'heure dite. Avant l'ouverture au public, il faudra
+> soit une instance toujours active, soit un planificateur externe qui réveille
+> l'API aux heures des jobs.
 
 ### Tarification & contrats
 Le prix d'un contrat ne s'écrit nulle part à la main : il se déduit de deux nombres, le prix hebdomadaire du panier et le nombre de semaines réellement livrées.
@@ -452,6 +471,7 @@ Le prix d'un contrat ne s'écrit nulle part à la main : il se déduit de deux n
 - **Tarif solidaire** : l'adhérent règle 20 % du total, les 80 % restants étant pris en charge par le Secours Catholique — c'est cette part réellement due qui est imprimée sur le contrat
 - **Règlement en 1, 2 ou 4 chèques** : les premiers chèques sont arrondis à l'euro, le dernier est obtenu par soustraction et absorbe la monnaie, ce qui garantit que la somme des chèques égale exactement le prix
 - Le serveur expose la grille complète (prix, ventilation en chèques, tarif solidaire) : le formulaire public l'affiche au lieu de recopier les nombres, et le PDF signé lit la même table
+- Côté vitrine, `frontend/src/constants/subscriptions.js` porte les mêmes formules en un seul endroit : la page Nos abonnements et les données structurées SEO (`OfferCatalog`) y lisent les mêmes prix
 
 ### Recettes & Cuisine
 - Intégration API TheMealDB avec traduction automatique en français (google-translate-api-x)
@@ -477,7 +497,8 @@ Le prix d'un contrat ne s'écrit nulle part à la main : il se déduit de deux n
 - Visiteurs anonymes : pas de requête `/auth/me` (flag `localStorage`) → zéro 401 en console
 - Erreurs API remontées telles quelles à l'utilisateur, y compris l'échec réseau (« Serveur injoignable »)
 - Gestion du consentement cookies conforme RGPD (Orejime)
-- SEO : sitemap, robots.txt (noindex admin + blocage bots IA), `generateMetadata` dynamique sur les recettes, JSON-LD Organization + FAQPage + ItemList producteurs, lazy loading images
+- SEO : sitemap, robots.txt (noindex admin + blocage bots IA), `generateMetadata` dynamique sur les recettes, lazy loading images, `llms.txt` à destination des moteurs IA
+- JSON-LD ancré à Clamart (`frontend/src/constants/structuredData.js`) : NGO + LocalBusiness avec adresse, géolocalisation, horaires de distribution et communes desservies, FAQPage, ItemList producteurs, OfferCatalog des abonnements — rien n'y est annoncé que la base ne confirme
 
 ## 📊 Base de données
 
@@ -499,6 +520,7 @@ Le schéma Prisma comprend :
 
 **Catalogue**
 - **Producer** - Producteurs locaux (certification, détails de la ferme)
+- **ProducerAbsence** - Absences déclarées d'une ferme, exclue de la génération du panier sur la période
 - **Product** - Produits, saisons et tailles de panier éligibles
 - **ProducerInquiry** - Candidatures de producteurs
 - **Recipe** / **RecipeProduct** - Recettes et légumes associés
@@ -532,7 +554,10 @@ Le site n'utilise aucun framework CSS utilitaire — uniquement du CSS natif org
 - `npm run generate` - Régénère le client Prisma
 - `npm run studio` - Interface graphique de la base
 - `npm run seed` / `npm run seed:safe` - Données d'exemple (destructif / non destructif)
+- `npm run seed:demo` - Catalogue saisonnier francilien et fermes de démonstration, sans rien effacer
+- `npm test` / `npm run test:watch` - Suite de tests Vitest (une fois / à chaque sauvegarde)
 - `node scripts/create-admin.js` - Crée le premier compte admin en production
+- `node scripts/envoi-test.js adresse@exemple.fr` - Envoie un vrai message via Brevo pour éprouver l'expéditeur et le rendu en boîte réelle
 
 ### Frontend
 - `npm run dev` - Next.js en développement
@@ -540,6 +565,25 @@ Le site n'utilise aucun framework CSS utilitaire — uniquement du CSS natif org
 - `npm start` - Serveur de production
 - `npm run lint` - ESLint
 - `npm run postinstall` - Copie les fichiers Orejime dans `public/` (automatique après `npm install`)
+
+## 🧪 Tests
+
+Le backend est testé avec [Vitest](https://vitest.dev). Les tests unitaires ne
+demandent rien à démarrer : ni base de données, ni SMTP — tout ce qui dépasse du
+module testé est remplacé par un double.
+
+```bash
+cd backend
+npm test                                        # la suite entière, une fois
+npm run test:watch                              # relance à chaque sauvegarde
+npm test -- tests/unit/email.mentions.test.js   # un seul fichier
+```
+
+Les tests sont rangés par type dans `backend/tests/` — `unit/` (seul type peuplé
+à ce jour, 23 fichiers), `integration/` et `e2e/` (réservés), `fixtures/` et
+`helpers/` pour les jeux de données et l'outillage partagés. Le découpage dit ce
+qu'un fichier a le droit de toucher ; `backend/tests/README.md` en donne la
+règle complète.
 
 ## 🐛 Débogage
 
