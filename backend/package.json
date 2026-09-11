@@ -47,5 +47,10 @@
     "nodemon": "^3.1.7",
     "prisma": "7.9.1",
     "vitest": "^4.1.10"
+  },
+  "overrides": {
+    "qs": "^6.16.0",
+    "mysql2": "^3.24.4",
+    "deepmerge-ts": "^8.0.2"
   }
 }
