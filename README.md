@@ -547,7 +547,7 @@ Le site n'utilise aucun framework CSS utilitaire — uniquement du CSS natif org
 - `npm run build:frontend` / `npm run start:backend` / `npm run start:frontend`
 
 ### Backend
-- `npm run dev` - Serveur en mode développement (nodemon)
+- `npm run dev` - Serveur en mode développement (`node --watch`)
 - `npm start` - Serveur en production
 - `npm run migrate` - Crée une nouvelle migration (`prisma migrate dev`)
 - `npm run migrate:prod` - Applique les migrations en production (`prisma migrate deploy`)

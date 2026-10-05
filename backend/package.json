@@ -4,8 +4,11 @@
   "description": "API Backend pour Aux P'tits Pois",
   "main": "src/server.js",
   "type": "module",
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
-    "dev": "nodemon src/server.js",
+    "dev": "node --watch src/server.js",
     "start": "node src/server.js",
     "migrate": "npx prisma migrate dev",
     "migrate:prod": "npx prisma migrate deploy",
@@ -38,13 +41,12 @@
     "helmet": "^8.0.0",
     "isomorphic-dompurify": "^3.7.1",
     "jsonwebtoken": "^9.0.2",
-    "nodemailer": "^9.0.5",
+    "nodemailer": "^10.0.15",
     "pg": "8.23.0",
     "puppeteer": "^25.7.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "nodemon": "^3.1.7",
     "prisma": "7.9.1",
     "vitest": "^4.1.10"
   },
