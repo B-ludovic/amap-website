@@ -584,7 +584,19 @@ const getAllUsers = asyncHandler(async (req, res) => {
   });
 });
 
-// CHANGER LE RÔLE D'UN UTILISATEUR 
+// ANNUAIRE DES COMPTES (ADMIN)
+// Tous les comptes actifs, sans pagination : la recherche se fait dans le navigateur, accents compris.
+const getUserDirectory = asyncHandler(async (req, res) => {
+  const users = await prisma.user.findMany({
+    where: { deletedAt: null },
+    select: { id: true, firstName: true, lastName: true, email: true },
+    orderBy: [{ lastName: 'asc' }, { firstName: 'asc' }]
+  });
+
+  res.json({ success: true, data: users });
+});
+
+// CHANGER LE RÔLE D'UN UTILISATEUR
 const changeUserRole = asyncHandler(async (req, res) => {
   const { userId } = req.params;
   const { role, password } = req.body;
@@ -1180,6 +1192,7 @@ export {
   deleteProduct,
   getAllProducts,
   getAllUsers,
+  getUserDirectory,
   changeUserRole,
   deleteUser,
   createBlogPost,

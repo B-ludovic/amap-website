@@ -1,11 +1,22 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
 import api from '../../lib/api';
 import { useModal } from '../../contexts/ModalContext';
 import AdminModal from './AdminModal';
 import logger from '../../lib/logger';
 import { plural } from '../../lib/format';
+
+// React Aria pèse environ 60 ko : chargé à l'ouverture de la fenêtre, pas avec la page.
+const MemberComboBox = dynamic(() => import('./MemberComboBox'), {
+  ssr: false,
+  loading: () => <input className="admin-input" disabled placeholder="Chargement…" aria-label="Chargement de la liste des comptes" />
+});
+
+// Clé stable par ligne d'équipe : la liste garde le texte tapé, la position ne suffit plus.
+let rowCounter = 0;
+const withRowKey = (entry) => ({ ...entry, rowKey: rowCounter++ });
 
 function pad(number) {
   return String(number).padStart(2, '0');
@@ -23,11 +34,12 @@ export default function ShiftModal({ shift, onClose }) {
   const isEdit = Boolean(shift);
 
   const [users, setUsers] = useState([]);
+  const [directoryState, setDirectoryState] = useState('loading'); // loading | ready | failed
   // Les propositions se traitent dans la file en tête de page, pas dans l'équipe.
   const [crew, setCrew] = useState(
     shift?.volunteers
       ?.filter(volunteer => !['PENDING', 'REFUSED'].includes(volunteer.status))
-      .map(volunteer => ({
+      .map(volunteer => withRowKey({
         userId: volunteer.user.id,
         role: volunteer.role ?? null,
         status: volunteer.status
@@ -46,12 +58,14 @@ export default function ShiftModal({ shift, onClose }) {
 
   const fetchUsers = useCallback(async () => {
     try {
-      const response = await api.admin.users.getAll();
-      const list = Array.isArray(response.data) ? response.data : (response.data?.users ?? []);
-      setUsers([...list].sort((a, b) => a.lastName.localeCompare(b.lastName, 'fr')));
+      const response = await api.admin.users.directory();
+      setUsers([...response.data].sort((a, b) => (
+        a.lastName.localeCompare(b.lastName, 'fr') || a.firstName.localeCompare(b.firstName, 'fr')
+      )));
+      setDirectoryState('ready');
     } catch (error) {
-      logger.error('Erreur chargement utilisateurs:', error);
-      setUsers([]);
+      logger.error('Erreur chargement annuaire:', error);
+      setDirectoryState('failed');
     }
   }, []);
 
@@ -96,7 +110,9 @@ export default function ShiftModal({ shift, onClose }) {
       ...formData,
       volunteersNeeded: Number(formData.volunteersNeeded),
       notes: formData.notes.trim() || null,
-      volunteers: crew.filter(member => member.userId)
+      volunteers: crew
+        .filter(member => member.userId)
+        .map(({ userId, role, status }) => ({ userId, role, status }))
     };
 
     setLoading(true);
@@ -201,7 +217,7 @@ export default function ShiftModal({ shift, onClose }) {
                 type="button"
                 className="admin-btn-link"
                 onClick={() => {
-                  setCrew(current => [...current, { userId: '', role: null, status: 'CONFIRMED' }]);
+                  setCrew(current => [...current, withRowKey({ userId: '', role: null, status: 'CONFIRMED' })]);
                   setIsDirty(true);
                 }}
               >
@@ -216,30 +232,20 @@ export default function ShiftModal({ shift, onClose }) {
             ) : (
               <div className="admin-crew-editor">
                 {crew.map((member, index) => (
-                  <div key={index} className="admin-crew-row">
-                    <select
-                      className="admin-select-full"
-                      value={member.userId}
-                      aria-label={`Bénévole ${index + 1}`}
-                      onChange={(event) => {
-                        const userId = event.target.value;
+                  <div key={member.rowKey} className="admin-crew-row">
+                    <MemberComboBox
+                      label={`Bénévole ${index + 1}`}
+                      members={users.filter(user => user.id === member.userId || !takenIds.has(user.id))}
+                      selectedKey={member.userId || null}
+                      isDisabled={directoryState !== 'ready'}
+                      placeholder={directoryState === 'loading' ? 'Chargement de l’annuaire…' : 'Nom, prénom ou email…'}
+                      onSelectionChange={(key) => {
                         setCrew(current => current.map((item, position) => (
-                          position === index ? { ...item, userId } : item
+                          position === index ? { ...item, userId: key ?? '' } : item
                         )));
                         setIsDirty(true);
                       }}
-                    >
-                      <option value="">Choisir un membre…</option>
-                      {users.map(user => (
-                        <option
-                          key={user.id}
-                          value={user.id}
-                          disabled={user.id !== member.userId && takenIds.has(user.id)}
-                        >
-                          {user.lastName} {user.firstName} — {user.email}
-                        </option>
-                      ))}
-                    </select>
+                    />
                     <button
                       type="button"
                       className="admin-btn-link admin-btn-link-delete"
@@ -253,6 +259,12 @@ export default function ShiftModal({ shift, onClose }) {
                   </div>
                 ))}
               </div>
+            )}
+
+            {directoryState === 'failed' && (
+              <p className="admin-form-error admin-crew-error">
+                L’annuaire des comptes n’a pas pu être chargé : fermez la fenêtre et rouvrez-la pour réessayer.
+              </p>
             )}
           </div>
         </div>

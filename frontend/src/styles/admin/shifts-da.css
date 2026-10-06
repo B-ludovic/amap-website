@@ -156,6 +156,11 @@
   align-items: center;
 }
 
+.admin-crew-error {
+  display: block;
+  margin: 10px 0 0;
+}
+
 .admin-crew-empty {
   padding: 18px;
   border: 1px dashed var(--border-strong);

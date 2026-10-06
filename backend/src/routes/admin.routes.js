@@ -10,6 +10,7 @@ import {
   getAllProducts,
   getStats,
   getAllUsers,
+  getUserDirectory,
   changeUserRole,
   deleteUser,
   getExampleStats,
@@ -44,6 +45,7 @@ router.delete('/products/:id', deleteProduct);
 
 // GESTION DES UTILISATEURS
 router.get('/users', getAllUsers);
+router.get('/users/directory', getUserDirectory);
 router.put('/users/:userId/role', changeUserRole);
 router.delete('/users/:userId', deleteUser);
 

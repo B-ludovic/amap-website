@@ -33,12 +33,13 @@ export const memberHaystack = (item) => normalize([
    phrase entière : « jean dupont » et « dupont jean » fonctionnent donc aussi
    bien l'un que l'autre, là où une simple sous-chaîne échouerait sur les deux
    puisque ni le prénom ni le nom ne contient l'expression complète. */
-export function filterMembers(items, searchTerm) {
-  const tokens = normalize(searchTerm).split(/\s+/).filter(Boolean);
-  if (tokens.length === 0) return items;
+export function matchesSearch(text, searchTerm) {
+  const haystack = normalize(text);
+  return normalize(searchTerm).split(/\s+/).filter(Boolean)
+    .every((token) => haystack.includes(token));
+}
 
-  return items.filter((item) => {
-    const haystack = memberHaystack(item);
-    return tokens.every((token) => haystack.includes(token));
-  });
+export function filterMembers(items, searchTerm) {
+  if (!normalize(searchTerm).trim()) return items;
+  return items.filter((item) => matchesSearch(memberHaystack(item), searchTerm));
 }

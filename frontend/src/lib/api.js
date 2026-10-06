@@ -185,6 +185,12 @@ export const admin = {
       });
     },
 
+    directory: async () => {
+      return fetchAPI('/admin/users/directory', {
+        requiresAuth: true,
+      });
+    },
+
     changeRole: async (userId, role, password) => {
       return fetchAPI(`/admin/users/${userId}/role`, {
         method: 'PUT',

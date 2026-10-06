@@ -846,3 +846,98 @@
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+/* LISTE AVEC RECHERCHE — choix d'un compte dans l'annuaire (MemberComboBox).
+   La liste s'ouvre dans un portail sous <body>, hors de .admin-layout : ses
+   règles ne dépendent donc d'aucun conteneur de l'administration. */
+
+.admin-combobox-field {
+  position: relative;
+}
+
+.admin-combobox-input {
+  padding-right: 44px;
+}
+
+.admin-combobox-input[disabled] {
+  background-color: var(--surface-sand);
+  cursor: not-allowed;
+}
+
+.admin-combobox-toggle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 44px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.admin-combobox-toggle[data-disabled] {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.admin-combobox-toggle[data-focus-visible] {
+  outline: 2px solid var(--terracotta);
+  outline-offset: -4px;
+  border-radius: var(--border-radius-md);
+}
+
+.admin-combobox-popover {
+  width: var(--trigger-width);
+  max-height: 280px;
+  overflow-y: auto;
+  border: 1px solid var(--border-card);
+  border-radius: var(--border-radius-md);
+  background-color: var(--surface-page);
+  box-shadow: var(--shadow-float);
+}
+
+.admin-combobox-list {
+  padding: 4px;
+  outline: none;
+}
+
+.admin-combobox-option {
+  display: grid;
+  gap: 2px;
+  padding: 9px 12px;
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  outline: none;
+}
+
+.admin-combobox-option[data-focused] {
+  background-color: var(--surface-sand);
+}
+
+.admin-combobox-option[data-selected] .admin-combobox-name {
+  color: var(--terracotta-dark);
+}
+
+.admin-combobox-name {
+  font-size: 14px;
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+.admin-combobox-email {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.admin-combobox-empty {
+  margin: 0;
+  padding: 12px;
+  font-size: 13.5px;
+  color: var(--text-secondary);
+}
