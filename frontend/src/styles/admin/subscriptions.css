@@ -330,10 +330,10 @@
 .admin-cheques-alert {
   margin: 20px 0 0;
   padding: 12px 14px;
-  border: 1px solid var(--badge-red-border, var(--border-card));
+  border: 1px solid var(--error-bg-border);
   border-radius: var(--border-radius-md);
-  background-color: var(--badge-red-bg, var(--surface-sand));
+  background-color: var(--error-bg);
   font-size: 13.5px;
   line-height: 1.5;
-  color: var(--badge-red-fg, var(--text-primary));
+  color: var(--error-strong);
 }

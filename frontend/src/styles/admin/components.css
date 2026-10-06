@@ -605,7 +605,7 @@
 }
 
 .message-box {
-  background: var(--bg-gray);
+  background: var(--surface-sand);
   padding: var(--spacing-md);
   border-radius: var(--border-radius-md);
   white-space: pre-wrap;
@@ -701,7 +701,7 @@
 }
 
 .radio-label:hover {
-  background-color: var(--background-secondary);
+  background-color: var(--surface-hover);
 }
 
 .radio-label input[type="radio"] {

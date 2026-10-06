@@ -73,7 +73,7 @@
 }
 
 .modal-close:hover {
-  background-color: var(--background-secondary);
+  background-color: var(--surface-hover);
   color: var(--text-primary);
 }
 
@@ -99,7 +99,7 @@
 
 .modal-footer .btn-secondary {
   background-color: #f3f4f6;
-  color: var(--text-dark);
+  color: var(--text-primary);
   border: 1px solid var(--border-color);
 }
 
