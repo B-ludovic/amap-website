@@ -118,6 +118,14 @@ export function messagesSortants(emails) {
       envoyer: () => emails.sendShiftWithdrawal(permanence, adherente),
     },
     {
+      nom: 'retrait d\'une permanence', methode: 'sendShiftRemoval', kind: 'SHIFT_REMOVAL', public: 'adherent',
+      envoyer: () => emails.sendShiftRemoval(permanence, adherente),
+    },
+    {
+      nom: 'permanence déplacée', methode: 'sendShiftRescheduled', kind: 'SHIFT_RESCHEDULED', public: 'adherent',
+      envoyer: () => emails.sendShiftRescheduled({ ...permanence, startTime: '17h30' }, adherente, { before: permanence }),
+    },
+    {
       nom: 'panier de la semaine', methode: 'sendWeeklyBasketNotification', kind: 'WEEKLY_BASKET', public: 'adherent',
       envoyer: () => emails.sendWeeklyBasketNotification(panierHebdomadaire, [{ ...adherente }]),
     },

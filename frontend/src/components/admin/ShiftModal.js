@@ -108,7 +108,7 @@ export default function ShiftModal({ shift, onClose }) {
       const missed = response.notificationFailures ?? 0;
 
       onClose(true, missed > 0
-        ? `${done} ${missed} ${plural(missed, 'bénévole n’a', 'bénévoles n’ont')} pas reçu l’email de confirmation : prévenez-les autrement.`
+        ? `${done} ${missed} ${plural(missed, 'email n’est pas parti', 'emails ne sont pas partis')} : le suivi des emails dit à qui, prévenez ces bénévoles autrement.`
         : done);
     } catch (error) {
       showError('Erreur', error.message || 'Une erreur est survenue.');

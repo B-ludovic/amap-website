@@ -26,6 +26,20 @@ vi.mock('../../src/services/email.service.js', () => {
         envois.push({ type: 'avis', email: admin.email, shiftId: shift.id, qui: volunteer.firstName, confirmedCount });
         return { success: true };
       },
+      sendShiftRemoval: async (shift, user) => {
+        envois.push({ type: 'retrait', email: user.email, jour: new Date(shift.distributionDate).toISOString().slice(0, 10) });
+        return { success: true };
+      },
+      sendShiftRescheduled: async (shift, user, { before, pending }) => {
+        envois.push({
+          type: 'deplacement',
+          email: user.email,
+          pending,
+          avant: `${new Date(before.distributionDate).toISOString().slice(0, 10)} ${before.startTime}`,
+          apres: `${new Date(shift.distributionDate).toISOString().slice(0, 10)} ${shift.startTime}`,
+        });
+        return { success: true };
+      },
     },
   };
 });
@@ -413,6 +427,103 @@ describe('Le formulaire de permanence de l\'admin', () => {
 
     expect(statut(A_VENIR, CAMILLE.id)).toBe('CONFIRMED');
     expect(envois.map((e) => e.email)).toEqual([CAMILLE.email]);
+  });
+});
+
+describe('Ce que l\'admin change dans l\'équipe ou le créneau', () => {
+  beforeEach(() => {
+    base.lignes = [ligne(A_VENIR, ALEX.id, 'CONFIRMED'), ligne(A_VENIR, BEA.id, 'PENDING')];
+  });
+
+  it('prévient le bénévole confirmé qu\'on retire de l\'équipe', async () => {
+    const { corps } = await appeler(updateShift, commeAdmin({ id: A_VENIR }, { volunteers: [] }));
+
+    expect(statut(A_VENIR, ALEX.id)).toBeUndefined();
+    expect(envois).toEqual([{ type: 'retrait', email: ALEX.email, jour: '2026-10-14' }]);
+    expect(corps.notificationFailures).toBe(0);
+  });
+
+  it('annonce le retrait à l\'ancienne date quand la permanence change aussi de jour', async () => {
+    await appeler(updateShift, commeAdmin({ id: A_VENIR }, { distributionDate: '2026-10-21', volunteers: [] }));
+
+    expect(envois.filter((e) => e.type === 'retrait')).toEqual([{ type: 'retrait', email: ALEX.email, jour: '2026-10-14' }]);
+  });
+
+  it('juge le retrait sur la date que la personne avait retenue, pas sur la nouvelle', async () => {
+    await appeler(updateShift, commeAdmin({ id: A_VENIR }, { distributionDate: '2026-09-23', volunteers: [] }));
+
+    expect(envois).toEqual([{ type: 'retrait', email: ALEX.email, jour: '2026-10-14' }]);
+  });
+
+  it('ne prévient pas d\'un retrait sur une permanence passée', async () => {
+    base.lignes = [ligne(PASSEE, ALEX.id, 'CONFIRMED')];
+
+    await appeler(updateShift, commeAdmin({ id: PASSEE }, { volunteers: [] }));
+
+    expect(envois).toHaveLength(0);
+  });
+
+  it('ne prévient ni un désisté qu\'on efface, ni l\'admin qui se retire lui-même', async () => {
+    base.lignes = [ligne(A_VENIR, ALEX.id, 'CANCELLED'), ligne(A_VENIR, ADMIN.id, 'CONFIRMED')];
+
+    await appeler(updateShift, commeAdmin({ id: A_VENIR }, { volunteers: [] }));
+
+    expect(base.lignes).toHaveLength(0);
+    expect(envois).toHaveLength(0);
+  });
+
+  it('annonce un nouvel horaire à l\'équipe et aux propositions en attente', async () => {
+    await appeler(updateShift, commeAdmin({ id: A_VENIR }, { startTime: '17:30', volunteers: [{ userId: ALEX.id }] }));
+
+    expect(envois).toEqual([
+      { type: 'deplacement', email: ALEX.email, pending: false, avant: '2026-10-14 18:15', apres: '2026-10-14 17:30' },
+      { type: 'deplacement', email: BEA.email, pending: true, avant: '2026-10-14 18:15', apres: '2026-10-14 17:30' },
+    ]);
+  });
+
+  it('annonce une nouvelle date', async () => {
+    await appeler(updateShift, commeAdmin({ id: A_VENIR }, { distributionDate: '2026-10-21', volunteers: [{ userId: ALEX.id }] }));
+
+    expect(envois.map((e) => [e.email, e.apres])).toEqual([
+      [ALEX.email, '2026-10-21 18:15'],
+      [BEA.email, '2026-10-21 18:15'],
+    ]);
+  });
+
+  it('n\'envoie qu\'une confirmation à qui est placé en même temps que le créneau change', async () => {
+    await appeler(updateShift, commeAdmin({ id: A_VENIR }, {
+      startTime: '17:30',
+      volunteers: [{ userId: ALEX.id }, { userId: BEA.id }],
+    }));
+
+    expect(envois.filter((e) => e.email === BEA.email)).toEqual([{ type: 'confirmation', email: BEA.email, shiftId: A_VENIR }]);
+    expect(envois.filter((e) => e.email === ALEX.email).map((e) => e.type)).toEqual(['deplacement']);
+  });
+
+  it('n\'écrit ni à un désisté, ni à un compte fermé, ni à l\'admin auteur du changement', async () => {
+    base.comptes = base.comptes.map((c) => (c.id === BEA.id ? { ...c, deletedAt: new Date('2026-10-01T00:00:00Z') } : c));
+    base.lignes = [
+      ligne(A_VENIR, ALEX.id, 'CANCELLED'),
+      ligne(A_VENIR, BEA.id, 'CONFIRMED'),
+      ligne(A_VENIR, ADMIN.id, 'CONFIRMED'),
+    ];
+
+    await appeler(updateShift, commeAdmin({ id: A_VENIR }, {
+      endTime: '19:45',
+      volunteers: [{ userId: ALEX.id }, { userId: BEA.id }, { userId: ADMIN.id }],
+    }));
+
+    expect(envois).toHaveLength(0);
+  });
+
+  it('ne dit rien quand seuls l\'effectif ou les consignes changent', async () => {
+    await appeler(updateShift, commeAdmin({ id: A_VENIR }, {
+      volunteersNeeded: 3,
+      notes: 'Apporter les cagettes',
+      volunteers: [{ userId: ALEX.id }],
+    }));
+
+    expect(envois).toHaveLength(0);
   });
 });
 

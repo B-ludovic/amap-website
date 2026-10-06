@@ -54,6 +54,50 @@ describe('Le refus d\'une proposition', () => {
   });
 });
 
+describe('Le retrait de l\'équipe', () => {
+  it('nomme la date, dit qu\'il n\'y a pas à venir, sans motif', async () => {
+    await emails.sendShiftRemoval(permanence, adherente);
+    const { subject, text } = dernierMessage();
+
+    expect(subject).toContain('2 septembre 2026');
+    expect(text).toContain('vous n\'avez donc pas à venir');
+    expect(text).toContain(ESPACE_ADHERENT);
+    for (const motif of ['motif', 'raison', 'comportement']) {
+      expect(text.toLowerCase()).not.toContain(motif);
+    }
+  });
+});
+
+describe('Le changement de créneau', () => {
+  const plusTot = { ...permanence, startTime: '17h30' };
+  const semaineSuivante = { ...permanence, distributionDate: '2026-09-09T16:00:00.000Z' };
+
+  it('rappelle l\'ancien créneau à côté du nouveau', async () => {
+    await emails.sendShiftRescheduled(plusTot, adherente, { before: permanence });
+    const { subject, text } = dernierMessage();
+
+    expect(subject).toBe('Nouvel horaire pour la permanence du mercredi 2 septembre 2026');
+    expect(text).toContain('mercredi 2 septembre 2026, 18h00 - 19h30');
+    expect(text).toContain('mercredi 2 septembre 2026, 17h30 - 19h30');
+    expect(text).toContain('Votre inscription est maintenue');
+  });
+
+  it('annonce une nouvelle date dans l\'objet', async () => {
+    await emails.sendShiftRescheduled(semaineSuivante, adherente, { before: permanence });
+
+    expect(dernierMessage().subject).toBe('Permanence déplacée au mercredi 9 septembre 2026');
+  });
+
+  it('dit à une proposition en attente qu\'elle porte sur le nouveau créneau', async () => {
+    await emails.sendShiftRescheduled(semaineSuivante, adherente, { before: permanence, pending: true });
+    const { text } = dernierMessage();
+
+    expect(text).toContain('pour laquelle vous vous êtes proposé(e)');
+    expect(text).toContain('reste en attente de validation');
+    expect(text).not.toContain('Votre inscription est maintenue');
+  });
+});
+
 describe('L\'avis de désistement aux admins', () => {
   it('nomme la personne, la date et ce qu\'il reste à pourvoir', async () => {
     await emails.sendShiftWithdrawalNotice(

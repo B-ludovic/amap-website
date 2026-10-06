@@ -881,6 +881,58 @@ class EmailService {
     }, { kind: 'SHIFT_REFUSAL', ref: shift.id });
   }
 
+  /* Permanence : retrait de l'équipe par un admin. Comme le refus, sans motif. */
+  async sendShiftRemoval(shift, user) {
+    const date = new Date(shift.distributionDate).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+    return this.#send({
+      from: EMAIL_FROM,
+      to: user.email,
+      subject: `Permanence du ${date} : changement d'équipe`,
+      html: renderEmail({
+        title: 'Changement d\'équipe',
+        content: `
+            <p>Bonjour ${escapeHtml(user.firstName)},</p>
+            <p>L'équipe a réorganisé la permanence du <strong>${date}</strong> : vous n'y êtes plus inscrit(e), vous n'avez donc pas à venir la tenir.</p>
+            <p>Le planning des autres distributions reste consultable depuis <a href="${escapeHtml(`${process.env.FRONTEND_URL}/compte`)}">votre espace adhérent</a>. Une question ? Écrivez au collectif à <a href="mailto:${AMAP_EMAIL}">${AMAP_EMAIL}</a>.</p>
+            <p>À bientôt,<br>L'équipe Aux P'tits Pois</p>`,
+        footerNote: rgpdNote(user.email, 'parce que vous étiez inscrit(e) à cette permanence'),
+      }),
+    }, { kind: 'SHIFT_REMOVAL', ref: shift.id });
+  }
+
+  /* Permanence : nouvelle date ou nouvel horaire. L'ancien créneau est rappelé,
+     sans quoi rien ne distingue ce message d'une confirmation. */
+  async sendShiftRescheduled(shift, user, { before, pending = false }) {
+    const jour = (value) => new Date(value).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    const creneau = (value) => `${jour(value.distributionDate)}, ${escapeHtml(value.startTime)} - ${escapeHtml(value.endTime)}`;
+    const date = jour(shift.distributionDate);
+    const deplacee = jour(before.distributionDate) !== date;
+    const espace = `<a href="${escapeHtml(`${process.env.FRONTEND_URL}/compte`)}">votre espace adhérent</a>`;
+
+    return this.#send({
+      from: EMAIL_FROM,
+      to: user.email,
+      subject: deplacee ? `Permanence déplacée au ${date}` : `Nouvel horaire pour la permanence du ${date}`,
+      html: renderEmail({
+        title: deplacee ? 'Permanence déplacée' : 'Horaire modifié',
+        content: `
+            <p>Bonjour ${escapeHtml(user.firstName)},</p>
+            <p>La permanence ${pending ? 'pour laquelle vous vous êtes proposé(e)' : 'à laquelle vous êtes inscrit(e)'} change de créneau.</p>
+            <div class="info-box">
+              <h3>Ce qui change</h3>
+              <p><strong>Avant :</strong> ${creneau(before)}</p>
+              <p><strong>Désormais :</strong> ${creneau(shift)}</p>
+            </div>
+            ${pending
+              ? `<p>Votre proposition porte désormais sur ce créneau et reste en attente de validation. S'il ne vous convient plus, retirez-la depuis ${espace}.</p>`
+              : `<p>Votre inscription est maintenue. Si ce créneau ne vous convient plus, désistez-vous depuis ${espace} jusqu'à 48 heures avant, ou prévenez le collectif à <a href="mailto:${AMAP_EMAIL}">${AMAP_EMAIL}</a>.</p>`}
+            <p>À bientôt,<br>L'équipe Aux P'tits Pois</p>`,
+        footerNote: rgpdNote(user.email, pending ? 'suite à votre proposition de permanence' : 'parce que vous êtes inscrit(e) à cette permanence'),
+      }),
+    }, { kind: 'SHIFT_RESCHEDULED', ref: shift.id });
+  }
+
   /* Permanence : Annulation */
   async sendShiftCancellation(shift, user) {
     const date = new Date(shift.distributionDate).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });

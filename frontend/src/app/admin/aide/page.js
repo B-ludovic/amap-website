@@ -56,7 +56,7 @@ const FAMILIES = [
           'Créer un créneau : date, horaires, nombre de bénévoles attendus.',
           'Recopier un créneau sur les semaines suivantes plutôt que de tout ressaisir.',
           'Accepter ou refuser les propositions des adhérents, sans avoir à motiver un refus.',
-          'Inscrire ou retirer un bénévole à la main, quand quelqu’un s’annonce de vive voix.',
+          'Inscrire ou retirer un bénévole à la main, quand quelqu’un s’annonce de vive voix. La personne placée, retirée ou dont le créneau change est prévenue par email.',
           'Repérer les distributions qui cherchent encore du monde.'
         ],
         hint: 'Les adhérents se proposent depuis leur espace ; chaque proposition attend votre réponse, et un email part dans les deux cas.'

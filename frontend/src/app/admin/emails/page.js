@@ -46,6 +46,8 @@ const KIND_LABELS = {
   SHIFT_WITHDRAWAL:                 'Désinscription permanence',
   SHIFT_REFUSAL:                    'Proposition non retenue',
   SHIFT_WITHDRAWAL_NOTICE:          'Désistement signalé',
+  SHIFT_REMOVAL:                    'Retrait d’une permanence',
+  SHIFT_RESCHEDULED:                'Permanence déplacée',
   WEEKLY_BASKET:                    'Panier de la semaine',
   NEWSLETTER:                       'Lettre d\'information',
   PRODUCER_INQUIRY_CONFIRMATION:    'Candidature reçue',

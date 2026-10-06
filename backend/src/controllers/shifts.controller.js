@@ -47,6 +47,47 @@ async function announceWithdrawal(volunteer) {
   )));
 }
 
+// La distribution du jour compte encore : un changement d'horaire le mercredi matin est le plus urgent à dire.
+function isUpcoming(date) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return new Date(date) >= today;
+}
+
+/* Ce que l'admin change dans le formulaire se dit aux personnes concernées : le
+   retrait à qui n'est plus attendu, le nouveau créneau à l'équipe et aux
+   propositions en attente. Ni l'auteur du geste ni un compte fermé ne reçoivent
+   rien. Rend le nombre d'envois échoués. */
+async function announceCrewChanges({ before, after, removed, alreadyNotified, actorId }) {
+  const concerned = (volunteer) => volunteer.userId !== actorId && !volunteer.user.deletedAt;
+  const envois = [];
+
+  if (isUpcoming(before.distributionDate)) {
+    removed.filter(concerned).forEach((volunteer) => {
+      envois.push(emailService.sendShiftRemoval(before, volunteer.user));
+    });
+  }
+
+  const moved = new Date(before.distributionDate).getTime() !== new Date(after.distributionDate).getTime()
+    || before.startTime !== after.startTime
+    || before.endTime !== after.endTime;
+
+  if (moved && isUpcoming(after.distributionDate)) {
+    after.volunteers
+      .filter((volunteer) => ['CONFIRMED', 'PENDING'].includes(volunteer.status))
+      .filter((volunteer) => !alreadyNotified.has(volunteer.userId) && concerned(volunteer))
+      .forEach((volunteer) => {
+        envois.push(emailService.sendShiftRescheduled(after, volunteer.user, {
+          before,
+          pending: volunteer.status === 'PENDING'
+        }));
+      });
+  }
+
+  const resultats = await Promise.all(envois);
+  return resultats.filter((resultat) => !resultat.success).length;
+}
+
 /* Pas de distribution un jour de fermeture, donc pas de permanence : inscrire
    des bénévoles ce jour-là leur promettrait un rendez-vous qui n'aura pas
    lieu. Même règle que le tirage du panier hebdomadaire. */
@@ -269,21 +310,24 @@ const updateShift = asyncHandler(async (req, res) => {
      dans la liste, on ajoute les nouveaux, et on ne touche pas aux inscriptions
      qui restent. Vider puis recréer effaçait le rôle et la date d'inscription
      des bénévoles qui n'avaient pourtant pas bougé. */
-  const { updatedShift, newlyConfirmed } = await prisma.$transaction(async (tx) => {
+  const { updatedShift, newlyConfirmed, removedConfirmed } = await prisma.$transaction(async (tx) => {
     const newlyConfirmed = new Set();
+    let removedConfirmed = [];
 
     if (Array.isArray(volunteers)) {
       const wantedIds = new Set(volunteers.map(v => v.userId).filter(Boolean));
-      const current = await tx.shiftVolunteer.findMany({ where: { shiftId: id } });
+      const current = await tx.shiftVolunteer.findMany({
+        where: { shiftId: id },
+        include: { user: { select: { id: true, firstName: true, email: true, deletedAt: true } } }
+      });
       const currentIds = new Set(current.map(v => v.userId));
 
       // Le formulaire ne porte que l'équipe : une proposition absente de sa liste n'est pas retirée.
-      const removed = current
-        .filter(v => VOLUNTEER_STATUSES.includes(v.status) && !wantedIds.has(v.userId))
-        .map(v => v.id);
+      const removed = current.filter(v => VOLUNTEER_STATUSES.includes(v.status) && !wantedIds.has(v.userId));
       if (removed.length > 0) {
-        await tx.shiftVolunteer.deleteMany({ where: { id: { in: removed } } });
+        await tx.shiftVolunteer.deleteMany({ where: { id: { in: removed.map(v => v.id) } } });
       }
+      removedConfirmed = removed.filter(v => v.status === 'CONFIRMED');
 
       const added = volunteers.filter(v => v.userId && !currentIds.has(v.userId));
       if (added.length > 0) {
@@ -328,7 +372,8 @@ const updateShift = asyncHandler(async (req, res) => {
                 id: true,
                 firstName: true,
                 lastName: true,
-                email: true
+                email: true,
+                deletedAt: true
               }
             }
           }
@@ -336,7 +381,7 @@ const updateShift = asyncHandler(async (req, res) => {
       }
     });
 
-    return { updatedShift, newlyConfirmed };
+    return { updatedShift, newlyConfirmed, removedConfirmed };
   });
 
   await logAudit(req, 'UPDATE_SHIFT', 'IMPORTANT', {
@@ -348,10 +393,20 @@ const updateShift = asyncHandler(async (req, res) => {
     after: { distributionDate: updatedShift.distributionDate, volunteerIds: updatedShift.volunteers.map(volunteer => volunteer.userId) }
   });
 
-  const notificationFailures = await announceConfirmed(
-    updatedShift,
-    updatedShift.volunteers.filter((volunteer) => newlyConfirmed.has(volunteer.userId) && volunteer.status === 'CONFIRMED')
-  );
+  const [confirmationFailures, changeFailures] = await Promise.all([
+    announceConfirmed(
+      updatedShift,
+      updatedShift.volunteers.filter((volunteer) => newlyConfirmed.has(volunteer.userId) && volunteer.status === 'CONFIRMED')
+    ),
+    announceCrewChanges({
+      before: shift,
+      after: updatedShift,
+      removed: removedConfirmed,
+      alreadyNotified: newlyConfirmed,
+      actorId: req.user.id
+    })
+  ]);
+  const notificationFailures = confirmationFailures + changeFailures;
 
   res.json({
     success: true,
