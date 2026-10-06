@@ -74,6 +74,11 @@ amap-website/
 │   ├── scripts/         # copy-orejime.js (postinstall)
 │   └── public/          # Assets statiques
 │
+├── horloge/           # Worker Cloudflare qui déclenche les jobs chaque heure
+│   ├── src/index.js     # Un appel POST /api/jobs/tick, sans nouvelle tentative
+│   ├── tests/unit/      # Garde-fous passés avant tout déploiement (node --test)
+│   └── wrangler.toml    # Cron, aucune entrée publique
+│
 └── backend/           # API Express
     ├── src/
     │   ├── config/       # Chargement et contrôle de la configuration, connexion Prisma / PostgreSQL
@@ -91,7 +96,7 @@ amap-website/
         ├── seed.js        # Jeu de données d'exemple
         ├── seed-safe.js   # Seed non destructif
         ├── seed-demo.js   # Catalogue saisonnier francilien + fermes de démonstration
-        └── migrations/    # 39 migrations
+        └── migrations/    # 45 migrations
 ```
 
 ## 🛠️ Installation
@@ -205,6 +210,7 @@ Le projet est déployé en production sur :
   - URL : https://auxptitspois.fr
 - **Backend + Base de données → [Render](https://render.com)** : service Web pour l'API Express et base PostgreSQL managée.
   - URL : https://api.auxptitspois.fr
+- **Horloge des jobs → [Cloudflare Workers](https://workers.cloudflare.com)** : un déclencheur planifié qui réveille l'API chaque heure, sur le plan gratuit (voir « L'horloge des jobs »).
 
 ### Variables d'environnement à configurer
 
@@ -494,6 +500,45 @@ Les neuf tâches :
 > partent qu'au réveil suivant. C'est l'horloge qui tient les promesses datées —
 > l'effacement à 90 jours annoncé à qui supprime son compte, l'heure d'une
 > newsletter programmée.
+
+#### L'horloge des jobs
+
+Le dossier `horloge/` contient un Worker Cloudflare qui appelle
+`POST /api/jobs/tick` chaque heure à :07 (UTC). Un seul appel par passage, sans
+nouvelle tentative : un passage manqué est rattrapé au suivant, puisque le
+cahier de bord sait ce qui reste dû. Cloudflare plutôt que GitHub Actions, dont
+les conditions excluent les usages sans rapport avec la production, les tests,
+le déploiement ou la publication du projet, et qui désactive les workflows
+planifiés d'un dépôt public après 60 jours sans activité. Et plutôt que
+cron-job.org, qui coupe la connexion à 30 secondes quand Render met une minute à
+se réveiller.
+
+Ce qui empêche une facture ou un emballement :
+
+- **Le plan gratuit Workers ne facture rien.** Au-delà d'une limite, l'appel échoue au lieu de coûter. Seul l'abonnement Workers Paid (5 $ par mois minimum) ouvre la facturation : ne pas y souscrire pour ce Worker.
+- **`npm run deploy` passe d'abord les garde-fous** de `horloge/tests/unit/garde-fous.test.js` : ils refusent tout cron plus fréquent qu'une fois par heure, toute adresse publique (`workers_dev`, `preview_urls`, routes), tout gestionnaire HTTP, tout environnement secondaire et toute nouvelle tentative.
+- **Les volumes** : 24 invocations par jour sur 100 000 gratuites, et environ 200 h d'éveil Render par mois sur les 750 gratuites du workspace.
+- **Même une horloge emballée ne multiplie rien côté API** : chaque job est pris par compare-and-set et ne part qu'une fois par période, quel que soit le nombre d'appels.
+
+Mise en service, une fois `JOBS_SECRET` posée sur Render et l'API déployée :
+
+```bash
+cd horloge
+npm install
+npx wrangler login                    # ouvre le navigateur, compte Cloudflare
+npm run deploy                        # garde-fous, puis déploiement
+npx wrangler secret put JOBS_SECRET   # la même valeur que sur Render
+```
+
+Tant que le secret n'est pas posé, le Worker s'arrête avant d'appeler l'API :
+aucun réveil inutile de Render. Ne jamais modifier le cron depuis le tableau de
+bord Cloudflare : aucun garde-fou ne le verrait, et le prochain `npm run deploy`
+l'écraserait.
+
+Pour suivre les passages : `npm run logs` en direct, ou le tableau de bord
+Cloudflare (Workers → `aux-ptits-pois-horloge` → Logs, trois jours d'historique).
+Un passage en échec y apparaît en erreur ; le détail, job par job, est dans
+`JobRun`.
 
 ### Tarification & contrats
 Le prix d'un contrat ne s'écrit nulle part à la main : il se déduit de deux nombres, le prix hebdomadaire du panier et le nombre de semaines réellement livrées.

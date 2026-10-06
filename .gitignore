@@ -7,4 +7,8 @@ node_modules/
 backend/test-contract.pdf
 backend/scripts/
 
+# Wrangler : état local et secrets de développement de l'horloge
+.wrangler/
+.dev.vars
+
 /mocks

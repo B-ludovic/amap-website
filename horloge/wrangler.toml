@@ -1,0 +1,23 @@
+# L'horloge des jobs : un Worker Cloudflare sans entrée HTTP qui appelle l'API
+# chaque heure. Toujours déployer par `npm run deploy`, qui passe d'abord les
+# garde-fous de tests/unit/garde-fous.test.js.
+name = "aux-ptits-pois-horloge"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+
+# Aucune adresse publique : seul le déclencheur planifié peut lancer le Worker.
+workers_dev = false
+preview_urls = false
+
+# Chaque heure à :07 (UTC), soit 24 appels par jour. Ne jamais modifier ce
+# réglage depuis le tableau de bord Cloudflare : le prochain déploiement
+# l'écraserait, et les garde-fous ne l'auraient pas vu passer.
+[triggers]
+crons = ["7 * * * *"]
+
+[vars]
+API_URL = "https://api.auxptitspois.fr/api"
+
+# Inclus dans le plan gratuit : 200 000 lignes par jour, gardées 3 jours.
+[observability]
+enabled = true
