@@ -117,7 +117,7 @@ describe('Un passage interrompu se distingue d\'un passage à vide', () => {
   it('consigne l\'échec en CRITICAL plutôt que de se taire', async () => {
     base.transactionThrows = true;
 
-    await runRetentionJob();
+    await expect(runRetentionJob()).rejects.toThrow();
 
     const traces = passages();
     expect(traces).toHaveLength(1);
@@ -129,9 +129,9 @@ describe('Un passage interrompu se distingue d\'un passage à vide', () => {
     expect(details.message).toBe('transaction interrompue');
   });
 
-  it('ne laisse pas l\'erreur remonter au-delà du job', async () => {
+  it('rend l\'erreur au planificateur une fois l\'échec consigné', async () => {
     base.transactionThrows = true;
 
-    await expect(runRetentionJob()).resolves.toBeUndefined();
+    await expect(runRetentionJob()).rejects.toThrow('transaction interrompue');
   });
 });

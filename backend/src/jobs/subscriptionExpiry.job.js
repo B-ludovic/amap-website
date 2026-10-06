@@ -21,62 +21,49 @@ const CLOTURABLES = ['ACTIVE', 'PAUSED'];
 const AVIS_MAX_MS = 7 * 24 * 60 * 60 * 1000;
 
 export async function expireEndedSubscriptions() {
-  try {
-    const now = new Date();
+  const now = new Date();
 
-    const echus = await prisma.subscription.findMany({
-      where: { status: { in: CLOTURABLES }, endDate: { lt: now } },
-      select: {
-        id: true,
-        subscriptionNumber: true,
-        status: true,
-        type: true,
-        endDate: true,
-        user: { select: { id: true, email: true, firstName: true } },
-      },
+  const echus = await prisma.subscription.findMany({
+    where: { status: { in: CLOTURABLES }, endDate: { lt: now } },
+    select: {
+      id: true,
+      subscriptionNumber: true,
+      status: true,
+      type: true,
+      endDate: true,
+      user: { select: { id: true, email: true, firstName: true } },
+    },
+  });
+
+  if (echus.length === 0) return;
+
+  let clos = 0;
+
+  for (const subscription of echus) {
+    /* Le statut est filtré dans le where : si un administrateur vient
+       d'annuler ce contrat, la mise à jour ne touche aucune ligne et l'on
+       n'écrit ni entrée d'audit ni message. */
+    const claimed = await prisma.subscription.updateMany({
+      where: { id: subscription.id, status: { in: CLOTURABLES } },
+      data: { status: 'EXPIRED' },
     });
 
-    if (echus.length === 0) return;
+    if (claimed.count === 0) continue;
 
-    let clos = 0;
+    await logAudit(
+      null,
+      'UPDATE_SUBSCRIPTION_STATUS',
+      'IMPORTANT',
+      { type: 'SUBSCRIPTION', id: subscription.id, label: subscription.subscriptionNumber },
+      { from: subscription.status, to: 'EXPIRED', reason: 'Échéance atteinte' }
+    );
 
-    for (const subscription of echus) {
-      /* Le statut est filtré dans le where : si un administrateur vient
-         d'annuler ce contrat, la mise à jour ne touche aucune ligne et l'on
-         n'écrit ni entrée d'audit ni message. */
-      const claimed = await prisma.subscription.updateMany({
-        where: { id: subscription.id, status: { in: CLOTURABLES } },
-        data: { status: 'EXPIRED' },
-      });
-
-      if (claimed.count === 0) continue;
-
-      await logAudit(
-        null,
-        'UPDATE_SUBSCRIPTION_STATUS',
-        'IMPORTANT',
-        { type: 'SUBSCRIPTION', id: subscription.id, label: subscription.subscriptionNumber },
-        { from: subscription.status, to: 'EXPIRED', reason: 'Échéance atteinte' }
-      );
-
-      if (now - subscription.endDate <= AVIS_MAX_MS) {
-        await emailService.sendSubscriptionExpired(subscription, subscription.user);
-      }
-
-      clos++;
+    if (now - subscription.endDate <= AVIS_MAX_MS) {
+      await emailService.sendSubscriptionExpired(subscription, subscription.user);
     }
 
-    console.log(`[ExpiryJob] ${clos}/${echus.length} abonnement(s) clos à échéance`);
-  } catch (error) {
-    console.error('[ExpiryJob] Erreur lors de la clôture des abonnements échus :', error);
+    clos++;
   }
-}
 
-/* Quotidien : une échéance est une date, pas une heure, et un jour de retard ne
-   coûte aucun panier — les listes de distribution bornent déjà sur endDate. */
-export function startSubscriptionExpiryJob() {
-  expireEndedSubscriptions();
-  setInterval(expireEndedSubscriptions, 24 * 60 * 60 * 1000);
-
-  console.log('[ExpiryJob] Job de clôture des abonnements échus démarré (vérification quotidienne)');
+  console.log(`[ExpiryJob] ${clos}/${echus.length} abonnement(s) clos à échéance`);
 }

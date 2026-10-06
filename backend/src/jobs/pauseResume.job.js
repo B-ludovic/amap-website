@@ -117,35 +117,13 @@ async function resumeExpiredSubscriptions(now) {
 }
 
 export async function applyPauseTransitions() {
-  try {
-    const now = new Date();
+  const now = new Date();
 
-    const endormis = await pauseStartingSubscriptions(now);
-    const { resumed, candidats } = await resumeExpiredSubscriptions(now);
+  const endormis = await pauseStartingSubscriptions(now);
+  const { resumed, candidats } = await resumeExpiredSubscriptions(now);
 
-    // Le cas courant est qu'il n'y ait rien à faire : on ne l'écrit pas dans les
-    // logs, sans quoi le passage horaire noierait les lignes qui comptent.
-    if (endormis > 0) console.log(`[PauseJob] ${endormis} abonnement(s) mis en pause`);
-    if (candidats > 0) console.log(`[PauseJob] ${resumed}/${candidats} abonnement(s) réactivé(s)`);
-  } catch (error) {
-    console.error('[PauseJob] Erreur lors du suivi des pauses :', error);
-  }
-}
-
-/* Horaire, et non quotidien comme les jobs de rappel voisins. Ceux-là envoient
-   des e-mails, où quelques heures de décalage ne se voient pas ; ici c'est le
-   statut du contrat qui est en jeu, et c'est lui qui décide si l'adhérent figure
-   sur la liste de distribution. Une pause qui s'achève le mardi soir doit être
-   levée avant la distribution du mercredi matin : avec un seul passage par jour,
-   calé sur l'heure de démarrage du serveur, rien ne le garantit. Une requête
-   indexée par heure ne coûte rien au regard d'un panier non préparé. */
-const CHECK_INTERVAL_MS = 60 * 60 * 1000;
-
-export function startPauseResumeJob() {
-  // Vérification immédiate au démarrage
-  applyPauseTransitions();
-
-  setInterval(applyPauseTransitions, CHECK_INTERVAL_MS);
-
-  console.log('[PauseJob] Job de suivi des pauses démarré (vérification horaire)');
+  // Le cas courant est qu'il n'y ait rien à faire : on ne l'écrit pas dans les
+  // logs, sans quoi le passage horaire noierait les lignes qui comptent.
+  if (endormis > 0) console.log(`[PauseJob] ${endormis} abonnement(s) mis en pause`);
+  if (candidats > 0) console.log(`[PauseJob] ${resumed}/${candidats} abonnement(s) réactivé(s)`);
 }

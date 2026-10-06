@@ -242,12 +242,11 @@ describe('Une newsletter bloquée en cours d\'envoi', () => {
   });
 });
 
-describe('Le balayage ne fait pas tomber le démarrage du serveur', () => {
-  it('avale une base injoignable et le dit', async () => {
+describe('Une base injoignable remonte au planificateur', () => {
+  it('laisse l\'erreur sortir pour que le cahier de bord note l\'échec', async () => {
     poserBase();
     base.subscriptions = null; // findMany lèvera
 
-    await expect(releaseOrphanFlags()).resolves.toBeUndefined();
-    expect(journal.join('\n')).toContain('[OrphanFlags] Erreur lors du balayage');
+    await expect(releaseOrphanFlags()).rejects.toThrow();
   });
 });

@@ -27,40 +27,29 @@ async function destinatairesDe(newsletter) {
 }
 
 export async function envoyerNewslettersProgrammees() {
-  try {
-    const maintenant = new Date();
+  const maintenant = new Date();
 
-    const dues = await prisma.newsletter.findMany({
-      where: {
-        scheduledFor: { lte: maintenant },
-        status: { in: ETATS_DE_DEPART },
-      },
-    });
+  const dues = await prisma.newsletter.findMany({
+    where: {
+      scheduledFor: { lte: maintenant },
+      status: { in: ETATS_DE_DEPART },
+    },
+  });
 
-    for (const newsletter of dues) {
-      if (maintenant - newsletter.scheduledFor > RETARD_MAX_MS) {
-        console.warn(`[NewsletterProgrammée] ${newsletter.id} périmée, repassée en brouillon : attendue le ${newsletter.scheduledFor.toISOString()}`);
-        await prisma.newsletter.update({ where: { id: newsletter.id }, data: { scheduledFor: null } });
-        continue;
-      }
-
-      const recipients = await destinatairesDe(newsletter);
-
-      // Le drapeau tranche aussi entre deux instances.
-      if (!await reserverNewsletter(newsletter.id)) continue;
-
-      console.log(`[NewsletterProgrammée] ${newsletter.id} lancée vers ${recipients.length} destinataire(s)`);
-
-      await diffuserNewsletter({ id: newsletter.id, newsletter, recipients, trace: ACTEUR_SYSTEME });
+  for (const newsletter of dues) {
+    if (maintenant - newsletter.scheduledFor > RETARD_MAX_MS) {
+      console.warn(`[NewsletterProgrammée] ${newsletter.id} périmée, repassée en brouillon : attendue le ${newsletter.scheduledFor.toISOString()}`);
+      await prisma.newsletter.update({ where: { id: newsletter.id }, data: { scheduledFor: null } });
+      continue;
     }
-  } catch (error) {
-    console.error('[NewsletterProgrammée] Erreur lors du balayage des newsletters dues :', error);
+
+    const recipients = await destinatairesDe(newsletter);
+
+    // Le drapeau tranche aussi entre deux instances.
+    if (!await reserverNewsletter(newsletter.id)) continue;
+
+    console.log(`[NewsletterProgrammée] ${newsletter.id} lancée vers ${recipients.length} destinataire(s)`);
+
+    await diffuserNewsletter({ id: newsletter.id, newsletter, recipients, trace: ACTEUR_SYSTEME });
   }
-}
-
-export function startScheduledNewsletterJob() {
-  envoyerNewslettersProgrammees();
-  setInterval(envoyerNewslettersProgrammees, 15 * 60 * 1000);
-
-  console.log('[NewsletterProgrammée] Envoi des newsletters programmées actif (toutes les 15 minutes)');
 }

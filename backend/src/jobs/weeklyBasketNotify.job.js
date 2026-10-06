@@ -33,48 +33,35 @@ const itemsInclude = {
 };
 
 export async function reprendreNotificationsPaniers() {
-  try {
-    /* notifyingSince non nul est la condition qui compte : c'est la marque
-       d'une boucle commencée et jamais terminée. Une boucle qui va au bout
-       relâche le drapeau, et le panier sort d'ici pour toujours.
+  /* notifyingSince non nul est la condition qui compte : c'est la marque
+     d'une boucle commencée et jamais terminée. Une boucle qui va au bout
+     relâche le drapeau, et le panier sort d'ici pour toujours.
 
-       Sans elle, tout panier publié dont la distribution est à venir serait
-       candidat — y compris ceux publiés avant que ce mécanisme existe, qui
-       n'ont aucune trace dans EmailLog et à qui la reprise réécrirait
-       intégralement. C'est ce qui serait arrivé à la mise en service. */
-    const candidats = await prisma.weeklyBasket.findMany({
-      where: {
-        isPublished: true,
-        notifyingSince: { not: null },
-        distributionDate: { gte: new Date() },
-      },
-      include: itemsInclude,
-    });
+     Sans elle, tout panier publié dont la distribution est à venir serait
+     candidat — y compris ceux publiés avant que ce mécanisme existe, qui
+     n'ont aucune trace dans EmailLog et à qui la reprise réécrirait
+     intégralement. C'est ce qui serait arrivé à la mise en service. */
+  const candidats = await prisma.weeklyBasket.findMany({
+    where: {
+      isPublished: true,
+      notifyingSince: { not: null },
+      distributionDate: { gte: new Date() },
+    },
+    include: itemsInclude,
+  });
 
-    for (const panier of candidats) {
-      const restants = await destinatairesRestants(panier.id);
+  for (const panier of candidats) {
+    const restants = await destinatairesRestants(panier.id);
 
-      if (restants.length === 0) continue;
+    if (restants.length === 0) continue;
 
-      /* Le drapeau tranche : s'il est tenu par une boucle vivante, la
-         réservation échoue et on passe au suivant. C'est aussi ce qui empêche
-         deux instances de reprendre le même panier. */
-      if (!await reserverNotification(panier.id)) continue;
+    /* Le drapeau tranche : s'il est tenu par une boucle vivante, la
+       réservation échoue et on passe au suivant. C'est aussi ce qui empêche
+       deux instances de reprendre le même panier. */
+    if (!await reserverNotification(panier.id)) continue;
 
-      console.warn(`[PanierNotify] Panier ${panier.id} repris : ${restants.length} abonné(s) n'avaient rien reçu`);
+    console.warn(`[PanierNotify] Panier ${panier.id} repris : ${restants.length} abonné(s) n'avaient rien reçu`);
 
-      await diffuserPanier({ basket: panier, recipients: restants });
-    }
-  } catch (error) {
-    console.error('[PanierNotify] Erreur lors de la reprise des notifications :', error);
+    await diffuserPanier({ basket: panier, recipients: restants });
   }
-}
-
-// Le passage au démarrage est le plus utile : la panne est presque toujours un
-// redéploiement.
-export function startWeeklyBasketNotifyJob() {
-  reprendreNotificationsPaniers();
-  setInterval(reprendreNotificationsPaniers, 60 * 60 * 1000);
-
-  console.log('[PanierNotify] Reprise des notifications de panier active (toutes les heures)');
 }

@@ -74,3 +74,11 @@ if (!process.env.BREVO_WEBHOOK_SECRET) {
   console.warn('⚠️  BREVO_WEBHOOK_SECRET manquant : le webhook Brevo refusera tous les appels,');
   console.warn('   aucun rebond ni plainte pour spam ne sera enregistré.');
 }
+
+/* Secret de l'horloge externe des jobs. Même logique que le webhook : sans lui
+   la route refuse tout, et sur Render gratuit les jobs ne tournent plus que
+   lorsqu'un visiteur réveille le serveur. */
+if (!process.env.JOBS_SECRET) {
+  console.warn('⚠️  JOBS_SECRET manquant : la route des jobs refusera tous les appels,');
+  console.warn('   les jobs ne tourneront que lorsque le serveur est éveillé par du trafic.');
+}

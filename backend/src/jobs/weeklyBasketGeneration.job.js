@@ -8,7 +8,6 @@ import { findClosureCovering } from '../services/closure.service.js';
 const DISTRIBUTION_DAY = 3;
 const GENERATION_DAY = 4;
 const GENERATION_HOUR = 2;
-const CHECK_INTERVAL_MS = 60 * 60 * 1000;
 const PARIS_TIME_ZONE = 'Europe/Paris';
 const WEEKDAY_NUMBERS = {
   Sun: 0,
@@ -81,18 +80,4 @@ export async function generateNextWeeklyBasket(now = new Date()) {
 
   console.log(`[WeeklyBasketJob] Panier semaine ${weekNumber}/${year} prêt pour publication`);
   return basket;
-}
-
-export function startWeeklyBasketGenerationJob() {
-  generateNextWeeklyBasket().catch(error => {
-    console.error('[WeeklyBasketJob] Erreur de génération:', error);
-  });
-
-  setInterval(() => {
-    generateNextWeeklyBasket().catch(error => {
-      console.error('[WeeklyBasketJob] Erreur de génération:', error);
-    });
-  }, CHECK_INTERVAL_MS);
-
-  console.log('[WeeklyBasketJob] Job démarré (jeudi après 02:00, rattrapage jusqu’au mardi)');
 }

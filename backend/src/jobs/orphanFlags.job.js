@@ -90,33 +90,20 @@ async function refermerNewslettersBloquees() {
   }
 }
 
-// Exportée pour être déclenchable seule.
 export async function releaseOrphanFlags() {
-  try {
-    await relacherDrapeauxSimples({
-      modele: 'subscription',
-      champ: 'renewalReminderSentAt',
-      kind: 'RENEWAL_REMINDER',
-      intitule: 'rappel(s) de renouvellement',
-    });
+  await relacherDrapeauxSimples({
+    modele: 'subscription',
+    champ: 'renewalReminderSentAt',
+    kind: 'RENEWAL_REMINDER',
+    intitule: 'rappel(s) de renouvellement',
+  });
 
-    await relacherDrapeauxSimples({
-      modele: 'payment',
-      champ: 'reminderSentAt',
-      kind: 'CHEQUE_DEPOSIT_NOTICE',
-      intitule: 'avis de dépôt de chèque',
-    });
+  await relacherDrapeauxSimples({
+    modele: 'payment',
+    champ: 'reminderSentAt',
+    kind: 'CHEQUE_DEPOSIT_NOTICE',
+    intitule: 'avis de dépôt de chèque',
+  });
 
-    await refermerNewslettersBloquees();
-  } catch (error) {
-    console.error('[OrphanFlags] Erreur lors du balayage des drapeaux :', error);
-  }
-}
-
-// Le passage au démarrage est le plus utile : la panne est presque toujours un
-// redéploiement.
-export function startOrphanFlagsJob() {
-  releaseOrphanFlags();
-  setInterval(releaseOrphanFlags, 60 * 60 * 1000);
-  console.log('[OrphanFlags] Balayage des drapeaux d\'envoi démarré (au démarrage, puis toutes les heures)');
+  await refermerNewslettersBloquees();
 }

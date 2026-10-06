@@ -31,6 +31,8 @@ export default defineConfig({
       PUBLIC_API_URL: 'https://api.auxptitspois.test/api',
       // Le laissez-passer du webhook Brevo, sans lequel la route refuse tout.
       BREVO_WEBHOOK_SECRET: 'secret-de-webhook-sans-valeur-hors-de-cette-suite',
+      // Le laissez-passer de l'horloge externe des jobs.
+      JOBS_SECRET: 'secret-des-jobs-sans-valeur-hors-de-cette-suite',
     },
   },
 });

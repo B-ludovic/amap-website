@@ -951,3 +951,27 @@ enum EmailKind {
   PRODUCER_INQUIRY_REJECTED
   CONTACT_MESSAGE
 }
+
+
+// TÂCHES PLANIFIÉES //
+
+// Une ligne par job : sa dernière exécution survit aux redémarrages, que
+// Render gratuit provoque à chaque réveil.
+model JobRun {
+  name       String        @id
+  startedAt  DateTime?
+  finishedAt DateTime?
+  status     JobRunStatus?
+  error      String?       @db.Text
+
+  // La version en ligne et depuis quand : la purge RGPD attend une heure après
+  // chaque déploiement.
+  version      String?
+  versionSince DateTime?
+}
+
+enum JobRunStatus {
+  RUNNING
+  SUCCEEDED
+  FAILED
+}

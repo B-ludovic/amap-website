@@ -218,6 +218,7 @@ BREVO_SMTP_USER=...        # login SMTP Brevo (Settings → SMTP et API)
 BREVO_SMTP_KEY=...         # clé SMTP Brevo
 EMAIL_FROM=...             # adresse d'expédition, sur le domaine signé chez Brevo
 BREVO_WEBHOOK_SECRET=...   # laissez-passer du webhook (openssl rand -hex 32)
+JOBS_SECRET=...            # laissez-passer de l'horloge des jobs (openssl rand -hex 32)
 PUBLIC_API_URL=https://api.auxptitspois.fr/api   # suffixe /api compris
 PUPPETEER_DISABLE_SANDBOX= # « true » seulement si Chromium refuse de démarrer
 ```
@@ -237,6 +238,13 @@ PUPPETEER_DISABLE_SANDBOX= # « true » seulement si Chromium refuse de démarre
 > aucun rebond ne remonte ; l'écran de suivi le dit alors franchement plutôt que
 > d'afficher zéro rebond, qui se lirait comme une bonne nouvelle. Voir « Retours
 > du relais » ci-dessous pour le branchement.
+
+> `JOBS_SECRET` garde `POST /api/jobs/tick`, la route que l'horloge externe
+> appelle pour réveiller le serveur et lancer les jobs dus (voir
+> « Automatisations »). Même principe que le webhook : une valeur inventée,
+> recopiée à l'identique dans l'horloge, portée en `Authorization: Bearer`. Sans
+> elle la route refuse tout, et les jobs ne tournent plus que lorsqu'un visiteur
+> réveille le serveur.
 
 > `PUBLIC_API_URL` ne sert qu'aux en-têtes de désabonnement des newsletters.
 > Gmail et Yahoo affichent leur propre bouton « Se désabonner » et postent
@@ -450,22 +458,42 @@ Espace dédié de 18 écrans, pagination unifiée sur toutes les listes :
 - **Aide** : guide d'utilisation intégré, écran par écran, à destination des bénévoles du bureau
 
 ### Automatisations
-Neuf tâches tournent avec le serveur, sans planificateur externe :
+Neuf tâches planifiées, orchestrées par `backend/src/jobs/scheduler.js`. Chacune
+déclare sa période (15 minutes, une heure ou un jour), et la table `JobRun` tient
+le cahier de bord : la dernière exécution de chaque job, son statut et son
+éventuel message d'échec. Trois portes mènent au planificateur, qui pose à
+chaque fois la même question au cahier — quel job n'a pas tourné depuis sa
+période ? :
+
+- **le démarrage du serveur** : sur Render gratuit, chaque réveil rattrape ce qui est dû ;
+- **une minuterie de 15 minutes**, tant que le serveur est éveillé ;
+- **`POST /api/jobs/tick`**, appelée chaque heure par une horloge externe qui réveille le serveur endormi.
+
+Un job est pris par compare-and-set en base avant de tourner : deux passages
+croisés, ou deux instances, ne le lancent jamais deux fois. La route répond 500
+quand un job a échoué, pour que l'horloge le signale. Pour savoir où en est
+chaque job :
+
+```sql
+SELECT name, status, "startedAt", "finishedAt", error FROM "JobRun" ORDER BY name;
+```
+
+Les neuf tâches :
 - **Rappel de renouvellement** : email aux abonnés dont le contrat expire dans 30 jours (une seule fois par abonnement)
 - **Clôture des abonnements échus** : passage en `EXPIRED` des contrats arrivés au terme, avec email d'avis — sauf pour les contrats échus depuis plus de 7 jours, clôturés en silence
 - **Entrée et sortie de pause** : balayage horaire de toute la base pour activer et terminer les pauses individuelles à leur date, tracé au journal d'audit
 - **Rappels du cycle du chèque** : l'adhérent est prévenu 30 jours avant le dépôt de son chèque, le trésorier reçoit la liste de remise 7 jours avant, avec relance des chèques toujours en pochette
-- **Purge RGPD** : suppression définitive des comptes supprimés depuis 90 jours et des inscriptions non vérifiées depuis 30 jours, en transaction et sur prédicat relationnel (un compte restauré entre-temps échappe à la purge) ; chaque passage est consigné au journal d'audit, même quand il n'a rien purgé
+- **Purge RGPD** : suppression définitive des comptes supprimés depuis 90 jours et des inscriptions non vérifiées depuis 30 jours, en transaction et sur prédicat relationnel (un compte restauré entre-temps échappe à la purge) ; chaque passage est consigné au journal d'audit, même quand il n'a rien purgé. Seul job qui détruit, elle attend une heure après chaque déploiement (repéré par `RENDER_GIT_COMMIT`), le temps de vérifier la version mise en ligne — un simple réveil, lui, ne la retient pas
 - **Génération du panier** : chaque jeudi à 2h (Europe/Paris) pour la distribution du mercredi suivant, tirage dans le catalogue de la saison en cours et hors fermes absentes, sautée si une fermeture couvre la semaine
 - **Reprise d'annonce de panier** : une notification de publication interrompue en plein envoi (redéploiement, crash) est terminée au redémarrage, sans doubler les adresses déjà servies
 - **Newsletters programmées** : envoi de celles dont l'heure est passée, avec garde-fou contre l'envoi en rafale de textes périmés après un long arrêt du serveur
 - **Drapeaux orphelins** : les verrous d'envoi laissés levés par un processus mort sont relâchés, pour que l'envoi concerné puisse être retenté
 
-> Ces tâches vivent dans le processus web lui-même : sur un hébergeur qui endort
-> le service inactif (Render en version gratuite), elles ne se déclenchent que si
-> le serveur est éveillé à l'heure dite. Avant l'ouverture au public, il faudra
-> soit une instance toujours active, soit un planificateur externe qui réveille
-> l'API aux heures des jobs.
+> Sans horloge externe, rien ne casse mais tout attend un visiteur : sur Render
+> gratuit, le serveur s'endort après 15 minutes sans trafic, et les jobs dus ne
+> partent qu'au réveil suivant. C'est l'horloge qui tient les promesses datées —
+> l'effacement à 90 jours annoncé à qui supprime son compte, l'heure d'une
+> newsletter programmée.
 
 ### Tarification & contrats
 Le prix d'un contrat ne s'écrit nulle part à la main : il se déduit de deux nombres, le prix hebdomadaire du panier et le nombre de semaines réellement livrées.

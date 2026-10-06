@@ -30,15 +30,8 @@ import contactRoutes from './routes/contact.routes.js';
 import closuresRoutes from './routes/closures.routes.js';
 import producerAbsencesRoutes from './routes/producer-absences.routes.js';
 import emailsRoutes from './routes/emails.routes.js';
-import { startRenewalReminderJob } from './jobs/renewalReminder.job.js';
-import { startDataRetentionJob } from './jobs/dataRetention.job.js';
-import { startWeeklyBasketGenerationJob } from './jobs/weeklyBasketGeneration.job.js';
-import { startChequeReminderJob } from './jobs/chequeReminder.job.js';
-import { startPauseResumeJob } from './jobs/pauseResume.job.js';
-import { startOrphanFlagsJob } from './jobs/orphanFlags.job.js';
-import { startWeeklyBasketNotifyJob } from './jobs/weeklyBasketNotify.job.js';
-import { startScheduledNewsletterJob } from './jobs/scheduledNewsletter.job.js';
-import { startSubscriptionExpiryJob } from './jobs/subscriptionExpiry.job.js';
+import jobsRoutes from './routes/jobs.routes.js';
+import { startScheduler } from './jobs/scheduler.js';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -263,6 +256,7 @@ app.use('/api/closures', closuresRoutes);
 app.use('/api/producer-absences', producerAbsencesRoutes);
 app.use('/api/emails/brevo', webhookLimiter);
 app.use('/api/emails', emailsRoutes);
+app.use('/api/jobs', jobsRoutes);
 
 // Route 404 - si aucune route ne correspond
 app.use((_req, res) => {
@@ -280,15 +274,7 @@ app.use(errorHandler);
 const startServer = async () => {
   try {
     await connectDB();
-    startRenewalReminderJob();
-    startDataRetentionJob();
-    startWeeklyBasketGenerationJob();
-    startChequeReminderJob();
-    startPauseResumeJob();
-    startOrphanFlagsJob();
-    startWeeklyBasketNotifyJob();
-    startScheduledNewsletterJob();
-    startSubscriptionExpiryJob();
+    startScheduler();
 
     app.listen(PORT, () => {
       console.log(`✅ Serveur backend démarré sur http://localhost:${PORT}`);

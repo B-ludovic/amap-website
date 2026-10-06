@@ -191,20 +191,8 @@ async function remindTreasurer(now) {
   console.error('[ChequeJob] Échec récapitulatif trésorier:', result.error);
 }
 
-/* Exportée pour être déclenchable seule — le job périodique n'est qu'un
-   ordonnanceur, la logique est ici. */
 export async function checkChequeReminders() {
-  try {
-    const now = new Date();
-    await remindMembers(now);
-    await remindTreasurer(now);
-  } catch (error) {
-    console.error('[ChequeJob] Erreur lors de la vérification des chèques:', error);
-  }
-}
-
-export function startChequeReminderJob() {
-  checkChequeReminders();
-  setInterval(checkChequeReminders, 24 * 60 * 60 * 1000);
-  console.log('[ChequeJob] Job de rappel des chèques démarré (vérification quotidienne)');
+  const now = new Date();
+  await remindMembers(now);
+  await remindTreasurer(now);
 }
