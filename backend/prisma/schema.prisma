@@ -489,10 +489,15 @@ model ShiftVolunteer {
   @@index([userId])
 }
 
+/* PENDING et REFUSED sont les deux issues d'une proposition d'adhérent : en
+   attente de la décision d'un admin, ou écartée par lui, sans motif. Seul
+   CONFIRMED occupe une place. */
 enum VolunteerStatus {
   CONFIRMED
   CANCELLED
   ABSENT
+  PENDING
+  REFUSED
 }
 
 
@@ -935,6 +940,7 @@ enum EmailKind {
   SHIFT_CONFIRMATION
   SHIFT_CANCELLATION
   SHIFT_WITHDRAWAL
+  SHIFT_REFUSAL
   WEEKLY_BASKET
   NEWSLETTER
   PRODUCER_INQUIRY_CONFIRMATION

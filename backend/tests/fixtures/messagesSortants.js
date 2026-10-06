@@ -106,6 +106,10 @@ export function messagesSortants(emails) {
       envoyer: () => emails.sendShiftConfirmation(permanence, adherente),
     },
     {
+      nom: 'proposition de permanence non retenue', methode: 'sendShiftRefusal', kind: 'SHIFT_REFUSAL', public: 'adherent',
+      envoyer: () => emails.sendShiftRefusal(permanence, adherente),
+    },
+    {
       nom: 'permanence annulée', methode: 'sendShiftCancellation', kind: 'SHIFT_CANCELLATION', public: 'adherent',
       envoyer: () => emails.sendShiftCancellation(permanence, adherente),
     },

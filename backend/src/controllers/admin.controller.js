@@ -923,7 +923,7 @@ const getStats = asyncHandler(async (req, res) => {
         where: { distributionDate: { gte: dayStart, lt: dayEnd } },
         select: {
           volunteersNeeded: true,
-          _count: { select: { volunteers: true } }
+          _count: { select: { volunteers: { where: { status: 'CONFIRMED' } } } }
         }
       });
 

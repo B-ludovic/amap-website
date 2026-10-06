@@ -287,8 +287,15 @@ const getSubscriptionById = asyncHandler(async (req, res) => {
           lastName: true,
           phone: true,
           /* Permanences tenues par l'adhérent : la fiche de contrat les
-             affiche, or elles pendent à l'utilisateur et non au contrat. */
-          _count: { select: { shiftVolunteers: true } }
+             affiche, or elles pendent à l'utilisateur et non au contrat.
+             Tenue veut dire confirmée et passée, ni proposée ni à venir. */
+          _count: {
+            select: {
+              shiftVolunteers: {
+                where: { status: 'CONFIRMED', shift: { distributionDate: { lt: new Date() } } }
+              }
+            }
+          }
         }
       },
       pickupLocation: true,

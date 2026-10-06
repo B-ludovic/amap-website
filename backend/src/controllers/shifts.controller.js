@@ -5,12 +5,29 @@ import {
     HttpNotFoundError,
     HttpBadRequestError,
     HttpConflictError,
+    HttpForbiddenError,
     httpStatusCodes
 } from '../utils/httpErrors.js';
 import { findClosureCovering, describeClosure } from '../services/closure.service.js';
 import { logAudit } from '../services/audit.service.js';
 
+// L'équipe : les états qu'un admin pose à la main. Une proposition n'en fait pas partie.
 const VOLUNTEER_STATUSES = ['CONFIRMED', 'CANCELLED', 'ABSENT'];
+
+/* Un adhérent voit l'équipe confirmée et sa propre ligne, jamais les propositions
+   des autres : un refus est à la discrétion de l'admin et ne regarde que l'intéressé. */
+const visibleCrew = (volunteers, userId) =>
+  volunteers.filter((volunteer) => volunteer.status === 'CONFIRMED' || volunteer.userId === userId);
+
+/* Toute confirmation se dit à l'intéressé, qu'elle vienne d'une proposition
+   acceptée ou d'un placement direct. Rend le nombre d'envois échoués. */
+async function announceConfirmed(shift, volunteers) {
+  const envois = await Promise.all(
+    volunteers.map((volunteer) => emailService.sendShiftConfirmation(shift, volunteer.user))
+  );
+
+  return envois.filter((envoi) => !envoi.success).length;
+}
 
 /* Pas de distribution un jour de fermeture, donc pas de permanence : inscrire
    des bénévoles ce jour-là leur promettrait un rendez-vous qui n'aura pas
@@ -81,13 +98,16 @@ const getAllShifts = asyncHandler(async (req, res) => {
     })
   ]);
 
-  // Ajouter info : complet ou non
-  const shiftsWithStatus = shifts.map(shift => ({
-    ...shift,
-    ...(!isAdmin && { notes: undefined }),
-    isFull: shift.volunteers.filter(v => v.status === 'CONFIRMED').length >= shift.volunteersNeeded,
-    confirmedCount: shift.volunteers.filter(v => v.status === 'CONFIRMED').length
-  }));
+  const shiftsWithStatus = shifts.map(shift => {
+    const confirmedCount = shift.volunteers.filter(v => v.status === 'CONFIRMED').length;
+
+    return {
+      ...shift,
+      ...(!isAdmin && { notes: undefined, volunteers: visibleCrew(shift.volunteers, req.user.id) }),
+      isFull: confirmedCount >= shift.volunteersNeeded,
+      confirmedCount
+    };
+  });
 
   res.json({
     success: true,
@@ -139,7 +159,7 @@ const getShiftById = asyncHandler(async (req, res) => {
     success: true,
     data: {
       ...shift,
-      ...(!isAdmin && { notes: undefined })
+      ...(!isAdmin && { notes: undefined, volunteers: visibleCrew(shift.volunteers, req.user.id) })
     }
   });
 });
@@ -190,10 +210,16 @@ const createShift = asyncHandler(async (req, res) => {
     label: shift.distributionDate.toISOString()
   }, { volunteersCount: shift.volunteers.length });
 
+  const notificationFailures = await announceConfirmed(
+    shift,
+    shift.volunteers.filter((volunteer) => volunteer.status === 'CONFIRMED')
+  );
+
   res.status(httpStatusCodes.CREATED).json({
     success: true,
     message: 'Permanence créée avec succès',
-    data: shift
+    data: shift,
+    notificationFailures
   });
 });
 
@@ -225,13 +251,18 @@ const updateShift = asyncHandler(async (req, res) => {
      dans la liste, on ajoute les nouveaux, et on ne touche pas aux inscriptions
      qui restent. Vider puis recréer effaçait le rôle et la date d'inscription
      des bénévoles qui n'avaient pourtant pas bougé. */
-  const updatedShift = await prisma.$transaction(async (tx) => {
+  const { updatedShift, newlyConfirmed } = await prisma.$transaction(async (tx) => {
+    const newlyConfirmed = new Set();
+
     if (Array.isArray(volunteers)) {
       const wantedIds = new Set(volunteers.map(v => v.userId).filter(Boolean));
       const current = await tx.shiftVolunteer.findMany({ where: { shiftId: id } });
       const currentIds = new Set(current.map(v => v.userId));
 
-      const removed = current.filter(v => !wantedIds.has(v.userId)).map(v => v.id);
+      // Le formulaire ne porte que l'équipe : une proposition absente de sa liste n'est pas retirée.
+      const removed = current
+        .filter(v => VOLUNTEER_STATUSES.includes(v.status) && !wantedIds.has(v.userId))
+        .map(v => v.id);
       if (removed.length > 0) {
         await tx.shiftVolunteer.deleteMany({ where: { id: { in: removed } } });
       }
@@ -246,10 +277,23 @@ const updateShift = asyncHandler(async (req, res) => {
             status: v.status || 'CONFIRMED'
           }))
         });
+        added
+          .filter(v => (v.status || 'CONFIRMED') === 'CONFIRMED')
+          .forEach(v => newlyConfirmed.add(v.userId));
+      }
+
+      // Placer quelqu'un qui s'était proposé vaut acceptation, même après un refus.
+      const promoted = current.filter(v => wantedIds.has(v.userId) && !VOLUNTEER_STATUSES.includes(v.status));
+      if (promoted.length > 0) {
+        await tx.shiftVolunteer.updateMany({
+          where: { id: { in: promoted.map(v => v.id) } },
+          data: { status: 'CONFIRMED' }
+        });
+        promoted.forEach(v => newlyConfirmed.add(v.userId));
       }
     }
 
-    return tx.shift.update({
+    const updatedShift = await tx.shift.update({
       where: { id },
       data: {
         ...(distributionDate && { distributionDate: new Date(distributionDate) }),
@@ -273,6 +317,8 @@ const updateShift = asyncHandler(async (req, res) => {
         }
       }
     });
+
+    return { updatedShift, newlyConfirmed };
   });
 
   await logAudit(req, 'UPDATE_SHIFT', 'IMPORTANT', {
@@ -284,10 +330,16 @@ const updateShift = asyncHandler(async (req, res) => {
     after: { distributionDate: updatedShift.distributionDate, volunteerIds: updatedShift.volunteers.map(volunteer => volunteer.userId) }
   });
 
+  const notificationFailures = await announceConfirmed(
+    updatedShift,
+    updatedShift.volunteers.filter((volunteer) => newlyConfirmed.has(volunteer.userId) && volunteer.status === 'CONFIRMED')
+  );
+
   res.json({
     success: true,
     message: 'Permanence modifiée avec succès',
-    data: updatedShift
+    data: updatedShift,
+    notificationFailures
   });
 });
 
@@ -322,7 +374,9 @@ const deleteShift = asyncHandler(async (req, res) => {
      message n'est pas parti. Mais le décompte remonte à l'écran, sinon deux
      bénévoles se présentent devant un local fermé. */
   const envois = await Promise.all(
-    shift.volunteers.map((volunteer) => emailService.sendShiftCancellation(shift, volunteer.user))
+    shift.volunteers
+      .filter((volunteer) => volunteer.status === 'CONFIRMED')
+      .map((volunteer) => emailService.sendShiftCancellation(shift, volunteer.user))
   );
 
   const echecs = envois.filter((envoi) => !envoi.success).length;
@@ -341,10 +395,10 @@ const deleteShift = asyncHandler(async (req, res) => {
   });
 });
 
-// S'INSCRIRE À UNE PERMANENCE (ADHÉRENT)
-const joinShift = asyncHandler(async (req, res) => {
+// SE PROPOSER POUR UNE PERMANENCE (ADHÉRENT)
+// Une proposition n'occupe aucune place : seul un admin la confirme ou la refuse.
+const proposeShift = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { role } = req.body;
   const userId = req.user.id;
 
   const shift = await prisma.shift.findUnique({ where: { id } });
@@ -353,64 +407,58 @@ const joinShift = asyncHandler(async (req, res) => {
     throw new HttpNotFoundError('Permanence introuvable');
   }
 
+  if (shift.distributionDate < new Date()) {
+    throw new HttpBadRequestError('Cette permanence est passée');
+  }
+
   await refuseIfClosed(shift.distributionDate);
 
-  /* Compter les places puis insérer en deux requêtes séparées laissait passer
-     autant d'inscriptions que de clics simultanés : chacune lisait « il reste
-     une place » avant que la précédente ne soit écrite. Le verrou de ligne sur
-     la permanence met les inscriptions concurrentes à la queue leu leu, si bien
-     que le compte lu est toujours le compte réel.
-
-     L'envoi de l'email reste dehors : on ne tient pas un verrou de base le
-     temps d'un aller-retour SMTP. */
-  const volunteer = await prisma.$transaction(async (tx) => {
-    await tx.$queryRaw`SELECT id FROM "Shift" WHERE id = ${id} FOR UPDATE`;
-
-    const existing = await tx.shiftVolunteer.findUnique({
-      where: { shiftId_userId: { shiftId: id, userId } }
-    });
-
-    /* Une inscription annulée n'est pas une inscription : la refuser enfermait
-       l'adhérent dans une impasse, puisque la contrainte d'unicité lui
-       interdisait aussi d'en créer une seconde. On la réactive. */
-    if (existing && existing.status !== 'CANCELLED') {
-      throw new HttpConflictError('Vous êtes déjà inscrit à cette permanence');
-    }
-
-    const confirmed = await tx.shiftVolunteer.count({
-      where: { shiftId: id, status: 'CONFIRMED' }
-    });
-
-    if (confirmed >= shift.volunteersNeeded) {
-      throw new HttpConflictError('Cette permanence est complète');
-    }
-
-    const crewSelect = {
-      user: {
-        select: { id: true, firstName: true, lastName: true, email: true }
-      }
-    };
-
-    if (existing) {
-      return tx.shiftVolunteer.update({
-        where: { id: existing.id },
-        data: { status: 'CONFIRMED', role: role || existing.role || 'Distribution' },
-        include: crewSelect
-      });
-    }
-
-    return tx.shiftVolunteer.create({
-      data: { shiftId: id, userId, role: role || 'Distribution', status: 'CONFIRMED' },
-      include: crewSelect
-    });
+  // Être adhérent, c'est avoir un contrat en cours qui couvre la date de la distribution.
+  const contrat = await prisma.subscription.findFirst({
+    where: {
+      userId,
+      status: { in: ['ACTIVE', 'PAUSED'] },
+      startDate: { lte: shift.distributionDate },
+      endDate: { gte: shift.distributionDate }
+    },
+    select: { id: true }
   });
 
-  await emailService.sendShiftConfirmation(shift, volunteer.user);
+  if (!contrat) {
+    throw new HttpForbiddenError('Les permanences sont ouvertes aux adhérents dont le contrat couvre cette date');
+  }
+
+  const existing = await prisma.shiftVolunteer.findUnique({
+    where: { shiftId_userId: { shiftId: id, userId } }
+  });
+
+  if (existing?.status === 'REFUSED') {
+    throw new HttpConflictError('Vous ne pouvez pas vous proposer à nouveau pour cette date');
+  }
+
+  // Un désistement n'enferme personne : la ligne annulée redevient une proposition.
+  if (existing && existing.status !== 'CANCELLED') {
+    throw new HttpConflictError(existing.status === 'PENDING'
+      ? 'Votre proposition est déjà en attente'
+      : 'Vous êtes déjà inscrit à cette permanence');
+  }
+
+  const confirmed = await prisma.shiftVolunteer.count({
+    where: { shiftId: id, status: 'CONFIRMED' }
+  });
+
+  if (confirmed >= shift.volunteersNeeded) {
+    throw new HttpConflictError('Cette permanence est complète');
+  }
+
+  const proposal = existing
+    ? await prisma.shiftVolunteer.update({ where: { id: existing.id }, data: { status: 'PENDING' } })
+    : await prisma.shiftVolunteer.create({ data: { shiftId: id, userId, status: 'PENDING' } });
 
   res.status(httpStatusCodes.CREATED).json({
     success: true,
-    message: 'Inscription confirmée',
-    data: volunteer
+    message: 'Proposition envoyée',
+    data: proposal
   });
 });
 
@@ -446,6 +494,29 @@ const leaveShift = asyncHandler(async (req, res) => {
     throw new HttpConflictError('Vous vous êtes déjà désisté de cette permanence');
   }
 
+  if (volunteer.status === 'REFUSED') {
+    throw new HttpConflictError('Aucune proposition à retirer pour cette date');
+  }
+
+  /* Conditionnel à l'état lu : un admin a pu accepter la proposition entre-temps,
+     et ce retrait ne doit pas défaire une place confirmée hors de la règle des 48 h. */
+  const retirer = async () => {
+    const { count } = await prisma.shiftVolunteer.updateMany({
+      where: { id: volunteer.id, status: volunteer.status },
+      data: { status: 'CANCELLED' }
+    });
+
+    if (count === 0) {
+      throw new HttpConflictError('Votre inscription vient de changer : rechargez la page');
+    }
+  };
+
+  // Une proposition n'occupe aucune place : elle se retire à tout moment.
+  if (volunteer.status === 'PENDING') {
+    await retirer();
+    return res.json({ success: true, message: 'Proposition retirée' });
+  }
+
   // Vérifier délai (ex: 48h avant)
   const hoursBefore = (new Date(volunteer.shift.distributionDate) - new Date()) / (1000 * 60 * 60);
 
@@ -453,10 +524,7 @@ const leaveShift = asyncHandler(async (req, res) => {
     throw new HttpBadRequestError('Vous ne pouvez plus vous désister moins de 48h avant');
   }
 
-  await prisma.shiftVolunteer.update({
-    where: { id: volunteer.id },
-    data: { status: 'CANCELLED' }
-  });
+  await retirer();
 
   await emailService.sendShiftWithdrawal(volunteer.shift, volunteer.user);
 
@@ -489,6 +557,10 @@ const updateVolunteerStatus = asyncHandler(async (req, res) => {
     throw new HttpNotFoundError('Bénévole introuvable');
   }
 
+  if (!VOLUNTEER_STATUSES.includes(volunteer.status)) {
+    throw new HttpConflictError('Une proposition se traite par « Accepter » ou « Refuser »');
+  }
+
   const updated = await prisma.shiftVolunteer.update({
     where: { id: volunteer.id },
     data: { status }
@@ -504,6 +576,155 @@ const updateVolunteerStatus = asyncHandler(async (req, res) => {
     success: true,
     message: 'Statut mis à jour',
     data: updated
+  });
+});
+
+// PROPOSITIONS EN ATTENTE (ADMIN)
+const getPendingProposals = asyncHandler(async (req, res) => {
+  const now = new Date();
+
+  const proposals = await prisma.shiftVolunteer.findMany({
+    where: {
+      status: 'PENDING',
+      shift: { distributionDate: { gte: now } },
+      user: { deletedAt: null }
+    },
+    include: {
+      shift: true,
+      user: { select: { id: true, firstName: true, lastName: true, email: true } }
+    },
+    orderBy: [{ shift: { distributionDate: 'asc' } }, { createdAt: 'asc' }]
+  });
+
+  const userIds = [...new Set(proposals.map(p => p.userId))];
+  const shiftIds = [...new Set(proposals.map(p => p.shiftId))];
+
+  // Les permanences tenues depuis janvier aident à choisir entre plusieurs volontaires.
+  const [tenues, places] = await Promise.all([
+    prisma.shiftVolunteer.findMany({
+      where: {
+        userId: { in: userIds },
+        status: 'CONFIRMED',
+        shift: { distributionDate: { gte: new Date(Date.UTC(now.getUTCFullYear(), 0, 1)), lt: now } }
+      },
+      select: { userId: true }
+    }),
+    prisma.shiftVolunteer.findMany({
+      where: { shiftId: { in: shiftIds }, status: 'CONFIRMED' },
+      select: { shiftId: true }
+    })
+  ]);
+
+  const compter = (lignes, cle) => lignes.reduce((total, ligne) => total.set(ligne[cle], (total.get(ligne[cle]) ?? 0) + 1), new Map());
+  const tenuesParAdherent = compter(tenues, 'userId');
+  const confirmesParPermanence = compter(places, 'shiftId');
+
+  res.json({
+    success: true,
+    data: proposals.map(proposal => ({
+      ...proposal,
+      shiftsDoneThisYear: tenuesParAdherent.get(proposal.userId) ?? 0,
+      confirmedCount: confirmesParPermanence.get(proposal.shiftId) ?? 0
+    }))
+  });
+});
+
+// ACCEPTER UNE PROPOSITION (ADMIN)
+const acceptProposal = asyncHandler(async (req, res) => {
+  const { shiftId, userId } = req.params;
+
+  /* Le verrou de ligne range les décisions concurrentes à la file : deux
+     acceptations simultanées ne dépassent pas l'effectif attendu. */
+  const volunteer = await prisma.$transaction(async (tx) => {
+    await tx.$queryRaw`SELECT id FROM "Shift" WHERE id = ${shiftId} FOR UPDATE`;
+
+    const proposal = await tx.shiftVolunteer.findUnique({
+      where: { shiftId_userId: { shiftId, userId } },
+      include: { shift: true }
+    });
+
+    if (!proposal || proposal.status !== 'PENDING') {
+      throw new HttpConflictError('Aucune proposition en attente pour ce bénévole');
+    }
+
+    if (proposal.shift.distributionDate < new Date()) {
+      throw new HttpBadRequestError('Cette permanence est passée');
+    }
+
+    await refuseIfClosed(proposal.shift.distributionDate);
+
+    const confirmed = await tx.shiftVolunteer.count({
+      where: { shiftId, status: 'CONFIRMED' }
+    });
+
+    if (confirmed >= proposal.shift.volunteersNeeded) {
+      throw new HttpConflictError('La permanence est déjà complète');
+    }
+
+    return tx.shiftVolunteer.update({
+      where: { id: proposal.id },
+      data: { status: 'CONFIRMED' },
+      include: { shift: true, user: { select: { firstName: true, email: true } } }
+    });
+  });
+
+  await logAudit(req, 'UPDATE_SHIFT_VOLUNTEER_STATUS', 'IMPORTANT', {
+    type: 'SHIFT_VOLUNTEER',
+    id: volunteer.id,
+    label: shiftId
+  }, { before: { status: 'PENDING' }, after: { status: 'CONFIRMED' } });
+
+  const envoi = await emailService.sendShiftConfirmation(volunteer.shift, volunteer.user);
+
+  res.json({
+    success: true,
+    message: envoi.success
+      ? 'Proposition acceptée'
+      : 'Proposition acceptée, mais l\'email n\'a pas pu partir : prévenez la personne autrement.',
+    notified: envoi.success,
+    data: volunteer
+  });
+});
+
+// REFUSER UNE PROPOSITION (ADMIN)
+// Le refus est à la discrétion de l'admin : aucun motif n'est demandé ni transmis.
+const refuseProposal = asyncHandler(async (req, res) => {
+  const { shiftId, userId } = req.params;
+
+  const proposal = await prisma.shiftVolunteer.findUnique({
+    where: { shiftId_userId: { shiftId, userId } },
+    include: { shift: true, user: { select: { firstName: true, email: true } } }
+  });
+
+  if (!proposal || proposal.status !== 'PENDING') {
+    throw new HttpConflictError('Aucune proposition en attente pour ce bénévole');
+  }
+
+  // Conditionnel : une acceptation concurrente l'emporte, le refus ne l'écrase pas.
+  const { count } = await prisma.shiftVolunteer.updateMany({
+    where: { id: proposal.id, status: 'PENDING' },
+    data: { status: 'REFUSED' }
+  });
+
+  if (count === 0) {
+    throw new HttpConflictError('Cette proposition vient d\'être traitée');
+  }
+
+  await logAudit(req, 'UPDATE_SHIFT_VOLUNTEER_STATUS', 'IMPORTANT', {
+    type: 'SHIFT_VOLUNTEER',
+    id: proposal.id,
+    label: shiftId
+  }, { before: { status: 'PENDING' }, after: { status: 'REFUSED' } });
+
+  const envoi = await emailService.sendShiftRefusal(proposal.shift, proposal.user);
+
+  res.json({
+    success: true,
+    message: envoi.success
+      ? 'Proposition refusée'
+      : 'Proposition refusée, mais l\'email n\'a pas pu partir.',
+    notified: envoi.success,
+    data: { ...proposal, status: 'REFUSED' }
   });
 });
 
@@ -588,9 +809,12 @@ export {
   createShift,
   updateShift,
   deleteShift,
-  joinShift,
+  proposeShift,
   leaveShift,
   updateVolunteerStatus,
+  getPendingProposals,
+  acceptProposal,
+  refuseProposal,
   getMyShifts,
   duplicateShift
 };

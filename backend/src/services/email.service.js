@@ -805,29 +805,51 @@ class EmailService {
     }, { kind: 'TREASURER_CHEQUE_DIGEST', ref: null });
   }
 
-  /* Permanence : Confirmation */
+  /* Permanence : Confirmation — proposition acceptée ou placement direct par un admin */
   async sendShiftConfirmation(shift, user) {
     const date = new Date(shift.distributionDate).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
     return this.#send({
       from: EMAIL_FROM,
       to: user.email,
-      subject: 'Confirmation d\'inscription à une permanence',
+      subject: `Permanence confirmée : ${date}`,
       html: renderEmail({
-        title: 'Inscription confirmée',
+        title: 'Permanence confirmée',
         content: `
             <p>Bonjour ${escapeHtml(user.firstName)},</p>
-            <p>Votre inscription à la permanence est <strong>confirmée</strong>.</p>
+            <p>Vous êtes inscrit(e) à la permanence du <strong>${date}</strong>.</p>
             <div class="info-box">
               <h3>Détails de la permanence</h3>
               <p><strong>Date :</strong> ${date}</p>
               ${shift.startTime ? `<p><strong>Horaire :</strong> ${escapeHtml(shift.startTime)}${shift.endTime ? ` - ${escapeHtml(shift.endTime)}` : ''}</p>` : ''}
             </div>
+            <p>Un empêchement ? Vous pouvez vous désister depuis <a href="${escapeHtml(`${process.env.FRONTEND_URL}/compte`)}">votre espace adhérent</a> jusqu'à 48 heures avant. Passé ce délai, prévenez le collectif à <a href="mailto:${AMAP_EMAIL}">${AMAP_EMAIL}</a>.</p>
             <p>Merci pour votre engagement dans l'AMAP !</p>
             <p>À bientôt,<br>L'équipe Aux P'tits Pois</p>`,
         footerNote: rgpdNote(user.email, 'suite à votre inscription à une permanence'),
       }),
     }, { kind: 'SHIFT_CONFIRMATION', ref: shift.id });
+  }
+
+  /* Permanence : Proposition non retenue. Le refus est à la discrétion de l'admin,
+     le message n'en donne donc aucun motif. */
+  async sendShiftRefusal(shift, user) {
+    const date = new Date(shift.distributionDate).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+    return this.#send({
+      from: EMAIL_FROM,
+      to: user.email,
+      subject: 'Votre proposition de permanence',
+      html: renderEmail({
+        title: 'Proposition non retenue',
+        content: `
+            <p>Bonjour ${escapeHtml(user.firstName)},</p>
+            <p>Merci de vous être proposé(e) pour la permanence du <strong>${date}</strong>. Votre proposition n'a pas été retenue pour cette date.</p>
+            <p>Le planning des autres distributions reste consultable depuis <a href="${escapeHtml(`${process.env.FRONTEND_URL}/compte`)}">votre espace adhérent</a>.</p>
+            <p>À bientôt,<br>L'équipe Aux P'tits Pois</p>`,
+        footerNote: rgpdNote(user.email, 'suite à votre proposition de permanence'),
+      }),
+    }, { kind: 'SHIFT_REFUSAL', ref: shift.id });
   }
 
   /* Permanence : Annulation */
@@ -1084,7 +1106,7 @@ class EmailService {
               <h3>Permanence concernée</h3>
               <p><strong>Date :</strong> ${date}</p>
             </div>
-            <p>Si vous souhaitez vous inscrire à une autre permanence, rendez-vous sur <a href="${process.env.FRONTEND_URL}/permanences">votre espace adhérent</a>.</p>
+            <p>Si vous souhaitez vous proposer pour une autre permanence, rendez-vous sur <a href="${escapeHtml(`${process.env.FRONTEND_URL}/compte`)}">votre espace adhérent</a>.</p>
             <p>À bientôt,<br>L'équipe Aux P'tits Pois</p>`,
         footerNote: rgpdNote(user.email, 'suite à votre désinscription d\'une permanence'),
       }),
