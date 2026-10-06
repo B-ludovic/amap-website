@@ -115,6 +115,33 @@ describe('L\'avis de désistement aux admins', () => {
   });
 });
 
+describe('La place libérée par un compte supprimé', () => {
+  it('le dit à l\'équipe sans parler de désistement ni de délai de 48 h', async () => {
+    await emails.sendShiftWithdrawalNotice(
+      permanence,
+      { email: 'claire@example.org', firstName: 'Claire' },
+      { volunteer: adherente, confirmedCount: 1, accountDeleted: true }
+    );
+    const { subject, text } = dernierMessage();
+
+    expect(subject).toBe('Place libérée : mercredi 2 septembre 2026');
+    expect(text).toContain('Le compte de Camille Renard a été supprimé');
+    expect(text).not.toContain('désisté');
+    expect(text).not.toContain('48 heures');
+  });
+
+  it('l\'accusé de suppression annonce les inscriptions annulées', async () => {
+    await emails.sendAccountDeleted(adherente, { effaceLe: new Date('2026-11-14T12:00:00Z'), permanencesLiberees: 2 });
+    expect(dernierMessage().text).toContain('Vos inscriptions à 2 permanences à venir sont annulées');
+
+    await emails.sendAccountDeleted(adherente, { effaceLe: new Date('2026-11-14T12:00:00Z'), permanencesLiberees: 1 });
+    expect(dernierMessage().text).toContain('Votre inscription à une permanence à venir est annulée');
+
+    await emails.sendAccountDeleted(adherente, { effaceLe: new Date('2026-11-14T12:00:00Z') });
+    expect(dernierMessage().text).not.toContain('permanence');
+  });
+});
+
 describe('Le désistement', () => {
   it('renvoie vers l\'espace adhérent, et non vers une page inexistante', async () => {
     await emails.sendShiftWithdrawal(permanence, adherente);

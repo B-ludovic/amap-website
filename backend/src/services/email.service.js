@@ -300,7 +300,7 @@ class EmailService {
      à échéance : dire les deux temps évite qu'un adhérent croie ses données
      déjà détruites, ou au contraire conservées sans terme. C'est aussi la seule
      fenêtre pendant laquelle une suppression accidentelle peut être défaite. */
-  async sendAccountDeleted(user, { effaceLe }) {
+  async sendAccountDeleted(user, { effaceLe, permanencesLiberees = 0 }) {
     return this.#send({
       from: EMAIL_FROM,
       to: user.email,
@@ -310,6 +310,12 @@ class EmailService {
         content: `
             <p>Bonjour ${escapeHtml(user.firstName)},</p>
             <p>Votre compte Aux P'tits Pois est fermé : la connexion n'est plus possible et vous ne recevrez plus aucun message de notre part.</p>
+            ${permanencesLiberees === 1
+              ? '<p>Votre inscription à une permanence à venir est annulée, et l\'équipe en est prévenue : vous n\'avez pas à venir la tenir.</p>'
+              : ''}
+            ${permanencesLiberees > 1
+              ? `<p>Vos inscriptions à ${permanencesLiberees} permanences à venir sont annulées, et l'équipe en est prévenue : vous n'avez pas à venir les tenir.</p>`
+              : ''}
             <div class="info-box">
               <h3>Ce que deviennent vos données</h3>
               <p>Vos contrats, règlements, retraits de panier et demandes d'abonnement seront <strong>effacés définitivement le ${longDate(effaceLe)}</strong>.</p>
@@ -833,27 +839,32 @@ class EmailService {
 
   /* Permanence : avis à un admin qu'une place confirmée se libère. Le désistement
      arrive au plus tard 48 h avant : le message dit ce qu'il reste à pourvoir. */
-  async sendShiftWithdrawalNotice(shift, admin, { volunteer, confirmedCount }) {
+  async sendShiftWithdrawalNotice(shift, admin, { volunteer, confirmedCount, accountDeleted = false }) {
     const date = new Date(shift.distributionDate).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
     const qui = `${escapeHtml(volunteer.firstName)} ${escapeHtml(volunteer.lastName)}`;
 
     return this.#send({
       from: EMAIL_FROM,
       to: admin.email,
-      subject: `Désistement : ${date}`,
+      subject: `${accountDeleted ? 'Place libérée' : 'Désistement'} : ${date}`,
       html: renderEmail({
         title: 'Une place se libère',
         eyebrow: 'Permanences',
         preheader: `${volunteer.firstName} ${volunteer.lastName} ne tiendra pas la permanence du ${date}.`,
         content: `
             <p>Bonjour ${escapeHtml(admin.firstName)},</p>
-            <p><strong>${qui}</strong> s'est désisté(e) de la permanence du <strong>${date}</strong>.</p>
+            ${accountDeleted
+              ? `<p>Le compte de <strong>${qui}</strong> a été supprimé : sa place à la permanence du <strong>${date}</strong> est libérée.</p>`
+              : `<p><strong>${qui}</strong> s'est désisté(e) de la permanence du <strong>${date}</strong>.</p>`}
             <div class="info-box">
               <h3>Où en est l'équipe</h3>
               ${shift.startTime ? `<p><strong>Horaire :</strong> ${escapeHtml(shift.startTime)}${shift.endTime ? ` - ${escapeHtml(shift.endTime)}` : ''}</p>` : ''}
               <p><strong>Bénévoles confirmés :</strong> ${confirmedCount} sur ${shift.volunteersNeeded}</p>
             </div>
-            <p>Il reste au moins 48 heures pour accepter une proposition en attente ou placer quelqu'un.</p>
+            ${accountDeleted
+              // Une suppression de compte n'attend pas le délai de 48 h d'un désistement.
+              ? '<p>Acceptez une proposition en attente ou placez quelqu\'un depuis l\'écran des permanences.</p>'
+              : '<p>Il reste au moins 48 heures pour accepter une proposition en attente ou placer quelqu\'un.</p>'}
             ${emailButton(`${process.env.FRONTEND_URL}/admin/permanences`, 'Ouvrir les permanences')}`,
         footerNote: 'Message automatique destiné à l\'équipe qui tient le planning des permanences.',
       }),

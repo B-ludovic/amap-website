@@ -9,6 +9,7 @@ import {
 import { ProducerSchema, UpdateProducerSchema, ProductSchema, UpdateProductSchema, BasketTypeSchema, BlogPostSchema } from '../utils/validation.schemas.js';
 import { logAudit } from '../services/audit.service.js';
 import { confirmPassword } from '../services/reauth.service.js';
+import { announceWithdrawal, releaseUpcomingShifts } from '../services/shiftRelease.service.js';
 import emailService from '../services/email.service.js';
 import { normalizeTitleCase } from '../utils/normalize.js';
 
@@ -694,19 +695,24 @@ const deleteUser = asyncHandler(async (req, res) => {
     refus: 'le compte n\'a pas été supprimé'
   });
 
-  // Soft delete
-  await prisma.user.update({
-    where: { id: userId },
-    data: {
-      deletedAt: new Date()
-    }
+  const placesLiberees = await prisma.$transaction(async (tx) => {
+    await tx.user.update({
+      where: { id: userId },
+      data: { deletedAt: new Date() }
+    });
+    return releaseUpcomingShifts(tx, userId);
   });
 
-  await logAudit(req, 'DELETE_USER', 'CRITICAL', { type: 'USER', id: userId, label: user.email });
+  await logAudit(req, 'DELETE_USER', 'CRITICAL', { type: 'USER', id: userId, label: user.email }, {
+    releasedShifts: placesLiberees.length
+  });
+
+  await Promise.all(placesLiberees.map((place) => announceWithdrawal(place, { accountDeleted: true, actorId: req.user.id })));
 
   res.json({
     success: true,
-    message: 'Utilisateur supprimé avec succès'
+    message: 'Utilisateur supprimé avec succès',
+    releasedShifts: placesLiberees.length
   });
 });
 

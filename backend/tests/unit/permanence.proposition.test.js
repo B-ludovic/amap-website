@@ -57,6 +57,7 @@ vi.mock('../../src/config/database.js', () => {
   const satisfait = (valeur, attendu) => {
     if (attendu && typeof attendu === 'object' && !(attendu instanceof Date)) {
       if ('in' in attendu) return attendu.in.includes(valeur);
+      if ('notIn' in attendu) return !attendu.notIn.includes(valeur);
       if ('not' in attendu) return valeur !== attendu.not;
       const date = new Date(valeur);
       return (!('gte' in attendu) || date >= attendu.gte)

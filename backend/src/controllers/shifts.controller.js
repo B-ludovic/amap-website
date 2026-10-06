@@ -10,6 +10,7 @@ import {
 } from '../utils/httpErrors.js';
 import { findClosureCovering, describeClosure } from '../services/closure.service.js';
 import { logAudit } from '../services/audit.service.js';
+import { announceWithdrawal, isUpcoming } from '../services/shiftRelease.service.js';
 
 // L'équipe : les états qu'un admin pose à la main. Une proposition n'en fait pas partie.
 const VOLUNTEER_STATUSES = ['CONFIRMED', 'CANCELLED', 'ABSENT'];
@@ -27,31 +28,6 @@ async function announceConfirmed(shift, volunteers) {
   );
 
   return envois.filter((envoi) => !envoi.success).length;
-}
-
-/* Une place confirmée qui se libère se dit aux admins qui tiennent le planning ;
-   celui qui se désiste ne reçoit pas l'avis de son propre départ. */
-async function announceWithdrawal(volunteer) {
-  const [admins, confirmedCount] = await Promise.all([
-    prisma.user.findMany({
-      where: { role: 'ADMIN', deletedAt: null, id: { not: volunteer.userId } },
-      select: { email: true, firstName: true }
-    }),
-    prisma.shiftVolunteer.count({ where: { shiftId: volunteer.shiftId, status: 'CONFIRMED' } })
-  ]);
-
-  await Promise.all(admins.map((admin) => emailService.sendShiftWithdrawalNotice(
-    volunteer.shift,
-    admin,
-    { volunteer: volunteer.user, confirmedCount }
-  )));
-}
-
-// La distribution du jour compte encore : un changement d'horaire le mercredi matin est le plus urgent à dire.
-function isUpcoming(date) {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return new Date(date) >= today;
 }
 
 /* Ce que l'admin change dans le formulaire se dit aux personnes concernées : le

@@ -14,6 +14,7 @@ import { normalizeFirstName, normalizeLastName, normalizeTitleCase, normalizeEma
 import { PasswordSchema, RegisterSchema } from '../utils/validation.schemas.js';
 import { logAudit } from '../services/audit.service.js';
 import { confirmPassword } from '../services/reauth.service.js';
+import { announceWithdrawal, releaseUpcomingShifts } from '../services/shiftRelease.service.js';
 import { DELETED_ACCOUNT_RETENTION_DAYS } from '../jobs/dataRetention.job.js';
 
 /* Coût du hachage des mots de passe.
@@ -619,16 +620,21 @@ const deleteMe = asyncHandler(async (req, res) => {
         refus: 'votre compte n\'a pas été supprimé',
     });
 
-    await prisma.user.update({
-        where: { id: req.user.id },
-        data: { deletedAt: new Date(), tokenVersion: { increment: 1 } },
+    const placesLiberees = await prisma.$transaction(async (tx) => {
+        await tx.user.update({
+            where: { id: req.user.id },
+            data: { deletedAt: new Date(), tokenVersion: { increment: 1 } },
+        });
+        return releaseUpcomingShifts(tx, user.id);
     });
 
     await logAudit(req, 'DELETE_USER', 'CRITICAL', {
         type: 'USER',
         id: user.id,
         label: user.email
-    }, { initiatedByUser: true });
+    }, { initiatedByUser: true, releasedShifts: placesLiberees.length });
+
+    await Promise.all(placesLiberees.map((place) => announceWithdrawal(place, { accountDeleted: true })));
 
     /* Sans accusé, l'adhérent qui exerce son droit à l'effacement n'a aucun
        moyen de savoir si sa demande a abouti — et c'est ce doute-là qui finit en
@@ -637,7 +643,7 @@ const deleteMe = asyncHandler(async (req, res) => {
     const effaceLe = new Date();
     effaceLe.setDate(effaceLe.getDate() + DELETED_ACCOUNT_RETENTION_DAYS);
 
-    await emailService.sendAccountDeleted(user, { effaceLe });
+    await emailService.sendAccountDeleted(user, { effaceLe, permanencesLiberees: placesLiberees.length });
 
     res.clearCookie('authToken', { ...cookieOptions, maxAge: undefined });
     res.json({ success: true, message: 'Votre compte a été supprimé.' });

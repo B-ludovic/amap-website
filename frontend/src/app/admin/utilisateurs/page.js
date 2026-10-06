@@ -115,8 +115,11 @@ export default function AdminUsersPage() {
       `Supprimer ${user.firstName} ${user.lastName} ? Cette action est irréversible.`,
       async () => {
         try {
-          await api.admin.users.delete(user.id, motDePasse);
-          showSuccess('Compte supprimé', `${user.firstName} ${user.lastName} a été supprimé.`);
+          const response = await api.admin.users.delete(user.id, motDePasse);
+          const liberees = response.releasedShifts ?? 0;
+          showSuccess('Compte supprimé', liberees > 0
+            ? `${user.firstName} ${user.lastName} a été supprimé. ${liberees} ${plural(liberees, 'permanence à venir est libérée', 'permanences à venir sont libérées')} : les autres admins sont prévenus.`
+            : `${user.firstName} ${user.lastName} a été supprimé.`);
           closeUser();
           fetchUsers({ search, role, page });
         } catch (error) {

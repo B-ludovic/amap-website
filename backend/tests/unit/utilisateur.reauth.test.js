@@ -5,10 +5,19 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import bcrypt from 'bcryptjs';
 import { appeler } from '../helpers/expressFactice.js';
 
-const { base, journal, messages } = vi.hoisted(() => ({
+const { base, journal, messages, depart } = vi.hoisted(() => ({
   base: { comptes: [] },
   journal: [],
   messages: [],
+  depart: { places: [], liberations: [], avis: [] },
+}));
+
+vi.mock('../../src/services/shiftRelease.service.js', () => ({
+  releaseUpcomingShifts: async (_tx, userId) => {
+    depart.liberations.push(userId);
+    return depart.places;
+  },
+  announceWithdrawal: async (place, options) => { depart.avis.push({ shiftId: place.shiftId, ...options }); },
 }));
 
 vi.mock('../../src/services/email.service.js', () => ({
@@ -26,8 +35,9 @@ vi.mock('../../src/services/audit.service.js', () => ({
 
 const trouver = (id) => base.comptes.find((c) => c.id === id);
 
-vi.mock('../../src/config/database.js', () => ({
-  prisma: {
+vi.mock('../../src/config/database.js', () => {
+  const prisma = {
+    $transaction: async (travail) => travail(prisma),
     user: {
       findUnique: async ({ where }) => {
         const compte = trouver(where.id);
@@ -36,8 +46,10 @@ vi.mock('../../src/config/database.js', () => ({
       count: async ({ where }) => base.comptes.filter((c) => c.role === where.role && c.deletedAt === null).length,
       update: async ({ where, data }) => ({ ...Object.assign(trouver(where.id), data) }),
     },
-  },
-}));
+  };
+
+  return { prisma };
+});
 
 const { changeUserRole, deleteUser } = await import('../../src/controllers/admin.controller.js');
 
@@ -78,6 +90,9 @@ beforeEach(() => {
   journal.length = 0;
   messages.length = 0;
   base.comptes = [{ ...admin }, { ...cible }];
+  depart.places = [];
+  depart.liberations = [];
+  depart.avis = [];
 });
 
 describe('Changer un rôle redemande le mot de passe', () => {
@@ -140,6 +155,7 @@ describe('Supprimer un compte redemande le mot de passe', () => {
 
     expect(statut).toBe(403);
     expect(trouver(cible.id).deletedAt).toBeNull();
+    expect(depart.liberations).toHaveLength(0);
   });
 
   it('accepte le mot de passe de la session', async () => {
@@ -148,5 +164,17 @@ describe('Supprimer un compte redemande le mot de passe', () => {
     expect(statut).toBe(200);
     expect(trouver(cible.id).deletedAt).toBeInstanceOf(Date);
     expect(journal.map((ligne) => ligne.action)).toEqual(['DELETE_USER']);
+  });
+});
+
+describe('Supprimer un compte libère ses permanences à venir', () => {
+  it('libère les places et prévient les autres admins, pas l\'auteur du geste', async () => {
+    depart.places = [{ shiftId: 'mercredi-14' }];
+
+    const { corps } = await supprimer(MOT_DE_PASSE_ADMIN);
+
+    expect(depart.liberations).toEqual([cible.id]);
+    expect(depart.avis).toEqual([{ shiftId: 'mercredi-14', accountDeleted: true, actorId: admin.id }]);
+    expect(corps.releasedShifts).toBe(1);
   });
 });

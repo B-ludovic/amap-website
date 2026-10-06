@@ -8,16 +8,17 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import bcrypt from 'bcryptjs';
 import { appeler } from '../helpers/expressFactice.js';
 
-const { base, accuses, journal } = vi.hoisted(() => ({
+const { base, accuses, journal, depart } = vi.hoisted(() => ({
   base: { comptes: [] },
   accuses: [],
   journal: [],
+  depart: { places: [], liberations: [], avis: [] },
 }));
 
 vi.mock('../../src/services/email.service.js', () => ({
   default: {
-    sendAccountDeleted: async (user, { effaceLe }) => {
-      accuses.push({ email: user.email, prenom: user.firstName, effaceLe });
+    sendAccountDeleted: async (user, { effaceLe, permanencesLiberees }) => {
+      accuses.push({ email: user.email, prenom: user.firstName, effaceLe, permanencesLiberees });
       return { success: true };
     },
   },
@@ -27,10 +28,19 @@ vi.mock('../../src/services/audit.service.js', () => ({
   logAudit: async (_req, action, _severite, _cible, details) => { journal.push({ action, details }); },
 }));
 
+vi.mock('../../src/services/shiftRelease.service.js', () => ({
+  releaseUpcomingShifts: async (_tx, userId) => {
+    depart.liberations.push(userId);
+    return depart.places;
+  },
+  announceWithdrawal: async (place, options) => { depart.avis.push({ shiftId: place.shiftId, ...options }); },
+}));
+
 const trouver = (id) => base.comptes.find((c) => c.id === id);
 
-vi.mock('../../src/config/database.js', () => ({
-  prisma: {
+vi.mock('../../src/config/database.js', () => {
+  const prisma = {
+    $transaction: async (travail) => travail(prisma),
     user: {
       findUnique: async ({ where }) => {
         const compte = trouver(where.id);
@@ -43,8 +53,10 @@ vi.mock('../../src/config/database.js', () => ({
         return Object.assign(compte, champs, { tokenVersion: compte.tokenVersion + tokenVersion.increment });
       },
     },
-  },
-}));
+  };
+
+  return { prisma };
+});
 
 const { deleteMe } = await import('../../src/controllers/auth.controller.js');
 
@@ -72,6 +84,9 @@ beforeEach(() => {
   accuses.length = 0;
   journal.length = 0;
   base.comptes = [compte()];
+  depart.places = [];
+  depart.liberations = [];
+  depart.avis = [];
 });
 
 describe('Supprimer son compte se confirme par écrit', () => {
@@ -130,6 +145,7 @@ describe('Supprimer son compte redemande le mot de passe', () => {
     expect(message).toBe('Mot de passe incorrect : votre compte n\'a pas été supprimé');
     expect(trouver('user-0001').deletedAt).toBeNull();
     expect(accuses).toHaveLength(0);
+    expect(depart.liberations).toHaveLength(0);
     expect(journal).toEqual([{
       action: 'FAILED_ACCOUNT_REAUTH',
       details: { geste: 'DELETE_USER', initiatedByUser: true, motif: 'mot de passe absent' },
@@ -143,5 +159,29 @@ describe('Supprimer son compte redemande le mot de passe', () => {
     expect(trouver('user-0001').deletedAt).toBeNull();
     expect(trouver('user-0001').tokenVersion).toBe(2);
     expect(journal[0].details.motif).toBe('mot de passe incorrect');
+  });
+});
+
+describe('Supprimer son compte libère ses permanences à venir', () => {
+  it('libère les places, prévient l\'équipe et le dit dans l\'accusé', async () => {
+    depart.places = [{ shiftId: 'mercredi-14' }, { shiftId: 'mercredi-21' }];
+
+    await supprimer();
+
+    expect(depart.liberations).toEqual(['user-0001']);
+    expect(depart.avis).toEqual([
+      { shiftId: 'mercredi-14', accountDeleted: true },
+      { shiftId: 'mercredi-21', accountDeleted: true },
+    ]);
+    expect(accuses[0].permanencesLiberees).toBe(2);
+    expect(journal.at(-1)).toEqual({ action: 'DELETE_USER', details: { initiatedByUser: true, releasedShifts: 2 } });
+  });
+
+  it('ne prévient personne quand aucune place n\'était prise', async () => {
+    await supprimer();
+
+    expect(depart.liberations).toEqual(['user-0001']);
+    expect(depart.avis).toHaveLength(0);
+    expect(accuses[0].permanencesLiberees).toBe(0);
   });
 });
