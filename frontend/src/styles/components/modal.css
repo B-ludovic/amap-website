@@ -40,10 +40,6 @@
   animation: slideUp var(--transition-base) ease-out;
 }
 
-.modal-container.modal-large {
-  max-width: 800px;
-}
-
 .modal-header {
   padding: var(--spacing-xl);
   border-bottom: 1px solid var(--border-color);
@@ -56,24 +52,6 @@
   margin: 0;
   font-size: var(--font-size-xl);
   font-weight: var(--font-weight-bold);
-  color: var(--text-primary);
-}
-
-.modal-close {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--text-secondary);
-  padding: var(--spacing-xs);
-  border-radius: var(--border-radius-sm);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-}
-
-.modal-close:hover {
-  background-color: var(--surface-hover);
   color: var(--text-primary);
 }
 

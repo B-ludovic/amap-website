@@ -484,7 +484,6 @@
   font-weight: var(--font-weight-medium);
 }
 
-.admin-def-mono .def-value,
 .def-value-mono {
   font-family: var(--font-mono);
   font-size: 13px;
@@ -785,11 +784,6 @@
   margin: 0;
   accent-color: var(--terracotta);
   cursor: pointer;
-}
-
-.admin-checks {
-  display: grid;
-  gap: 10px;
 }
 
 /* Message d'erreur de champ, sous l'intitulé fautif. */

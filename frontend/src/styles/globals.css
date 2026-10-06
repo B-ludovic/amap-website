@@ -250,57 +250,9 @@ button {
   font-size: 15.5px;
 }
 
-.btn-danger {
-  background-color: #b04535;
-  color: var(--surface-page);
-  border-color: #b04535;
-}
-
-.btn-danger:hover {
-  background-color: #8f3427;
-  border-color: #8f3427;
-  color: var(--surface-page);
-}
-
 .btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-}
-
-/* Cards — cerclées d'un filet, sans ombre ni élévation */
-.card {
-  background-color: var(--surface-page);
-  border: var(--border-width) solid var(--border-card);
-  border-radius: var(--border-radius-md);
-  padding: var(--spacing-lg);
-  transition: border-color var(--transition-base);
-}
-
-.card:hover {
-  border-color: var(--text-primary);
-}
-
-.card-header {
-  margin-bottom: var(--spacing-md);
-  padding-bottom: var(--spacing-md);
-  border-bottom: var(--border-width) solid var(--border-color);
-}
-
-.card-title {
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-bold);
-  color: var(--text-primary);
-  margin-bottom: var(--spacing-xs);
-}
-
-.card-body {
-  margin-bottom: var(--spacing-md);
-}
-
-.card-footer {
-  margin-top: var(--spacing-md);
-  padding-top: var(--spacing-md);
-  border-top: var(--border-width) solid var(--border-color);
 }
 
 /* Inputs */
@@ -317,46 +269,6 @@ button {
   background-color: var(--field-bg);
   color: var(--text-primary);
   transition: var(--input-transition);
-}
-
-.input-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.input-icon {
-  position: absolute;
-  left: 14px;
-  color: var(--text-secondary);
-  pointer-events: none;
-  z-index: 1;
-}
-
-.input-with-icon {
-  padding-left: 52px !important;
-}
-
-.input-with-icon::placeholder {
-  padding-left: 0;
-}
-
-.input-toggle {
-  position: absolute;
-  right: var(--input-padding-x);
-  background: none;
-  border: none;
-  color: var(--text-secondary);
-  cursor: pointer;
-  padding: var(--spacing-xs);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: color var(--transition-fast);
-}
-
-.input-toggle:hover {
-  color: var(--accent-color);
 }
 
 .input:focus,
@@ -401,162 +313,9 @@ button {
   border-color: var(--error-border) !important;
 }
 
-/* Badges */
-.badge {
-  display: inline-flex;
-  align-items: center;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-semibold);
-  border-radius: var(--border-radius-full);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.badge-primary {
-  background-color: #3d6b2d;
-  color: var(--white);
-}
-
-.badge-success {
-  background-color: var(--success-color);
-  color: var(--text-primary);
-}
-
-.badge-error {
-  background-color: var(--error-color);
-  color: #7f1d1d;
-}
-
-.badge-warning {
-  background-color: var(--warning-color);
-  color: var(--text-primary);
-}
-
-/* Alerts */
-.alert {
-  padding: var(--spacing-md);
-  border-radius: var(--border-radius-md);
-  border-left: 4px solid;
-  margin-bottom: var(--spacing-md);
-}
-
-.alert-success {
-  background-color: rgba(134, 239, 172, 0.1);
-  border-color: var(--success-color);
-  color: var(--text-primary);
-}
-
-.alert-error {
-  background-color: rgba(252, 165, 165, 0.1);
-  border-color: var(--error-color);
-  color: var(--text-primary);
-}
-
-.alert-warning {
-  background-color: rgba(253, 224, 71, 0.1);
-  border-color: var(--warning-color);
-  color: var(--text-primary);
-}
-
-.alert-info {
-  background-color: rgba(186, 230, 253, 0.1);
-  border-color: var(--info-color);
-  color: var(--text-primary);
-}
-
 /* Utilitaires de texte */
 .text-center {
   text-align: center;
-}
-
-.text-right {
-  text-align: right;
-}
-
-.text-left {
-  text-align: left;
-}
-
-.text-primary {
-  color: var(--text-primary);
-}
-
-.text-secondary {
-  color: var(--text-secondary);
-}
-
-.text-light {
-  color: var(--text-light);
-}
-
-/* Utilitaires d'espacement */
-.mt-sm { margin-top: var(--spacing-sm); }
-.mt-md { margin-top: var(--spacing-md); }
-.mt-lg { margin-top: var(--spacing-lg); }
-.mt-xl { margin-top: var(--spacing-xl); }
-
-.mb-sm { margin-bottom: var(--spacing-sm); }
-.mb-md { margin-bottom: var(--spacing-md); }
-.mb-lg { margin-bottom: var(--spacing-lg); }
-.mb-xl { margin-bottom: var(--spacing-xl); }
-
-.pt-sm { padding-top: var(--spacing-sm); }
-.pt-md { padding-top: var(--spacing-md); }
-.pt-lg { padding-top: var(--spacing-lg); }
-.pt-xl { padding-top: var(--spacing-xl); }
-
-.pb-sm { padding-bottom: var(--spacing-sm); }
-.pb-md { padding-bottom: var(--spacing-md); }
-.pb-lg { padding-bottom: var(--spacing-lg); }
-.pb-xl { padding-bottom: var(--spacing-xl); }
-
-/* Utilitaires de flexbox */
-.flex {
-  display: flex;
-}
-
-.flex-column {
-  flex-direction: column;
-}
-
-.flex-center {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.flex-between {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.flex-wrap {
-  flex-wrap: wrap;
-}
-
-.gap-sm { gap: var(--spacing-sm); }
-.gap-md { gap: var(--spacing-md); }
-.gap-lg { gap: var(--spacing-lg); }
-.gap-xl { gap: var(--spacing-xl); }
-
-/* Grille */
-.grid {
-  display: grid;
-  gap: var(--spacing-md);
-}
-
-.grid-2 {
-  grid-template-columns: repeat(2, 1fr);
-}
-
-.grid-3 {
-  grid-template-columns: repeat(3, 1fr);
-}
-
-.grid-4 {
-  grid-template-columns: repeat(4, 1fr);
 }
 
 /* Responsive */
@@ -572,16 +331,6 @@ button {
   .container {
     padding: 0 var(--spacing-md);
   }
-  
-  /* Les grilles de 4 colonnes passent à 3 colonnes pour économiser de l'espace */
-  .grid-4 {
-    grid-template-columns: repeat(3, 1fr);
-  }
-
-  /* Les grilles de 3 colonnes passent à 2 colonnes */
-  .grid-3 {
-    grid-template-columns: repeat(2, 1fr);
-  }
 }
 
 /* Point de rupture pour les Mobiles et très petits écrans (max-width: 768px) */
@@ -591,29 +340,8 @@ button {
     font-size: 14px;
   }
   
-  /* Les grilles de 4 et 3 colonnes passent à 2 colonnes */
-  .grid-4,
-  .grid-3 {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  
-  /* Les grilles de 2 colonnes passent à 1 colonne (empilement vertical) */
-  .grid-2 {
-    grid-template-columns: 1fr;
-  }
-  
   /* Conteneur avec un rembourrage minimal */
   .container {
     padding: 0 var(--spacing-sm);
-  }
-}
-
-/* Point de rupture pour les très petits mobiles (max-width: 480px) */
-@media (max-width: 480px) {
-  /* Toutes les grilles s'empilent sur une seule colonne pour maximiser la lisibilité */
-  .grid-2,
-  .grid-3,
-  .grid-4 {
-    grid-template-columns: 1fr;
   }
 }
