@@ -20,7 +20,7 @@ const MENU_ITEMS = [
   { title: 'Produits', path: '/admin/produits' },
   { title: 'Panier hebdomadaire', path: '/admin/panier-hebdomadaire' },
   { title: 'Distribution', path: '/admin/distribution' },
-  { title: 'Permanences', path: '/admin/permanences' },
+  { title: 'Permanences', path: '/admin/permanences', badge: 'shifts' },
   { title: 'Messages', path: '/admin/messages', badge: 'messages' },
   { title: 'Communication', path: '/admin/communication' },
   { title: 'Suivi des emails', path: '/admin/emails' },
@@ -34,7 +34,7 @@ export default function AdminSidebar({ currentPath, isOpen, onClose }) {
   const router = useRouter();
   const { logout } = useAuth();
   const { showConfirm } = useModal();
-  const [counts, setCounts] = useState({ messages: 0, subscriptions: 0, producers: 0 });
+  const [counts, setCounts] = useState({ messages: 0, subscriptions: 0, producers: 0, shifts: 0 });
 
   useEffect(() => {
     const fetchUnreadCount = () => {
@@ -55,10 +55,21 @@ export default function AdminSidebar({ currentPath, isOpen, onClose }) {
         .catch(() => {});
     };
 
+    const fetchProposalCount = () => {
+      api.shifts.getPendingProposals()
+        .then(data => setCounts(prev => ({ ...prev, shifts: data.data?.length ?? 0 })))
+        .catch(() => {});
+    };
+
     fetchUnreadCount();
     fetchPendingCounts();
+    fetchProposalCount();
     window.addEventListener('contact-unread-changed', fetchUnreadCount);
-    return () => window.removeEventListener('contact-unread-changed', fetchUnreadCount);
+    window.addEventListener('shift-proposals-changed', fetchProposalCount);
+    return () => {
+      window.removeEventListener('contact-unread-changed', fetchUnreadCount);
+      window.removeEventListener('shift-proposals-changed', fetchProposalCount);
+    };
   }, []);
 
   const handleLogout = () => {

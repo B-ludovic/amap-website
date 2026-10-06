@@ -5,6 +5,7 @@ import api from '../../lib/api';
 import { useModal } from '../../contexts/ModalContext';
 import AdminModal from './AdminModal';
 import logger from '../../lib/logger';
+import { plural } from '../../lib/format';
 
 function pad(number) {
   return String(number).padStart(2, '0');
@@ -22,12 +23,15 @@ export default function ShiftModal({ shift, onClose }) {
   const isEdit = Boolean(shift);
 
   const [users, setUsers] = useState([]);
+  // Les propositions se traitent dans la file en tête de page, pas dans l'équipe.
   const [crew, setCrew] = useState(
-    shift?.volunteers?.map(volunteer => ({
-      userId: volunteer.user.id,
-      role: volunteer.role ?? null,
-      status: volunteer.status
-    })) ?? []
+    shift?.volunteers
+      ?.filter(volunteer => !['PENDING', 'REFUSED'].includes(volunteer.status))
+      .map(volunteer => ({
+        userId: volunteer.user.id,
+        role: volunteer.role ?? null,
+        status: volunteer.status
+      })) ?? []
   );
   const [formData, setFormData] = useState({
     distributionDate: shift ? toInputValue(shift.distributionDate) : '',
@@ -97,12 +101,15 @@ export default function ShiftModal({ shift, onClose }) {
 
     setLoading(true);
     try {
-      if (isEdit) {
-        await api.shifts.update(shift.id, payload);
-      } else {
-        await api.shifts.create(payload);
-      }
-      onClose(true, isEdit ? 'La permanence a été modifiée.' : 'La permanence a été créée.');
+      const response = isEdit
+        ? await api.shifts.update(shift.id, payload)
+        : await api.shifts.create(payload);
+      const done = isEdit ? 'La permanence a été modifiée.' : 'La permanence a été créée.';
+      const missed = response.notificationFailures ?? 0;
+
+      onClose(true, missed > 0
+        ? `${done} ${missed} ${plural(missed, 'bénévole n’a', 'bénévoles n’ont')} pas reçu l’email de confirmation : prévenez-les autrement.`
+        : done);
     } catch (error) {
       showError('Erreur', error.message || 'Une erreur est survenue.');
       setLoading(false);
@@ -204,7 +211,7 @@ export default function ShiftModal({ shift, onClose }) {
 
             {crew.length === 0 ? (
               <p className="admin-crew-empty">
-                Personne d&apos;assigné — les adhérents peuvent s&apos;inscrire eux-mêmes.
+                Personne d&apos;assigné. Les adhérents peuvent se proposer depuis leur espace : leurs propositions attendent votre réponse en tête de page.
               </p>
             ) : (
               <div className="admin-crew-editor">

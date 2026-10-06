@@ -54,6 +54,23 @@ describe('Le refus d\'une proposition', () => {
   });
 });
 
+describe('L\'avis de désistement aux admins', () => {
+  it('nomme la personne, la date et ce qu\'il reste à pourvoir', async () => {
+    await emails.sendShiftWithdrawalNotice(
+      permanence,
+      { email: 'claire@example.org', firstName: 'Claire' },
+      { volunteer: adherente, confirmedCount: 1 }
+    );
+    const { to, subject, text, html } = dernierMessage();
+
+    expect(to).toBe('claire@example.org');
+    expect(subject).toContain('2 septembre 2026');
+    expect(text).toContain('Camille Renard');
+    expect(text).toContain('1 sur 2');
+    expect(html).toContain('https://auxptitspois.test/admin/permanences');
+  });
+});
+
 describe('Le désistement', () => {
   it('renvoie vers l\'espace adhérent, et non vers une page inexistante', async () => {
     await emails.sendShiftWithdrawal(permanence, adherente);

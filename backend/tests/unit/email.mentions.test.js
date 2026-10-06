@@ -103,8 +103,8 @@ describe('La mention des droits mène à une porte ouverte', () => {
     await envoyer();
     const pied = piedDePage(dernierMessage().html);
 
-    /* Exception assumée : ces deux messages arrivent dans la boîte de
-       l'association, pas dans celle de la personne dont ils parlent. Il n'y a
+    /* Exception assumée : ces messages arrivent dans la boîte de l'association
+       ou de son équipe, pas dans celle de la personne dont ils parlent. Il n'y a
        personne à informer de ses propres droits. */
     expect(pied).not.toContain(PHRASE_DES_DROITS);
     expect(pied).toContain('Message automatique');

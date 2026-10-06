@@ -551,10 +551,9 @@ const api = {
       });
     },
 
-    join: async (id, data) => {
-      return fetchAPI(`/shifts/${id}/join`, {
+    propose: async (id) => {
+      return fetchAPI(`/shifts/${id}/propose`, {
         method: 'POST',
-        body: data,
         requiresAuth: true,
       });
     },
@@ -562,6 +561,26 @@ const api = {
     leave: async (id) => {
       return fetchAPI(`/shifts/${id}/leave`, {
         method: 'DELETE',
+        requiresAuth: true,
+      });
+    },
+
+    getPendingProposals: async () => {
+      return fetchAPI('/shifts/proposals', {
+        requiresAuth: true,
+      });
+    },
+
+    acceptProposal: async (shiftId, userId) => {
+      return fetchAPI(`/shifts/${shiftId}/volunteers/${userId}/accept`, {
+        method: 'POST',
+        requiresAuth: true,
+      });
+    },
+
+    refuseProposal: async (shiftId, userId) => {
+      return fetchAPI(`/shifts/${shiftId}/volunteers/${userId}/refuse`, {
+        method: 'POST',
         requiresAuth: true,
       });
     },

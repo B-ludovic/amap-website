@@ -831,6 +831,35 @@ class EmailService {
     }, { kind: 'SHIFT_CONFIRMATION', ref: shift.id });
   }
 
+  /* Permanence : avis à un admin qu'une place confirmée se libère. Le désistement
+     arrive au plus tard 48 h avant : le message dit ce qu'il reste à pourvoir. */
+  async sendShiftWithdrawalNotice(shift, admin, { volunteer, confirmedCount }) {
+    const date = new Date(shift.distributionDate).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    const qui = `${escapeHtml(volunteer.firstName)} ${escapeHtml(volunteer.lastName)}`;
+
+    return this.#send({
+      from: EMAIL_FROM,
+      to: admin.email,
+      subject: `Désistement : ${date}`,
+      html: renderEmail({
+        title: 'Une place se libère',
+        eyebrow: 'Permanences',
+        preheader: `${volunteer.firstName} ${volunteer.lastName} ne tiendra pas la permanence du ${date}.`,
+        content: `
+            <p>Bonjour ${escapeHtml(admin.firstName)},</p>
+            <p><strong>${qui}</strong> s'est désisté(e) de la permanence du <strong>${date}</strong>.</p>
+            <div class="info-box">
+              <h3>Où en est l'équipe</h3>
+              ${shift.startTime ? `<p><strong>Horaire :</strong> ${escapeHtml(shift.startTime)}${shift.endTime ? ` - ${escapeHtml(shift.endTime)}` : ''}</p>` : ''}
+              <p><strong>Bénévoles confirmés :</strong> ${confirmedCount} sur ${shift.volunteersNeeded}</p>
+            </div>
+            <p>Il reste au moins 48 heures pour accepter une proposition en attente ou placer quelqu'un.</p>
+            ${emailButton(`${process.env.FRONTEND_URL}/admin/permanences`, 'Ouvrir les permanences')}`,
+        footerNote: 'Message automatique destiné à l\'équipe qui tient le planning des permanences.',
+      }),
+    }, { kind: 'SHIFT_WITHDRAWAL_NOTICE', ref: shift.id });
+  }
+
   /* Permanence : Proposition non retenue. Le refus est à la discrétion de l'admin,
      le message n'en donne donc aucun motif. */
   async sendShiftRefusal(shift, user) {

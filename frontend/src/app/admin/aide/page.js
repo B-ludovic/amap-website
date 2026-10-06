@@ -55,10 +55,11 @@ const FAMILIES = [
         abilities: [
           'Créer un créneau : date, horaires, nombre de bénévoles attendus.',
           'Recopier un créneau sur les semaines suivantes plutôt que de tout ressaisir.',
+          'Accepter ou refuser les propositions des adhérents, sans avoir à motiver un refus.',
           'Inscrire ou retirer un bénévole à la main, quand quelqu’un s’annonce de vive voix.',
           'Repérer les distributions qui cherchent encore du monde.'
         ],
-        hint: 'Les adhérents s’inscrivent eux-mêmes depuis leur espace ; cet écran complète et corrige.'
+        hint: 'Les adhérents se proposent depuis leur espace ; chaque proposition attend votre réponse, et un email part dans les deux cas.'
       }
     ]
   },

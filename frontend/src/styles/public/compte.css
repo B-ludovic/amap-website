@@ -596,6 +596,83 @@
   margin-top: 20px;
 }
 
+/* ---------- Carte « permanences » ---------- */
+
+.account-shifts-body {
+  padding: 18px 24px 22px;
+}
+
+.account-shifts-intro {
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: var(--text-secondary);
+  margin: 0 0 6px;
+}
+
+.account-shifts-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.account-shift {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 8px 16px;
+  padding: 14px 0;
+  border-bottom: var(--border-width) solid var(--border-card);
+}
+
+.account-shift:last-child {
+  border-bottom: none;
+}
+
+.account-shift-date {
+  font-size: 14.5px;
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+.account-shift-meta {
+  margin-top: 2px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+/* Un cran sous .account-btn : plusieurs boutons s'empilent dans la liste. */
+.account-shift-btn {
+  height: 40px;
+  padding: 0 16px;
+}
+
+.account-shift-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.account-shifts-feedback {
+  margin: 14px 0 0;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--text-primary);
+}
+
+.account-shifts-feedback:empty {
+  margin: 0;
+}
+
+@media (max-width: 520px) {
+  .account-shift {
+    grid-template-columns: 1fr;
+  }
+
+  .account-shift-btn {
+    justify-self: start;
+  }
+}
+
 /* ---------- Carte « mes données » ---------- */
 
 .account-data-body {

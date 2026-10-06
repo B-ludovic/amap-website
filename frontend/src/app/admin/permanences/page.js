@@ -20,7 +20,9 @@ const FILTERS = [
 const CREW_STATES = {
   CONFIRMED: { label: null, off: false },
   CANCELLED: { label: 'désisté', off: true },
-  ABSENT: { label: 'absent', off: true }
+  ABSENT: { label: 'absent', off: true },
+  PENDING: { label: 'en attente', off: true },
+  REFUSED: { label: 'refusé', off: true }
 };
 
 function capitalize(text) {
@@ -41,6 +43,8 @@ export default function AdminPermanencesPage() {
   const [filter, setFilter] = useState('upcoming');
   const [editing, setEditing] = useState(null);
   const [duplicating, setDuplicating] = useState(null);
+  const [proposals, setProposals] = useState([]);
+  const [deciding, setDeciding] = useState(false);
 
   const fetchShifts = useCallback(async (key, wanted) => {
     setLoading(true);
@@ -60,6 +64,62 @@ export default function AdminPermanencesPage() {
   useEffect(() => {
     fetchShifts(filter, page);
   }, [filter, page, fetchShifts]);
+
+  const fetchProposals = useCallback(async () => {
+    try {
+      const response = await api.shifts.getPendingProposals();
+      setProposals(response.data);
+    } catch (error) {
+      setProposals([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchProposals();
+  }, [fetchProposals]);
+
+  // Après une décision : la file, la liste et le compteur de la barre latérale se recalent.
+  const afterDecision = () => {
+    fetchProposals();
+    fetchShifts(filter, page);
+    window.dispatchEvent(new Event('shift-proposals-changed'));
+  };
+
+  const decide = async (proposal, request, title, sentText) => {
+    setDeciding(true);
+    try {
+      const response = await request(proposal.shiftId, proposal.userId);
+      showSuccess(title, response.notified ? sentText : response.message);
+      afterDecision();
+    } catch (error) {
+      showError('Erreur', error.message);
+      fetchProposals();
+    } finally {
+      setDeciding(false);
+    }
+  };
+
+  const acceptProposal = (proposal) => decide(
+    proposal,
+    api.shifts.acceptProposal,
+    'Proposition acceptée',
+    `Un email de confirmation est parti vers ${proposal.user.email}.`
+  );
+
+  const refuseProposal = (proposal) => {
+    const name = `${proposal.user.firstName} ${proposal.user.lastName}`;
+
+    showConfirm(
+      'Refuser la proposition',
+      `Refuser la proposition de ${name} pour le ${longDate(proposal.shift.distributionDate)} ? Cette personne ne pourra plus se proposer pour cette date. Un email sans motif lui sera envoyé.`,
+      () => decide(
+        proposal,
+        api.shifts.refuseProposal,
+        'Proposition refusée',
+        `Un email sans motif est parti vers ${proposal.user.email}.`
+      )
+    );
+  };
 
   /* Changer de filtre remet à la première page : rester en page 3 après un
      passage de « Passées » à « À venir » affiche un écran vide alors que la
@@ -122,7 +182,7 @@ export default function AdminPermanencesPage() {
         <div>
           <h1 className="admin-title">Permanences</h1>
           <p className="admin-title-lead">
-            Les bénévoles de chaque distribution — inscription libre des adhérents, complétée à la main si besoin.
+            Les bénévoles de chaque distribution — les adhérents se proposent, l&apos;équipe accepte, refuse ou complète à la main.
           </p>
         </div>
         <button type="button" className="admin-btn-primary" onClick={() => setEditing({ id: null })}>
@@ -137,6 +197,67 @@ export default function AdminPermanencesPage() {
             {understaffed} {plural(understaffed, 'permanence à venir cherche', 'permanences à venir cherchent')} encore des bénévoles{partial ? ' sur cette page' : ''}.
           </span>
         </div>
+      )}
+
+      {proposals.length > 0 && (
+        <section className="admin-proposals" aria-labelledby="admin-proposals-title">
+          <h2 id="admin-proposals-title" className="admin-proposals-title">
+            {proposals.length} {plural(proposals.length, 'proposition en attente', 'propositions en attente')}
+          </h2>
+
+          <ul className="admin-proposals-list">
+            {proposals.map((proposal) => {
+              const name = `${proposal.user.firstName} ${proposal.user.lastName}`;
+              const day = longDate(proposal.shift.distributionDate);
+              const full = proposal.confirmedCount >= proposal.shift.volunteersNeeded;
+              const done = proposal.shiftsDoneThisYear;
+
+              return (
+                <li key={proposal.id} className="admin-row-card admin-proposal">
+                  <div>
+                    <div className="admin-shift-date">{capitalize(day)}</div>
+                    <div className="admin-proposal-who">
+                      {name} <span className="admin-proposal-email">{proposal.user.email}</span>
+                    </div>
+                    <div className="admin-shift-meta">
+                      <span className="admin-shift-hours">
+                        {done} {plural(done, 'permanence tenue', 'permanences tenues')} cette année
+                      </span>
+                      {full ? (
+                        <span className="admin-badge admin-badge-green">Complète</span>
+                      ) : (
+                        <span className="admin-shift-hours">
+                          {proposal.confirmedCount}/{proposal.shift.volunteersNeeded} confirmés
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="admin-proposal-actions">
+                    {!full && (
+                      <button
+                        type="button"
+                        className="admin-btn-primary"
+                        onClick={() => acceptProposal(proposal)}
+                        disabled={deciding}
+                      >
+                        Accepter<span className="sr-only"> la proposition de {name} pour le {day}</span>
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      className="admin-btn-ghost"
+                      onClick={() => refuseProposal(proposal)}
+                      disabled={deciding}
+                    >
+                      Refuser<span className="sr-only"> la proposition de {name} pour le {day}</span>
+                    </button>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
       )}
 
       <div className="admin-shifts-toolbar">

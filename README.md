@@ -423,7 +423,7 @@ fonctionnalité en moins, c'est un écran cassé.
 - Demande d'abonnement en ligne (formule annuelle ou découverte, petit ou grand panier, tarif normal ou solidaire, règlement en 1, 2 ou 4 chèques) avec les montants exacts affichés avant l'envoi
 - Consultation du panier de la semaine avec horaire et adresse de retrait
 - Suggestions et recherche de recettes basées sur les légumes du panier
-- Inscription aux permanences de distribution, avec désistement encadré
+- Proposition pour les permanences de distribution, validée ou refusée par l'équipe, avec désistement encadré
 - Visualisation des producteurs partenaires et de leurs fermes
 - Gestion du profil
 - Export des données personnelles (RGPD art. 20)
@@ -436,7 +436,7 @@ Espace dédié de 18 écrans, pagination unifiée sur toutes les listes :
 - **Fermetures** : fermetures collectives de l'AMAP (limite 3 semaines/an) avec newsletter automatique, contrôle de collision avec les permanences existantes
 - **Panier hebdomadaire** : composition manuelle ou génération automatique depuis le catalogue saisonnier — les fermes déclarées absentes sont écartées du tirage —, publication avec notification email aux abonnés actifs (envoi par batch)
 - **Distribution** : liste d'émargement, pointage optimiste des retraits, recherche instantanée d'un adhérent, note par adhérent, statistiques, export CSV généré par le serveur (compatible Excel, UTF-8 BOM) et tracé au journal d'audit
-- **Permanences** : création, duplication, gestion des bénévoles inscrits
+- **Permanences** : création, duplication, propositions des adhérents à accepter ou refuser, gestion des bénévoles inscrits
 - **Producteurs / Produits** : fiches fermes détaillées (commune, distance au point de retrait, certification, détail libre type « Surface : 4 hectares », année d'entrée dans l'AMAP), saisonnalité des produits, tailles de panier éligibles, déclaration des absences d'une ferme (ses produits sortent de la génération du panier le temps de l'absence)
 - **Demandes producteurs** : traitement des candidatures avec emails d'acceptation/refus
 - **Communication** : newsletters rich-text (Tiptap), envoi groupé, programmation, brouillons

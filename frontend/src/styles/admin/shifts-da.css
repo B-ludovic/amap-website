@@ -177,8 +177,51 @@
   margin-bottom: 0;
 }
 
+/* Propositions en attente : la file des adhérents qui se sont proposés. */
+.admin-proposals {
+  margin-bottom: 28px;
+}
+
+.admin-proposals-title {
+  margin: 0 0 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-light);
+}
+
+.admin-proposals-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-proposal-who {
+  margin-bottom: 8px;
+  font-size: 14.5px;
+  color: var(--text-primary);
+}
+
+.admin-proposal-email {
+  margin-left: 6px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-light);
+}
+
+.admin-proposal-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 @media (max-width: 1100px) {
-  .admin-shift {
+  .admin-shift,
+  .admin-proposal {
     --admin-row-cols: 1fr;
   }
 }

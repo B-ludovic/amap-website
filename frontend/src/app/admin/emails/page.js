@@ -44,6 +44,8 @@ const KIND_LABELS = {
   SHIFT_CONFIRMATION:               'Permanence confirmée',
   SHIFT_CANCELLATION:               'Permanence annulée',
   SHIFT_WITHDRAWAL:                 'Désinscription permanence',
+  SHIFT_REFUSAL:                    'Proposition non retenue',
+  SHIFT_WITHDRAWAL_NOTICE:          'Désistement signalé',
   WEEKLY_BASKET:                    'Panier de la semaine',
   NEWSLETTER:                       'Lettre d\'information',
   PRODUCER_INQUIRY_CONFIRMATION:    'Candidature reçue',

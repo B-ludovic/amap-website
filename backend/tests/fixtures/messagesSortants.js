@@ -149,5 +149,9 @@ export function messagesSortants(emails) {
       nom: 'remise de chèques', methode: 'sendTreasurerChequeDigest', kind: 'TREASURER_CHEQUE_DIGEST', public: 'interne',
       envoyer: () => emails.sendTreasurerChequeDigest([ligneDeRemise]),
     },
+    {
+      nom: 'désistement signalé à l\'équipe', methode: 'sendShiftWithdrawalNotice', kind: 'SHIFT_WITHDRAWAL_NOTICE', public: 'interne',
+      envoyer: () => emails.sendShiftWithdrawalNotice(permanence, adherente, { volunteer: adherente, confirmedCount: 1 }),
+    },
   ];
 }

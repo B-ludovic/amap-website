@@ -52,6 +52,7 @@ export const permanence = {
   distributionDate: '2026-09-02T16:00:00.000Z',
   startTime: '18h00',
   endTime: '19h30',
+  volunteersNeeded: 2,
 };
 
 export const cheque = {

@@ -9,6 +9,7 @@ import { useModal } from '../../contexts/ModalContext';
 import api, { auth as authApi } from '../../lib/api';
 import { dayMonthYearLong } from '../../lib/format';
 import { CONTACT_EMAIL } from '../../constants/association';
+import PermanencesCard from '../../components/account/PermanencesCard';
 import '../../styles/public/compte.css';
 
 /* Formatage maison plutôt qu'Intl : le rendu doit être identique côté serveur
@@ -116,6 +117,13 @@ function plural(count, singular, pluralForm) {
   return count > 1 ? pluralForm : singular;
 }
 
+function nextConfirmedShift(myShifts) {
+  const now = Date.now();
+  return (myShifts ?? [])
+    .filter((volunteer) => volunteer.status === 'CONFIRMED' && toDate(volunteer.shift?.distributionDate) >= now)
+    .sort((a, b) => new Date(a.shift.distributionDate) - new Date(b.shift.distributionDate))[0] ?? null;
+}
+
 export default function ComptePage() {
   const router = useRouter();
   const { user, loading, isAuthenticated, logout, updateUser } = useAuth();
@@ -159,11 +167,7 @@ export default function ComptePage() {
       if (basketRes.status === 'fulfilled') setBasket(basketRes.value?.data ?? null);
 
       if (shiftsRes.status === 'fulfilled') {
-        const now = Date.now();
-        const upcoming = (shiftsRes.value?.data ?? [])
-          .filter((volunteer) => volunteer.status === 'CONFIRMED' && toDate(volunteer.shift?.distributionDate) >= now)
-          .sort((a, b) => new Date(a.shift.distributionDate) - new Date(b.shift.distributionDate));
-        setNextShift(upcoming[0] ?? null);
+        setNextShift(nextConfirmedShift(shiftsRes.value?.data));
       }
 
       setDataLoading(false);
@@ -250,6 +254,15 @@ export default function ComptePage() {
       setDeleteStep('armed');
     }
   }, [deletePassword, logout, router]);
+
+  const refreshNextShift = useCallback(async () => {
+    try {
+      const response = await api.shifts.getMyShifts();
+      setNextShift(nextConfirmedShift(response?.data));
+    } catch {
+      // La ligne garde sa dernière valeur ; la carte des permanences reste juste.
+    }
+  }, []);
 
   const cancelDeleteAccount = () => {
     setDeleteStep('idle');
@@ -565,6 +578,15 @@ export default function ComptePage() {
                 </div>
               </div>
             </article>
+          )}
+
+          {!dataLoading && subscription && (
+            <PermanencesCard
+              userId={user.id}
+              contractStart={subscription.startDate}
+              contractEnd={subscription.endDate}
+              onChange={refreshNextShift}
+            />
           )}
 
           {/* Aucun abonnement en cours */}

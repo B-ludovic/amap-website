@@ -29,6 +29,24 @@ async function announceConfirmed(shift, volunteers) {
   return envois.filter((envoi) => !envoi.success).length;
 }
 
+/* Une place confirmée qui se libère se dit aux admins qui tiennent le planning ;
+   celui qui se désiste ne reçoit pas l'avis de son propre départ. */
+async function announceWithdrawal(volunteer) {
+  const [admins, confirmedCount] = await Promise.all([
+    prisma.user.findMany({
+      where: { role: 'ADMIN', deletedAt: null, id: { not: volunteer.userId } },
+      select: { email: true, firstName: true }
+    }),
+    prisma.shiftVolunteer.count({ where: { shiftId: volunteer.shiftId, status: 'CONFIRMED' } })
+  ]);
+
+  await Promise.all(admins.map((admin) => emailService.sendShiftWithdrawalNotice(
+    volunteer.shift,
+    admin,
+    { volunteer: volunteer.user, confirmedCount }
+  )));
+}
+
 /* Pas de distribution un jour de fermeture, donc pas de permanence : inscrire
    des bénévoles ce jour-là leur promettrait un rendez-vous qui n'aura pas
    lieu. Même règle que le tirage du panier hebdomadaire. */
@@ -479,7 +497,7 @@ const leaveShift = asyncHandler(async (req, res) => {
     },
     include: {
       shift: true,
-      user: { select: { firstName: true, email: true } }
+      user: { select: { firstName: true, lastName: true, email: true } }
     }
   });
 
@@ -527,6 +545,7 @@ const leaveShift = asyncHandler(async (req, res) => {
   await retirer();
 
   await emailService.sendShiftWithdrawal(volunteer.shift, volunteer.user);
+  await announceWithdrawal(volunteer);
 
   res.json({
     success: true,

@@ -22,6 +22,10 @@ vi.mock('../../src/services/email.service.js', () => {
       sendShiftRefusal: noter('refus'),
       sendShiftWithdrawal: noter('desistement'),
       sendShiftCancellation: noter('annulation'),
+      sendShiftWithdrawalNotice: async (shift, admin, { volunteer, confirmedCount }) => {
+        envois.push({ type: 'avis', email: admin.email, shiftId: shift.id, qui: volunteer.firstName, confirmedCount });
+        return { success: true };
+      },
     },
   };
 });
@@ -39,6 +43,7 @@ vi.mock('../../src/config/database.js', () => {
   const satisfait = (valeur, attendu) => {
     if (attendu && typeof attendu === 'object' && !(attendu instanceof Date)) {
       if ('in' in attendu) return attendu.in.includes(valeur);
+      if ('not' in attendu) return valeur !== attendu.not;
       const date = new Date(valeur);
       return (!('gte' in attendu) || date >= attendu.gte)
         && (!('lte' in attendu) || date <= attendu.lte)
@@ -70,6 +75,9 @@ vi.mock('../../src/config/database.js', () => {
     $transaction: async (travail) => travail(prisma),
     subscription: {
       findFirst: async ({ where }) => base.contrats.find((c) => correspond(c, where)) ?? null,
+    },
+    user: {
+      findMany: async ({ where }) => base.comptes.filter((c) => correspond(c, where)).map((c) => ({ ...c })),
     },
     shift: {
       findUnique: async ({ where, include }) => {
@@ -301,6 +309,28 @@ describe('Se retirer', () => {
     expect(message).toBe('Proposition retirée');
     expect(statut(DEMAIN, CAMILLE.id)).toBe('CANCELLED');
     expect(envois).toHaveLength(0);
+  });
+
+  it('prévient les admins quand une place confirmée se libère', async () => {
+    base.lignes = [ligne(A_VENIR, CAMILLE.id, 'CONFIRMED'), ligne(A_VENIR, ALEX.id, 'CONFIRMED')];
+
+    const { statut: code } = await appeler(leaveShift, commeAdherent(CAMILLE, { id: A_VENIR }));
+
+    expect(code).toBe(200);
+    expect(envois).toEqual([
+      { type: 'desistement', email: CAMILLE.email, shiftId: A_VENIR },
+      { type: 'avis', email: ADMIN.email, shiftId: A_VENIR, qui: CAMILLE.firstName, confirmedCount: 1 },
+    ]);
+  });
+
+  it('ne prévient pas un admin de son propre désistement', async () => {
+    const autreAdmin = { id: 'admin-2', email: 'sam@example.org', firstName: 'Sam', lastName: 'Roux', role: 'ADMIN', deletedAt: null };
+    base.comptes.push(autreAdmin);
+    base.lignes = [ligne(A_VENIR, ADMIN.id, 'CONFIRMED')];
+
+    await appeler(leaveShift, commeAdherent(ADMIN, { id: A_VENIR }));
+
+    expect(envois.filter((e) => e.type === 'avis').map((e) => e.email)).toEqual([autreAdmin.email]);
   });
 
   it('garde la règle des 48 h pour une place confirmée', async () => {
