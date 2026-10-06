@@ -13,6 +13,7 @@ import {
 import { normalizeFirstName, normalizeLastName, normalizeTitleCase, normalizeEmail } from '../utils/normalize.js';
 import { PasswordSchema, RegisterSchema } from '../utils/validation.schemas.js';
 import { logAudit } from '../services/audit.service.js';
+import { confirmPassword } from '../services/reauth.service.js';
 import { DELETED_ACCOUNT_RETENTION_DAYS } from '../jobs/dataRetention.job.js';
 
 /* Coût du hachage des mots de passe.
@@ -611,6 +612,12 @@ const deleteMe = asyncHandler(async (req, res) => {
             throw new HttpBadRequestError('Impossible de supprimer le dernier administrateur');
         }
     }
+
+    await confirmPassword(req, req.body?.password, {
+        cible: { type: 'USER', id: user.id, label: user.email },
+        details: { geste: 'DELETE_USER', initiatedByUser: true },
+        refus: 'votre compte n\'a pas été supprimé',
+    });
 
     await prisma.user.update({
         where: { id: req.user.id },

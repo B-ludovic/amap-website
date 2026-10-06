@@ -661,6 +661,10 @@
   margin: 0 0 16px;
 }
 
+.account-danger-field {
+  margin-bottom: 16px;
+}
+
 .account-danger-actions {
   display: grid;
   gap: 8px;

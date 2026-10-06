@@ -139,10 +139,12 @@ Variables attendues dans `backend/.env` :
 Puis initialiser la base :
 ```bash
 npm run migrate            # npx prisma migrate dev
-npm run seed               # optionnel : données d'exemple
+npm run seed               # optionnel : vide la base locale et la remplit d'exemples
 # ou npm run seed:safe     # seed non destructif sur une base déjà remplie
 # ou npm run seed:demo     # catalogue saisonnier + fermes de démonstration, sans rien effacer
 ```
+
+> `npm run seed` refuse toute base qui n'est pas sur cette machine, et toute exécution avec `NODE_ENV=production`. Le mot de passe du compte admin est tiré à chaque passage et affiché une seule fois, à la fin.
 
 4. **Configuration Frontend**
 
@@ -553,7 +555,7 @@ Le site n'utilise aucun framework CSS utilitaire — uniquement du CSS natif org
 - `npm run migrate:prod` - Applique les migrations en production (`prisma migrate deploy`)
 - `npm run generate` - Régénère le client Prisma
 - `npm run studio` - Interface graphique de la base
-- `npm run seed` / `npm run seed:safe` - Données d'exemple (destructif / non destructif)
+- `npm run seed` / `npm run seed:safe` - Données d'exemple (destructif, base locale uniquement / non destructif)
 - `npm run seed:demo` - Catalogue saisonnier francilien et fermes de démonstration, sans rien effacer
 - `npm test` / `npm run test:watch` - Suite de tests Vitest (une fois / à chaque sauvegarde)
 - `node scripts/create-admin.js` - Crée le premier compte admin en production

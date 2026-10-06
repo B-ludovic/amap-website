@@ -185,17 +185,18 @@ export const admin = {
       });
     },
 
-    changeRole: async (userId, role) => {
+    changeRole: async (userId, role, password) => {
       return fetchAPI(`/admin/users/${userId}/role`, {
         method: 'PUT',
-        body: { role },
+        body: { role, password },
         requiresAuth: true,
       });
     },
 
-    delete: async (userId) => {
+    delete: async (userId, password) => {
       return fetchAPI(`/admin/users/${userId}`, {
         method: 'DELETE',
+        body: { password },
         requiresAuth: true,
       });
     },
@@ -364,9 +365,10 @@ export const auth = {
     });
   },
 
-  deleteMe: async () => {
+  deleteMe: async (password) => {
     return fetchAPI('/auth/me', {
       method: 'DELETE',
+      body: { password },
       requiresAuth: true,
     });
   },

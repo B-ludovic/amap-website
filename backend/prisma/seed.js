@@ -2,15 +2,17 @@ import 'dotenv/config';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import { assertLocalDatabase, drawAdminPassword } from './seedSafety.js';
 
 const prisma = new PrismaClient({
   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }),
 });
 
 async function main() {
+  assertLocalDatabase(process.env.DATABASE_URL, process.env.NODE_ENV);
+
   console.log('🌱 Début du seed...');
 
-  // Nettoyer la base de données (attention en production !)
   console.log('🧹 Nettoyage de la base...');
   await prisma.recipeProduct.deleteMany();
   await prisma.recipe.deleteMany();
@@ -34,7 +36,8 @@ async function main() {
   // === ADMIN ===
   console.log('👤 Création du compte admin...');
 
-  const hashedPassword = await bcrypt.hash('password123', 10);
+  const adminPassword = drawAdminPassword();
+  const hashedPassword = await bcrypt.hash(adminPassword, 10);
 
   await prisma.user.create({
     data: {
@@ -112,7 +115,8 @@ async function main() {
   console.log('');
   console.log('🎉 Seed terminé avec succès !');
   console.log('');
-  console.log('📧 Compte admin : admin@auxptitspois.fr / password123');
+  console.log(`📧 Compte admin : admin@auxptitspois.fr / ${adminPassword}`);
+  console.log('   (mot de passe tiré pour ce seed, affiché une seule fois)');
   console.log('');
 }
 

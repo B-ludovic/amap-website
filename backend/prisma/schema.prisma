@@ -731,6 +731,8 @@ enum AuditAction {
   // Critique
   DELETE_USER
   CHANGE_USER_ROLE
+  // Mot de passe refusé devant un changement de rôle ou une suppression de compte.
+  FAILED_ACCOUNT_REAUTH
   PURGE_USER_DATA
   // Écrire à tout le monde au nom de l'association : l'acte le plus visible que
   // l'application permette, et le seul qui sorte du site pour atteindre des

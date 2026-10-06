@@ -194,6 +194,14 @@
   background-color: var(--text-primary);
 }
 
+.admin-btn-primary:disabled,
+.admin-btn-ghost:disabled,
+.admin-btn-danger:disabled,
+.admin-btn-forest:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* Bouton discret en capitales monospace, posé dans les pieds de carte. */
 .admin-btn-link {
   padding: 0;

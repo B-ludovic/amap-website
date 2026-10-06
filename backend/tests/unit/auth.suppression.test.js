@@ -5,11 +5,13 @@
    partiraient réellement. */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import bcrypt from 'bcryptjs';
 import { appeler } from '../helpers/expressFactice.js';
 
-const { base, accuses } = vi.hoisted(() => ({
+const { base, accuses, journal } = vi.hoisted(() => ({
   base: { comptes: [] },
   accuses: [],
+  journal: [],
 }));
 
 vi.mock('../../src/services/email.service.js', () => ({
@@ -21,7 +23,9 @@ vi.mock('../../src/services/email.service.js', () => ({
   },
 }));
 
-vi.mock('../../src/services/audit.service.js', () => ({ logAudit: async () => {} }));
+vi.mock('../../src/services/audit.service.js', () => ({
+  logAudit: async (_req, action, _severite, _cible, details) => { journal.push({ action, details }); },
+}));
 
 const trouver = (id) => base.comptes.find((c) => c.id === id);
 
@@ -44,6 +48,9 @@ vi.mock('../../src/config/database.js', () => ({
 
 const { deleteMe } = await import('../../src/controllers/auth.controller.js');
 
+const MOT_DE_PASSE = 'le-bon-mot-de-passe';
+const EMPREINTE = bcrypt.hashSync(MOT_DE_PASSE, 4);
+
 const compte = (attributs = {}) => ({
   id: 'user-0001',
   email: 'camille@example.org',
@@ -51,13 +58,19 @@ const compte = (attributs = {}) => ({
   role: 'MEMBER',
   deletedAt: null,
   tokenVersion: 2,
+  password: EMPREINTE,
   ...attributs,
 });
 
-const supprimer = (id = 'user-0001') => appeler(deleteMe, { user: { id }, ip: '203.0.113.10' });
+const supprimer = (id = 'user-0001', password = MOT_DE_PASSE) => appeler(deleteMe, {
+  user: { id },
+  body: password === null ? {} : { password },
+  ip: '203.0.113.10',
+});
 
 beforeEach(() => {
   accuses.length = 0;
+  journal.length = 0;
   base.comptes = [compte()];
 });
 
@@ -106,5 +119,29 @@ describe('Supprimer son compte se confirme par écrit', () => {
     expect(message).toBe('Impossible de supprimer le dernier administrateur');
     expect(accuses).toHaveLength(0);
     expect(trouver('user-0001').deletedAt).toBeNull();
+  });
+});
+
+describe('Supprimer son compte redemande le mot de passe', () => {
+  it('refuse sans mot de passe, et le consigne', async () => {
+    const { statut, message } = await supprimer('user-0001', null);
+
+    expect(statut).toBe(403);
+    expect(message).toBe('Mot de passe incorrect : votre compte n\'a pas été supprimé');
+    expect(trouver('user-0001').deletedAt).toBeNull();
+    expect(accuses).toHaveLength(0);
+    expect(journal).toEqual([{
+      action: 'FAILED_ACCOUNT_REAUTH',
+      details: { geste: 'DELETE_USER', initiatedByUser: true, motif: 'mot de passe absent' },
+    }]);
+  });
+
+  it('refuse un mot de passe faux sans toucher au compte', async () => {
+    const { statut } = await supprimer('user-0001', 'une-faute-de-frappe');
+
+    expect(statut).toBe(403);
+    expect(trouver('user-0001').deletedAt).toBeNull();
+    expect(trouver('user-0001').tokenVersion).toBe(2);
+    expect(journal[0].details.motif).toBe('mot de passe incorrect');
   });
 });

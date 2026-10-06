@@ -22,6 +22,17 @@
   color: var(--text-secondary);
 }
 
+.admin-user-password {
+  margin-bottom: 26px;
+}
+
+.admin-user-password-hint {
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-light);
+}
+
 @media (max-width: 1200px) {
   .admin-users-table {
     --admin-cols: 1.4fr 1.7fr 0.9fr 0.7fr 0.7fr;

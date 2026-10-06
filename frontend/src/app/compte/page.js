@@ -130,6 +130,8 @@ export default function ComptePage() {
   const [exportStatus, setExportStatus] = useState('idle'); // idle | working | ready
   const [contractStatus, setContractStatus] = useState('idle'); // idle | working
   const [deleteStep, setDeleteStep] = useState('idle'); // idle | armed | working
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleteError, setDeleteError] = useState('');
   const [newsletterStatus, setNewsletterStatus] = useState('idle'); // idle | working
 
   useEffect(() => {
@@ -238,14 +240,22 @@ export default function ComptePage() {
 
   const handleDeleteAccount = useCallback(async () => {
     setDeleteStep('working');
+    setDeleteError('');
     try {
-      await authApi.deleteMe();
+      await authApi.deleteMe(deletePassword);
       await logout();
       router.push('/');
-    } catch {
+    } catch (error) {
+      setDeleteError(error.message);
       setDeleteStep('armed');
     }
-  }, [logout, router]);
+  }, [deletePassword, logout, router]);
+
+  const cancelDeleteAccount = () => {
+    setDeleteStep('idle');
+    setDeletePassword('');
+    setDeleteError('');
+  };
 
   if (loading || !user) {
     return (
@@ -684,19 +694,38 @@ export default function ComptePage() {
                       Action irréversible. Votre contrat en cours sera résilié et toutes vos
                       données supprimées.
                     </p>
+                    <div className="field account-danger-field">
+                      <label htmlFor="account-delete-password" className="field-label">
+                        Votre mot de passe
+                      </label>
+                      <input
+                        id="account-delete-password"
+                        type="password"
+                        className="input"
+                        autoComplete="current-password"
+                        value={deletePassword}
+                        onChange={(event) => setDeletePassword(event.target.value)}
+                        disabled={deleteStep === 'working'}
+                        aria-invalid={deleteError ? 'true' : undefined}
+                        aria-describedby={deleteError ? 'account-delete-error' : undefined}
+                      />
+                      {deleteError && (
+                        <span id="account-delete-error" className="field-error">{deleteError}</span>
+                      )}
+                    </div>
                     <div className="account-danger-actions">
                       <button
                         type="button"
                         className="account-btn-danger-solid"
                         onClick={handleDeleteAccount}
-                        disabled={deleteStep === 'working'}
+                        disabled={deleteStep === 'working' || !deletePassword}
                       >
                         {deleteStep === 'working' ? 'Suppression…' : 'Oui, supprimer définitivement'}
                       </button>
                       <button
                         type="button"
                         className="account-btn-danger-cancel"
-                        onClick={() => setDeleteStep('idle')}
+                        onClick={cancelDeleteAccount}
                       >
                         Annuler
                       </button>

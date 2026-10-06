@@ -8,6 +8,7 @@ import {
 } from '../utils/httpErrors.js';
 import { ProducerSchema, UpdateProducerSchema, ProductSchema, UpdateProductSchema, BasketTypeSchema, BlogPostSchema } from '../utils/validation.schemas.js';
 import { logAudit } from '../services/audit.service.js';
+import { confirmPassword } from '../services/reauth.service.js';
 import emailService from '../services/email.service.js';
 import { normalizeTitleCase } from '../utils/normalize.js';
 
@@ -586,7 +587,7 @@ const getAllUsers = asyncHandler(async (req, res) => {
 // CHANGER LE RÔLE D'UN UTILISATEUR 
 const changeUserRole = asyncHandler(async (req, res) => {
   const { userId } = req.params;
-  const { role } = req.body;
+  const { role, password } = req.body;
 
   const validRoles = ['MEMBER', 'VOLUNTEER', 'ADMIN'];
 
@@ -619,6 +620,12 @@ const changeUserRole = asyncHandler(async (req, res) => {
       throw new HttpBadRequestError('Impossible de rétrograder le dernier administrateur');
     }
   }
+
+  await confirmPassword(req, password, {
+    cible: { type: 'USER', id: userId, label: user.email },
+    details: { geste: 'CHANGE_USER_ROLE', oldRole: user.role, newRole: role },
+    refus: 'le rôle n\'a pas été modifié'
+  });
 
   const updatedUser = await prisma.user.update({
     where: { id: userId },
@@ -668,6 +675,12 @@ const deleteUser = asyncHandler(async (req, res) => {
   if (userId === req.user.id) {
     throw new HttpBadRequestError('Vous ne pouvez pas supprimer votre propre compte');
   }
+
+  await confirmPassword(req, req.body?.password, {
+    cible: { type: 'USER', id: userId, label: user.email },
+    details: { geste: 'DELETE_USER' },
+    refus: 'le compte n\'a pas été supprimé'
+  });
 
   // Soft delete
   await prisma.user.update({

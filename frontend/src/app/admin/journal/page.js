@@ -16,6 +16,7 @@ import '../../../styles/admin/journal.css';
 const ACTION_LABELS = {
   DELETE_USER:                  'Suppression utilisateur',
   CHANGE_USER_ROLE:             'Changement de rôle',
+  FAILED_ACCOUNT_REAUTH:        'Mot de passe refusé (compte)',
   CREATE_PRODUCER:              'Ajout producteur',
   DELETE_PRODUCER:              'Suppression producteur',
   CREATE_PRODUCT:               'Ajout produit',

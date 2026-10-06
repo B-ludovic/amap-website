@@ -34,6 +34,7 @@ export default function AdminUsersPage() {
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState(null);
   const [draftRole, setDraftRole] = useState('MEMBER');
+  const [password, setPassword] = useState('');
   const [saving, setSaving] = useState(false);
 
   const debounceRef = useRef(null);
@@ -70,19 +71,25 @@ export default function AdminUsersPage() {
   const openUser = (user) => {
     setSelected(user);
     setDraftRole(user.role);
+    setPassword('');
+  };
+
+  const closeUser = () => {
+    setSelected(null);
+    setPassword('');
   };
 
   const handleSaveRole = async () => {
     if (!selected || draftRole === selected.role) {
-      setSelected(null);
+      closeUser();
       return;
     }
 
     setSaving(true);
     try {
-      await api.admin.users.changeRole(selected.id, draftRole);
+      await api.admin.users.changeRole(selected.id, draftRole, password);
       showSuccess('Rôle modifié', `${selected.firstName} ${selected.lastName} est désormais ${roleOf(draftRole)?.label.toLowerCase()}.`);
-      setSelected(null);
+      closeUser();
       fetchUsers({ search, role, page });
     } catch (error) {
       showError('Erreur', error.message);
@@ -102,14 +109,15 @@ export default function AdminUsersPage() {
 
   const handleDelete = () => {
     const user = selected;
+    const motDePasse = password;
     showConfirm(
       'Supprimer le compte',
       `Supprimer ${user.firstName} ${user.lastName} ? Cette action est irréversible.`,
       async () => {
         try {
-          await api.admin.users.delete(user.id);
+          await api.admin.users.delete(user.id, motDePasse);
           showSuccess('Compte supprimé', `${user.firstName} ${user.lastName} a été supprimé.`);
-          setSelected(null);
+          closeUser();
           fetchUsers({ search, role, page });
         } catch (error) {
           showError('Erreur', error.message);
@@ -212,7 +220,7 @@ export default function AdminUsersPage() {
       </div>
 
       {selected && (
-        <AdminModal title="Fiche utilisateur" width="560px" onClose={() => setSelected(null)}>
+        <AdminModal title="Fiche utilisateur" width="560px" onClose={closeUser}>
           <dl className="def-list admin-def">
             <div className="def-row">
               <dt className="def-label">Nom complet</dt>
@@ -254,8 +262,30 @@ export default function AdminUsersPage() {
             </select>
           </div>
 
+          <div className="admin-user-password">
+            <label htmlFor="admin-user-password" className="admin-field-label">Votre mot de passe</label>
+            <input
+              id="admin-user-password"
+              type="password"
+              className="admin-input"
+              autoComplete="current-password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              aria-describedby="admin-user-password-hint"
+            />
+            <p id="admin-user-password-hint" className="admin-user-password-hint">
+              Demandé pour changer le rôle ou supprimer le compte. Le journal garde la trace
+              des refus.
+            </p>
+          </div>
+
           <div className="admin-modal-actions">
-            <button type="button" className="admin-btn-primary" onClick={handleSaveRole} disabled={saving}>
+            <button
+              type="button"
+              className="admin-btn-primary"
+              onClick={handleSaveRole}
+              disabled={saving || (draftRole !== selected.role && !password)}
+            >
               {saving ? 'Enregistrement…' : 'Enregistrer'}
             </button>
             {!selected.emailVerified && (
@@ -264,7 +294,7 @@ export default function AdminUsersPage() {
               </button>
             )}
             <span className="admin-modal-actions-end">
-              <button type="button" className="admin-btn-danger" onClick={handleDelete}>
+              <button type="button" className="admin-btn-danger" onClick={handleDelete} disabled={!password}>
                 Supprimer le compte
               </button>
             </span>
