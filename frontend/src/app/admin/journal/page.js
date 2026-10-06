@@ -150,12 +150,12 @@ export default function AdminJournalPage() {
                   <td className="journal-date">{numericDate(log.createdAt)} {time(log.createdAt)}</td>
                   <td>
                     {log.severity === 'CRITICAL' ? (
-                      <span className="status-badge status-cancelled journal-severity-critical">
+                      <span className="admin-badge admin-badge-red journal-severity-critical">
                         <ShieldAlert size={12} />
                         Critique
                       </span>
                     ) : (
-                      <span className="status-badge status-pending journal-severity-important">
+                      <span className="admin-badge admin-badge-amber journal-severity-important">
                         <ShieldCheck size={12} />
                         Importante
                       </span>

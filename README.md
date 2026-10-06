@@ -84,7 +84,7 @@ amap-website/
     │   ├── jobs/         # 9 tâches planifiées (rappels, purge RGPD, paniers, chèques…)
     │   └── utils/        # Schémas Zod, erreurs HTTP, grille tarifaire, calendrier
     ├── templates/        # Gabarit Handlebars du contrat PDF
-    ├── scripts/          # create-admin.js, envoi-test.js, extractLogo.js
+    ├── scripts/          # extractLogo.js
     ├── tests/            # Vitest : unit/, integration/, e2e/, fixtures/, helpers/
     └── prisma/
         ├── schema.prisma  # Modèle de données
@@ -558,8 +558,6 @@ Le site n'utilise aucun framework CSS utilitaire — uniquement du CSS natif org
 - `npm run seed` / `npm run seed:safe` - Données d'exemple (destructif, base locale uniquement / non destructif)
 - `npm run seed:demo` - Catalogue saisonnier francilien et fermes de démonstration, sans rien effacer
 - `npm test` / `npm run test:watch` - Suite de tests Vitest (une fois / à chaque sauvegarde)
-- `node scripts/create-admin.js` - Crée le premier compte admin en production
-- `node scripts/envoi-test.js adresse@exemple.fr` - Envoie un vrai message via Brevo pour éprouver l'expéditeur et le rendu en boîte réelle
 
 ### Frontend
 - `npm run dev` - Next.js en développement
