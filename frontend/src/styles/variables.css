@@ -17,8 +17,9 @@
   --on-forest-border: rgba(239, 234, 224, 0.32);
 
   /* ---------- ACCENTS ---------- */
-  --terracotta: #C85A32;
-  --terracotta-dark: #A8451F;
+  /* Assez sombre pour porter du texte (AA 4,5:1) jusque sur le sable. */
+  --terracotta: #B5481F;
+  --terracotta-dark: #963309;
   --terracotta-soft: #D98A6B;   /* terracotta atténué : bouton pendant l'envoi */
   --brass: #8F5F37;             /* brun doré : chiffres, mentions solidaires */
   --leaf: #83AB44;              /* pastille « distribution en cours » */
@@ -140,9 +141,10 @@
 
   --field-bg: #FDFBF7;            /* crème plus clair que la page */
   --field-placeholder: #B3B0A4;
-  --field-focus-ring: rgba(200, 90, 50, 0.15);
-  --error-text: #B23A22;
-  --error-text-hover: #98301B;
+  --field-focus-ring: rgba(181, 72, 31, 0.15);
+  /* Assez rouge pour ne pas se confondre avec le terracotta. */
+  --error-text: #AE2924;
+  --error-text-hover: #94201C;
   --error-border: #D9A08E;
   --error-bg: #FBEDE9;
   --error-bg-border: #EDC7BC;

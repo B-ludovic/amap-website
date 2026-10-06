@@ -48,8 +48,8 @@ export const EMAIL_PALETTE = {
   onForest: '#EFEAE0',      // texte sur le bandeau
   onForestMuted: '#A6B39C', // sur-titre sur le bandeau
   white: '#FFFFFF',
-  terracotta: '#C85A32',
-  terracottaDark: '#A8451F',
+  terracotta: '#B5481F',    // mêmes valeurs que le site : lisible en texte sur la crème
+  terracottaDark: '#963309',
   brass: '#8F5F37',         // brun doré : montants, mentions
   gold: '#C8912F',
   leaf: '#83AB44',
@@ -61,7 +61,7 @@ export const EMAIL_PALETTE = {
   borderRule: '#DDD3C4',
   attentionBg: '#F8EBD6',   // fond d'un avertissement
   alertBg: '#FBEDE9',
-  alertText: '#B23A22',
+  alertText: '#AE2924',
 };
 
 const P = EMAIL_PALETTE;
