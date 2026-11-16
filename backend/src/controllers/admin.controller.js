@@ -33,7 +33,7 @@ const farmFields = (data) => ({
 const createProducer = asyncHandler(async (req, res) => {
   const parsed = ProducerSchema.safeParse(req.body);
   if (!parsed.success) {
-    throw new HttpBadRequestError(parsed.error.errors[0].message);
+    throw new HttpBadRequestError(parsed.error.issues[0].message);
   }
   const { name, description, email, phone, specialty, image } = parsed.data;
 
@@ -71,7 +71,7 @@ const createProducer = asyncHandler(async (req, res) => {
 const updateProducer = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const parsed = UpdateProducerSchema.safeParse(req.body);
-  if (!parsed.success) throw new HttpBadRequestError(parsed.error.errors[0].message);
+  if (!parsed.success) throw new HttpBadRequestError(parsed.error.issues[0].message);
   const { name, description, email, phone, specialty, image, isActive } = parsed.data;
 
   const producer = await prisma.producer.findUnique({
@@ -183,7 +183,7 @@ const getAllProducers = asyncHandler(async (req, res) => {
 const createProduct = asyncHandler(async (req, res) => {
   const parsed = ProductSchema.safeParse(req.body);
   if (!parsed.success) {
-    throw new HttpBadRequestError(parsed.error.errors[0].message);
+    throw new HttpBadRequestError(parsed.error.issues[0].message);
   }
   const { name: rawName, producerId, category, description, isExample, isActive, seasons, basketSizes } = parsed.data;
   const name = rawName.trim().charAt(0).toUpperCase() + rawName.trim().slice(1);
@@ -232,7 +232,7 @@ const createProduct = asyncHandler(async (req, res) => {
 const updateProduct = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const parsed = UpdateProductSchema.safeParse(req.body);
-  if (!parsed.success) throw new HttpBadRequestError(parsed.error.errors[0].message);
+  if (!parsed.success) throw new HttpBadRequestError(parsed.error.issues[0].message);
   const { name: rawName, producerId, category, description, isExample, isActive, seasons, basketSizes } = parsed.data;
   const name = rawName ? rawName.trim().charAt(0).toUpperCase() + rawName.trim().slice(1) : undefined;
 
@@ -345,7 +345,7 @@ const getAllProducts = asyncHandler(async (req, res) => {
 const createBasketType = asyncHandler(async (req, res) => {
   const parsed = BasketTypeSchema.safeParse(req.body);
   if (!parsed.success) {
-    throw new HttpBadRequestError(parsed.error.errors[0].message);
+    throw new HttpBadRequestError(parsed.error.issues[0].message);
   }
   const { name, description, price, image } = parsed.data;
   const { products } = req.body;
@@ -722,7 +722,7 @@ const deleteUser = asyncHandler(async (req, res) => {
 const createBlogPost = asyncHandler(async (req, res) => {
   const parsed = BlogPostSchema.safeParse(req.body);
   if (!parsed.success) {
-    throw new HttpBadRequestError(parsed.error.errors[0].message);
+    throw new HttpBadRequestError(parsed.error.issues[0].message);
   }
   const { title, slug, content, excerpt, image, isPublished } = parsed.data;
   const authorId = req.user.id;

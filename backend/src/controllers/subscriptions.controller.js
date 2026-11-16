@@ -358,7 +358,7 @@ const getSubscriptionById = asyncHandler(async (req, res) => {
 // CRÉER UN ABONNEMENT (ADMIN - après validation demande)
 const createSubscription = asyncHandler(async (req, res) => {
   const parsed = CreateSubscriptionSchema.safeParse(req.body);
-  if (!parsed.success) throw new HttpBadRequestError(parsed.error.errors[0].message);
+  if (!parsed.success) throw new HttpBadRequestError(parsed.error.issues[0].message);
 
   const { userId, type, basketSize, pricingType, startDate, endDate, pickupLocationId } = parsed.data;
 
@@ -437,7 +437,7 @@ const updateSubscription = asyncHandler(async (req, res) => {
   }
 
   const parsed = UpdateSubscriptionSchema.safeParse(req.body);
-  if (!parsed.success) throw new HttpBadRequestError(parsed.error.errors[0].message);
+  if (!parsed.success) throw new HttpBadRequestError(parsed.error.issues[0].message);
 
   const { basketSize, pricingType, endDate, price } = parsed.data;
 
@@ -528,7 +528,7 @@ const recordChequesReceived = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
   const parsed = RecordChequesSchema.safeParse(req.body);
-  if (!parsed.success) throw new HttpBadRequestError(parsed.error.errors[0].message);
+  if (!parsed.success) throw new HttpBadRequestError(parsed.error.issues[0].message);
 
   const { paymentType, receivedAt, checkNumbers = [] } = parsed.data;
   const remiseLe = receivedAt ?? new Date();
@@ -654,7 +654,7 @@ const updatePayment = asyncHandler(async (req, res) => {
   const { id, paymentId } = req.params;
 
   const parsed = UpdatePaymentSchema.safeParse(req.body);
-  if (!parsed.success) throw new HttpBadRequestError(parsed.error.errors[0].message);
+  if (!parsed.success) throw new HttpBadRequestError(parsed.error.issues[0].message);
 
   const { status, checkNumber, dueDate, password } = parsed.data;
 

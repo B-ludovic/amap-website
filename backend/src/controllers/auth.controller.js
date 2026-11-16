@@ -137,12 +137,12 @@ const register = asyncHandler(async (req, res) => {
     const { password } = req.body;
 
     const registerCheck = RegisterSchema.safeParse(req.body);
-    if (!registerCheck.success) throw new HttpBadRequestError(registerCheck.error.errors[0].message);
+    if (!registerCheck.success) throw new HttpBadRequestError(registerCheck.error.issues[0].message);
 
     const { email, firstName, lastName, phone, address } = registerCheck.data;
 
     const pwdCheck = PasswordSchema.safeParse(password);
-    if (!pwdCheck.success) throw new HttpBadRequestError(pwdCheck.error.errors[0].message);
+    if (!pwdCheck.success) throw new HttpBadRequestError(pwdCheck.error.issues[0].message);
 
     // Réponse identique que l'email soit libre ou déjà pris : un 409 « existe déjà »
     // permettrait à un tiers de vérifier qui est adhérent, simplement en tentant
@@ -425,7 +425,7 @@ const resetPassword = asyncHandler(async (req, res) => {
     }
 
     const pwdCheck = PasswordSchema.safeParse(password);
-    if (!pwdCheck.success) throw new HttpBadRequestError(pwdCheck.error.errors[0].message);
+    if (!pwdCheck.success) throw new HttpBadRequestError(pwdCheck.error.issues[0].message);
 
     // Hasher le token reçu pour le comparer
     const tokenHash = crypto.createHash('sha256').update(token).digest('hex');

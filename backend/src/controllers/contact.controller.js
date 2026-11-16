@@ -9,7 +9,7 @@ import { logAudit } from '../services/audit.service.js';
 const sendContactMessage = asyncHandler(async (req, res) => {
   const parsed = ContactSchema.safeParse(req.body);
   if (!parsed.success) {
-    throw new HttpBadRequestError(parsed.error.errors[0].message);
+    throw new HttpBadRequestError(parsed.error.issues[0].message);
   }
   const { name, email, subject, message } = parsed.data;
 

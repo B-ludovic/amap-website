@@ -42,7 +42,7 @@ export const submitRequest = asyncHandler(async (req, res) => {
 
   // Validation
   const parsed = SubscriptionRequestSchema.safeParse({ type, basketSize, pricingType, paymentType, message });
-  if (!parsed.success) throw new HttpBadRequestError(parsed.error.errors[0].message);
+  if (!parsed.success) throw new HttpBadRequestError(parsed.error.issues[0].message);
 
   // Vérifier qu'il n'a pas déjà une demande en attente
   const existingRequest = await prisma.subscriptionRequest.findFirst({

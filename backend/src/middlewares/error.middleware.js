@@ -71,7 +71,7 @@ const errorHandler = (err, req, res, next) => {
       error: {
         message: 'Erreur de validation des données',
         type: 'ValidationError',
-        ...(process.env.NODE_ENV !== 'production' && { details: err.errors }),
+        ...(process.env.NODE_ENV !== 'production' && { details: err.issues }),
       },
     });
   }
