@@ -41,7 +41,6 @@ Ce projet est un site complet permettant de gérer une AMAP de A à Z :
 - **Tiptap 3** - Éditeur rich-text des newsletters (gras, italique, titres, listes, séparateur)
 - **React Aria Components** - Liste de choix accessible au clavier pour désigner un adhérent (permanences)
 - **isomorphic-dompurify** - Sanitisation XSS du contenu HTML externe
-- **Orejime 3** - Gestion du consentement cookies conforme RGPD
 - **Vitest 4** - Tests unitaires de la porte d'invitation, des données structurées et des design tokens
 
 ### Backend
@@ -78,7 +77,6 @@ amap-website/
 │   │   ├── middleware.js # Porte d'invitation, CSP nonce, HSTS, COOP, X-Frame-Options
 │   │   └── styles/      # CSS (variables, globals, admin/, components/, public/)
 │   ├── tests/unit/      # Vitest : porte d'invitation, SEO, design tokens, recherche d'adhérent
-│   ├── scripts/         # copy-orejime.js (postinstall)
 │   └── public/          # Assets statiques, llms.txt
 │
 ├── horloge/           # Worker Cloudflare qui déclenche les jobs chaque heure
@@ -603,7 +601,6 @@ Le prix d'un contrat ne s'écrit nulle part à la main : il se déduit de deux n
 - **Journal d'audit** : 44 actions tracées — gestes d'administration, réauthentifications ratées, passages de la purge RGPD — avec acteur, cible, IP, détails JSON et sévérité CRITICAL / IMPORTANT ; l'échec du log ne fait jamais échouer l'action métier. Chaque action est aussi écrite dans les logs du serveur, réduite à ses identifiants : l'email, le libellé et les détails restent en base
 - Visiteurs anonymes : pas de requête `/auth/me` (flag `localStorage`) → zéro 401 en console
 - Erreurs API remontées telles quelles à l'utilisateur, y compris l'échec réseau (« Serveur injoignable »)
-- Gestion du consentement cookies conforme RGPD (Orejime)
 - SEO : sitemap, robots.txt (`/admin`, `/api`, `/auth` et `/compte` exclus ; robots IA nommément autorisés sur le contenu public), `generateMetadata` dynamique sur les recettes, lazy loading images, `llms.txt` à destination des moteurs IA
 - JSON-LD ancré à Clamart (`frontend/src/constants/structuredData.js`) : NGO + LocalBusiness avec adresse, géolocalisation, horaires de distribution et communes desservies, FAQPage, ItemList producteurs, OfferCatalog des abonnements — rien n'y est annoncé que la base ne confirme
 
@@ -671,7 +668,6 @@ Le site n'utilise aucun framework CSS utilitaire — uniquement du CSS natif org
 - `npm start` - Serveur de production
 - `npm run lint` - ESLint
 - `npm test` / `npm run test:watch` - Suite de tests Vitest (une fois / à chaque sauvegarde)
-- `npm run postinstall` - Copie les fichiers Orejime dans `public/` (automatique après `npm install`)
 
 ### Horloge
 - `npm test` - Garde-fous de `wrangler.toml` et du Worker
