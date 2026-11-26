@@ -365,6 +365,13 @@ export default function MentionsLegalesPage() {
                 </dt>
                 <dd className="split-value">2 ans</dd>
               </div>
+              <div className="split-row">
+                <dt className="split-label">
+                  Journal des actions sensibles (geste, compte concerné, adresse IP), y
+                  compris après la suppression du compte
+                </dt>
+                <dd className="split-value">1 an</dd>
+              </div>
             </dl>
             <p className="legal-text legal-text-loose">
               Les données liées à un abonnement en cours sont conservées le temps de la

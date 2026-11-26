@@ -1,5 +1,6 @@
 import { prisma } from '../config/database.js';
 import { logAudit } from '../services/audit.service.js';
+import { safeMessage } from '../utils/safeMessage.js';
 
 /* Exportée : l'accusé de suppression annonce cette date à l'adhérent, et deux
    exemplaires de ce nombre finiraient par diverger. */
@@ -40,6 +41,12 @@ const EMAIL_LOG_RETENTION_DAYS = 365;
    est toujours morte, le premier message la remettra dans la liste, au prix
    d'un rebond tous les deux ans. */
 const EMAIL_SUPPRESSION_RETENTION_DAYS = 2 * 365;
+
+/* Le journal d'audit nomme la personne concernée et porte l'adresse IP de
+   l'auteur du geste, y compris après la purge du compte. Un an : une saison,
+   le temps qu'un geste puisse être contesté, et le haut de la fourchette de six
+   mois à un an que la CNIL recommande pour une journalisation. */
+const AUDIT_LOG_RETENTION_DAYS = 365;
 
 const daysAgo = (days) => {
   const cutoff = new Date();
@@ -258,8 +265,23 @@ async function purgeEmailSuppressions() {
   return count;
 }
 
+async function purgeAuditLogs() {
+  const cutoff = daysAgo(AUDIT_LOG_RETENTION_DAYS);
+
+  const { count } = await prisma.auditLog.deleteMany({
+    where: { createdAt: { lte: cutoff } },
+  });
+
+  if (count > 0) {
+    await logAudit(null, 'PURGE_USER_DATA', 'IMPORTANT', { type: 'AUDIT_LOG', label: 'Journal des actions sensibles' }, { count, retentionDays: AUDIT_LOG_RETENTION_DAYS });
+    console.log(`[RetentionJob] ${count} ligne(s) du journal d'audit purgée(s) (>${AUDIT_LOG_RETENTION_DAYS}j)`);
+  }
+
+  return count;
+}
+
 /* Le passage laisse une trace même quand il n'a rien trouvé à purger, et c'est
-   tout l'intérêt de cette ligne : les sept purges ci-dessus ne journalisent que
+   tout l'intérêt de cette ligne : les huit purges ci-dessus ne journalisent que
    sous « count > 0 », si bien qu'un journal muet ne disait pas si le job avait
    tourné à vide ou n'avait pas tourné du tout. Or les deux se ressemblent
    exactement, et l'un des deux est une panne.
@@ -280,6 +302,7 @@ export async function runRetentionJob() {
       orphanSubscriptionRequests: await purgeOrphanSubscriptionRequests(),
       emailLogs: await purgeEmailLogs(),
       emailSuppressions: await purgeEmailSuppressions(),
+      auditLogs: await purgeAuditLogs(),
     };
 
     const total = Object.values(counts).reduce((somme, n) => somme + n, 0);
@@ -302,7 +325,7 @@ export async function runRetentionJob() {
       'RETENTION_JOB_FAILED',
       'CRITICAL',
       { type: 'JOB', label: 'Passage de rétention interrompu' },
-      { message: error?.message ?? String(error), durationMs: Date.now() - startedAt },
+      { message: safeMessage(error), durationMs: Date.now() - startedAt },
     );
 
     throw error;

@@ -1,6 +1,6 @@
 /* Trace de passage du job de rétention.
 
-   Les sept purges ne journalisent que sous « count > 0 ». Un registre muet ne
+   Les huit purges ne journalisent que sous « count > 0 ». Un registre muet ne
    disait donc pas si le job avait tourné sans rien trouver ou n'avait pas tourné
    du tout — deux situations indiscernables dont l'une est une panne. Ce que ces
    tests protègent, c'est la ligne de fin de passage, celle qui est écrite quoi
@@ -38,6 +38,12 @@ vi.mock('../../src/config/database.js', () => {
       producerInquiry: { deleteMany: efface('producerInquiries'), count: async () => 0 },
       emailLog: { deleteMany: efface('emailLogs') },
       emailSuppression: { deleteMany: efface('emailSuppressions') },
+      auditLog: {
+        deleteMany: async ({ where }) => {
+          base.filtreAudit = where;
+          return { count: base.auditLogs ?? 0 };
+        },
+      },
     },
   };
 });
@@ -96,6 +102,7 @@ describe('Le décompte rapporté est celui des suppressions réelles', () => {
       orphanRequests: 3,
       emailLogs: 40,
       emailSuppressions: 4,
+      auditLogs: 6,
     });
 
     await runRetentionJob();
@@ -109,7 +116,32 @@ describe('Le décompte rapporté est celui des suppressions réelles', () => {
     expect(details.orphanSubscriptionRequests).toBe(3);
     expect(details.emailLogs).toBe(40);
     expect(details.emailSuppressions).toBe(4);
-    expect(details.total).toBe(57);
+    expect(details.auditLogs).toBe(6);
+    expect(details.total).toBe(63);
+  });
+});
+
+describe('Le journal d\'audit a un terme', () => {
+  it('efface les lignes de plus d\'un an, comptées depuis le geste', async () => {
+    const ilYAUnAn = new Date();
+    ilYAUnAn.setDate(ilYAUnAn.getDate() - 365);
+
+    await runRetentionJob();
+
+    expect(Object.keys(base.filtreAudit)).toEqual(['createdAt']);
+    expect(Math.abs(base.filtreAudit.createdAt.lte - ilYAUnAn)).toBeLessThan(60 * 1000);
+  });
+
+  it('consigne sa propre purge, sans donnée personnelle', async () => {
+    base.auditLogs = 6;
+
+    await runRetentionJob();
+
+    const purge = logAudit.mock.calls.find(([, action, , target]) => action === 'PURGE_USER_DATA' && target.type === 'AUDIT_LOG');
+    expect(purge.slice(3)).toEqual([
+      { type: 'AUDIT_LOG', label: 'Journal des actions sensibles' },
+      { count: 6, retentionDays: 365 },
+    ]);
   });
 });
 
