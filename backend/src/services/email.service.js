@@ -7,6 +7,7 @@ import { overridesOptOut } from './newsletterAudience.service.js';
 import { unsubscribePageUrl, unsubscribeHeaders } from '../utils/unsubscribeToken.js';
 import { estSupprimee } from './emailSuppression.service.js';
 import { renderEmail, emailButton, emailToText } from './emailTheme.js';
+import { safeMessage } from '../utils/safeMessage.js';
 
 /* Pool : sans lui chaque message rouvrait une connexion TCP + TLS + auth.
    Délais de garde : le défaut de nodemailer est de dix minutes sur un socket
@@ -35,7 +36,7 @@ const transporter = nodemailer.createTransport({
 if (process.env.NODE_ENV === 'production') {
   transporter.verify()
     .then(() => console.log('[Email] relais Brevo joignable'))
-    .catch((error) => console.error(`[Email] relais Brevo INJOIGNABLE : ${error.message}`));
+    .catch((error) => console.error(`[Email] relais Brevo INJOIGNABLE : ${safeMessage(error)}`));
 }
 
 // Les sockets du pool retiendraient le processus au redéploiement.
@@ -108,7 +109,7 @@ class EmailService {
     try {
       return await estSupprimee(email);
     } catch (error) {
-      console.error(`[Email] liste des adresses supprimées illisible : ${error.message}`);
+      console.error(`[Email] liste des adresses supprimées illisible : ${safeMessage(error)}`);
       return null;
     }
   }
@@ -140,10 +141,10 @@ class EmailService {
 
       return { success: true };
     } catch (error) {
-      /* Donnée personnelle hors des logs de production (règle d'error.middleware.js).
+      /* Donnée personnelle hors des logs de production (règle de utils/safeMessage.js).
          Elle est en base, dans EmailLog, qui est purgé. */
       const destinataire = process.env.NODE_ENV === 'production' ? '[adresse en base]' : mailOptions.to;
-      console.error(`[Email:${kind}] échec d'envoi vers ${destinataire} : ${error.message}`);
+      console.error(`[Email:${kind}] échec d'envoi vers ${destinataire} : ${safeMessage(error)}`);
 
       await this.#trace({ kind, ref, mailOptions, status: 'FAILED', error: error.message });
 
@@ -169,7 +170,7 @@ class EmailService {
         },
       });
     } catch (traceError) {
-      console.error(`[Email:${kind}] trace non enregistrée : ${traceError.message}`);
+      console.error(`[Email:${kind}] trace non enregistrée : ${safeMessage(traceError)}`);
     }
   }
 
@@ -577,7 +578,7 @@ class EmailService {
         try {
           await onProgress({ sent: results.sent, failed: results.failed });
         } catch (error) {
-          console.error(`[Email:NEWSLETTER] progression non enregistrée : ${error.message}`);
+          console.error(`[Email:NEWSLETTER] progression non enregistrée : ${safeMessage(error)}`);
         }
       };
 
@@ -1176,7 +1177,7 @@ class EmailService {
       if (process.env.NODE_ENV !== 'production') console.log(`[DEV] Notifs paniers envoyées : ${results.sent} succès, ${results.failed} échecs`);
       return { success: true, results };
     } catch (error) {
-      console.error('Erreur envoi notifs panier:', error);
+      console.error(`Erreur envoi notifs panier : ${safeMessage(error)}`);
       return { success: false, error: error.message };
     }
   }

@@ -1,4 +1,5 @@
 import { prisma } from '../config/database.js';
+import { safeMessage } from '../utils/safeMessage.js';
 
 // Enregistre une action admin dans le journal d'audit.
 // - req     : requête Express (pour extraire l'IP et l'admin connecté)
@@ -32,7 +33,7 @@ const logAudit = async (req, action, severity, target = {}, details = null) => {
     });
   } catch (err) {
     // Ne jamais faire planter l'action principale à cause du log
-    console.error('[AuditLog] Erreur lors de l\'enregistrement :', err.message);
+    console.error(`[AuditLog] Erreur lors de l'enregistrement : ${safeMessage(err)}`);
   }
 };
 

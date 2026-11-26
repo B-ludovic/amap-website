@@ -17,6 +17,7 @@ import {
   euroAmount,
   formatInstallments,
 } from '../utils/subscriptionPricing.js';
+import { safeMessage } from '../utils/safeMessage.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -57,7 +58,7 @@ async function launchBrowser() {
     console.warn(
       '[Contrat] Chromium n\'a pas pu démarrer avec son bac à sable, repli sans isolation. ' +
       'Poser PUPPETEER_DISABLE_SANDBOX=true pour éviter cette double tentative. Cause :',
-      error.message.split('\n')[0]
+      safeMessage(error).split('\n')[0]
     );
 
     return puppeteer.launch({ headless: 'new', args: SANDBOX_DISABLED_ARGS });
@@ -69,74 +70,69 @@ class ContractService {
   
   async generateContract(subscription, user, paymentType = '1') {
     const isDev = process.env.NODE_ENV !== 'production';
+    if (isDev) {
+      console.log('[DEV] Génération contrat pour subscription ID:', subscription?.id);
+    }
+
+    // Lire le template
+    const templatePath = path.join(__dirname, '../../templates/contract.html');
+
+    if (!fs.existsSync(templatePath)) {
+      throw new Error(`Template non trouvé: ${templatePath}`);
+    }
+
+    const templateHtml = fs.readFileSync(templatePath, 'utf8');
+
+    // Compiler avec Handlebars
+    const template = handlebars.compile(templateHtml);
+
+    // Charger le logo en base64
+    const logoPath = path.join(__dirname, '../../../frontend/public/icons/logo.png');
+    let logoBase64 = null;
+    if (fs.existsSync(logoPath)) {
+      const logoBuffer = fs.readFileSync(logoPath);
+      logoBase64 = `data:image/png;base64,${logoBuffer.toString('base64')}`;
+    }
+
+    // Préparer les données
+    const data = this.prepareContractData(subscription, user, paymentType);
+    if (logoBase64) data.logoBase64 = logoBase64;
+
+    // Générer le HTML
+    const html = template(data);
+
+    // Générer le PDF avec Puppeteer
+    let browser;
     try {
+      browser = await launchBrowser();
+
+      const page = await browser.newPage();
+      page.setDefaultTimeout(30000);
+
+      await page.setContent(html, { waitUntil: 'load' });
+
+      // Attendre que le contenu soit bien rendu
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      const pdfBuffer = await page.pdf({
+        format: 'A4',
+        printBackground: true,
+        margin: {
+          top: '2cm',
+          right: '2cm',
+          bottom: '2cm',
+          left: '2cm'
+        },
+        preferCSSPageSize: false
+      });
+
       if (isDev) {
-        console.log('[DEV] Génération contrat pour subscription ID:', subscription?.id);
+        console.log('[DEV] PDF généré, taille:', pdfBuffer.length, 'bytes');
       }
 
-      // Lire le template
-      const templatePath = path.join(__dirname, '../../templates/contract.html');
-
-      if (!fs.existsSync(templatePath)) {
-        throw new Error(`Template non trouvé: ${templatePath}`);
-      }
-
-      const templateHtml = fs.readFileSync(templatePath, 'utf8');
-
-      // Compiler avec Handlebars
-      const template = handlebars.compile(templateHtml);
-
-      // Charger le logo en base64
-      const logoPath = path.join(__dirname, '../../../frontend/public/icons/logo.png');
-      let logoBase64 = null;
-      if (fs.existsSync(logoPath)) {
-        const logoBuffer = fs.readFileSync(logoPath);
-        logoBase64 = `data:image/png;base64,${logoBuffer.toString('base64')}`;
-      }
-
-      // Préparer les données
-      const data = this.prepareContractData(subscription, user, paymentType);
-      if (logoBase64) data.logoBase64 = logoBase64;
-
-      // Générer le HTML
-      const html = template(data);
-
-      // Générer le PDF avec Puppeteer
-      let browser;
-      try {
-        browser = await launchBrowser();
-
-        const page = await browser.newPage();
-        page.setDefaultTimeout(30000);
-
-        await page.setContent(html, { waitUntil: 'load' });
-
-        // Attendre que le contenu soit bien rendu
-        await new Promise(resolve => setTimeout(resolve, 500));
-
-        const pdfBuffer = await page.pdf({
-          format: 'A4',
-          printBackground: true,
-          margin: {
-            top: '2cm',
-            right: '2cm',
-            bottom: '2cm',
-            left: '2cm'
-          },
-          preferCSSPageSize: false
-        });
-
-        if (isDev) {
-          console.log('[DEV] PDF généré, taille:', pdfBuffer.length, 'bytes');
-        }
-
-        return pdfBuffer;
-      } finally {
-        if (browser) await browser.close();
-      }
-    } catch (error) {
-      console.error('Erreur génération contrat:', error.message);
-      throw error;
+      return pdfBuffer;
+    } finally {
+      if (browser) await browser.close();
     }
   }
 

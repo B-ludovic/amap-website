@@ -1,5 +1,5 @@
 import rateLimit from 'express-rate-limit';
-import { maskTokens } from './error.middleware.js';
+import { maskTokens } from '../utils/safeMessage.js';
 
 /* Une ligne au premier refus de chaque fenêtre, pas à chaque refus : une attaque
    qui insiste noierait sinon les logs. Le chemin perd sa query string, qui peut

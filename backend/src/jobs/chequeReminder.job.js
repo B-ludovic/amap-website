@@ -1,5 +1,6 @@
 import { prisma } from '../config/database.js';
 import emailService from '../services/email.service.js';
+import { safeMessage } from '../utils/safeMessage.js';
 
 /* Les deux rappels du cycle du chèque.
 
@@ -100,7 +101,7 @@ async function remindMembers(now) {
         where: { id: payment.id },
         data: { reminderSentAt: null },
       });
-      console.error(`[ChequeJob] Échec avis ${subscription.subscriptionNumber}:`, result.error);
+      console.error(`[ChequeJob] Échec avis ${subscription.subscriptionNumber} : ${safeMessage(result.error)}`);
     }
   }
 
@@ -188,7 +189,7 @@ async function remindTreasurer(now) {
     where: { id: payment.id },
     data: { treasurerNotifiedAt: payment.treasurerNotifiedAt },
   })));
-  console.error('[ChequeJob] Échec récapitulatif trésorier:', result.error);
+  console.error(`[ChequeJob] Échec récapitulatif trésorier : ${safeMessage(result.error)}`);
 }
 
 export async function checkChequeReminders() {

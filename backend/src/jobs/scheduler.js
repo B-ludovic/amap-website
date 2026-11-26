@@ -6,6 +6,7 @@
    quel job n'a pas tourné depuis sa période ? */
 
 import { prisma } from '../config/database.js';
+import { safeMessage } from '../utils/safeMessage.js';
 import { checkRenewalReminders } from './renewalReminder.job.js';
 import { runRetentionJob } from './dataRetention.job.js';
 import { generateNextWeeklyBasket } from './weeklyBasketGeneration.job.js';
@@ -103,10 +104,12 @@ export async function runDueJobs(now = new Date()) {
       });
     } catch (error) {
       bilan.echoues.push(job.nom);
-      console.error(`[Planificateur] ${job.nom} a échoué :`, error);
+      // Un job ne passe pas par le middleware d'erreur : son filtre s'applique ici.
+      const message = safeMessage(error);
+      console.error(`[Planificateur] ${job.nom} a échoué : ${message}`);
       await prisma.jobRun.update({
         where: { name: job.nom },
-        data: { status: 'FAILED', finishedAt: new Date(), error: String(error?.message ?? error).slice(0, 1000) },
+        data: { status: 'FAILED', finishedAt: new Date(), error: message.slice(0, 1000) },
       });
     }
   }
@@ -123,7 +126,7 @@ const INTERVALLE_EVEILLE = 15 * MINUTE;
 export function startScheduler() {
   // Un rejet non capturé arrête Node : le serveur doit survivre à une base injoignable.
   const passer = () => runDueJobs().catch((error) => {
-    console.error('[Planificateur] Passage interrompu :', error);
+    console.error(`[Planificateur] Passage interrompu : ${safeMessage(error)}`);
   });
 
   // D'abord au démarrage : sur Render gratuit, chaque réveil rattrape ce qui est dû.

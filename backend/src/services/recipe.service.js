@@ -1,4 +1,5 @@
 import translate from 'google-translate-api-x';
+import { safeMessage } from '../utils/safeMessage.js';
 
 const THEMEALDB_BASE_URL = 'https://www.themealdb.com/api/json/v1/1';
 
@@ -285,7 +286,7 @@ class RecipeService {
             }
             return translated;
         } catch (error) {
-            console.error('Erreur traduction ingredient:', error);
+            console.error(`Erreur traduction ingredient : ${safeMessage(error)}`);
             return normalized;
         }
     }
@@ -298,7 +299,7 @@ class RecipeService {
             const result = await translate(text, { to: 'fr' });
             return result.text;
         } catch (error) {
-            console.error('Erreur traduction:', error);
+            console.error(`Erreur traduction : ${safeMessage(error)}`);
             return text;
         }
     }
@@ -458,7 +459,7 @@ class RecipeService {
 
             return recipes;
         } catch (error) {
-            console.error('Erreur searchRecipes:', error);
+            console.error(`Erreur searchRecipes : ${safeMessage(error)}`);
             throw error;
         }
     }
@@ -510,7 +511,7 @@ class RecipeService {
                 ...this.mealMeta(meal)
             };
         } catch (error) {
-            console.error('Erreur getRecipeDetails:', error);
+            console.error(`Erreur getRecipeDetails : ${safeMessage(error)}`);
             throw error;
         }
     }
@@ -591,7 +592,7 @@ class RecipeService {
 
             return recipes;
         } catch (error) {
-            console.error('Erreur findByIngredients:', error);
+            console.error(`Erreur findByIngredients : ${safeMessage(error)}`);
             throw error;
         }
     }
@@ -604,7 +605,7 @@ class RecipeService {
             const data = await response.json();
             return data.meals?.[0] || null;
         } catch (error) {
-            console.error('Erreur lookupMeal:', error);
+            console.error(`Erreur lookupMeal : ${safeMessage(error)}`);
             return null;
         }
     }

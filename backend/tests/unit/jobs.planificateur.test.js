@@ -8,16 +8,16 @@ import { appeler } from '../helpers/expressFactice.js';
 
 const { cahier, base, appels, pannes, tache } = vi.hoisted(() => {
   const appels = [];
-  const pannes = new Set();
+  const pannes = new Map();
 
   return {
     cahier: new Map(),
-    base: { injoignable: false },
+    base: { panne: null },
     appels,
     pannes,
     tache: (nom) => async () => {
       appels.push(nom);
-      if (pannes.has(nom)) throw new Error(`${nom} en panne`);
+      if (pannes.has(nom)) throw pannes.get(nom) ?? new Error(`${nom} en panne`);
     },
   };
 });
@@ -37,7 +37,7 @@ vi.mock('../../src/config/database.js', () => {
   });
 
   const verifierBase = () => {
-    if (base.injoignable) throw new Error('base injoignable');
+    if (base.panne) throw base.panne;
   };
 
   return {
@@ -86,13 +86,24 @@ const plus = (ms, depuis = T0) => new Date(depuis.getTime() + ms);
 const TOUS = JOBS.map(({ nom }) => nom);
 const HORAIRES = ['pauses', 'generation-panier', 'reprise-annonce-panier', 'drapeaux-orphelins'];
 
+/* Forme d'une PrismaClientValidationError : l'opération, l'emplacement, les
+   arguments avec leurs valeurs, puis le diagnostic. */
+const erreurPrisma = () => Object.assign(new Error([
+  'Invalid `prisma.user.deleteMany()` invocation in',
+  '/app/src/jobs/dataRetention.job.js:70:20',
+  '{ where: { email: "marie.dupont@exemple.test", phone: "0612345678" } }',
+  'Argument `email`: Invalid value provided. Expected String, provided Int.',
+].join('\n')), { name: 'PrismaClientValidationError' });
+
+const RESUME_PRISMA = 'Invalid `prisma.user.deleteMany()` invocation in […] Argument `email`: Invalid value provided. Expected String, provided Int.';
+
 let journal;
 
 beforeEach(() => {
   cahier.clear();
   appels.length = 0;
   pannes.clear();
-  base.injoignable = false;
+  base.panne = null;
   vi.stubEnv('RENDER_GIT_COMMIT', 'version-a');
 
   journal = [];
@@ -179,7 +190,7 @@ describe('Deux passages croisés ne lancent jamais le même job deux fois', () =
 
 describe('Un job en panne est consigné sans arrêter les autres', () => {
   it('note l\'échec et son message, puis laisse tourner les jobs suivants', async () => {
-    pannes.add('pauses');
+    pannes.set('pauses');
 
     const bilan = await runDueJobs(T0);
 
@@ -190,8 +201,22 @@ describe('Un job en panne est consigné sans arrêter les autres', () => {
     expect(journal.join('\n')).toContain('[Planificateur] pauses a échoué');
   });
 
+  it('en production, ne garde d\'une erreur Prisma ni les données ni la pile, dans les logs comme dans le cahier', async () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    pannes.set('pauses', erreurPrisma());
+
+    await runDueJobs(T0);
+
+    const sortie = journal.join('\n');
+    expect(sortie).toContain(`[Planificateur] pauses a échoué : ${RESUME_PRISMA}`);
+    expect(sortie).not.toContain('marie.dupont');
+    expect(sortie).not.toContain('0612345678');
+    expect(sortie).not.toMatch(/\n\s+at /);
+    expect(cahier.get('pauses').error).toBe(RESUME_PRISMA);
+  });
+
   it('retente le job au cycle suivant et efface le message d\'échec', async () => {
-    pannes.add('pauses');
+    pannes.set('pauses');
     await runDueJobs(T0);
     pannes.clear();
 
@@ -204,7 +229,7 @@ describe('Un job en panne est consigné sans arrêter les autres', () => {
 describe('Le démarrage survit à une base injoignable', () => {
   it('capture l\'échec du passage et reprend au suivant', async () => {
     vi.useFakeTimers();
-    base.injoignable = true;
+    base.panne = new Error('base injoignable');
 
     startScheduler();
     await vi.advanceTimersByTimeAsync(0);
@@ -212,10 +237,26 @@ describe('Le démarrage survit à une base injoignable', () => {
     expect(journal.join('\n')).toContain('[Planificateur] Passage interrompu');
     expect(appels).toEqual([]);
 
-    base.injoignable = false;
+    base.panne = null;
     await vi.advanceTimersByTimeAsync(15 * MINUTE);
 
     expect(appels).toContain('pauses');
+
+    vi.clearAllTimers();
+    vi.useRealTimers();
+  });
+
+  it('en production, ne recopie pas les données d\'une erreur Prisma', async () => {
+    vi.useFakeTimers();
+    vi.stubEnv('NODE_ENV', 'production');
+    base.panne = erreurPrisma();
+
+    startScheduler();
+    await vi.advanceTimersByTimeAsync(0);
+
+    const sortie = journal.join('\n');
+    expect(sortie).toContain(`[Planificateur] Passage interrompu : ${RESUME_PRISMA}`);
+    expect(sortie).not.toContain('marie.dupont');
 
     vi.clearAllTimers();
     vi.useRealTimers();
@@ -258,7 +299,7 @@ describe('La route de l\'horloge externe', () => {
   });
 
   it('répond 500 quand un job a échoué, pour que l\'horloge le signale', async () => {
-    pannes.add('rappels-cheques');
+    pannes.set('rappels-cheques');
 
     const { statut, corps } = await tick(`Bearer ${SECRET}`);
 

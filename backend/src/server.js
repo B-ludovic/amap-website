@@ -32,6 +32,7 @@ import producerAbsencesRoutes from './routes/producer-absences.routes.js';
 import emailsRoutes from './routes/emails.routes.js';
 import jobsRoutes from './routes/jobs.routes.js';
 import { startScheduler } from './jobs/scheduler.js';
+import { safeMessage } from './utils/safeMessage.js';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -282,7 +283,7 @@ const startServer = async () => {
       console.log(`💚 Health check: http://localhost:${PORT}/api/health`);
     });
   } catch (error) {
-    console.error('❌ Erreur au démarrage du serveur:', error);
+    console.error(`❌ Erreur au démarrage du serveur : ${safeMessage(error)}`);
     process.exit(1);
   }
 };

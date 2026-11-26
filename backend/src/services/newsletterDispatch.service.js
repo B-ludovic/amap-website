@@ -13,6 +13,7 @@
 import { prisma } from '../config/database.js';
 import emailService from './email.service.js';
 import { logAudit } from './audit.service.js';
+import { safeMessage } from '../utils/safeMessage.js';
 
 /* FAILED est un état de départ au même titre que DRAFT : une tentative qui n'a
    atteint personne ne condamne pas le texte. */
@@ -73,7 +74,7 @@ export async function diffuserNewsletter({ id, newsletter, recipients, trace = n
     });
 
     if (!result.success) {
-      console.error(`[Newsletter ${id}] envoi interrompu : ${result.error}`);
+      console.error(`[Newsletter ${id}] envoi interrompu : ${safeMessage(result.error)}`);
       await finaliser({ id, sent: 0, failed: recipients.length, recipientsCount: recipients.length });
 
       return { sent: 0, failed: recipients.length };
@@ -93,11 +94,11 @@ export async function diffuserNewsletter({ id, newsletter, recipients, trace = n
 
     return { sent, failed };
   } catch (error) {
-    console.error(`[Newsletter ${id}] diffusion interrompue : ${error.message}`);
+    console.error(`[Newsletter ${id}] diffusion interrompue : ${safeMessage(error)}`);
 
     await prisma.newsletter
       .update({ where: { id }, data: { status: 'FAILED', sentAt: null } })
-      .catch((releaseError) => console.error(`[Newsletter ${id}] statut non relâché : ${releaseError.message}`));
+      .catch((releaseError) => console.error(`[Newsletter ${id}] statut non relâché : ${safeMessage(releaseError)}`));
 
     return { sent: 0, failed: recipients.length };
   }
@@ -106,5 +107,5 @@ export async function diffuserNewsletter({ id, newsletter, recipients, trace = n
 // Le `void` est délibéré, le .catch est une ceinture : un rejet arrêterait Node.
 export function lancerDiffusion(params) {
   void diffuserNewsletter(params)
-    .catch((error) => console.error(`[Newsletter ${params.id}] diffusion non capturée : ${error.message}`));
+    .catch((error) => console.error(`[Newsletter ${params.id}] diffusion non capturée : ${safeMessage(error)}`));
 }

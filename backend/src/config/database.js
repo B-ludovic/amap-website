@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@prisma/client';
+import { safeMessage } from '../utils/safeMessage.js';
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 
@@ -16,7 +17,7 @@ const connectDB = async () => {
     await prisma.$connect();
     console.log('✅ Connecté à la base de données PostgreSQL');
   } catch (error) {
-    console.error('❌ Erreur de connexion à la base de données:', error.message);
+    console.error(`❌ Erreur de connexion à la base de données : ${safeMessage(error)}`);
     process.exit(1);
   }
 };
@@ -27,7 +28,7 @@ const disconnectDB = async () => {
     await prisma.$disconnect();
     console.log('✅ Déconnecté de la base de données');
   } catch (error) {
-    console.error('❌ Erreur lors de la déconnexion:', error.message);
+    console.error(`❌ Erreur lors de la déconnexion : ${safeMessage(error)}`);
   }
 };
 

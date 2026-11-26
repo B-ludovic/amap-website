@@ -1,5 +1,6 @@
 import { prisma } from '../config/database.js';
 import emailService from '../services/email.service.js';
+import { safeMessage } from '../utils/safeMessage.js';
 
 const REMINDER_DAYS = 30;
 
@@ -49,7 +50,7 @@ export async function checkRenewalReminders() {
         where: { id: sub.id },
         data: { renewalReminderSentAt: null },
       });
-      console.error(`[RenewalJob] Échec rappel ${sub.subscriptionNumber}:`, result.error);
+      console.error(`[RenewalJob] Échec rappel ${sub.subscriptionNumber} : ${safeMessage(result.error)}`);
     }
   }
 

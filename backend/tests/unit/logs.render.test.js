@@ -26,6 +26,7 @@ const { logAudit } = await import('../../src/services/audit.service.js');
 const { errorHandler } = await import('../../src/middlewares/error.middleware.js');
 const { limiteur } = await import('../../src/middlewares/rateLimit.middleware.js');
 const { HttpUnauthorizedError, HttpForbiddenError } = await import('../../src/utils/httpErrors.js');
+const { safeMessage } = await import('../../src/utils/safeMessage.js');
 
 const admin = { id: 'admin-0001', email: 'bureau@auxptitspois.test' };
 
@@ -41,7 +42,10 @@ beforeEach(() => {
   error = vi.spyOn(console, 'error').mockImplementation(() => {});
 });
 
-afterEach(() => vi.restoreAllMocks());
+afterEach(() => {
+  vi.restoreAllMocks();
+  vi.unstubAllEnvs();
+});
 
 const lignes = (espion) => espion.mock.calls.map((args) => args.map(String).join(' '));
 
@@ -225,5 +229,76 @@ describe('Limiteurs de débit', () => {
     }
 
     expect(importeurs).toEqual(['middlewares/rateLimit.middleware.js']);
+  });
+});
+
+describe('Filtre des messages d\'erreur', () => {
+  const validation = () => Object.assign(new Error([
+    'Invalid `prisma.emailLog.create()` invocation in',
+    '{ data: { to: "marie.dupont@exemple.test", subject: "Votre panier" } }',
+    'Argument `status`: Invalid value provided. Expected EmailStatus, provided String.',
+  ].join('\n')), { name: 'PrismaClientValidationError' });
+
+  const refusSmtp = new Error('Can\'t send mail - all recipients were rejected: 550 5.1.1 <marie.dupont@exemple.test>: Recipient address rejected');
+
+  it('en production, ne garde d\'une erreur Prisma que l\'opération et le diagnostic', () => {
+    vi.stubEnv('NODE_ENV', 'production');
+
+    expect(safeMessage(validation())).toBe(
+      'Invalid `prisma.emailLog.create()` invocation in […] Argument `status`: Invalid value provided. Expected EmailStatus, provided String.',
+    );
+  });
+
+  it('en production, masque l\'adresse citée par un refus SMTP, objet ou chaîne', () => {
+    vi.stubEnv('NODE_ENV', 'production');
+
+    expect(safeMessage(refusSmtp)).toBe('Can\'t send mail - all recipients were rejected: 550 5.1.1 <[adresse masquée]>: Recipient address rejected');
+    expect(safeMessage(refusSmtp.message)).toBe(safeMessage(refusSmtp));
+  });
+
+  it('en développement, laisse le message entier, sauf les jetons', () => {
+    const jeton = 'b'.repeat(64);
+
+    expect(safeMessage(validation())).toContain('marie.dupont@exemple.test');
+    expect(safeMessage(refusSmtp)).toContain('marie.dupont@exemple.test');
+    expect(safeMessage(new Error(`jeton ${jeton} expiré`))).toBe('jeton [jeton masqué] expiré');
+  });
+
+  it('accepte ce qui n\'est pas une erreur', () => {
+    expect(safeMessage(null)).toBe('null');
+    expect(safeMessage('motif')).toBe('motif');
+  });
+
+  /* Un log ne peut écrire un message d'erreur, l'objet entier ou le motif rendu
+     par un envoi qu'à travers safeMessage. */
+  it('passe par tous les logs d\'erreur du serveur', async () => {
+    const racine = new URL('../../src/', import.meta.url).pathname;
+    const fichiers = (await readdir(racine, { recursive: true })).filter((f) => f.endsWith('.js'));
+    const lecturesBrutes = [
+      /\.message\b/,
+      /,\s*(?:err|error|\w+Error)\s*\)/,
+      /\$\{\s*(?:err|error|\w+Error)\s*\}/,
+      /(?<!safeMessage\()\bresult\.error\b/,
+    ];
+    const fautifs = [];
+
+    for (const fichier of fichiers) {
+      const source = await readFile(join(racine, fichier), 'utf8');
+
+      for (const appel of source.matchAll(/console\.(?:log|warn|error)\(/g)) {
+        let fin = appel.index + appel[0].length;
+        for (let profondeur = 1; profondeur > 0 && fin < source.length; fin += 1) {
+          if (source[fin] === '(') profondeur += 1;
+          if (source[fin] === ')') profondeur -= 1;
+        }
+        const texte = source.slice(appel.index, fin);
+
+        if (lecturesBrutes.some((motif) => motif.test(texte))) {
+          fautifs.push(`${fichier}:${source.slice(0, appel.index).split('\n').length}`);
+        }
+      }
+    }
+
+    expect(fautifs).toEqual([]);
   });
 });

@@ -21,6 +21,7 @@
 import { prisma } from '../config/database.js';
 import emailService from './email.service.js';
 import { adressesSupprimees, normaliserAdresse } from './emailSuppression.service.js';
+import { safeMessage } from '../utils/safeMessage.js';
 
 /* Au-delà, le processus qui tenait le drapeau est considéré mort. Large devant
    les quelques minutes que demande la plus longue boucle : reprendre trop tôt
@@ -121,11 +122,11 @@ export async function diffuserPanier({ basket, recipients }) {
 
     return { servis, refuses };
   } catch (error) {
-    console.error(`[Panier ${basket.id}] notification interrompue : ${error.message}`);
+    console.error(`[Panier ${basket.id}] notification interrompue : ${safeMessage(error)}`);
 
     await prisma.weeklyBasket
       .update({ where: { id: basket.id }, data: { notifyingSince: null } })
-      .catch((releaseError) => console.error(`[Panier ${basket.id}] drapeau non relâché : ${releaseError.message}`));
+      .catch((releaseError) => console.error(`[Panier ${basket.id}] drapeau non relâché : ${safeMessage(releaseError)}`));
 
     return { servis: 0, refuses: 0 };
   }
@@ -134,5 +135,5 @@ export async function diffuserPanier({ basket, recipients }) {
 // Le `void` est délibéré, le .catch est une ceinture : un rejet arrêterait Node.
 export function lancerNotification(params) {
   void diffuserPanier(params)
-    .catch((error) => console.error(`[Panier ${params.basket.id}] notification non capturée : ${error.message}`));
+    .catch((error) => console.error(`[Panier ${params.basket.id}] notification non capturée : ${safeMessage(error)}`));
 }

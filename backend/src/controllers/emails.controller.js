@@ -13,6 +13,7 @@ import { HttpBadRequestError, HttpNotFoundError, HttpUnauthorizedError } from '.
 import { traiterEvenementBrevo } from '../services/brevoEvents.service.js';
 import { retablirAdresse } from '../services/emailSuppression.service.js';
 import { logAudit } from '../services/audit.service.js';
+import { safeMessage } from '../utils/safeMessage.js';
 
 /* Brevo ne signe pas ses appels : il n'y a ni HMAC ni certificat client à
    vérifier, seulement ce qu'on lui a demandé de porter. Le même secret est donc
@@ -80,7 +81,7 @@ const receiveBrevoEvent = asyncHandler(async (req, res) => {
         console.log(`[Webhook Brevo] ${resultat.evenement} : ${resultat.effets.join(', ')}`);
       }
     } catch (error) {
-      console.error(`[Webhook Brevo] événement non traité : ${error.message}`);
+      console.error(`[Webhook Brevo] événement non traité : ${safeMessage(error)}`);
     }
   }
 

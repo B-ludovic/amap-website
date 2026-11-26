@@ -1,15 +1,5 @@
 import { HttpError, httpStatusCodes } from '../utils/httpErrors.js';
-
-const isProduction = () => process.env.NODE_ENV === 'production';
-
-/* Un jeton n'a rien à faire dans un journal. Certaines routes en portent un dans
-   leur chemin — POST /api/auth/confirm/:token —, si bien qu'une erreur survenant
-   là écrirait une clé d'activation valide, en clair, dans des logs qui se
-   conservent. Les jetons du projet sont des chaînes hexadécimales de 64
-   caractères (crypto.randomBytes(32)) ; on masque tout ce qui y ressemble, sans
-   toucher aux identifiants UUID, qui portent des tirets, ne sont pas des secrets
-   et servent au diagnostic. */
-const maskTokens = (value) => String(value).replace(/\b[a-f0-9]{32,}\b/gi, '[jeton masqué]');
+import { maskTokens, safeMessage } from '../utils/safeMessage.js';
 
 /* Refus d'express.json() : leur statut est le bon (400, 413, 415), mais leur
    message cite le corps reçu, V8 recopiant l'extrait fautif, mot de passe compris. */
@@ -22,27 +12,7 @@ const BODY_ERROR_MESSAGES = {
   'charset.unsupported': 'Encodage de la requête non pris en charge.',
 };
 
-/* Le message d'une erreur Prisma récite la requête fautive, données comprises.
-   Une saisie du formulaire producteur mal typée produit un message qui contient
-   le nom, l'adresse e-mail, le téléphone et l'adresse postale du candidat — les
-   journaliser reviendrait à recopier le formulaire dans les logs.
-
-   Ces messages ont une forme constante : première ligne l'opération, dernière
-   ligne le diagnostic, et les données entre les deux. On ne garde donc que les
-   deux extrémités en production, ce qui conserve tout ce qui sert à corriger —
-   le modèle, l'opération, le champ fautif, le type attendu — sans une seule
-   valeur. En développement le message reste entier : c'est là qu'il est utile,
-   et les données y sont des données de test. */
-const safeMessage = (err) => {
-  if (isBodyParserError(err)) return err.type;
-  if (!isProduction() || !err.name?.startsWith('PrismaClient')) return maskTokens(err.message);
-
-  const lines = String(err.message).split('\n').map((line) => line.trim()).filter(Boolean);
-
-  if (lines.length < 2) return maskTokens(err.message);
-
-  return maskTokens(`${lines[0]} […] ${lines[lines.length - 1]}`);
-};
+const logMessage = (err) => (isBodyParserError(err) ? err.type : safeMessage(err));
 
 const isPrismaKnownError = (err) => typeof err.code === 'string' && err.code.startsWith('P');
 
@@ -71,7 +41,7 @@ const errorHandler = (err, req, res, next) => {
   console.error('Erreur capturée:', {
     status,
     name: err.name,
-    message: safeMessage(err),
+    message: logMessage(err),
     path: maskTokens(req.path),
     method: req.method,
     user: req.user?.id ?? null,
@@ -156,7 +126,7 @@ const errorHandler = (err, req, res, next) => {
     console.error('[Erreur] Requête Prisma malformée:', {
       path: maskTokens(req.path),
       method: req.method,
-      message: safeMessage(err),
+      message: logMessage(err),
     });
 
     return res.status(status).json({
@@ -191,4 +161,4 @@ const asyncHandler = (fn) => {
   };
 };
 
-export { errorHandler, asyncHandler, maskTokens };
+export { errorHandler, asyncHandler };
