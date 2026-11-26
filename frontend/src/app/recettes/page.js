@@ -11,13 +11,13 @@ export default function RecipesPage() {
     const [query, setQuery] = useState('');
     const [recipes, setRecipes] = useState([]);
     const [loading, setLoading] = useState(false);
-    const { showModal } = useModal();
+    const { showError } = useModal();
 
     const handleSearch = async (e) => {
         e.preventDefault();
 
         if (!query.trim()) {
-            showModal('Erreur', 'Veuillez entrer un terme de recherche.');
+            showError('Erreur', 'Veuillez entrer un terme de recherche.');
             return;
         }
 
@@ -26,7 +26,7 @@ export default function RecipesPage() {
             const response = await api.recipes.search(query);
             setRecipes(response.data);
         } catch (error) {
-            showModal('Erreur', 'Une erreur est survenue lors de la recherche.');
+            showError('Erreur', 'Une erreur est survenue lors de la recherche.');
         } finally {
             setLoading(false);
         }

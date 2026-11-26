@@ -34,8 +34,8 @@ Ce projet est un site complet permettant de gérer une AMAP de A à Z :
 ## 🚀 Technologies utilisées
 
 ### Frontend
-- **Next.js 15** (App Router) - Rendu côté serveur, sitemap et robots.txt natifs
-- **React 18** - Interface utilisateur réactive
+- **Next.js 16** (App Router) - Rendu côté serveur, sitemap et robots.txt natifs
+- **React 19** - Interface utilisateur réactive
 - **Lucide React** - Icônes modernes
 - **CSS natif** - Variables CSS, design tokens, responsive (aucun framework utilitaire)
 - **Tiptap 3** - Éditeur rich-text des newsletters (gras, italique, titres, listes, séparateur)

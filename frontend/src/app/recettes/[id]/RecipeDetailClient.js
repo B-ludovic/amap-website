@@ -55,7 +55,7 @@ const pad = (value) => (value < 10 ? `0${value}` : String(value));
 export default function RecipeDetailClient() {
   const params = useParams();
   const router = useRouter();
-  const { showModal } = useModal();
+  const { showError } = useModal();
   const [recipe, setRecipe] = useState(null);
   const [basket, setBasket] = useState(null);
   const [others, setOthers] = useState([]);
@@ -67,13 +67,13 @@ export default function RecipeDetailClient() {
       const response = await api.recipes.getById(params.id);
       setRecipe(response.data);
     } catch (error) {
-      showModal('Erreur', 'Une erreur est survenue lors du chargement de la recette.');
+      showError('Erreur', 'Une erreur est survenue lors du chargement de la recette.');
       logger.error(error);
       router.push('/recettes');
     } finally {
       setLoading(false);
     }
-  }, [params.id, router, showModal]);
+  }, [params.id, router, showError]);
 
   const fetchCurrentBasket = async () => {
     try {
