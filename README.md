@@ -75,7 +75,7 @@ amap-website/
 │   │   ├── contexts/    # Contextes React (Auth, Modal)
 │   │   ├── hooks/       # Hooks personnalisés (useFocusTrap)
 │   │   ├── lib/         # Utilitaires (api.js, inviteGate.js, logger.js, format.js, closures.js, memberSearch.js, producers.js)
-│   │   ├── middleware.js # Porte d'invitation, CSP nonce, HSTS, COOP, X-Frame-Options
+│   │   ├── proxy.js     # Porte d'invitation, CSP nonce, HSTS, COOP, X-Frame-Options
 │   │   └── styles/      # CSS (variables, globals, admin/, components/, public/)
 │   ├── tests/unit/      # Vitest : porte d'invitation, SEO, design tokens, recherche d'adhérent
 │   └── public/          # Assets statiques, llms.txt
@@ -319,7 +319,7 @@ site n'est ni rendue ni envoyée au navigateur.
    requête sur n'importe quelle URL
               │
               ▼
-      middleware.js ─── cookie « inviteAccess » présent, signé, non périmé,
+          proxy.js ──── cookie « inviteAccess » présent, signé, non périmé,
               │         et adresse toujours sur la liste ?
               │
        non ───┴─── oui
@@ -335,7 +335,7 @@ site n'est ni rendue ni envoyée au navigateur.
    pose du cookie signé, valable 30 jours
         │
         ▼
-   rechargement : le middleware laisse passer
+   rechargement : le proxy laisse passer
 ```
 
 Trois variables commandent l'ensemble, et c'est **la seule présence
@@ -596,7 +596,7 @@ Le prix d'un contrat ne s'écrit nulle part à la main : il se déduit de deux n
 - **Protection CSRF** par `SameSite=Lax`, corps JSON exclusif (100 ko max) et liste blanche d'origines CORS explicite
 - Rate limiting différencié : global (300/15 min), authentification (10/15 min), formulaires publics (10/15 min), génération PDF (5/min), routes admin (200/15 min), envoi de newsletter (5/h), paiements (20/15 min), désabonnement (60/15 min), webhook Brevo (2 000/15 min) ; chaque blocage est signalé dans les logs, une fois par adresse et par fenêtre
 - Headers sécurisés côté API (Helmet.js) et sanitisation XSS (DOMPurify) côté front comme back
-- **CSP nonce-based** via middleware Next.js (`script-src 'nonce' 'strict-dynamic'`, `'unsafe-eval'` retiré en production)
+- **CSP nonce-based** via le proxy Next.js (`script-src 'nonce' 'strict-dynamic'`, `'unsafe-eval'` retiré en production)
 - **HSTS** (`max-age=31536000; includeSubDomains; preload`), **COOP** (`same-origin`), **X-Frame-Options** (`DENY`), `nosniff`, `Referrer-Policy`
 - JSON-LD sécurisé : échappement `<`, `>`, `&` dans les scripts structurés
 - **Journal d'audit** : 44 actions tracées — gestes d'administration, réauthentifications ratées, passages de la purge RGPD — avec acteur, cible, IP, détails JSON et sévérité CRITICAL / IMPORTANT ; l'échec du log ne fait jamais échouer l'action métier. Chaque action est aussi écrite dans les logs du serveur, réduite à ses identifiants : l'email, le libellé et les détails restent en base

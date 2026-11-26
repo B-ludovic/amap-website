@@ -20,9 +20,10 @@ export async function proxy(request) {
 
   const csp = [
     "default-src 'self'",
-    /* 'unsafe-eval' n'est requis que par les source maps eval de webpack en
-       développement. En production il n'a aucun usage et rouvre les gadgets de
-       contournement de strict-dynamic. */
+    /* 'unsafe-eval' ne sert qu'en développement : React s'en sert pour
+       reconstruire dans le navigateur les piles d'erreurs du serveur. En
+       production il n'a aucun usage et rouvre les gadgets de contournement de
+       strict-dynamic. */
     `script-src 'nonce-${nonce}' 'strict-dynamic'${isProd ? '' : " 'unsafe-eval'"}`,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob: https:",
@@ -35,7 +36,7 @@ export async function proxy(request) {
     ...(isProd ? ["upgrade-insecure-requests"] : []),
   ].join('; ');
 
-  /* CE MIDDLEWARE NE GARDE QUE LA PORTE D'INVITATION.
+  /* CE PROXY NE GARDE QUE LA PORTE D'INVITATION.
 
      /admin n'est pas filtré ici. Le contrôle d'accès est côté API — authMiddleware
      puis adminOnly sur /api/admin/* — et il doit y rester : le navigateur ne
@@ -51,7 +52,7 @@ export async function proxy(request) {
      Ne pas le faire sans changer autre chose d'abord. Le cookie d'authentification
      est posé par l'API sans attribut Domain — vérifié sur l'en-tête Set-Cookie
      réellement émis —, il est donc host-only : il appartient à api.auxptitspois.fr
-     et n'est jamais envoyé à auxptitspois.fr, où tourne ce middleware. Le test
+     et n'est jamais envoyé à auxptitspois.fr, où tourne ce proxy. Le test
      ci-dessus serait donc toujours faux en production et redirigerait les
      administrateurs vers la page de connexion en boucle, /admin devenant
      inaccessible.
@@ -68,7 +69,7 @@ export async function proxy(request) {
      confort d'affichage, jamais un contrôle d'accès.
 
      Le laissez-passer d'invitation, lui, se vérifie bien ici : il est posé par
-     /api/invitation, servi par le même hôte que ce middleware, donc lisible. */
+     /api/invitation, servi par le même hôte que ce proxy, donc lisible. */
 
   const { pathname } = request.nextUrl;
   const invite = readInviteConfig();

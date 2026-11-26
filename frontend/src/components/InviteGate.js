@@ -40,7 +40,7 @@ export default function InviteGate() {
 
       /* Rechargement complet plutôt que router.refresh() : le laissez-passer
          vient d'être posé en cookie, et seule une nouvelle requête de document
-         repasse par le middleware, qui lèvera la réécriture vers cette page.
+         repasse par le proxy, qui lèvera la réécriture vers cette page.
          L'URL demandée au départ n'a pas bougé, elle s'affiche telle quelle. */
       window.location.reload();
     } catch {

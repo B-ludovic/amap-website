@@ -1,9 +1,4 @@
-/* Porte d'invitation : configuration, laissez-passer signé, vérification.
-
-   Web Crypto exclusivement. Ce module est lu par le middleware, qui tourne sur
-   le runtime edge, et par le Route Handler, qui tourne sur Node : `node:crypto`
-   et `Buffer` ne sont pas disponibles des deux côtés, `crypto.subtle`, `btoa` et
-   `atob` le sont. */
+/* Porte d'invitation : configuration, laissez-passer signé, vérification. */
 
 export const INVITE_COOKIE = 'inviteAccess';
 export const INVITE_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;

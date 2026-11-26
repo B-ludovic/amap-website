@@ -16,6 +16,8 @@
 # next.js
 /.next/
 /out/
+# Régénéré par `next dev` à chaque lancement.
+/AGENTS.md
 
 # production
 /build
