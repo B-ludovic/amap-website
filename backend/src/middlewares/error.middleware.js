@@ -32,7 +32,19 @@ const safeMessage = (err) => {
   return maskTokens(`${lines[0]} […] ${lines[lines.length - 1]}`);
 };
 
+const isPrismaKnownError = (err) => typeof err.code === 'string' && err.code.startsWith('P');
+
+// Calculé une fois, pour que le log et la réponse ne puissent pas diverger.
+const statusFor = (err) => {
+  if (err instanceof HttpError) return err.statusCode;
+  if (err.name === 'ZodError') return httpStatusCodes.UNPROCESSABLE_ENTITY;
+  if (isPrismaKnownError(err)) return httpStatusCodes.BAD_REQUEST;
+  return httpStatusCodes.INTERNAL_SERVER_ERROR;
+};
+
 const errorHandler = (err, req, res, next) => {
+  const status = statusFor(err);
+
   /* Journaliser n'est pas divulguer. Cette ligne écrit dans les logs du serveur,
      que seule l'équipe consulte ; ce qui doit rester caché, c'est la pile et le
      message brut dans le corps de la réponse HTTP, et cela reste conditionné plus
@@ -44,15 +56,17 @@ const errorHandler = (err, req, res, next) => {
      par les deux filtres ci-dessus, sans quoi cette ligne recopierait des jetons
      et des données personnelles dans des logs conservés par l'hébergeur. */
   console.error('Erreur capturée:', {
+    status,
     name: err.name,
     message: safeMessage(err),
     path: maskTokens(req.path),
     method: req.method,
+    user: req.user?.id ?? null,
   });
 
   // Si c'est une de nos erreurs HTTP custom
   if (err instanceof HttpError) {
-    return res.status(err.statusCode).json({
+    return res.status(status).json({
       success: false,
       error: {
         message: err.message,
@@ -66,7 +80,7 @@ const errorHandler = (err, req, res, next) => {
 
   // Si c'est une erreur de validation Zod
   if (err.name === 'ZodError') {
-    return res.status(httpStatusCodes.UNPROCESSABLE_ENTITY).json({
+    return res.status(status).json({
       success: false,
       error: {
         message: 'Erreur de validation des données',
@@ -88,11 +102,9 @@ const errorHandler = (err, req, res, next) => {
      (-2).startsWith n'existe pas : le gestionnaire d'erreurs plantait alors
      lui-même, la main repassait au gestionnaire final d'Express, et la réponse
      sortait en texte brut, hors du format { success, error } que le navigateur
-     sait lire. D'où le contrôle de type explicite. */
-  const isPrismaKnownError = typeof err.code === 'string' && err.code.startsWith('P');
-
-  if (isPrismaKnownError) {
-    return res.status(httpStatusCodes.BAD_REQUEST).json({
+     sait lire. D'où le contrôle de type explicite, dans isPrismaKnownError. */
+  if (isPrismaKnownError(err)) {
+    return res.status(status).json({
       success: false,
       error: {
         message: 'Erreur lors de l\'opération en base de données',
@@ -124,7 +136,7 @@ const errorHandler = (err, req, res, next) => {
       message: safeMessage(err),
     });
 
-    return res.status(httpStatusCodes.INTERNAL_SERVER_ERROR).json({
+    return res.status(status).json({
       success: false,
       error: {
         message: 'Une erreur inattendue s\'est produite',
@@ -135,7 +147,7 @@ const errorHandler = (err, req, res, next) => {
   }
 
   // Pour toutes les autres erreurs (erreurs inattendues)
-  res.status(httpStatusCodes.INTERNAL_SERVER_ERROR).json({
+  res.status(status).json({
     success: false,
     error: {
       message: 'Une erreur inattendue s\'est produite',
@@ -156,4 +168,4 @@ const asyncHandler = (fn) => {
   };
 };
 
-export { errorHandler, asyncHandler };
+export { errorHandler, asyncHandler, maskTokens };

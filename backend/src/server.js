@@ -6,11 +6,11 @@ import './config/env.js';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import rateLimit from 'express-rate-limit';
 import cookieParser from 'cookie-parser';
 import { connectDB, disconnectDB } from './config/database.js';
 import { closeEmailTransport } from './services/email.service.js';
 import { errorHandler } from './middlewares/error.middleware.js';
+import { limiteur } from './middlewares/rateLimit.middleware.js';
 import { httpStatusCodes } from './utils/httpErrors.js';
 
 // Import des routes
@@ -96,7 +96,7 @@ app.use(express.json({ limit: '100kb' }));
 app.use(cookieParser());
 
 // Rate limiting — global (anti-DoS basique sur toute l'API)
-const globalLimiter = rateLimit({
+const globalLimiter = limiteur('global', {
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 300,
   standardHeaders: true,
@@ -112,7 +112,7 @@ const globalLimiter = rateLimit({
 app.use('/api', globalLimiter);
 
 // Rate limiting — authentification (anti brute-force)
-const authLimiter = rateLimit({
+const authLimiter = limiteur('authentification', {
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 10,
   standardHeaders: true,
@@ -121,7 +121,7 @@ const authLimiter = rateLimit({
 });
 
 // Rate limiting — génération PDF Puppeteer (coûteux)
-const pdfLimiter = rateLimit({
+const pdfLimiter = limiteur('contrat PDF', {
   windowMs: 60 * 1000, // 1 minute
   max: 5,
   standardHeaders: true,
@@ -130,7 +130,7 @@ const pdfLimiter = rateLimit({
 });
 
 // Rate limiting — endpoints publics sensibles (inscription, contact, formulaires)
-const publicLimiter = rateLimit({
+const publicLimiter = limiteur('formulaire public', {
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 10,
   standardHeaders: true,
@@ -152,7 +152,7 @@ const publicLimiter = rateLimit({
    écrit à ses adhérents une fois par semaine, pas cinq fois par heure. La
    programmation partage le même plafond : poser une date, c'est déclencher un
    envoi, seulement plus tard. */
-const newsletterSendLimiter = rateLimit({
+const newsletterSendLimiter = limiteur('envoi de newsletter', {
   windowMs: 60 * 60 * 1000, // 1 heure
   max: 5,
   standardHeaders: true,
@@ -172,7 +172,7 @@ const newsletterSendLimiter = rateLimit({
    dizaines d'adhérents peuvent donc arriver derrière la même poignée d'adresses
    IP. Un plafond serré transformerait une vague de désabonnements légitimes en
    erreurs — c'est-à-dire en plaintes pour spam. */
-const unsubscribeLimiter = rateLimit({
+const unsubscribeLimiter = limiteur('désabonnement', {
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 60,
   standardHeaders: true,
@@ -186,7 +186,7 @@ const unsubscribeLimiter = rateLimit({
    moins un événement, et un envoi de masse les fait tous revenir en quelques
    minutes. Le plafond ne protège pas d'un abus — le secret s'en charge — mais
    d'un emballement qui remplirait la base. */
-const webhookLimiter = rateLimit({
+const webhookLimiter = limiteur('webhook Brevo', {
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 2000,
   standardHeaders: true,
@@ -196,7 +196,7 @@ const webhookLimiter = rateLimit({
 
 // Rate limiting — recherche utilisateur par email (anti-énumération)
 // Rate limiting — routes admin générales
-const adminLimiter = rateLimit({
+const adminLimiter = limiteur('admin', {
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 200,
   standardHeaders: true,

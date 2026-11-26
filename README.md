@@ -91,7 +91,7 @@ amap-website/
     │   ├── config/       # Chargement et contrôle de la configuration, adresse de contact, connexion Prisma / PostgreSQL
     │   ├── controllers/  # Logique métier (18 contrôleurs)
     │   ├── routes/       # Routes API
-    │   ├── middlewares/  # Auth (cookie JWT), rôles, gestion d'erreurs
+    │   ├── middlewares/  # Auth (cookie JWT), rôles, gestion d'erreurs, limiteurs de débit
     │   ├── services/     # Email, webhook Brevo, adresses écartées, diffusion des newsletters, contrats PDF, recettes, audit, clôtures, absences des fermes, génération de paniers
     │   ├── jobs/         # 9 tâches planifiées et leur planificateur (scheduler.js)
     │   └── utils/        # Schémas Zod, erreurs HTTP, grille tarifaire, calendrier, jetons de désabonnement
@@ -595,12 +595,12 @@ Le prix d'un contrat ne s'écrit nulle part à la main : il se déduit de deux n
 - **Révocation de session** : un compteur `tokenVersion` en base invalide instantanément tous les tokens émis (changement de rôle, réinitialisation de mot de passe)
 - Protection des routes par rôle (MEMBER, VOLUNTEER, ADMIN)
 - **Protection CSRF** par `SameSite=Lax`, corps JSON exclusif (100 ko max) et liste blanche d'origines CORS explicite
-- Rate limiting différencié : global (300/15 min), authentification (10/15 min), formulaires publics (10/15 min), génération PDF (5/min), routes admin (200/15 min), envoi de newsletter (5/h), paiements (20/15 min), désabonnement (60/15 min), webhook Brevo (2 000/15 min)
+- Rate limiting différencié : global (300/15 min), authentification (10/15 min), formulaires publics (10/15 min), génération PDF (5/min), routes admin (200/15 min), envoi de newsletter (5/h), paiements (20/15 min), désabonnement (60/15 min), webhook Brevo (2 000/15 min) ; chaque blocage est signalé dans les logs, une fois par adresse et par fenêtre
 - Headers sécurisés côté API (Helmet.js) et sanitisation XSS (DOMPurify) côté front comme back
 - **CSP nonce-based** via middleware Next.js (`script-src 'nonce' 'strict-dynamic'`, `'unsafe-eval'` retiré en production)
 - **HSTS** (`max-age=31536000; includeSubDomains; preload`), **COOP** (`same-origin`), **X-Frame-Options** (`DENY`), `nosniff`, `Referrer-Policy`
 - JSON-LD sécurisé : échappement `<`, `>`, `&` dans les scripts structurés
-- **Journal d'audit** : 44 actions tracées — gestes d'administration, réauthentifications ratées, passages de la purge RGPD — avec acteur, cible, IP, détails JSON et sévérité CRITICAL / IMPORTANT ; l'échec du log ne fait jamais échouer l'action métier
+- **Journal d'audit** : 44 actions tracées — gestes d'administration, réauthentifications ratées, passages de la purge RGPD — avec acteur, cible, IP, détails JSON et sévérité CRITICAL / IMPORTANT ; l'échec du log ne fait jamais échouer l'action métier. Chaque action est aussi écrite dans les logs du serveur, réduite à ses identifiants : l'email, le libellé et les détails restent en base
 - Visiteurs anonymes : pas de requête `/auth/me` (flag `localStorage`) → zéro 401 en console
 - Erreurs API remontées telles quelles à l'utilisateur, y compris l'échec réseau (« Serveur injoignable »)
 - Gestion du consentement cookies conforme RGPD (Orejime)
@@ -685,7 +685,7 @@ démarrer : ni base de données, ni SMTP, ni réseau — tout ce qui dépasse du
 module testé est remplacé par un double.
 
 ```bash
-cd backend && npm test      # Vitest, 32 fichiers
+cd backend && npm test      # Vitest, 33 fichiers
 cd frontend && npm test     # Vitest, 6 fichiers
 cd horloge && npm test      # node --test, les garde-fous du déploiement
 ```
@@ -714,6 +714,12 @@ configuration et refuse tout ce qui pourrait coûter ou s'emballer (voir
 - Message « Identifiants SMTP manquants » en production : renseignez `BREVO_SMTP_USER` et `BREVO_SMTP_KEY` (voir `.env.example`, qui détaille où les récupérer dans Brevo)
 - Message « TREASURER_EMAIL manquante » en production : renseignez la boîte du trésorier, une vraie adresse relevée et non l'adresse d'envoi
 - Message « Cookie d'authentification en SameSite=… sans protection CSRF » : le cookie a quitté `SameSite=Lax` sans jeton anti-CSRF (voir `CSRF_TOKEN_ENABLED`)
+
+**Retrouver une action dans les logs Render :**
+- `[Audit]` : chaque action du journal, réussie ou refusée, avec sa sévérité, l'identifiant de l'acteur et celui de la cible (le détail complet est dans **Administration → Journal**)
+- `Erreur capturée` : chaque requête en échec, avec son statut HTTP, son chemin et l'identifiant de l'utilisateur connecté
+- `[RateLimit]` : la première requête bloquée d'une adresse, avec le limiteur qui l'a arrêtée
+- `[Planificateur]`, `[RetentionJob]`, `[Webhook Brevo]` : les tâches de fond et les retours du relais
 
 **Problème de connexion à la DB :**
 - Vérifiez que PostgreSQL est démarré

@@ -7,8 +7,14 @@ import { prisma } from '../config/database.js';
 // - target  : objet { type, id, label } décrivant la ressource concernée (optionnel)
 // - details : objet JSON avec des informations supplémentaires (optionnel)
 const logAudit = async (req, action, severity, target = {}, details = null) => {
+  const admin = req?.user;
+
+  // Écrite avant la base, pour rester visible si l'insertion échoue. Ni email, ni
+  // libellé, ni détails : ils portent des données personnelles et restent en base.
+  const cible = target?.type ? ` sur ${target.type}${target.id ? ` ${target.id}` : ''}` : '';
+  console.log(`[Audit] ${severity} ${action} par ${admin?.id ?? 'système'}${cible}`);
+
   try {
-    const admin = req?.user;
     const ip = req?.ip || req?.socket?.remoteAddress || null;
 
     await prisma.auditLog.create({

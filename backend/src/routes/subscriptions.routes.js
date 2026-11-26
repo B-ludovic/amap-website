@@ -18,14 +18,14 @@ import {
 } from '../controllers/subscriptions.controller.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { adminOnly } from '../middlewares/role.middleware.js';
-import rateLimit from 'express-rate-limit';
+import { limiteur } from '../middlewares/rateLimit.middleware.js';
 
 /* La correction d'un chèque peut demander le mot de passe de l'administrateur.
    Une invite de mot de passe est un oracle : sans plafond, elle offrirait un
    moyen d'essayer des mots de passe depuis une session déjà ouverte. Même
    fenêtre que la connexion, un peu plus large — un trésorier qui se trompe deux
    fois de suite ne doit pas rester bloqué toute une permanence. */
-const paymentLimiter = rateLimit({
+const paymentLimiter = limiteur('paiement', {
   windowMs: 15 * 60 * 1000,
   max: 20,
   standardHeaders: true,
