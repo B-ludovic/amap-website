@@ -3,10 +3,13 @@
    /api/recipes/52772%26c%3DDessert y arrive sous la forme « 52772&c=Dessert ». */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { appeler } from '../helpers/expressFactice.js';
 
 vi.mock('google-translate-api-x', () => ({ default: async (texte) => ({ text: texte }) }));
+vi.mock('../../src/config/database.js', () => ({ prisma: {} }));
 
 const { default: recipeService } = await import('../../src/services/recipe.service.js');
+const { getRecipeById } = await import('../../src/controllers/recipes.controller.js');
 
 const INJECTE = '52772&c=Dessert';
 const ATTENDU = 'https://www.themealdb.com/api/json/v1/1/lookup.php?i=52772%26c%3DDessert';
@@ -35,5 +38,21 @@ describe('Identifiant transmis à TheMealDB', () => {
     await expect(recipeService.lookupMeal(INJECTE)).resolves.toBeNull();
 
     expect(fetchFactice).toHaveBeenCalledWith(ATTENDU);
+  });
+});
+
+describe('Identifiant reçu par la route publique', () => {
+  it.each([INJECTE, '52772abc', '-1', ' 52772'])('refuse « %s » sans interroger TheMealDB', async (id) => {
+    const { statut, message } = await appeler(getRecipeById, { params: { id } });
+
+    expect(statut).toBe(400);
+    expect(message).toBe('Identifiant de recette invalide');
+    expect(fetchFactice).not.toHaveBeenCalled();
+  });
+
+  it('transmet un identifiant numérique', async () => {
+    await appeler(getRecipeById, { params: { id: '52772' } });
+
+    expect(fetchFactice).toHaveBeenCalledWith('https://www.themealdb.com/api/json/v1/1/lookup.php?i=52772');
   });
 });

@@ -28,10 +28,11 @@ export const getRecipeById = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    if (!id) {
+    // TheMealDB n'attribue que des identifiants numériques.
+    if (!/^\d+$/.test(id)) {
       return res.status(httpStatusCodes.BAD_REQUEST).json({
         success: false,
-        message: 'L\'ID de la recette est requis',
+        message: 'Identifiant de recette invalide',
       });
     }
 
