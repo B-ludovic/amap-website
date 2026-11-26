@@ -66,7 +66,7 @@ export default function InviteGate() {
             width={48}
             height={48}
             aria-hidden="true"
-            priority
+            preload
           />
           <h1 id="invite-gate-title" className="modal-title">Accès sur invitation</h1>
           <p id="invite-gate-intro" className="modal-message">

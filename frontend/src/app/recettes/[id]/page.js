@@ -14,7 +14,8 @@ async function fetchRecipeMeta(id) {
 }
 
 export async function generateMetadata({ params }) {
-  const recipe = await fetchRecipeMeta(params.id);
+  const { id } = await params;
+  const recipe = await fetchRecipeMeta(id);
 
   if (!recipe) {
     return {

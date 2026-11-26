@@ -79,14 +79,14 @@ async function RootLayout({ children }) {
      accepter avant d'avoir seulement vu le site. */
   if (headersList.get('x-invite-gate') === '1') {
     return (
-      <html lang="fr" className={fontVariables}>
+      <html lang="fr" className={fontVariables} data-scroll-behavior="smooth">
         <body>{children}</body>
       </html>
     );
   }
 
   return (
-    <html lang="fr" className={fontVariables}>
+    <html lang="fr" className={fontVariables} data-scroll-behavior="smooth">
       <body>
         <a href="#main-content" className="skip-link">Aller au contenu principal</a>
         <JsonLd data={organizationJsonLd} nonce={nonce} />

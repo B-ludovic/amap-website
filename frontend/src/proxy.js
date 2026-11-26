@@ -10,7 +10,7 @@ const GATE_ENDPOINT = '/api/invitation';
    le site publie déjà : le nom, la ville et l'heure de distribution. */
 const SHARE_IMAGES = ['/opengraph-image', '/twitter-image'];
 
-export async function middleware(request) {
+export async function proxy(request) {
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64');
 
   const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';

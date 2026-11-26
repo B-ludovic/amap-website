@@ -1,13 +1,13 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { NextRequest } from 'next/server';
-import { middleware } from '../../src/middleware.js';
+import { proxy } from '../../src/proxy.js';
 
-/* Le middleware lit sa configuration sur process.env : la suite la pose et la
+/* Le proxy lit sa configuration sur process.env : la suite la pose et la
    retire elle-même, pour qu'un .env.local sur la machine ne décide de rien. */
 const CLES = ['INVITE_EMAILS', 'INVITE_PASSWORD', 'INVITE_SECRET'];
 let initial;
 
-const appelle = chemin => middleware(new NextRequest(new URL(chemin, 'https://auxptitspois.fr')));
+const appelle = chemin => proxy(new NextRequest(new URL(chemin, 'https://auxptitspois.fr')));
 
 const reecritVers = response => response.headers.get('x-middleware-rewrite');
 

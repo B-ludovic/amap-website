@@ -127,7 +127,7 @@ function LoginPage() {
           fill
           sizes="(max-width: 900px) 100vw, 50vw"
           className="login-visual-photo"
-          priority
+          preload
         />
         <div className="login-visual-veil" aria-hidden="true" />
         <div className="login-visual-content">

@@ -7,7 +7,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest"
   },
@@ -18,17 +18,16 @@
     "@tiptap/starter-kit": "^3.20.1",
     "isomorphic-dompurify": "^3.0.0",
     "lucide-react": "^0.556.0",
-    "next": "^15.5.23",
-    "react": "^18",
+    "next": "^16.4.6",
+    "react": "^19.3.1",
     "react-aria-components": "^1.21.1",
-    "react-dom": "^18",
+    "react-dom": "^19.3.1",
     "sharp": "^0.35.3",
     "vanilla-cookieconsent": "^3.3.0"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3.3.6",
     "eslint": "^9",
-    "eslint-config-next": "^15",
+    "eslint-config-next": "^16.4.6",
     "vitest": "^4.1.10"
   },
   "overrides": {

@@ -119,7 +119,7 @@ export default async function HomePage() {
                 alt="Panier de légumes de saison"
                 width={1078}
                 height={1076}
-                priority
+                preload
                 className="hero-photo"
               />
             </div>
