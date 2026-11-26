@@ -31,6 +31,7 @@ function redirectToExpiredSessionLogin() {
   }
 
   localStorage.removeItem('auth_known');
+  // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- hors composant, sans routeur ; le rechargement vide l'état de la session expirée.
   window.location.href = '/auth/login?expired=1';
 }
 

@@ -105,6 +105,7 @@ export default function RecipesPage() {
                                 {recipes.map((recipe) => (
                                     <Link key={recipe.id} href={`/recettes/${recipe.id}`} className="recipe-card">
                                         <div className="recipe-image">
+                                            {/* eslint-disable-next-line @next/next/no-img-element -- image TheMealDB, laissée hors de l'optimiseur pour épargner le quota d'images de Vercel. */}
                                             <img src={recipe.image} alt={recipe.title} loading="lazy" />
                                         </div>
                                         <div className="recipe-content">

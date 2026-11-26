@@ -77,7 +77,16 @@ function SubscriptionRequestPage() {
 
       router.push('/auth/login?redirect=/demande-abonnement');
     }
-  }, [authLoading, isAuthenticated]);
+  }, [
+    authLoading,
+    isAuthenticated,
+    formData.type,
+    formData.basketSize,
+    formData.pricingType,
+    formData.message,
+    router,
+    showError,
+  ]);
 
   // Récupérer les données sauvegardées si elles existent
   useEffect(() => {
@@ -94,7 +103,7 @@ function SubscriptionRequestPage() {
         }
       }
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, showSuccess]);
 
   const currentSubscription = pricing?.[formData.type]?.[formData.basketSize] ?? null;
   const isSolidarity = formData.pricingType === 'SOLIDARITY';

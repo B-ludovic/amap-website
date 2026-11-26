@@ -288,6 +288,7 @@ export default async function HomePage() {
               return (
                 <article className="farm-card" key={producer.id}>
                   <div className="farm-photo">
+                    {/* eslint-disable-next-line @next/next/no-img-element -- chemin ou URL libre saisi par l'admin : hôte et dimensions inconnus d'avance. */}
                     <img src={photo.src} alt={photo.alt} loading="lazy" />
                   </div>
                   <div className="farm-body">

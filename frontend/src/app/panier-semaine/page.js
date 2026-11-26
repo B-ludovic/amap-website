@@ -1,7 +1,8 @@
 'use client';
 
-import { Fragment, useState, useEffect } from 'react';
+import { Fragment, useCallback, useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useModal } from '../../contexts/ModalContext';
 import api from '../../lib/api';
 import logger from '../../lib/logger';
@@ -84,7 +85,7 @@ export default function WeeklyBasketPublicPage() {
   const [appliedQuery, setAppliedQuery] = useState('');
   const { showError } = useModal();
 
-  const fetchCurrentBasket = async () => {
+  const fetchCurrentBasket = useCallback(async () => {
     try {
       setLoading(true);
       let subscription = null;
@@ -104,9 +105,9 @@ export default function WeeklyBasketPublicPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [showError]);
 
-  const fetchRecipeSuggestions = async () => {
+  const fetchRecipeSuggestions = useCallback(async () => {
     try {
       setLoadingRecipes(true);
       const response = await api.recipes.getSuggestions(basket.id);
@@ -117,17 +118,17 @@ export default function WeeklyBasketPublicPage() {
     } finally {
       setLoadingRecipes(false);
     }
-  };
+  }, [basket]);
 
   useEffect(() => {
     fetchCurrentBasket();
-  }, []);
+  }, [fetchCurrentBasket]);
 
   useEffect(() => {
     if (basket) {
       fetchRecipeSuggestions();
     }
-  }, [basket]);
+  }, [basket, fetchRecipeSuggestions]);
 
   const handleSearch = async (query, queryEn = null, mode = null) => {
     const effectiveMode = mode ?? searchMode;
@@ -222,9 +223,13 @@ export default function WeeklyBasketPublicPage() {
               </div>
             </div>
             <div className="basket-visual">
-              <img
+              <Image
                 src="/placeholder/legumes-ete.webp"
                 alt="Légumes de saison du panier de la semaine"
+                width={1408}
+                height={768}
+                sizes="(max-width: 1080px) 100vw, 45vw"
+                loading="eager"
               />
             </div>
           </section>
@@ -261,6 +266,7 @@ export default function WeeklyBasketPublicPage() {
                       {group.items.map(item => (
                         <li key={item.id} className="basket-item">
                           <span className="basket-item-tile" aria-hidden="true">
+                            {/* eslint-disable-next-line @next/next/no-img-element -- pictogramme affiché en petit, SVG presque toujours : l'optimiseur n'y gagnerait presque rien. */}
                             {item.icon && <img src={item.icon} alt="" />}
                           </span>
                           <span className="basket-item-name">{item.name}</span>
@@ -380,6 +386,7 @@ export default function WeeklyBasketPublicPage() {
                   className={`basket-pill ${activePillId === veg.id ? 'is-active' : ''}`}
                   onClick={() => handlePillClick(veg)}
                 >
+                  {/* eslint-disable-next-line @next/next/no-img-element -- pictogramme affiché en petit, SVG presque toujours : l'optimiseur n'y gagnerait presque rien. */}
                   <img src={veg.icon} alt="" aria-hidden="true" />
                   <span>{veg.name}</span>
                 </button>
@@ -410,6 +417,7 @@ export default function WeeklyBasketPublicPage() {
                       href={`/recettes/${recipe.id}`}
                       className="recipe-card"
                     >
+                      {/* eslint-disable-next-line @next/next/no-img-element -- image TheMealDB, laissée hors de l'optimiseur pour épargner le quota d'images de Vercel. */}
                       <img
                         className="recipe-card-image"
                         src={recipe.image}

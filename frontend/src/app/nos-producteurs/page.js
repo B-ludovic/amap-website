@@ -112,6 +112,7 @@ export default async function ProducersPage() {
               <article className="farm" key={producer.id}>
                 <div className="farm-visual">
                   <div className="farm-frame">
+                    {/* eslint-disable-next-line @next/next/no-img-element -- chemin ou URL libre saisi par l'admin : hôte et dimensions inconnus d'avance. */}
                     <img
                       src={photo.src}
                       alt={photo.alt}

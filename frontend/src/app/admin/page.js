@@ -43,7 +43,7 @@ export default function AdminDashboard() {
     };
 
     fetchStats();
-  }, []);
+  }, [showError]);
 
   if (loading) {
     return <p className="admin-empty">Chargement du tableau de bord…</p>;

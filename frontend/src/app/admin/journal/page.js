@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ShieldCheck, ShieldAlert, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../../contexts/AuthContext';
@@ -48,7 +48,7 @@ export default function AdminJournalPage() {
     }
   }, [user, authLoading, router]);
 
-  const loadLogs = async () => {
+  const loadLogs = useCallback(async () => {
     setLoadError(null);
     try {
       setLoading(true);
@@ -63,13 +63,13 @@ export default function AdminJournalPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, severityFilter]);
 
   useEffect(() => {
     if (user?.role === 'ADMIN') {
       loadLogs();
     }
-  }, [user, severityFilter, page]);
+  }, [user, loadLogs]);
 
   const formatDetails = (details) => {
     if (!details) return '—';

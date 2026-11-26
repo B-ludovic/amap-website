@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment, useState, useEffect } from 'react';
+import { Fragment, useCallback, useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useModal } from '../../../contexts/ModalContext';
@@ -61,7 +61,7 @@ export default function RecipeDetailClient() {
   const [others, setOthers] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchRecipeDetail = async () => {
+  const fetchRecipeDetail = useCallback(async () => {
     try {
       setLoading(true);
       const response = await api.recipes.getById(params.id);
@@ -73,7 +73,7 @@ export default function RecipeDetailClient() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [params.id, router, showModal]);
 
   const fetchCurrentBasket = async () => {
     try {
@@ -89,7 +89,7 @@ export default function RecipeDetailClient() {
       fetchRecipeDetail();
       fetchCurrentBasket();
     }
-  }, [params.id]);
+  }, [params.id, fetchRecipeDetail]);
 
   /* Les autres idées viennent du panier quand il est publié, sinon du premier
      ingrédient de la recette affichée. */
@@ -166,6 +166,7 @@ export default function RecipeDetailClient() {
 
       <section className="recipe-hero">
         <div className="recipe-hero-visual">
+          {/* eslint-disable-next-line @next/next/no-img-element -- image TheMealDB, laissée hors de l'optimiseur pour épargner le quota d'images de Vercel. */}
           <img src={recipe.image} alt={recipe.title} />
           {recipe.isVegetarian && (
             <span className="badge-veggie recipe-hero-badge">
@@ -316,6 +317,7 @@ export default function RecipeDetailClient() {
                 const meta = [other.categoryLabel, other.areaLabel].filter(Boolean);
                 return (
                   <Link key={other.id} href={`/recettes/${other.id}`} className="recipe-card">
+                    {/* eslint-disable-next-line @next/next/no-img-element -- image TheMealDB, laissée hors de l'optimiseur pour épargner le quota d'images de Vercel. */}
                     <img
                       className="recipe-card-image"
                       src={other.image}

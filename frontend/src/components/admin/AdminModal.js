@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useModal } from '../../contexts/ModalContext';
 
 /* Panneau modal commun à toutes les fiches de l'administration.
@@ -9,7 +9,7 @@ import { useModal } from '../../contexts/ModalContext';
 export default function AdminModal({ title, width = '680px', onClose, isDirty = false, children }) {
   const { showConfirm } = useModal();
 
-  const requestClose = () => {
+  const requestClose = useCallback(() => {
     if (!isDirty) {
       onClose();
       return;
@@ -20,7 +20,7 @@ export default function AdminModal({ title, width = '680px', onClose, isDirty = 
       'Les modifications non enregistrées seront perdues.',
       onClose
     );
-  };
+  }, [isDirty, onClose, showConfirm]);
 
   useEffect(() => {
     const onKeyDown = (event) => {
