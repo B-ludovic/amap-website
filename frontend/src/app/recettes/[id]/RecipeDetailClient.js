@@ -61,13 +61,6 @@ export default function RecipeDetailClient() {
   const [others, setOthers] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (params.id) {
-      fetchRecipeDetail();
-      fetchCurrentBasket();
-    }
-  }, [params.id]);
-
   const fetchRecipeDetail = async () => {
     try {
       setLoading(true);
@@ -90,6 +83,13 @@ export default function RecipeDetailClient() {
       logger.error('Erreur panier:', error);
     }
   };
+
+  useEffect(() => {
+    if (params.id) {
+      fetchRecipeDetail();
+      fetchCurrentBasket();
+    }
+  }, [params.id]);
 
   /* Les autres idées viennent du panier quand il est publié, sinon du premier
      ingrédient de la recette affichée. */

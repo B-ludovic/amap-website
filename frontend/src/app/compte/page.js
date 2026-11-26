@@ -133,6 +133,8 @@ export default function ComptePage() {
   const [basket, setBasket] = useState(null);
   const [nextShift, setNextShift] = useState(null);
   const [dataLoading, setDataLoading] = useState(true);
+  // Instant relevé au chargement : le rendu ne lit pas l'horloge, il doit rester pur.
+  const [loadedAt, setLoadedAt] = useState(null);
 
   const [resendStatus, setResendStatus] = useState('idle'); // idle | sending | sent
   const [exportStatus, setExportStatus] = useState('idle'); // idle | working | ready
@@ -163,6 +165,7 @@ export default function ComptePage() {
 
       if (cancelled) return;
 
+      setLoadedAt(Date.now());
       if (subRes.status === 'fulfilled') setSubscription(subRes.value?.data ?? null);
       if (basketRes.status === 'fulfilled') setBasket(basketRes.value?.data ?? null);
 
@@ -285,8 +288,8 @@ export default function ComptePage() {
   const start = toDate(subscription?.startDate);
   const end = toDate(subscription?.endDate);
   const totalWeeks = start && end ? Math.max(1, Math.round((end - start) / WEEK_MS)) : null;
-  const currentWeek = start && totalWeeks
-    ? Math.min(Math.max(Math.ceil((Date.now() - start) / WEEK_MS), 1), totalWeeks)
+  const currentWeek = start && totalWeeks && loadedAt
+    ? Math.min(Math.max(Math.ceil((loadedAt - start) / WEEK_MS), 1), totalWeeks)
     : null;
   const progress = totalWeeks ? Math.round((currentWeek / totalWeeks) * 100) : 0;
 

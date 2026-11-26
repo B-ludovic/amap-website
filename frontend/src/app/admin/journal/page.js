@@ -48,12 +48,6 @@ export default function AdminJournalPage() {
     }
   }, [user, authLoading, router]);
 
-  useEffect(() => {
-    if (user?.role === 'ADMIN') {
-      loadLogs();
-    }
-  }, [user, severityFilter, page]);
-
   const loadLogs = async () => {
     setLoadError(null);
     try {
@@ -70,6 +64,12 @@ export default function AdminJournalPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (user?.role === 'ADMIN') {
+      loadLogs();
+    }
+  }, [user, severityFilter, page]);
 
   const formatDetails = (details) => {
     if (!details) return '—';

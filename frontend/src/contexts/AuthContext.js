@@ -9,10 +9,6 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadUser();
-  }, []);
-
   const loadUser = async () => {
     try {
       const data = await authApi.me();
@@ -24,6 +20,10 @@ export function AuthProvider({ children }) {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    loadUser();
+  }, []);
 
   const login = (userData) => {
     localStorage.setItem('auth_known', '1');

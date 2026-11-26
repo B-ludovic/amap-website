@@ -65,6 +65,10 @@ function Header() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const closeMenu = () => {
+    setIsMenuOpen(false);
+  };
+
   // Bloquer le scroll et gérer la touche Échap quand le menu mobile est ouvert
   useEffect(() => {
     if (isMenuOpen) {
@@ -91,10 +95,6 @@ function Header() {
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
-  };
-
-  const closeMenu = () => {
-    setIsMenuOpen(false);
   };
 
   const handleLogout = () => {

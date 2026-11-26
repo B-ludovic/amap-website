@@ -22,11 +22,14 @@ export default function PermanencesCard({ userId, contractStart, contractEnd, on
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState(null);
   const [feedback, setFeedback] = useState('');
+  // Instant relevé au chargement : le rendu ne lit pas l'horloge, il doit rester pur.
+  const [loadedAt, setLoadedAt] = useState(null);
 
   const loadShifts = useCallback(async () => {
     try {
       const response = await api.shifts.getAll({ upcoming: 'true', limit: UPCOMING_LIMIT });
       setShifts(response.data.shifts);
+      setLoadedAt(Date.now());
     } catch {
       setFeedback('Le planning n’a pas pu être chargé. Réessayez dans un instant.');
     } finally {
@@ -65,7 +68,7 @@ export default function PermanencesCard({ userId, contractStart, contractEnd, on
     }
 
     if (mine?.status === 'CONFIRMED') {
-      const farEnough = toDate(shift.distributionDate) - Date.now() > WITHDRAWAL_DELAY_MS;
+      const farEnough = toDate(shift.distributionDate) - loadedAt > WITHDRAWAL_DELAY_MS;
       return farEnough && {
         label: 'Me désister',
         quiet: true,

@@ -84,16 +84,6 @@ export default function WeeklyBasketPublicPage() {
   const [appliedQuery, setAppliedQuery] = useState('');
   const { showError } = useModal();
 
-  useEffect(() => {
-    fetchCurrentBasket();
-  }, []);
-
-  useEffect(() => {
-    if (basket) {
-      fetchRecipeSuggestions();
-    }
-  }, [basket]);
-
   const fetchCurrentBasket = async () => {
     try {
       setLoading(true);
@@ -128,6 +118,16 @@ export default function WeeklyBasketPublicPage() {
       setLoadingRecipes(false);
     }
   };
+
+  useEffect(() => {
+    fetchCurrentBasket();
+  }, []);
+
+  useEffect(() => {
+    if (basket) {
+      fetchRecipeSuggestions();
+    }
+  }, [basket]);
 
   const handleSearch = async (query, queryEn = null, mode = null) => {
     const effectiveMode = mode ?? searchMode;
