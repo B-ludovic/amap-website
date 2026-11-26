@@ -39,22 +39,28 @@ Ce projet est un site complet permettant de gérer une AMAP de A à Z :
 - **Lucide React** - Icônes modernes
 - **CSS natif** - Variables CSS, design tokens, responsive (aucun framework utilitaire)
 - **Tiptap 3** - Éditeur rich-text des newsletters (gras, italique, titres, listes, séparateur)
+- **React Aria Components** - Liste de choix accessible au clavier pour désigner un adhérent (permanences)
 - **isomorphic-dompurify** - Sanitisation XSS du contenu HTML externe
 - **Orejime 3** - Gestion du consentement cookies conforme RGPD
+- **Vitest 4** - Tests unitaires de la porte d'invitation, des données structurées et des design tokens
 
 ### Backend
-- **Node.js + Express 4** - API REST (modules ESM)
+- **Node.js 22 + Express 4** - API REST (modules ESM)
 - **Prisma 7** (+ `@prisma/adapter-pg`) - ORM et migrations
 - **PostgreSQL** - Base de données relationnelle
 - **JWT + bcryptjs** - Authentification par cookie httpOnly, révocable
-- **Zod** - Validation des entrées avec schémas centralisés
+- **Zod 4** - Validation des entrées avec schémas centralisés
 - **Helmet + express-rate-limit** - Headers de sécurité et limitation de débit
 - **Puppeteer + Handlebars** - Génération de contrats PDF
 - **Nodemailer + Brevo SMTP** - Envoi d'emails transactionnels et newsletters
 - **isomorphic-dompurify** - Sanitisation XSS des contenus utilisateur envoyés par email
-- **Vitest** - Tests unitaires, sans base ni réseau
+- **Vitest 4** - Tests unitaires, sans base ni réseau
 - **TheMealDB API** - Base de données de recettes
 - **google-translate-api-x** - Traduction automatique des recettes en français (sans clé API)
+
+### Horloge
+- **Cloudflare Workers + Wrangler 4** - Déclencheur planifié qui réveille l'API chaque heure
+- **node --test** - Garde-fous de configuration passés avant chaque déploiement
 
 ## 📁 Structure du projet
 
@@ -64,15 +70,16 @@ amap-website/
 │   ├── src/
 │   │   ├── app/         # Pages, routes, sitemap.js, robots.js
 │   │   │   └── admin/   # Espace d'administration (18 écrans)
-│   │   ├── components/  # Composants (admin, auth, common, home, layout)
-│   │   ├── constants/   # Icônes produits, listes de recettes, nombres en toutes lettres
+│   │   ├── components/  # Composants (account, admin, auth, common, home, layout)
+│   │   ├── constants/   # Association, abonnements, données structurées, icônes produits, recettes, nombres en toutes lettres
 │   │   ├── contexts/    # Contextes React (Auth, Modal)
 │   │   ├── hooks/       # Hooks personnalisés (useFocusTrap)
-│   │   ├── lib/         # Utilitaires (api.js, logger.js, format.js, closures.js, memberSearch.js)
-│   │   ├── middleware.js # CSP nonce, HSTS, COOP, X-Frame-Options
-│   │   └── styles/      # CSS (variables, globals, admin/, components/)
+│   │   ├── lib/         # Utilitaires (api.js, inviteGate.js, logger.js, format.js, closures.js, memberSearch.js, producers.js)
+│   │   ├── middleware.js # Porte d'invitation, CSP nonce, HSTS, COOP, X-Frame-Options
+│   │   └── styles/      # CSS (variables, globals, admin/, components/, public/)
+│   ├── tests/unit/      # Vitest : porte d'invitation, SEO, design tokens, recherche d'adhérent
 │   ├── scripts/         # copy-orejime.js (postinstall)
-│   └── public/          # Assets statiques
+│   └── public/          # Assets statiques, llms.txt
 │
 ├── horloge/           # Worker Cloudflare qui déclenche les jobs chaque heure
 │   ├── src/index.js     # Un appel POST /api/jobs/tick, sans nouvelle tentative
@@ -81,13 +88,13 @@ amap-website/
 │
 └── backend/           # API Express
     ├── src/
-    │   ├── config/       # Chargement et contrôle de la configuration, connexion Prisma / PostgreSQL
-    │   ├── controllers/  # Logique métier (17 contrôleurs)
+    │   ├── config/       # Chargement et contrôle de la configuration, adresse de contact, connexion Prisma / PostgreSQL
+    │   ├── controllers/  # Logique métier (18 contrôleurs)
     │   ├── routes/       # Routes API
     │   ├── middlewares/  # Auth (cookie JWT), rôles, gestion d'erreurs
-    │   ├── services/     # Email, contrats PDF, recettes, audit, clôtures, génération de paniers
-    │   ├── jobs/         # 9 tâches planifiées (rappels, purge RGPD, paniers, chèques…)
-    │   └── utils/        # Schémas Zod, erreurs HTTP, grille tarifaire, calendrier
+    │   ├── services/     # Email, webhook Brevo, adresses écartées, diffusion des newsletters, contrats PDF, recettes, audit, clôtures, absences des fermes, génération de paniers
+    │   ├── jobs/         # 9 tâches planifiées et leur planificateur (scheduler.js)
+    │   └── utils/        # Schémas Zod, erreurs HTTP, grille tarifaire, calendrier, jetons de désabonnement
     ├── templates/        # Gabarit Handlebars du contrat PDF
     ├── scripts/          # extractLogo.js
     ├── tests/            # Vitest : unit/, integration/, e2e/, fixtures/, helpers/
@@ -102,7 +109,7 @@ amap-website/
 ## 🛠️ Installation
 
 ### Prérequis
-- Node.js 18+
+- Node.js 22 (version fixée par le champ `engines` du backend et de l'horloge, que Render respecte)
 - PostgreSQL
 - npm
 
@@ -137,9 +144,20 @@ Variables attendues dans `backend/.env` :
 | `BREVO_SMTP_USER` | Login SMTP Brevo (Settings → SMTP et API) |
 | `BREVO_SMTP_KEY` | Clé SMTP Brevo |
 | `EMAIL_FROM` | Adresse d'expédition des emails |
+| `TREASURER_EMAIL` | Boîte du trésorier, qui reçoit la liste des chèques à remettre en banque |
+| `CONTACT_EMAIL` | Adresse à laquelle les adhérents écrivent (formulaire de contact, six messages) |
 | `FRONTEND_URL` | URL du frontend (liens dans les emails + origine CORS autorisée) |
+| `BREVO_WEBHOOK_SECRET` | Laissez-passer du webhook Brevo (voir « Retours du relais ») |
+| `JOBS_SECRET` | Laissez-passer de l'horloge des jobs (voir « L'horloge des jobs ») |
+| `PUBLIC_API_URL` | Facultative. Adresse publique de l'API, pour l'en-tête de désabonnement en un clic |
+| `PUPPETEER_DISABLE_SANDBOX` | Facultative. `true` si l'hébergeur refuse le bac à sable de Chromium |
+| `CSRF_TOKEN_ENABLED` | Facultative. À ne poser qu'avec un jeton anti-CSRF réellement en place (voir plus bas) |
 
-> `DATABASE_URL`, `JWT_SECRET` et `FRONTEND_URL` sont obligatoires : le serveur s'arrête au démarrage si l'une manque. `BREVO_SMTP_USER` et `BREVO_SMTP_KEY` bloquent le démarrage en production seulement — en développement, un avertissement signale que les emails ne partiront pas.
+> `DATABASE_URL`, `JWT_SECRET` et `FRONTEND_URL` sont obligatoires : le serveur s'arrête au démarrage si l'une manque. `BREVO_SMTP_USER`, `BREVO_SMTP_KEY` et `TREASURER_EMAIL` bloquent le démarrage en production seulement — en développement, un avertissement signale ce qui ne partira pas. `BREVO_WEBHOOK_SECRET` et `JOBS_SECRET` ne bloquent jamais : leur absence est annoncée au démarrage, et la route qu'ils gardent refuse alors tout appel.
+
+> `CSRF_TOKEN_ENABLED` existe pour arrêter une erreur précise : le cookie d'authentification en `SameSite=Lax` est aujourd'hui la seule défense anti-CSRF de l'application, et le serveur refuse de démarrer si on le passe en `None` ou `Strict` sans poser cette variable. La poser revient à déclarer qu'un double-submit cookie a été ajouté dans le même commit.
+
+> `CONTACT_EMAIL` a un pendant côté site, `NEXT_PUBLIC_CONTACT_EMAIL`, qui doit porter la même adresse : l'une reçoit, l'autre affiche.
 
 Puis initialiser la base :
 ```bash
@@ -153,13 +171,21 @@ npm run seed               # optionnel : vide la base locale et la remplit d'exe
 
 4. **Configuration Frontend**
 
-Créer `frontend/.env.local` :
+```bash
+cd frontend
+cp .env.example .env.local
+```
+
+Variables attendues dans `frontend/.env.local` :
 ```
 NEXT_PUBLIC_API_URL=http://localhost:4000/api
+NEXT_PUBLIC_CONTACT_EMAIL=...   # même adresse que CONTACT_EMAIL côté API
 NEXT_PUBLIC_GA_ID=              # optionnel, ID Google Analytics
 ```
 
 > `NEXT_PUBLIC_API_URL` doit inclure le suffixe `/api` : le client concatène directement les chemins de routes (`/auth/login`, `/producers`…).
+
+> Les trois variables `INVITE_*` de `.env.example` restent commentées en local : décommentées, elles referment le site derrière la porte d'invitation (voir « Ouverture sur invitation »).
 
 ## 🏃 Lancement
 
@@ -223,6 +249,8 @@ FRONTEND_URL=https://auxptitspois.fr
 BREVO_SMTP_USER=...        # login SMTP Brevo (Settings → SMTP et API)
 BREVO_SMTP_KEY=...         # clé SMTP Brevo
 EMAIL_FROM=...             # adresse d'expédition, sur le domaine signé chez Brevo
+TREASURER_EMAIL=...        # boîte du trésorier, exigée en production
+CONTACT_EMAIL=...          # adresse de contact, identique à NEXT_PUBLIC_CONTACT_EMAIL
 BREVO_WEBHOOK_SECRET=...   # laissez-passer du webhook (openssl rand -hex 32)
 JOBS_SECRET=...            # laissez-passer de l'horloge des jobs (openssl rand -hex 32)
 PUBLIC_API_URL=https://api.auxptitspois.fr/api   # suffixe /api compris
@@ -269,6 +297,7 @@ PUPPETEER_DISABLE_SANDBOX= # « true » seulement si Chromium refuse de démarre
 **Sur Vercel (frontend) :**
 ```
 NEXT_PUBLIC_API_URL=https://api.auxptitspois.fr/api
+NEXT_PUBLIC_CONTACT_EMAIL=...  # identique à CONTACT_EMAIL sur Render
 NEXT_PUBLIC_GA_ID=...          # ID Google Analytics (ex: G-XXXXXXXXXX)
 
 # Ouverture sur invitation — les trois ensemble, ou aucune (voir ci-dessous)
@@ -336,7 +365,10 @@ Deux limites à connaître :
 
 - La porte garde les **pages**, pas les fichiers déjà publics — images, polices,
   bundles JavaScript compilés. Ce sont des ressources sans données ; le contenu
-  du site, lui, ne part jamais.
+  du site, lui, ne part jamais. Les vignettes de partage (`/opengraph-image`,
+  `/twitter-image`) la franchissent aussi, exprès : sans elles, le lien envoyé à
+  un invité s'afficherait avec un aperçu cassé, alors qu'elles ne montrent que le
+  nom, la ville et l'heure de distribution.
 - Le lien de désabonnement des newsletters (`/desabonnement`, présent dans chaque
   message et dans l'en-tête `List-Unsubscribe`) passe **aussi** par la porte.
   Tant que les seuls destinataires sont les invités, c'est sans conséquence. Avant
@@ -558,21 +590,21 @@ Le prix d'un contrat ne s'écrit nulle part à la main : il se déduit de deux n
 
 ### Design & Sécurité
 - Design responsive (desktop, tablet, mobile), design tokens centralisés dans `frontend/src/styles/variables.css`
-- **Démarrage bloquant sur configuration incomplète** : sans `DATABASE_URL`, `JWT_SECRET` ou `FRONTEND_URL`, le serveur refuse de démarrer au lieu de répondre 200 sur `/api/health` en ratant toutes les connexions ; les identifiants SMTP sont exigés en production et avertis bruyamment en développement
+- **Démarrage bloquant sur configuration incomplète** : sans `DATABASE_URL`, `JWT_SECRET` ou `FRONTEND_URL`, le serveur refuse de démarrer au lieu de répondre 200 sur `/api/health` en ratant toutes les connexions ; les identifiants SMTP et l'adresse du trésorier sont exigés en production et avertis bruyamment en développement
 - **Authentification par cookie `httpOnly`** (`SameSite=Lax`, `Secure` en production, 7 jours), invisible du JavaScript client
 - **Révocation de session** : un compteur `tokenVersion` en base invalide instantanément tous les tokens émis (changement de rôle, réinitialisation de mot de passe)
 - Protection des routes par rôle (MEMBER, VOLUNTEER, ADMIN)
 - **Protection CSRF** par `SameSite=Lax`, corps JSON exclusif (100 ko max) et liste blanche d'origines CORS explicite
-- Rate limiting différencié : global (300/15 min), authentification (10/15 min), formulaires publics (10/15 min), génération PDF (5/min), routes admin (200/15 min)
+- Rate limiting différencié : global (300/15 min), authentification (10/15 min), formulaires publics (10/15 min), génération PDF (5/min), routes admin (200/15 min), envoi de newsletter (5/h), paiements (20/15 min), désabonnement (60/15 min), webhook Brevo (2 000/15 min)
 - Headers sécurisés côté API (Helmet.js) et sanitisation XSS (DOMPurify) côté front comme back
 - **CSP nonce-based** via middleware Next.js (`script-src 'nonce' 'strict-dynamic'`, `'unsafe-eval'` retiré en production)
 - **HSTS** (`max-age=31536000; includeSubDomains; preload`), **COOP** (`same-origin`), **X-Frame-Options** (`DENY`), `nosniff`, `Referrer-Policy`
 - JSON-LD sécurisé : échappement `<`, `>`, `&` dans les scripts structurés
-- **Journal d'audit** : 32 actions d'administration tracées (acteur, cible, IP, détails JSON, sévérité CRITICAL / IMPORTANT), l'échec du log ne fait jamais échouer l'action métier
+- **Journal d'audit** : 44 actions tracées — gestes d'administration, réauthentifications ratées, passages de la purge RGPD — avec acteur, cible, IP, détails JSON et sévérité CRITICAL / IMPORTANT ; l'échec du log ne fait jamais échouer l'action métier
 - Visiteurs anonymes : pas de requête `/auth/me` (flag `localStorage`) → zéro 401 en console
 - Erreurs API remontées telles quelles à l'utilisateur, y compris l'échec réseau (« Serveur injoignable »)
 - Gestion du consentement cookies conforme RGPD (Orejime)
-- SEO : sitemap, robots.txt (noindex admin + blocage bots IA), `generateMetadata` dynamique sur les recettes, lazy loading images, `llms.txt` à destination des moteurs IA
+- SEO : sitemap, robots.txt (`/admin`, `/api`, `/auth` et `/compte` exclus ; robots IA nommément autorisés sur le contenu public), `generateMetadata` dynamique sur les recettes, lazy loading images, `llms.txt` à destination des moteurs IA
 - JSON-LD ancré à Clamart (`frontend/src/constants/structuredData.js`) : NGO + LocalBusiness avec adresse, géolocalisation, horaires de distribution et communes desservies, FAQPage, ItemList producteurs, OfferCatalog des abonnements — rien n'y est annoncé que la base ne confirme
 
 ## 📊 Base de données
@@ -606,6 +638,7 @@ Le schéma Prisma comprend :
 - **AuditLog** - Journal d'audit des actions d'administration
 - **EmailLog** - Trace de chaque message sortant : l'enveloppe, jamais le corps. `status` dit s'il a été confié au relais, `delivery` ce que le relais en a fait ensuite
 - **EmailSuppression** - Adresses écartées des envois après un rejet définitif
+- **JobRun** - Cahier de bord des tâches planifiées : dernière exécution, statut, erreur, et version en ligne pour le délai de la purge RGPD
 - **ThemeConfig** - Table héritée de l'ancien système de thèmes saisonniers, plus lue par l'application
 
 ## 🎨 Personnalisation
@@ -618,7 +651,7 @@ Le site n'utilise aucun framework CSS utilitaire — uniquement du CSS natif org
 
 ### Racine
 - `npm run dev` - Lance le backend et le frontend en parallèle
-- `npm run install:all` - Installe les dépendances des trois espaces
+- `npm run install:all` - Installe les dépendances de la racine, du frontend et du backend (l'horloge s'installe à part)
 - `npm run build:frontend` / `npm run start:backend` / `npm run start:frontend`
 
 ### Backend
@@ -637,32 +670,50 @@ Le site n'utilise aucun framework CSS utilitaire — uniquement du CSS natif org
 - `npm run build` - Build de production
 - `npm start` - Serveur de production
 - `npm run lint` - ESLint
+- `npm test` / `npm run test:watch` - Suite de tests Vitest (une fois / à chaque sauvegarde)
 - `npm run postinstall` - Copie les fichiers Orejime dans `public/` (automatique après `npm install`)
+
+### Horloge
+- `npm test` - Garde-fous de `wrangler.toml` et du Worker
+- `npm run deploy` - Garde-fous, puis déploiement sur Cloudflare
+- `npm run logs` - Passages en direct (`wrangler tail`)
 
 ## 🧪 Tests
 
-Le backend est testé avec [Vitest](https://vitest.dev). Les tests unitaires ne
-demandent rien à démarrer : ni base de données, ni SMTP — tout ce qui dépasse du
+Trois suites indépendantes, une par espace. Aucune ne demande quoi que ce soit à
+démarrer : ni base de données, ni SMTP, ni réseau — tout ce qui dépasse du
 module testé est remplacé par un double.
 
 ```bash
-cd backend
-npm test                                        # la suite entière, une fois
-npm run test:watch                              # relance à chaque sauvegarde
-npm test -- tests/unit/email.mentions.test.js   # un seul fichier
+cd backend && npm test      # Vitest, 32 fichiers
+cd frontend && npm test     # Vitest, 6 fichiers
+cd horloge && npm test      # node --test, les garde-fous du déploiement
 ```
 
-Les tests sont rangés par type dans `backend/tests/` — `unit/` (seul type peuplé
-à ce jour, 23 fichiers), `integration/` et `e2e/` (réservés), `fixtures/` et
-`helpers/` pour les jeux de données et l'outillage partagés. Le découpage dit ce
-qu'un fichier a le droit de toucher ; `backend/tests/README.md` en donne la
-règle complète.
+Côté **backend**, les tests sont rangés par type dans `backend/tests/` —
+`unit/` (seul type peuplé à ce jour), `integration/` et `e2e/` (réservés),
+`fixtures/` et `helpers/` pour les jeux de données et l'outillage partagés. Le
+découpage dit ce qu'un fichier a le droit de toucher ; `backend/tests/README.md`
+en donne la règle complète. Pour lancer un seul fichier :
+`npm test -- tests/unit/email.mentions.test.js`.
+
+Côté **frontend**, `frontend/tests/unit/` verrouille la porte d'invitation (y
+compris le passage des vignettes de partage), les données structurées SEO, les
+variables CSS réellement définies, le contraste des design tokens et la
+recherche d'adhérent.
+
+Côté **horloge**, la suite n'éprouve pas le Worker en marche : elle relit sa
+configuration et refuse tout ce qui pourrait coûter ou s'emballer (voir
+« L'horloge des jobs »). `npm run deploy` la passe d'abord et s'arrête si elle
+échoue.
 
 ## 🐛 Débogage
 
 **Le serveur refuse de démarrer :**
 - Message « Variables d'environnement manquantes » : `DATABASE_URL`, `JWT_SECRET` ou `FRONTEND_URL` n'est pas défini
 - Message « Identifiants SMTP manquants » en production : renseignez `BREVO_SMTP_USER` et `BREVO_SMTP_KEY` (voir `.env.example`, qui détaille où les récupérer dans Brevo)
+- Message « TREASURER_EMAIL manquante » en production : renseignez la boîte du trésorier, une vraie adresse relevée et non l'adresse d'envoi
+- Message « Cookie d'authentification en SameSite=… sans protection CSRF » : le cookie a quitté `SameSite=Lax` sans jeton anti-CSRF (voir `CSRF_TOKEN_ENABLED`)
 
 **Problème de connexion à la DB :**
 - Vérifiez que PostgreSQL est démarré
