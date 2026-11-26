@@ -1,10 +1,13 @@
 import { headers } from 'next/headers';
 import { Fraunces, Plus_Jakarta_Sans, Geist_Mono } from 'next/font/google';
+import ConsentBanner from '../components/ConsentBanner';
 import ConditionalHeader from '../components/layout/ConditionalHeader';
 import ConditionalFooter from '../components/layout/ConditionalFooter';
 import Providers from '../components/Providers';
 import JsonLd from '../components/JsonLd';
 import { organizationJsonLd, pickupPlaceJsonLd } from '../constants/structuredData';
+import 'vanilla-cookieconsent/dist/cookieconsent.css';
+import '../styles/components/cookieconsent.css';
 import '../styles/variables.css';
 import '../styles/globals.css';
 import '../styles/components/da.css';
@@ -94,6 +97,7 @@ async function RootLayout({ children }) {
             {children}
           </main>
           <ConditionalFooter />
+          <ConsentBanner />
         </Providers>
       </body>
     </html>

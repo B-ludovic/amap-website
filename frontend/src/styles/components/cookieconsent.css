@@ -1,0 +1,19 @@
+/* Bandeau vanilla-cookieconsent, habillé aux jetons de la DA */
+
+#cc-main {
+  --cc-font-family: var(--font-family);
+  --cc-bg: var(--surface-page);
+  --cc-primary-color: var(--text-primary);
+  --cc-secondary-color: var(--text-secondary);
+  --cc-link-color: var(--primary-color);
+  --cc-modal-border-radius: var(--border-radius-lg);
+  --cc-btn-border-radius: var(--border-radius-md);
+  --cc-separator-border-color: var(--border-soft);
+
+  --cc-btn-primary-bg: var(--primary-color);
+  --cc-btn-primary-color: var(--btn-primary-text);
+  --cc-btn-primary-border-color: var(--primary-color);
+  --cc-btn-primary-hover-bg: var(--primary-hover);
+  --cc-btn-primary-hover-color: var(--btn-primary-text);
+  --cc-btn-primary-hover-border-color: var(--primary-hover);
+}

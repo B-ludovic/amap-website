@@ -1,18 +1,17 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import * as CookieConsent from 'vanilla-cookieconsent';
+import {
+  ANALYTICS,
+  CONSENT_COOKIE,
+  CONSENT_DAYS,
+  GA_CONTAINER_COOKIE,
+  GA_ID,
+  readAnalyticsConsent,
+} from '../../lib/consent';
 import '../../styles/public/cookies.css';
-
-/* Identifiant de la finalité déclarée à Orejime (components/CookieConsent.js).
-   Le cookie de consentement porte le nom par défaut de la bibliothèque. */
-const PURPOSE_ID = 'google-analytics';
-const CONSENT_COOKIE = 'eu-consent';
-const CONSENT_DAYS = 120;
-
-const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
-/* GA4 dépose _ga et un cookie par conteneur, nommé d'après l'identifiant de mesure */
-const GA_CONTAINER_COOKIE = GA_ID ? `_ga_${GA_ID.replace(/^G-/, '')}` : null;
 
 const MESSAGES = {
   on: 'Préférences enregistrées — la mesure anonymisée est active. Merci, ça nous aide à écrire les bonnes pages.',
@@ -21,67 +20,43 @@ const MESSAGES = {
   none: 'Optionnel refusé — seuls les cookies nécessaires au fonctionnement du site restent actifs.',
 };
 
-/* Le cookie de consentement n'est pas httpOnly : son contenu se lit directement,
-   sans attendre le chargement d'Orejime, ce qui évite d'afficher un état faux
-   pendant la seconde qui suit l'arrivée sur la page. */
-function readStoredConsent() {
-  if (typeof document === 'undefined') return null;
-  const entry = document.cookie
-    .split('; ')
-    .find((part) => part.startsWith(`${CONSENT_COOKIE}=`));
-  if (!entry) return null;
-  try {
-    return JSON.parse(decodeURIComponent(entry.slice(CONSENT_COOKIE.length + 1)));
-  } catch {
-    return null;
-  }
-}
-
 export default function CookiesPage() {
   /* `analytics` est la position de l'interrupteur, `saved` le choix réellement
      déposé sur l'appareil : ils divergent tant que l'on n'a pas enregistré. */
   const [analytics, setAnalytics] = useState(false);
   const [saved, setSaved] = useState(null);
   const [read, setRead] = useState(false);
-  const [manager, setManager] = useState(null);
-  const [unavailable, setUnavailable] = useState(false);
   const [flash, setFlash] = useState('');
 
-  /* Premier passage : l'état affiché vient du cookie, pas de la bibliothèque */
+  /* L'état affiché vient du cookie, pas de la bibliothèque : cette page est
+     montée avant que le bandeau n'appelle run(). Il est relu à chaque choix
+     fait depuis le bandeau pendant que la page est ouverte. */
   useEffect(() => {
-    const stored = readStoredConsent();
-    if (stored && typeof stored[PURPOSE_ID] === 'boolean') {
-      setAnalytics(stored[PURPOSE_ID]);
-      setSaved(stored[PURPOSE_ID]);
-    }
-    setRead(true);
-  }, []);
-
-  /* Orejime est chargé après l'hydratation : on l'attend pour pouvoir écrire */
-  useEffect(() => {
-    if (!GA_ID) return undefined;
-    let tries = 0;
-    const timer = setInterval(() => {
-      if (window.orejime?.manager) {
-        setManager(window.orejime.manager);
-        clearInterval(timer);
-      } else if ((tries += 1) > 50) {
-        setUnavailable(true);
-        clearInterval(timer);
+    const sync = () => {
+      const stored = readAnalyticsConsent(document.cookie);
+      if (stored !== null) {
+        setAnalytics(stored);
+        setSaved(stored);
       }
-    }, 100);
-    return () => clearInterval(timer);
+      setRead(true);
+    };
+    sync();
+    window.addEventListener('cc:onConsent', sync);
+    window.addEventListener('cc:onChange', sync);
+    return () => {
+      window.removeEventListener('cc:onConsent', sync);
+      window.removeEventListener('cc:onChange', sync);
+    };
   }, []);
 
-  const commit = useCallback((value, message) => {
-    if (!manager) return;
-    /* setConsents écrit le cookie, injecte ou retire les scripts de mesure
-       et efface les cookies de la finalité refusée. */
-    manager.setConsents({ [PURPOSE_ID]: value });
+  const commit = (value, message) => {
+    /* acceptCategory écrit le cookie et déclenche onConsent ou onChange, qui
+       chargent ou font taire la mesure ; un refus efface aussi les cookies _ga. */
+    CookieConsent.acceptCategory(value ? [ANALYTICS] : []);
     setAnalytics(value);
     setSaved(value);
     setFlash(message);
-  }, [manager]);
+  };
 
   const toggleAnalytics = () => {
     setAnalytics((current) => !current);
@@ -119,17 +94,6 @@ export default function CookiesPage() {
             <div className="success-band cookie-flash" role="status">
               <span className="success-band-dot" />
               <span className="success-band-text">{flash}</span>
-            </div>
-          )}
-
-          {unavailable && (
-            <div className="notice-band cookie-flash" role="status">
-              <span className="notice-band-dot" />
-              <span className="notice-band-text">
-                Le gestionnaire de consentement n&apos;a pas pu se charger — une extension
-                de navigateur le bloque peut-être. Vos préférences ne peuvent pas être
-                enregistrées depuis cette page pour le moment.
-              </span>
             </div>
           )}
 
@@ -266,7 +230,6 @@ export default function CookiesPage() {
                   type="button"
                   className="btn-cta btn-cta-primary"
                   onClick={() => commit(analytics, analytics ? MESSAGES.on : MESSAGES.off)}
-                  disabled={!manager}
                 >
                   Enregistrer mes choix
                 </button>
@@ -274,7 +237,6 @@ export default function CookiesPage() {
                   type="button"
                   className="btn-cta btn-cta-ghost"
                   onClick={() => commit(true, MESSAGES.all)}
-                  disabled={!manager}
                 >
                   Tout accepter
                 </button>
@@ -282,7 +244,6 @@ export default function CookiesPage() {
                   type="button"
                   className="btn-cta btn-cta-ghost"
                   onClick={() => commit(false, MESSAGES.none)}
-                  disabled={!manager}
                 >
                   Refuser l&apos;optionnel
                 </button>

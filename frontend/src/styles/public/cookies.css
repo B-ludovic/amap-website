@@ -277,11 +277,6 @@
   padding: 0 26px;
 }
 
-.cookie-actions .btn-cta:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-
 .cookie-note {
   margin-top: 18px;
   max-width: 44em;

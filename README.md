@@ -41,6 +41,7 @@ Ce projet est un site complet permettant de gérer une AMAP de A à Z :
 - **Tiptap 3** - Éditeur rich-text des newsletters (gras, italique, titres, listes, séparateur)
 - **React Aria Components** - Liste de choix accessible au clavier pour désigner un adhérent (permanences)
 - **isomorphic-dompurify** - Sanitisation XSS du contenu HTML externe
+- **vanilla-cookieconsent 3** - Bandeau de consentement cookies conforme RGPD
 - **Vitest 4** - Tests unitaires de la porte d'invitation, des données structurées et des design tokens
 
 ### Backend
@@ -601,6 +602,7 @@ Le prix d'un contrat ne s'écrit nulle part à la main : il se déduit de deux n
 - **Journal d'audit** : 44 actions tracées — gestes d'administration, réauthentifications ratées, passages de la purge RGPD — avec acteur, cible, IP, détails JSON et sévérité CRITICAL / IMPORTANT ; l'échec du log ne fait jamais échouer l'action métier. Chaque action est aussi écrite dans les logs du serveur, réduite à ses identifiants : l'email, le libellé et les détails restent en base
 - Visiteurs anonymes : pas de requête `/auth/me` (flag `localStorage`) → zéro 401 en console
 - Erreurs API remontées telles quelles à l'utilisateur, y compris l'échec réseau (« Serveur injoignable »)
+- Gestion du consentement cookies conforme RGPD (vanilla-cookieconsent) : Google Analytics n'est chargé qu'après accord, choix modifiable sur `/cookies`
 - SEO : sitemap, robots.txt (`/admin`, `/api`, `/auth` et `/compte` exclus ; robots IA nommément autorisés sur le contenu public), `generateMetadata` dynamique sur les recettes, lazy loading images, `llms.txt` à destination des moteurs IA
 - JSON-LD ancré à Clamart (`frontend/src/constants/structuredData.js`) : NGO + LocalBusiness avec adresse, géolocalisation, horaires de distribution et communes desservies, FAQPage, ItemList producteurs, OfferCatalog des abonnements — rien n'y est annoncé que la base ne confirme
 
