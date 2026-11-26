@@ -17,3 +17,18 @@
   --cc-btn-primary-hover-color: var(--btn-primary-text);
   --cc-btn-primary-hover-border-color: var(--primary-hover);
 }
+
+#cc-main .cm__title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#cc-main .cm__title::before {
+  content: '';
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  /* Même URL que le logo 2x du header (next/image) : l'image est déjà en cache */
+  background: url('/_next/image?url=%2Ficons%2Flogo.png&w=96&q=75') center / contain no-repeat;
+}
