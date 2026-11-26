@@ -13,8 +13,8 @@
     "start:frontend": "cd frontend && npm start"
   },
   "keywords": ["amap", "e-commerce", "agriculture", "local"],
-  "author": "Ton nom",
-  "license": "MIT",
+  "author": "Ludovic",
+  "license": "UNLICENSED",
   "devDependencies": {
     "concurrently": "^8.2.2"
   }

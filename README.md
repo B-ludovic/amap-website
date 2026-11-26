@@ -736,7 +736,9 @@ configuration et refuse tout ce qui pourrait coûter ou s'emballer (voir
 
 ## 📄 Licence
 
-Ce projet est développé pour une AMAP locale. Tous droits réservés.
+© Ludovic — tous droits réservés. Développé pour l'AMAP Aux P'tits Pois.
+
+Le code est consultable sur ce dépôt public, mais aucune licence n'est concédée : il ne peut être ni copié, ni modifié, ni redistribué sans l'accord écrit de l'auteur.
 
 ## Crédits
 
