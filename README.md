@@ -685,7 +685,7 @@ démarrer : ni base de données, ni SMTP, ni réseau — tout ce qui dépasse du
 module testé est remplacé par un double.
 
 ```bash
-cd backend && npm test      # Vitest, 33 fichiers
+cd backend && npm test      # Vitest, 34 fichiers
 cd frontend && npm test     # Vitest, 6 fichiers
 cd horloge && npm test      # node --test, les garde-fous du déploiement
 ```

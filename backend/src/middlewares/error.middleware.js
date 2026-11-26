@@ -11,6 +11,17 @@ const isProduction = () => process.env.NODE_ENV === 'production';
    et servent au diagnostic. */
 const maskTokens = (value) => String(value).replace(/\b[a-f0-9]{32,}\b/gi, '[jeton masqué]');
 
+/* Refus d'express.json() : leur statut est le bon (400, 413, 415), mais leur
+   message cite le corps reçu, V8 recopiant l'extrait fautif, mot de passe compris. */
+const isBodyParserError = (err) =>
+  typeof err.type === 'string' && Number.isInteger(err.status) && err.status >= 400 && err.status < 500;
+
+const BODY_ERROR_MESSAGES = {
+  'entity.parse.failed': 'Le corps de la requête n\'est pas un JSON valide.',
+  'entity.too.large': 'La requête est trop volumineuse.',
+  'charset.unsupported': 'Encodage de la requête non pris en charge.',
+};
+
 /* Le message d'une erreur Prisma récite la requête fautive, données comprises.
    Une saisie du formulaire producteur mal typée produit un message qui contient
    le nom, l'adresse e-mail, le téléphone et l'adresse postale du candidat — les
@@ -23,6 +34,7 @@ const maskTokens = (value) => String(value).replace(/\b[a-f0-9]{32,}\b/gi, '[jet
    valeur. En développement le message reste entier : c'est là qu'il est utile,
    et les données y sont des données de test. */
 const safeMessage = (err) => {
+  if (isBodyParserError(err)) return err.type;
   if (!isProduction() || !err.name?.startsWith('PrismaClient')) return maskTokens(err.message);
 
   const lines = String(err.message).split('\n').map((line) => line.trim()).filter(Boolean);
@@ -38,6 +50,7 @@ const isPrismaKnownError = (err) => typeof err.code === 'string' && err.code.sta
 const statusFor = (err) => {
   if (err instanceof HttpError) return err.statusCode;
   if (err.name === 'ZodError') return httpStatusCodes.UNPROCESSABLE_ENTITY;
+  if (isBodyParserError(err)) return err.status;
   if (isPrismaKnownError(err)) return httpStatusCodes.BAD_REQUEST;
   return httpStatusCodes.INTERNAL_SERVER_ERROR;
 };
@@ -86,6 +99,16 @@ const errorHandler = (err, req, res, next) => {
         message: 'Erreur de validation des données',
         type: 'ValidationError',
         ...(process.env.NODE_ENV !== 'production' && { details: err.issues }),
+      },
+    });
+  }
+
+  if (isBodyParserError(err)) {
+    return res.status(status).json({
+      success: false,
+      error: {
+        message: BODY_ERROR_MESSAGES[err.type] ?? 'Requête invalide. Vérifiez les données envoyées.',
+        type: 'RequestBodyError',
       },
     });
   }
