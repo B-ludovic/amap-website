@@ -469,7 +469,7 @@ class RecipeService {
     async getRecipeDetails(recipeId) {
         try {
             const response = await fetch(
-                `${THEMEALDB_BASE_URL}/lookup.php?i=${recipeId}`
+                `${THEMEALDB_BASE_URL}/lookup.php?i=${encodeURIComponent(recipeId)}`
             );
 
             if (!response.ok) {
@@ -600,7 +600,7 @@ class RecipeService {
     // Fiche complète d'un plat ; renvoie null plutôt que d'interrompre la recherche
     async lookupMeal(mealId) {
         try {
-            const response = await fetch(`${THEMEALDB_BASE_URL}/lookup.php?i=${mealId}`);
+            const response = await fetch(`${THEMEALDB_BASE_URL}/lookup.php?i=${encodeURIComponent(mealId)}`);
             if (!response.ok) return null;
             const data = await response.json();
             return data.meals?.[0] || null;
