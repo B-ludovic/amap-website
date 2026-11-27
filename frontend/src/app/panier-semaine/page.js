@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { useModal } from '../../contexts/ModalContext';
 import api from '../../lib/api';
 import logger from '../../lib/logger';
-import { SEASONAL_VEGETABLES, SEASON_LABELS, getCurrentSeason } from '../../constants/recipes';
+import { SEASONAL_VEGETABLES, SEASON_LABELS, RECIPE_QUERY_MAX_LENGTH, getCurrentSeason } from '../../constants/recipes';
 import { getProductIcon, PRODUCT_CATEGORY_LABELS } from '../../constants/productIcons';
 import '../../styles/public/weekly-basket.css';
 
@@ -141,7 +141,10 @@ export default function WeeklyBasketPublicPage() {
       setRecipes(response.data || []);
     } catch (error) {
       logger.error('Erreur recherche:', error);
-      showError('Erreur', 'Erreur lors de la recherche de recettes');
+      // 400 et 429 portent un motif lisible : trop d'ingrédients, trop de recherches.
+      showError('Erreur', [400, 429].includes(error.status)
+        ? error.message
+        : 'Erreur lors de la recherche de recettes');
     } finally {
       setLoadingRecipes(false);
     }
@@ -365,6 +368,7 @@ export default function WeeklyBasketPublicPage() {
                   : 'Ex : gratin, soupe, tarte…'
               }
               value={searchQuery}
+              maxLength={RECIPE_QUERY_MAX_LENGTH}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
                 setActivePillId(null);

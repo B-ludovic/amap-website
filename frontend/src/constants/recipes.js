@@ -53,3 +53,6 @@ export const SEASON_LABELS = {
   autumn: 'Automne',
   winter: 'Hiver',
 };
+
+// Même borne que l'API : au-delà, la recherche est refusée.
+export const RECIPE_QUERY_MAX_LENGTH = 60;

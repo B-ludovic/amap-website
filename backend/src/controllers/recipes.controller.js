@@ -2,6 +2,13 @@ import recipeService from '../services/recipe.service.js';
 import { prisma } from '../config/database.js';
 import { HttpBadRequestError, httpStatusCodes } from '../utils/httpErrors.js';
 
+const MAX_QUERY_LENGTH = 60;
+const MAX_INGREDIENTS = 5;
+const MAX_RESULTS = 12;
+
+// req.query peut aussi livrer un tableau (?query=a&query=b) ou un objet.
+const isSearchTerm = (value) => typeof value === 'string' && value.length <= MAX_QUERY_LENGTH;
+
 export const searchRecipes = async (req, res, next) => {
   try {
     const { query, queryEn } = req.query;
@@ -10,6 +17,13 @@ export const searchRecipes = async (req, res, next) => {
       return res.status(httpStatusCodes.BAD_REQUEST).json({
         success: false,
         message: 'Le paramètre "query" est requis',
+      });
+    }
+
+    if (!isSearchTerm(query) || (queryEn !== undefined && !isSearchTerm(queryEn))) {
+      return res.status(httpStatusCodes.BAD_REQUEST).json({
+        success: false,
+        message: `La recherche est limitée à ${MAX_QUERY_LENGTH} caractères`,
       });
     }
 
@@ -58,12 +72,31 @@ export const findRecipesByIngredients = async (req, res, next) => {
       });
     }
 
-    const ingredientsList = ingredients.split(',').map(i => i.trim());
-    const recipes = await recipeService.findByIngredients(
-      ingredientsList,
-      number ? parseInt(number) : 6,
-      queryEn || null
-    );
+    if (!isSearchTerm(ingredients) || (queryEn !== undefined && !isSearchTerm(queryEn))) {
+      return res.status(httpStatusCodes.BAD_REQUEST).json({
+        success: false,
+        message: `La recherche est limitée à ${MAX_QUERY_LENGTH} caractères`,
+      });
+    }
+
+    // Chaque ingrédient coûte une traduction, chaque recette une fiche et une traduction.
+    const ingredientsList = ingredients.split(',').map(i => i.trim()).filter(Boolean);
+    if (ingredientsList.length === 0 || ingredientsList.length > MAX_INGREDIENTS) {
+      return res.status(httpStatusCodes.BAD_REQUEST).json({
+        success: false,
+        message: `Indiquez entre 1 et ${MAX_INGREDIENTS} ingrédients`,
+      });
+    }
+
+    const count = number === undefined ? 6 : Number(number);
+    if (!Number.isInteger(count) || count < 1 || count > MAX_RESULTS) {
+      return res.status(httpStatusCodes.BAD_REQUEST).json({
+        success: false,
+        message: `Le nombre de recettes demandé va de 1 à ${MAX_RESULTS}`,
+      });
+    }
+
+    const recipes = await recipeService.findByIngredients(ingredientsList, count, queryEn || null);
 
     res.json({
       success: true,

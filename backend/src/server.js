@@ -195,6 +195,19 @@ const webhookLimiter = limiteur('webhook Brevo', {
   message: { success: false, error: { message: 'Trop de requêtes.' } },
 });
 
+/* Rate limiting — recherche de recettes
+
+   Route publique dont chaque requête part en appels sortants vers Google
+   Translate et TheMealDB : le plafond protège surtout l'adresse IP du backend
+   d'un blocage par ces services. */
+const recipeSearchLimiter = limiteur('recherche de recettes', {
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, error: { message: 'Trop de recherches, réessayez dans 15 minutes.' } },
+});
+
 // Rate limiting — recherche utilisateur par email (anti-énumération)
 // Rate limiting — routes admin générales
 const adminLimiter = limiteur('admin', {
@@ -250,6 +263,8 @@ app.use('/api/subscriptions', subscriptionsRoutes);
 app.use('/api/subscription-requests/:id/contract', pdfLimiter);
 app.use('/api/subscription-requests', subscriptionRequestsRoutes);
 app.use('/api/distribution', distributionRoutes);
+app.use('/api/recipes/search', recipeSearchLimiter);
+app.use('/api/recipes/ingredients', recipeSearchLimiter);
 app.use('/api/recipes', recipesRoutes);
 app.use('/api/contact', publicLimiter);
 app.use('/api/contact', contactRoutes);

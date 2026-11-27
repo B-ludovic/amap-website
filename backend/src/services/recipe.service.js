@@ -3,6 +3,9 @@ import { safeMessage } from '../utils/safeMessage.js';
 
 const THEMEALDB_BASE_URL = 'https://www.themealdb.com/api/json/v1/1';
 
+// Un appel TheMealDB par tentative : six couvrent un mot d'ingrédient de dix lettres.
+const MAX_SUFFIX_ATTEMPTS = 6;
+
 // Dictionnaire de secours pour les faux amis courants (légumes, fruits, etc.)
 const TRANSLATION_OVERRIDES = {
     'lentille': 'lentil',
@@ -418,7 +421,8 @@ class RecipeService {
             }
             // Si aucun résultat, essayer en supprimant progressivement le début du mot
             if (mealsMap.size === 0) {
-                for (let i = 1; i < englishQuery.length - 3; i++) {
+                const lastStart = Math.min(englishQuery.length - 4, MAX_SUFFIX_ATTEMPTS);
+                for (let i = 1; i <= lastStart; i++) {
                     const suffix = englishQuery.slice(i);
                     const res = await fetch(`${THEMEALDB_BASE_URL}/search.php?s=${encodeURIComponent(suffix)}`);
                     if (res.ok) {
