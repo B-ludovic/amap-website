@@ -115,6 +115,7 @@ async function purgeUnverifiedAccounts() {
     role: 'MEMBER',
     subscriptions: { none: {} },
     subscriptionRequests: { none: {} },
+    producerAccessRequests: { none: {} },
   });
   if (count > 0) {
     await logAudit(null, 'PURGE_USER_DATA', 'IMPORTANT', { type: 'USER', label: 'Comptes non vérifiés' }, { count, retentionDays: UNVERIFIED_ACCOUNT_RETENTION_DAYS });
