@@ -591,7 +591,7 @@ Le prix d'un contrat ne s'écrit nulle part à la main : il se déduit de deux n
 - Design responsive (desktop, tablet, mobile), design tokens centralisés dans `frontend/src/styles/variables.css`
 - **Démarrage bloquant sur configuration incomplète** : sans `DATABASE_URL`, `JWT_SECRET` ou `FRONTEND_URL`, le serveur refuse de démarrer au lieu de répondre 200 sur `/api/health` en ratant toutes les connexions ; les identifiants SMTP et l'adresse du trésorier sont exigés en production et avertis bruyamment en développement
 - **Authentification par cookie `httpOnly`** (`SameSite=Lax`, `Secure` en production, 7 jours), invisible du JavaScript client
-- **Révocation de session** : un compteur `tokenVersion` en base invalide instantanément tous les tokens émis (changement de rôle, réinitialisation de mot de passe)
+- **Révocation de session** : un compteur `tokenVersion` en base invalide instantanément tous les tokens émis (déconnexion, réinitialisation de mot de passe, suppression du compte) ; le rôle et l'état du compte sont relus en base à chaque requête, si bien qu'un changement de rôle prend effet dès la requête suivante sans fermer la session
 - Protection des routes par rôle (MEMBER, VOLUNTEER, ADMIN)
 - **Protection CSRF** par `SameSite=Lax`, corps JSON exclusif (100 ko max) et liste blanche d'origines CORS explicite
 - Rate limiting différencié : global (300/15 min), authentification (10/15 min), formulaires publics (10/15 min), génération PDF (5/min), routes admin (200/15 min), envoi de newsletter (5/h), paiements (20/15 min), désabonnement (60/15 min), webhook Brevo (2 000/15 min) ; chaque blocage est signalé dans les logs, une fois par adresse et par fenêtre
@@ -732,7 +732,7 @@ configuration et refuse tout ce qui pourrait coûter ou s'emballer (voir
 
 **Erreurs d'authentification :**
 - Vérifiez que `JWT_SECRET` est défini dans `.env`
-- Un changement de rôle ou une réinitialisation de mot de passe incrémente `tokenVersion` et invalide volontairement les sessions ouvertes
+- Une déconnexion ou une réinitialisation de mot de passe incrémente `tokenVersion` et ferme volontairement les sessions ouvertes sur tous les appareils, pas seulement celle en cours
 
 **Emails non reçus :**
 - Vérifiez `BREVO_SMTP_USER`, `BREVO_SMTP_KEY` et `EMAIL_FROM`
