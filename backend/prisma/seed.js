@@ -29,9 +29,10 @@ async function main() {
   await prisma.subscriptionRequest.deleteMany();
   await prisma.themeConfig.deleteMany();
   await prisma.product.deleteMany();
+  // Les comptes avant les fiches : User.producerId est en Restrict.
+  await prisma.user.deleteMany();
   await prisma.producer.deleteMany();
   await prisma.pickupLocation.deleteMany();
-  await prisma.user.deleteMany();
 
   // === ADMIN ===
   console.log('👤 Création du compte admin...');

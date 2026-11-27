@@ -722,7 +722,9 @@ model ProducerAccessRequest {
   adminNotes   String?  @db.Text    // interne, jamais envoyée au demandeur
   processedAt  DateTime?
   processedBy  String?
-  // Le journal d'audit est purgé à 365 jours, la demande garde la révocation.
+  // Le journal d'audit est purgé à 365 jours, la demande garde la ferme
+  // rattachée et la révocation. Sans relation : la trace survit à la fiche.
+  producerId   String?
   revokedAt    DateTime?
   revokedBy    String?
 

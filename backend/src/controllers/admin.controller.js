@@ -130,7 +130,8 @@ const deleteProducer = asyncHandler(async (req, res) => {
   const producer = await prisma.producer.findUnique({
     where: { id },
     include: {
-      products: true
+      products: true,
+      _count: { select: { accounts: true } }
     }
   });
 
@@ -143,6 +144,13 @@ const deleteProducer = asyncHandler(async (req, res) => {
     throw new HttpConflictError(
       'Impossible de supprimer ce producteur car il a des produits associés. ' +
       'Veuillez d\'abord supprimer ou réassigner ses produits.'
+    );
+  }
+
+  if (producer._count.accounts > 0) {
+    throw new HttpConflictError(
+      'Impossible de supprimer ce producteur car un compte producteur y est rattaché. ' +
+      'Veuillez d\'abord révoquer son accès.'
     );
   }
 

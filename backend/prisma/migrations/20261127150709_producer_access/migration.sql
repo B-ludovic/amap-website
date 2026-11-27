@@ -52,6 +52,7 @@ CREATE TABLE "ProducerAccessRequest" (
     "adminNotes" TEXT,
     "processedAt" TIMESTAMP(3),
     "processedBy" TEXT,
+    "producerId" TEXT,
     "revokedAt" TIMESTAMP(3),
     "revokedBy" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
