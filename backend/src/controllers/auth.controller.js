@@ -203,9 +203,10 @@ const login = asyncHandler(async (req, res) => {
         throw new HttpBadRequestError('Email et mot de passe sont requis.');
     }
 
-    // Trouver l'utilisateur par email
+    // Un compte supprimé répond comme une adresse inconnue, avant toute comparaison
+    // du mot de passe : sinon la réponse dirait si celui-ci était le bon.
     const user = await prisma.user.findUnique({ where: { email: normalizeEmail(email) } });
-    if (!user) {
+    if (!user || user.deletedAt) {
         throw new HttpUnauthorizedError('Email ou mot de passe incorrect.');
     }
 
@@ -213,11 +214,6 @@ const login = asyncHandler(async (req, res) => {
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
         throw new HttpUnauthorizedError('Email ou mot de passe incorrect.');
-    }
-
-    // Si l'utilisateur a ete supprimé
-    if (user.deletedAt) {
-        throw new HttpUnauthorizedError('Ce compte a été supprimé.');
     }
 
     if (!user.emailVerified) {
