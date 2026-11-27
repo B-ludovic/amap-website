@@ -1,7 +1,6 @@
 import { prisma } from '../config/database.js';
 import { asyncHandler } from '../middlewares/error.middleware.js';
 import emailService from '../services/email.service.js';
-import { z } from 'zod';
 import {
   HttpNotFoundError,
   HttpBadRequestError,
@@ -9,63 +8,24 @@ import {
 } from '../utils/httpErrors.js';
 import { normalizeFirstName, normalizeLastName, normalizeTitleCase } from '../utils/normalize.js';
 import { logAudit } from '../services/audit.service.js';
+import { ProducerInquirySchema } from '../utils/validation.schemas.js';
 
 // SOUMETTRE UNE DEMANDE (PUBLIC)
 const submitInquiry = asyncHandler(async (req, res) => {
-  const {
-    firstName,
-    lastName,
-    email,
-    phone,
-    farmName,
-    address,
-    city,
-    postalCode,
-    distance,
-    products,
-    isBio,
-    certifications,
-    message,
-    availability
-  } = req.body;
-
-  // Validation présence
-  if (!firstName || !lastName || !email || !phone || !farmName || !address || !city || !postalCode || !products) {
-    throw new HttpBadRequestError('Tous les champs obligatoires doivent être remplis');
+  const parsed = ProducerInquirySchema.safeParse(req.body);
+  if (!parsed.success) {
+    throw new HttpBadRequestError(parsed.error.issues[0].message);
   }
-
-  // Validation longueurs
-  if (firstName.length > 100) throw new HttpBadRequestError('Prénom : 100 caractères maximum.');
-  if (lastName.length > 100) throw new HttpBadRequestError('Nom : 100 caractères maximum.');
-  if (farmName.length > 200) throw new HttpBadRequestError('Nom de l\'exploitation : 200 caractères maximum.');
-  if (address.length > 255) throw new HttpBadRequestError('Adresse : 255 caractères maximum.');
-  if (city.length > 100) throw new HttpBadRequestError('Ville : 100 caractères maximum.');
-  if (message && message.length > 2000) throw new HttpBadRequestError('Message : 2000 caractères maximum.');
-
-  if (!z.string().email().safeParse(email).success) {
-    throw new HttpBadRequestError('Email invalide');
-  }
-
-  if (!/^\d{5}$/.test(postalCode)) {
-    throw new HttpBadRequestError('Code postal invalide (5 chiffres requis).');
-  }
+  const { firstName, lastName, farmName, address, city, ...reste } = parsed.data;
 
   const inquiry = await prisma.producerInquiry.create({
     data: {
+      ...reste,
       firstName: normalizeFirstName(firstName),
       lastName: normalizeLastName(lastName),
-      email,
-      phone,
       farmName: normalizeTitleCase(farmName),
       address: normalizeTitleCase(address),
-      city: normalizeTitleCase(city),
-      postalCode,
-      distance,
-      products,
-      isBio: isBio || false,
-      certifications,
-      message,
-      availability
+      city: normalizeTitleCase(city)
     }
   });
 

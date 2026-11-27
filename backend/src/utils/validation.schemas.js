@@ -90,3 +90,26 @@ export const ContactSchema = z.object({
   subject: z.string().min(1, 'Sujet requis').max(200, 'Sujet : 200 caractères maximum'),
   message: z.string().min(1, 'Message requis').max(5000, 'Message : 5000 caractères maximum'),
 });
+
+const texteRequis = (max, requis, libelle) =>
+  z.string({ error: requis }).trim().min(1, requis).max(max, `${libelle} : ${max} caractères maximum`);
+
+const texteFacultatif = (max, libelle) =>
+  emptyToUndefined(z.string({ error: `${libelle} invalide` }).trim().max(max, `${libelle} : ${max} caractères maximum`));
+
+export const ProducerInquirySchema = z.object({
+  firstName:      texteRequis(100, 'Prénom requis', 'Prénom'),
+  lastName:       texteRequis(100, 'Nom requis', 'Nom'),
+  email:          z.string({ error: 'Email requis' }).trim().email('Email invalide').max(200, 'Email : 200 caractères maximum'),
+  phone:          texteRequis(30, 'Téléphone requis', 'Téléphone').regex(/^[0-9\s.+()-]+$/, 'Téléphone invalide'),
+  farmName:       texteRequis(200, 'Nom de l\'exploitation requis', 'Nom de l\'exploitation'),
+  address:        texteRequis(255, 'Adresse requise', 'Adresse'),
+  city:           texteRequis(100, 'Ville requise', 'Ville'),
+  postalCode:     z.string({ error: 'Code postal requis' }).trim().regex(/^\d{5}$/, 'Code postal invalide (5 chiffres requis).'),
+  distance:       emptyToUndefined(z.coerce.number({ error: 'Distance invalide' }).int('Distance invalide').min(0, 'Distance invalide').max(300, 'Distance : 300 km maximum')),
+  products:       texteRequis(2000, 'Types de produits requis', 'Produits'),
+  isBio:          z.boolean({ error: 'Case « bio » invalide' }).default(false),
+  certifications: texteFacultatif(500, 'Certifications'),
+  message:        texteFacultatif(2000, 'Message'),
+  availability:   texteFacultatif(500, 'Disponibilités'),
+}, { error: 'Formulaire invalide' });
