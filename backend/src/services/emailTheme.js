@@ -17,9 +17,9 @@
    Trois contraintes de l'email dictent le reste. Outlook rend le HTML avec le
    moteur de Word : ni dégradé, ni ombre portée, ni coin arrondi — d'où des
    aplats francs, qui tombent d'ailleurs très bien avec une DA dont les angles
-   sont déjà presque droits. Gmail retire les @import : les polices du site sont
-   donc proposées, jamais exigées, et la pile de repli (Georgia pour le titrage,
-   Helvetica pour le texte) est ce que verra la majorité. Et la largeur tient en
+   sont déjà presque droits. Les polices du site sont proposées, jamais
+   téléchargées : la pile de repli (Georgia pour le titrage, Helvetica pour le
+   texte) est ce que verra presque tout le monde. Et la largeur tient en
    600 pixels, au-delà desquels les clients coupent. */
 
 /* Hébergé plutôt qu'encodé : le base64 pesait 166 ko et faisait tronquer le
@@ -66,9 +66,11 @@ export const EMAIL_PALETTE = {
 
 const P = EMAIL_PALETTE;
 
-/* Fraunces et Plus Jakarta Sans sont celles du site ; Georgia et Helvetica
-   prennent le relais partout où elles ne chargent pas, c'est-à-dire dans
-   Gmail et Outlook. Le choix des replis n'est pas indifférent : Fraunces est
+/* Fraunces et Plus Jakarta Sans sont celles du site, mais rien ne les
+   télécharge : un @import vers Google Fonts livrerait l'IP du lecteur à un
+   tiers absent des mentions légales. Elles ne s'affichent que si le lecteur les
+   a installées ; Georgia et Helvetica prennent le relais partout ailleurs.
+   Le choix des replis n'est pas indifférent : Fraunces est
    une serif à fort contraste, Georgia est la serif la plus proche présente sur
    toutes les machines, et la silhouette du message reste la même. */
 const FONT_DISPLAY = "'Fraunces', Georgia, 'Times New Roman', serif";
@@ -78,8 +80,6 @@ const FONT_MONO = "ui-monospace, 'SFMono-Regular', Consolas, 'Liberation Mono', 
 /* Le vocabulaire visuel commun aux dix-huit messages. Les classes portent les
    mêmes noms qu'avant : les gabarits n'ont eu à changer que leur enveloppe. */
 const styles = `
-  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap');
-
   body {
     margin: 0;
     padding: 0;
