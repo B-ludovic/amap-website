@@ -113,3 +113,79 @@ export const ProducerInquirySchema = z.object({
   message:        texteFacultatif(2000, 'Message'),
   availability:   texteFacultatif(500, 'Disponibilités'),
 }, { error: 'Formulaire invalide' });
+
+/* Un champ que l'admin vide doit pouvoir l'effacer : null passe jusqu'au
+   contrôleur, au lieu d'être ramené à undefined comme dans texteFacultatif. */
+const texteEffacable = (max, libelle) =>
+  z.string({ error: `${libelle} invalide` }).trim().max(max, `${libelle} : ${max} caractères maximum`).nullable().optional();
+
+const dateDuCalendrier = (requis) => z.union(
+  [z.iso.date(), z.iso.datetime({ offset: true })],
+  { error: (issue) => (issue.input === undefined || issue.input === '' ? requis : 'Date invalide') }
+);
+
+const heure = (libelle) =>
+  z.string({ error: `${libelle} invalide` }).regex(/^([01]\d|2[0-3]):[0-5]\d$/, `${libelle} invalide (HH:MM)`);
+
+const identifiant = (requis) =>
+  z.string({ error: requis }).trim().min(1, requis).max(64, requis);
+
+// L'équipe : les états qu'un admin pose à la main. Une proposition n'en fait pas partie.
+export const VOLUNTEER_STATUSES = ['CONFIRMED', 'CANCELLED', 'ABSENT'];
+
+const shiftFields = {
+  startTime:        heure('Heure de début').optional(),
+  endTime:          heure('Heure de fin').optional(),
+  volunteersNeeded: z.number({ error: 'Nombre de bénévoles invalide' })
+    .int('Nombre de bénévoles invalide').min(1, 'Entre 1 et 10 bénévoles').max(10, 'Entre 1 et 10 bénévoles').optional(),
+  notes:            texteEffacable(2000, 'Notes'),
+  volunteers:       z.array(z.object({
+    userId: identifiant('Bénévole invalide'),
+    role:   texteEffacable(100, 'Rôle'),
+    status: z.enum(VOLUNTEER_STATUSES, { error: 'Statut de bénévole invalide' }).optional(),
+  }), { error: 'Équipe invalide' }).max(50, 'Équipe : 50 bénévoles maximum').optional(),
+};
+
+export const ShiftSchema = z.object({
+  distributionDate: dateDuCalendrier('Date de distribution requise'),
+  ...shiftFields,
+});
+
+export const UpdateShiftSchema = z.object({
+  distributionDate: dateDuCalendrier('Date de distribution requise').optional(),
+  ...shiftFields,
+});
+
+export const WeeklyBasketSchema = z.object({
+  distributionDate: dateDuCalendrier('Date de distribution requise'),
+  notes:            texteEffacable(2000, 'Notes'),
+});
+
+export const UpdateWeeklyBasketSchema = WeeklyBasketSchema.partial();
+
+export const NewsletterSchema = z.object({
+  subject: texteRequis(200, 'Objet requis', 'Objet'),
+  content: z.string({ error: 'Contenu requis' }).min(1, 'Contenu requis').max(100_000, 'Contenu : 100 000 caractères maximum'),
+  type:    z.enum(['GENERAL', 'WEEKLY_BASKET', 'RECIPE', 'ALERT', 'PRODUCER_NEWS'], { error: 'Type de newsletter invalide' }).optional(),
+  target:  z.enum(['ALL', 'ACTIVE_SUBSCRIBERS', 'SOLIDARITY', 'TEST'], { error: 'Destinataires invalides' }).optional(),
+});
+
+export const UpdateNewsletterSchema = NewsletterSchema.partial().extend({
+  scheduledFor: z.string({ error: 'Date de programmation invalide' }).max(40, 'Date de programmation invalide').nullable().optional(),
+});
+
+export const ClosureSchema = z.object({
+  startDate: dateDuCalendrier('Date de début requise'),
+  endDate:   dateDuCalendrier('Date de fin requise'),
+  reason:    texteEffacable(500, 'Motif'),
+  notify:    z.boolean({ error: 'Choix d\'annonce invalide' }).optional(),
+});
+
+export const ProducerAbsenceSchema = z.object({
+  producerId: identifiant('Ferme requise'),
+  startDate:  dateDuCalendrier('Date de début requise'),
+  endDate:    dateDuCalendrier('Date de fin requise'),
+  reason:     texteEffacable(500, 'Motif'),
+});
+
+export const UpdateProducerAbsenceSchema = ProducerAbsenceSchema.omit({ producerId: true }).partial();

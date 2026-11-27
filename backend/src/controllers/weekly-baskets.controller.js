@@ -12,6 +12,7 @@ import {
 } from '../utils/httpErrors.js';
 import { logAudit } from '../services/audit.service.js';
 import { getUtcDayBounds } from '../utils/closurePeriod.js';
+import { WeeklyBasketSchema, UpdateWeeklyBasketSchema } from '../utils/validation.schemas.js';
 import {
   reserverNotification,
   destinatairesRestants,
@@ -143,17 +144,13 @@ const getCurrentWeeklyBasket = asyncHandler(async (req, res) => {
 
 // CRÉER UN PANIER HEBDOMADAIRE
 const createWeeklyBasket = asyncHandler(async (req, res) => {
-  const { distributionDate, notes } = req.body;
-
-  if (!distributionDate) {
-    throw new HttpBadRequestError('Date de distribution requise');
+  const parsed = WeeklyBasketSchema.safeParse(req.body);
+  if (!parsed.success) {
+    throw new HttpBadRequestError(parsed.error.issues[0].message);
   }
+  const { distributionDate, notes } = parsed.data;
 
   const parsedDistributionDate = new Date(distributionDate);
-  if (Number.isNaN(parsedDistributionDate.getTime())) {
-    throw new HttpBadRequestError('Date de distribution invalide');
-  }
-
   const season = getSeasonFromDate(parsedDistributionDate);
   const basket = await generateWeeklyBasket({
     distributionDate: parsedDistributionDate,
@@ -178,7 +175,11 @@ const createWeeklyBasket = asyncHandler(async (req, res) => {
 // MODIFIER UN PANIER HEBDOMADAIRE
 const updateWeeklyBasket = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { distributionDate, notes } = req.body;
+  const parsed = UpdateWeeklyBasketSchema.safeParse(req.body);
+  if (!parsed.success) {
+    throw new HttpBadRequestError(parsed.error.issues[0].message);
+  }
+  const { distributionDate, notes } = parsed.data;
 
   const basket = await prisma.weeklyBasket.findUnique({ where: { id } });
 

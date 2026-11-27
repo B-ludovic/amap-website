@@ -11,9 +11,7 @@ import {
 import { findClosureCovering, describeClosure } from '../services/closure.service.js';
 import { logAudit } from '../services/audit.service.js';
 import { announceWithdrawal, isUpcoming } from '../services/shiftRelease.service.js';
-
-// L'équipe : les états qu'un admin pose à la main. Une proposition n'en fait pas partie.
-const VOLUNTEER_STATUSES = ['CONFIRMED', 'CANCELLED', 'ABSENT'];
+import { ShiftSchema, UpdateShiftSchema, VOLUNTEER_STATUSES } from '../utils/validation.schemas.js';
 
 /* Un adhérent voit l'équipe confirmée et sa propre ligne, jamais les propositions
    des autres : un refus est à la discrétion de l'admin et ne regarde que l'intéressé. */
@@ -201,11 +199,11 @@ const getShiftById = asyncHandler(async (req, res) => {
 
 // CRÉER UNE PERMANENCE (ADMIN)
 const createShift = asyncHandler(async (req, res) => {
-  const { distributionDate, startTime, endTime, volunteersNeeded, notes, volunteers } = req.body;
-
-  if (!distributionDate) {
-    throw new HttpBadRequestError('Date de distribution requise');
+  const parsed = ShiftSchema.safeParse(req.body);
+  if (!parsed.success) {
+    throw new HttpBadRequestError(parsed.error.issues[0].message);
   }
+  const { distributionDate, startTime, endTime, volunteersNeeded, notes, volunteers } = parsed.data;
 
   await refuseIfClosed(new Date(distributionDate));
 
@@ -261,7 +259,11 @@ const createShift = asyncHandler(async (req, res) => {
 // MODIFIER UNE PERMANENCE (ADMIN)
 const updateShift = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { distributionDate, startTime, endTime, volunteersNeeded, notes, volunteers } = req.body;
+  const parsed = UpdateShiftSchema.safeParse(req.body);
+  if (!parsed.success) {
+    throw new HttpBadRequestError(parsed.error.issues[0].message);
+  }
+  const { distributionDate, startTime, endTime, volunteersNeeded, notes, volunteers } = parsed.data;
 
   const shift = await prisma.shift.findUnique({
     where: { id },

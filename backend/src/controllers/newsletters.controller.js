@@ -11,6 +11,7 @@ import {
 import { logAudit } from '../services/audit.service.js';
 import { resolveNewsletterRecipients } from '../services/newsletterAudience.service.js';
 import { ETATS_DE_DEPART, reserverNewsletter, lancerDiffusion } from '../services/newsletterDispatch.service.js';
+import { NewsletterSchema, UpdateNewsletterSchema } from '../utils/validation.schemas.js';
 
 // RÉCUPÉRER TOUTES LES NEWSLETTERS
 const getAllNewsletters = asyncHandler(async (req, res) => {
@@ -100,12 +101,12 @@ const getNewsletterById = asyncHandler(async (req, res) => {
 
 // CRÉER UNE NEWSLETTER
 const createNewsletter = asyncHandler(async (req, res) => {
-    const { subject, content, type, target } = req.body;
-    const createdBy = req.user.id;
-
-    if (!subject || !content) {
-        throw new HttpBadRequestError('Sujet et contenu requis');
+    const parsed = NewsletterSchema.safeParse(req.body);
+    if (!parsed.success) {
+        throw new HttpBadRequestError(parsed.error.issues[0].message);
     }
+    const { subject, content, type, target } = parsed.data;
+    const createdBy = req.user.id;
 
     const newsletter = await prisma.newsletter.create({
         data: {
@@ -157,7 +158,11 @@ function programmationDemandee(scheduledFor, actuelle) {
 // MODIFIER UNE NEWSLETTER
 const updateNewsletter = asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const { subject, content, type, target, scheduledFor } = req.body;
+    const parsed = UpdateNewsletterSchema.safeParse(req.body);
+    if (!parsed.success) {
+        throw new HttpBadRequestError(parsed.error.issues[0].message);
+    }
+    const { subject, content, type, target, scheduledFor } = parsed.data;
 
     const newsletter = await prisma.newsletter.findUnique({ where: { id } });
 

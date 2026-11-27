@@ -16,6 +16,7 @@ import { formatDateFR } from '../services/closure.service.js';
 import { resolveNewsletterRecipients } from '../services/newsletterAudience.service.js';
 import { EMAIL_PALETTE } from '../services/emailTheme.js';
 import { logAudit } from '../services/audit.service.js';
+import { ClosureSchema } from '../utils/validation.schemas.js';
 
 /* Le motif est écrit par un administrateur, mais il finit dans un e-mail : on
    l'échappe à la source plutôt que de compter sur le nettoyage en aval. Deux
@@ -253,7 +254,11 @@ const getAllClosures = asyncHandler(async (req, res) => {
 
 // CRÉER UNE FERMETURE
 const createClosure = asyncHandler(async (req, res) => {
-  const { startDate, endDate, reason, notify = true } = req.body;
+  const parsed = ClosureSchema.safeParse(req.body);
+  if (!parsed.success) {
+    throw new HttpBadRequestError(parsed.error.issues[0].message);
+  }
+  const { startDate, endDate, reason, notify = true } = parsed.data;
 
   const { start, end } = await validateClosurePeriod({ startDate, endDate });
 
@@ -286,7 +291,11 @@ const createClosure = asyncHandler(async (req, res) => {
    fermeture encore à venir se corrige. */
 const updateClosure = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { startDate, endDate, reason, notify = false } = req.body;
+  const parsed = ClosureSchema.safeParse(req.body);
+  if (!parsed.success) {
+    throw new HttpBadRequestError(parsed.error.issues[0].message);
+  }
+  const { startDate, endDate, reason, notify = false } = parsed.data;
 
   const closure = await prisma.amapClosure.findUnique({ where: { id } });
 

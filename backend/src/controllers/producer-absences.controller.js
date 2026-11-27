@@ -4,6 +4,7 @@ import { HttpNotFoundError, HttpBadRequestError } from '../utils/httpErrors.js';
 import { validateAbsencePeriod } from '../services/producerAbsence.service.js';
 import { formatDateFR } from '../services/closure.service.js';
 import { logAudit } from '../services/audit.service.js';
+import { ProducerAbsenceSchema, UpdateProducerAbsenceSchema } from '../utils/validation.schemas.js';
 
 /* Les absences sont journalisées sous UPDATE_PRODUCER : déclarer qu'une ferme
    manque une distribution change ce que l'AMAP distribuera, et le registre doit
@@ -38,11 +39,11 @@ const getAllProducerAbsences = asyncHandler(async (req, res) => {
 
 // DÉCLARER UNE ABSENCE
 const createProducerAbsence = asyncHandler(async (req, res) => {
-  const { producerId, startDate, endDate, reason } = req.body;
-
-  if (!producerId || !startDate || !endDate) {
-    throw new HttpBadRequestError('Ferme, date de début et date de fin requises');
+  const parsed = ProducerAbsenceSchema.safeParse(req.body);
+  if (!parsed.success) {
+    throw new HttpBadRequestError(parsed.error.issues[0].message);
   }
+  const { producerId, startDate, endDate, reason } = parsed.data;
 
   const periodError = validateAbsencePeriod(startDate, endDate);
   if (periodError) throw new HttpBadRequestError(periodError);
@@ -55,7 +56,7 @@ const createProducerAbsence = asyncHandler(async (req, res) => {
       producerId,
       startDate: new Date(startDate),
       endDate: new Date(endDate),
-      reason: reason?.trim() || null
+      reason: reason || null
     },
     select: absenceSelect
   });
@@ -72,7 +73,11 @@ const createProducerAbsence = asyncHandler(async (req, res) => {
 // CORRIGER UNE ABSENCE
 const updateProducerAbsence = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { startDate, endDate, reason } = req.body;
+  const parsed = UpdateProducerAbsenceSchema.safeParse(req.body);
+  if (!parsed.success) {
+    throw new HttpBadRequestError(parsed.error.issues[0].message);
+  }
+  const { startDate, endDate, reason } = parsed.data;
 
   const existing = await prisma.producerAbsence.findUnique({ where: { id }, select: absenceSelect });
   if (!existing) throw new HttpNotFoundError('Absence introuvable');
@@ -88,7 +93,7 @@ const updateProducerAbsence = asyncHandler(async (req, res) => {
     data: {
       startDate: new Date(nextStart),
       endDate: new Date(nextEnd),
-      ...(reason !== undefined && { reason: reason?.trim() || null })
+      ...(reason !== undefined && { reason: reason || null })
     },
     select: absenceSelect
   });
