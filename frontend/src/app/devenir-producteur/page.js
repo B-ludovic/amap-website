@@ -130,6 +130,13 @@ export default function BecomeProducerPage() {
       newErrors.postalCode = 'Code postal invalide (5 chiffres)';
     }
 
+    const distance = formData.distance.trim();
+    if (distance && !/^\d+$/.test(distance)) {
+      newErrors.distance = 'Distance invalide (nombre de km)';
+    } else if (Number(distance) > 300) {
+      newErrors.distance = 'Distance : 300 km maximum';
+    }
+
     if (!formData.products.trim()) {
       newErrors.products = 'Types de produits requis';
     }
@@ -368,7 +375,7 @@ export default function BecomeProducerPage() {
                 <label htmlFor="firstName" className="field-label">
                   Prénom <span className="field-required">*</span>
                 </label>
-                <input type="text" autoComplete="given-name" {...fieldProps('firstName')} />
+                <input type="text" maxLength={100} autoComplete="given-name" {...fieldProps('firstName')} />
                 {errors.firstName && <span id="firstName-error" className="field-error">{errors.firstName}</span>}
               </div>
 
@@ -376,7 +383,7 @@ export default function BecomeProducerPage() {
                 <label htmlFor="lastName" className="field-label">
                   Nom <span className="field-required">*</span>
                 </label>
-                <input type="text" autoComplete="family-name" {...fieldProps('lastName')} />
+                <input type="text" maxLength={100} autoComplete="family-name" {...fieldProps('lastName')} />
                 {errors.lastName && <span id="lastName-error" className="field-error">{errors.lastName}</span>}
               </div>
 
@@ -384,7 +391,7 @@ export default function BecomeProducerPage() {
                 <label htmlFor="email" className="field-label">
                   Email <span className="field-required">*</span>
                 </label>
-                <input type="text" inputMode="email" autoComplete="email" {...fieldProps('email')} />
+                <input type="text" inputMode="email" maxLength={200} autoComplete="email" {...fieldProps('email')} />
                 {errors.email && <span id="email-error" className="field-error">{errors.email}</span>}
               </div>
 
@@ -392,7 +399,7 @@ export default function BecomeProducerPage() {
                 <label htmlFor="phone" className="field-label">
                   Téléphone <span className="field-required">*</span>
                 </label>
-                <input type="tel" autoComplete="tel" placeholder="06 12 34 56 78" {...fieldProps('phone', { mono: true })} />
+                <input type="tel" maxLength={30} autoComplete="tel" placeholder="06 12 34 56 78" {...fieldProps('phone', { mono: true })} />
                 {errors.phone && <span id="phone-error" className="field-error">{errors.phone}</span>}
               </div>
             </div>
@@ -405,7 +412,7 @@ export default function BecomeProducerPage() {
                 <label htmlFor="farmName" className="field-label">
                   Nom de l&apos;exploitation <span className="field-required">*</span>
                 </label>
-                <input type="text" placeholder="Les Jardins de Marie" {...fieldProps('farmName')} />
+                <input type="text" maxLength={200} placeholder="Les Jardins de Marie" {...fieldProps('farmName')} />
                 {errors.farmName && <span id="farmName-error" className="field-error">{errors.farmName}</span>}
               </div>
 
@@ -413,7 +420,7 @@ export default function BecomeProducerPage() {
                 <label htmlFor="address" className="field-label">
                   Adresse <span className="field-required">*</span>
                 </label>
-                <input type="text" autoComplete="street-address" placeholder="Numéro et nom de rue" {...fieldProps('address')} />
+                <input type="text" maxLength={255} autoComplete="street-address" placeholder="Numéro et nom de rue" {...fieldProps('address')} />
                 {errors.address && <span id="address-error" className="field-error">{errors.address}</span>}
               </div>
 
@@ -430,13 +437,14 @@ export default function BecomeProducerPage() {
                   <label htmlFor="city" className="field-label">
                     Ville <span className="field-required">*</span>
                   </label>
-                  <input type="text" autoComplete="address-level2" {...fieldProps('city')} />
+                  <input type="text" maxLength={100} autoComplete="address-level2" {...fieldProps('city')} />
                   {errors.city && <span id="city-error" className="field-error">{errors.city}</span>}
                 </div>
 
                 <div className="field producer-field">
                   <label htmlFor="distance" className="field-label">Distance (km)</label>
-                  <input type="text" inputMode="numeric" placeholder="15" {...fieldProps('distance', { mono: true })} />
+                  <input type="text" inputMode="numeric" maxLength={3} placeholder="15" {...fieldProps('distance', { mono: true })} />
+                  {errors.distance && <span id="distance-error" className="field-error">{errors.distance}</span>}
                   <span className="field-hint">Depuis le point de retrait — optionnel</span>
                 </div>
               </div>
@@ -452,6 +460,7 @@ export default function BecomeProducerPage() {
                 </label>
                 <textarea
                   rows={3}
+                  maxLength={2000}
                   placeholder="Légumes variés de saison, fruits rouges, œufs…"
                   {...fieldProps('products')}
                   className={`textarea ${errors.products ? 'input-error' : ''}`}
@@ -474,7 +483,7 @@ export default function BecomeProducerPage() {
               {formData.isBio && (
                 <div className="field producer-field">
                   <label htmlFor="certifications" className="field-label">Certifications</label>
-                  <input type="text" placeholder="AB, Nature &amp; Progrès, Demeter…" {...fieldProps('certifications')} />
+                  <input type="text" maxLength={500} placeholder="AB, Nature &amp; Progrès, Demeter…" {...fieldProps('certifications')} />
                 </div>
               )}
             </div>
@@ -487,6 +496,7 @@ export default function BecomeProducerPage() {
                 <label htmlFor="message" className="field-label">Message</label>
                 <textarea
                   rows={5}
+                  maxLength={2000}
                   placeholder="Votre exploitation, votre démarche, vos motivations…"
                   {...fieldProps('message')}
                   className="textarea"
@@ -497,7 +507,7 @@ export default function BecomeProducerPage() {
                 <label htmlFor="availability" className="field-label">
                   Disponibilités pour un rendez-vous
                 </label>
-                <input type="text" placeholder="Disponible les matins en semaine" {...fieldProps('availability')} />
+                <input type="text" maxLength={500} placeholder="Disponible les matins en semaine" {...fieldProps('availability')} />
               </div>
             </div>
           </fieldset>
