@@ -6,6 +6,7 @@ import ConditionalFooter from '../components/layout/ConditionalFooter';
 import Providers from '../components/Providers';
 import JsonLd from '../components/JsonLd';
 import { organizationJsonLd, pickupPlaceJsonLd } from '../constants/structuredData';
+import { bypassedGate } from '../lib/inviteGate';
 import 'vanilla-cookieconsent/dist/cookieconsent.css';
 import '../styles/components/cookieconsent.css';
 import '../styles/variables.css';
@@ -81,6 +82,15 @@ async function RootLayout({ children }) {
     return (
       <html lang="fr" className={fontVariables} data-scroll-behavior="smooth">
         <body>{children}</body>
+      </html>
+    );
+  }
+
+  // Corps vide, children compris : la page demandée peut exiger les Providers.
+  if (bypassedGate(headersList)) {
+    return (
+      <html lang="fr">
+        <body />
       </html>
     );
   }

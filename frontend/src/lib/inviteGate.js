@@ -56,6 +56,12 @@ async function sign(message, secret) {
   return toBase64Url(new Uint8Array(signature));
 }
 
+/* Le proxy pose x-nonce sur tout ce qu'il traite. Un rendu qui en arrive privé
+   a été pris par le matcher pour un fichier statique (/compte.png). */
+export function bypassedGate(requestHeaders, config = readInviteConfig()) {
+  return config.enabled && !requestHeaders.has('x-nonce');
+}
+
 export function constantTimeEqual(a, b) {
   if (a.length !== b.length) return false;
   let difference = 0;
