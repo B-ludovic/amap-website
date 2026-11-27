@@ -100,12 +100,8 @@ export async function proxy(request) {
     ? NextResponse.rewrite(new URL(GATE_PAGE, request.url), init)
     : NextResponse.next(init);
 
+  // Les autres en-têtes de sécurité viennent de next.config.mjs.
   response.headers.set('Content-Security-Policy', csp);
-  response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
-  response.headers.set('Cross-Origin-Opener-Policy', 'same-origin');
-  response.headers.set('X-Frame-Options', 'DENY');
-  response.headers.set('X-Content-Type-Options', 'nosniff');
-  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
 
   return response;
 }
@@ -114,7 +110,11 @@ export async function proxy(request) {
    ne pas leur calculer une CSP dont elles n'ont pas l'usage. La porte d'invitation
    interdit cette exclusion : un préchargement rapporte la charge utile RSC de la
    page, en-têtes Next-Router-Prefetch et RSC qu'un simple curl peut poser. La
-   dispense d'en-tête devenait une dispense de mot de passe. */
+   dispense d'en-tête devenait une dispense de mot de passe.
+
+   Même piège avec les extensions : l'exclusion lit la forme de l'URL, pas
+   l'emplacement du fichier. Une route dont le dernier segment finit en .png ou
+   .js échappe aussi à la porte. */
 export const config = {
   matcher: [
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|gif|webp|svg|ico|css|js|woff|woff2)$).*)',
