@@ -42,7 +42,7 @@ describe('Identifiant transmis à TheMealDB', () => {
 });
 
 describe('Identifiant reçu par la route publique', () => {
-  it.each([INJECTE, '52772abc', '-1', ' 52772'])('refuse « %s » sans interroger TheMealDB', async (id) => {
+  it.each([INJECTE, '52772abc', '-1', ' 52772', '052772', '0'])('refuse « %s » sans interroger TheMealDB', async (id) => {
     const { statut, message } = await appeler(getRecipeById, { params: { id } });
 
     expect(statut).toBe(400);

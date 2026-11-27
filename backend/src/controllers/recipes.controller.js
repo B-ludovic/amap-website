@@ -42,8 +42,9 @@ export const getRecipeById = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    // TheMealDB n'attribue que des identifiants numériques.
-    if (!/^\d+$/.test(id)) {
+    // TheMealDB n'attribue que des identifiants numériques. Sans zéro de tête,
+    // une fiche n'a qu'une clé de cache : « 052772 » ne la retraduit pas.
+    if (!/^[1-9]\d*$/.test(id)) {
       return res.status(httpStatusCodes.BAD_REQUEST).json({
         success: false,
         message: 'Identifiant de recette invalide',

@@ -6,6 +6,11 @@ const THEMEALDB_BASE_URL = 'https://www.themealdb.com/api/json/v1/1';
 // Un appel TheMealDB par tentative : six couvrent un mot d'ingrédient de dix lettres.
 const MAX_SUFFIX_ATTEMPTS = 6;
 
+// Une fiche coûte une trentaine de traductions. Le plafond dépasse le nombre de
+// recettes de TheMealDB : le cache peut toutes les tenir.
+const DETAILS_TTL_MS = 24 * 60 * 60 * 1000;
+const DETAILS_MAX_ENTRIES = 1000;
+
 // Dictionnaire de secours pour les faux amis courants (légumes, fruits, etc.)
 const TRANSLATION_OVERRIDES = {
     'lentille': 'lentil',
@@ -176,6 +181,7 @@ const MEASURE_WORDS_FR = [
 ];
 
 class RecipeService {
+    #detailsCache = new Map();
 
     // Métadonnées affichables d'un plat : catégorie et origine traduites
     mealMeta(meal) {
@@ -296,13 +302,14 @@ class RecipeService {
 
     // Traduire un texte en français
 
-    async translateToFrench(text) {
+    async translateToFrench(text, onFailure) {
         if (!text) return text;
         try {
             const result = await translate(text, { to: 'fr' });
             return result.text;
         } catch (error) {
             console.error(`Erreur traduction : ${safeMessage(error)}`);
+            onFailure?.();
             return text;
         }
     }
@@ -365,7 +372,7 @@ class RecipeService {
 
     // Extraire et traduire les ingrédients d'une recette
 
-    async extractAndTranslateIngredients(meal) {
+    async extractAndTranslateIngredients(meal, onFailure) {
         const ingredients = [];
         for (let i = 1; i <= 20; i++) {
             const ingredient = meal[`strIngredient${i}`];
@@ -382,7 +389,7 @@ class RecipeService {
         // Traduire tous les ingrédients en parallèle
         const translatedIngredients = await Promise.all(
             ingredients.map(async (ing) => ({
-                name: await this.translateToFrench(ing.name),
+                name: await this.translateToFrench(ing.name, onFailure),
                 measure: this.localizeMeasure(ing.measure)
             }))
         );
@@ -468,9 +475,39 @@ class RecipeService {
         }
     }
 
-    // Récupérer les détails d'une recette avec traduction
+    // Récupérer les détails d'une recette avec traduction, gardés en cache par identifiant
 
-    async getRecipeDetails(recipeId) {
+    getRecipeDetails(recipeId) {
+        const cached = this.#detailsCache.get(recipeId);
+        if (cached && cached.expiresAt > Date.now()) return cached.promise;
+
+        // En cache dès le départ : deux visites simultanées ne traduisent qu'une fois.
+        const promise = this.buildRecipeDetails(recipeId).then(({ recipe, complete }) => {
+            if (!complete) this.#forgetDetails(recipeId, promise);
+            return recipe;
+        });
+        promise.catch(() => this.#forgetDetails(recipeId, promise));
+
+        this.#detailsCache.delete(recipeId);
+        if (this.#detailsCache.size >= DETAILS_MAX_ENTRIES) {
+            this.#detailsCache.delete(this.#detailsCache.keys().next().value);
+        }
+        this.#detailsCache.set(recipeId, { promise, expiresAt: Date.now() + DETAILS_TTL_MS });
+
+        return promise;
+    }
+
+    // Une fiche restée en anglais faute de traduction ne doit pas se figer un jour entier.
+    #forgetDetails(recipeId, promise) {
+        if (this.#detailsCache.get(recipeId)?.promise === promise) {
+            this.#detailsCache.delete(recipeId);
+        }
+    }
+
+    async buildRecipeDetails(recipeId) {
+        let complete = true;
+        const onFailure = () => { complete = false; };
+
         try {
             const response = await fetch(
                 `${THEMEALDB_BASE_URL}/lookup.php?i=${encodeURIComponent(recipeId)}`
@@ -490,14 +527,14 @@ class RecipeService {
             const rawSteps = this.splitInstructions(meal.strInstructions);
 
             const [translatedTitle, translatedSteps, translatedIngredients] = await Promise.all([
-                this.translateToFrench(meal.strMeal),
-                Promise.all(rawSteps.map(step => this.translateToFrench(step))),
-                this.extractAndTranslateIngredients(meal)
+                this.translateToFrench(meal.strMeal, onFailure),
+                Promise.all(rawSteps.map(step => this.translateToFrench(step, onFailure))),
+                this.extractAndTranslateIngredients(meal, onFailure)
             ]);
 
             const instructions = translatedSteps.join('\n\n');
 
-            return {
+            const recipe = {
                 id: meal.idMeal,
                 title: translatedTitle,
                 image: meal.strMealThumb,
@@ -514,6 +551,8 @@ class RecipeService {
                 summary: this.buildSummary(instructions),
                 ...this.mealMeta(meal)
             };
+
+            return { recipe, complete };
         } catch (error) {
             console.error(`Erreur getRecipeDetails : ${safeMessage(error)}`);
             throw error;
