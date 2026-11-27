@@ -27,6 +27,7 @@ describe('Limiteurs dédiés des routes publiques', () => {
     ['/api/recipes/suggestions/weekly-basket/42', 'recipesRoutes', 'recipeLimiter'],
     ['/api/recipes/52772', 'recipesRoutes', 'recipeLimiter'],
     ['/api/auth/confirm/jeton', 'authRoutes', 'publicLimiter'],
+    ['/api/producer-access-requests', 'producerAccessRequestsRoutes', 'producerAccessLimiter'],
   ])('%s passe par %s puis %s', (url, routeur, limiteur) => {
     expect(limiteursAvant(url, routeur)).toContain(limiteur);
   });

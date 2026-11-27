@@ -5,27 +5,28 @@ import { logAudit } from '../services/audit.service.js';
 import { formatDateFR } from '../services/closure.service.js';
 import { ProducerAccessRequestSchema } from '../utils/validation.schemas.js';
 
-const REDEPOT_APRES_REFUS_JOURS = 30;
+// Après un refus ou une révocation, avant une nouvelle demande.
+const DELAI_REDEPOT_MS = 30 * 24 * 60 * 60 * 1000;
 
 const REFUS = {
-  EMAIL_NON_VERIFIE: () => new HttpForbiddenError('Confirmez votre adresse email avant de demander un accès producteur.'),
-  COMPTE_ADMIN:      () => new HttpForbiddenError('Un compte administrateur ne peut pas être rattaché à une ferme.'),
-  DEJA_RATTACHE:     () => new HttpConflictError('Votre compte est déjà rattaché à une ferme.'),
+  EMAIL_NON_VERIFIE:  () => new HttpForbiddenError('Confirmez votre adresse email avant de demander un accès producteur.'),
+  COMPTE_ADMIN:       () => new HttpForbiddenError('Un compte administrateur ne peut pas être rattaché à une ferme.'),
+  DEJA_RATTACHE:      () => new HttpConflictError('Votre compte est déjà rattaché à une ferme.'),
   DEMANDE_EN_ATTENTE: () => new HttpConflictError('Vous avez déjà une demande en attente.'),
-  REFUS_RECENT:      (redepot) => new HttpConflictError(`Votre dernière demande a été refusée. Vous pourrez en déposer une nouvelle à partir du ${formatDateFR(redepot)}.`),
+  REFUS_RECENT:       (redepot) => new HttpConflictError(`Votre dernière demande a été refusée. Vous pourrez en déposer une nouvelle à partir du ${formatDateFR(redepot)}.`),
+  REVOCATION_RECENTE: (redepot) => new HttpConflictError(`Votre accès producteur a été retiré. Vous pourrez déposer une nouvelle demande à partir du ${formatDateFR(redepot)}.`),
 };
 
-const refuser = async (req, motif, erreur) => {
-  await logAudit(req, 'FAILED_PRODUCER_ACCESS_REQUEST', 'IMPORTANT', { type: 'USER', id: req.user.id }, { motif });
-  throw erreur;
-};
+const journaliserEchec = (req, motif) =>
+  logAudit(req, 'FAILED_PRODUCER_ACCESS_REQUEST', 'IMPORTANT', { type: 'USER', id: req.user.id }, { motif }, motif);
 
 /* La réponse ne dépend jamais de farmClaim : aucune fiche Producer n'est lue
    ici, rien ne dit donc au demandeur si la ferme existe en base. */
 export const submitAccessRequest = asyncHandler(async (req, res) => {
   const parsed = ProducerAccessRequestSchema.safeParse(req.body ?? {});
   if (!parsed.success) {
-    await refuser(req, 'VALIDATION', new HttpBadRequestError(parsed.error.issues[0].message));
+    await journaliserEchec(req, 'VALIDATION');
+    throw new HttpBadRequestError(parsed.error.issues[0].message);
   }
   const { farmClaim } = parsed.data;
   const userId = req.user.id;
@@ -52,15 +53,25 @@ export const submitAccessRequest = asyncHandler(async (req, res) => {
       });
       if (enAttente) return { motif: 'DEMANDE_EN_ATTENTE' };
 
-      const seuil = new Date(Date.now() - REDEPOT_APRES_REFUS_JOURS * 24 * 60 * 60 * 1000);
-      const refusRecent = await tx.producerAccessRequest.findFirst({
-        where: { userId, status: 'REJECTED', processedAt: { gt: seuil } },
-        orderBy: { processedAt: 'desc' },
-        select: { processedAt: true },
+      const seuil = new Date(Date.now() - DELAI_REDEPOT_MS);
+      const fermetures = await tx.producerAccessRequest.findMany({
+        where: {
+          userId,
+          OR: [
+            { status: 'REJECTED', processedAt: { gt: seuil } },
+            { status: 'REVOKED', revokedAt: { gt: seuil } },
+          ],
+        },
+        select: { status: true, processedAt: true, revokedAt: true },
       });
-      if (refusRecent) {
-        const redepot = new Date(refusRecent.processedAt.getTime() + REDEPOT_APRES_REFUS_JOURS * 24 * 60 * 60 * 1000);
-        return { motif: 'REFUS_RECENT', redepot };
+      const derniere = fermetures
+        .map((d) => ({ status: d.status, date: d.status === 'REVOKED' ? d.revokedAt : d.processedAt }))
+        .sort((a, b) => b.date - a.date)[0];
+      if (derniere) {
+        return {
+          motif: derniere.status === 'REVOKED' ? 'REVOCATION_RECENTE' : 'REFUS_RECENT',
+          redepot: new Date(derniere.date.getTime() + DELAI_REDEPOT_MS),
+        };
       }
 
       const request = await tx.producerAccessRequest.create({
@@ -70,12 +81,13 @@ export const submitAccessRequest = asyncHandler(async (req, res) => {
       return { request };
     });
   } catch (error) {
-    await logAudit(req, 'FAILED_PRODUCER_ACCESS_REQUEST', 'IMPORTANT', { type: 'USER', id: userId }, { motif: 'ERREUR_TECHNIQUE' });
+    await journaliserEchec(req, 'ERREUR_TECHNIQUE');
     throw error;
   }
 
   if (issue.motif) {
-    await refuser(req, issue.motif, REFUS[issue.motif](issue.redepot));
+    await journaliserEchec(req, issue.motif);
+    throw REFUS[issue.motif](issue.redepot);
   }
 
   await logAudit(req, 'CREATE_PRODUCER_ACCESS_REQUEST', 'IMPORTANT', {

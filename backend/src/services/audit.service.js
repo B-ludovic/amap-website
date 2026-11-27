@@ -7,13 +7,16 @@ import { safeMessage } from '../utils/safeMessage.js';
 // - severity: 'CRITICAL' ou 'IMPORTANT'
 // - target  : objet { type, id, label } décrivant la ressource concernée (optionnel)
 // - details : objet JSON avec des informations supplémentaires (optionnel)
-const logAudit = async (req, action, severity, target = {}, details = null) => {
+// - code    : motif en constante (ex: 'EMAIL_NON_VERIFIE'), seul détail écrit sur la console (optionnel)
+const logAudit = async (req, action, severity, target = {}, details = null, code = null) => {
   const admin = req?.user;
 
   // Écrite avant la base, pour rester visible si l'insertion échoue. Ni email, ni
   // libellé, ni détails : ils portent des données personnelles et restent en base.
+  // Le code passe seul, et seulement en majuscules : un texte libre n'y entre pas.
   const cible = target?.type ? ` sur ${target.type}${target.id ? ` ${target.id}` : ''}` : '';
-  console.log(`[Audit] ${severity} ${action} par ${admin?.id ?? 'système'}${cible}`);
+  const motif = typeof code === 'string' && /^[A-Z][A-Z_]{0,63}$/.test(code) ? ` (${code})` : '';
+  console.log(`[Audit] ${severity} ${action} par ${admin?.id ?? 'système'}${cible}${motif}`);
 
   try {
     const ip = req?.ip || req?.socket?.remoteAddress || null;
