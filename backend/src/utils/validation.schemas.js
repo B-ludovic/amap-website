@@ -189,3 +189,8 @@ export const ProducerAbsenceSchema = z.object({
 });
 
 export const UpdateProducerAbsenceSchema = ProducerAbsenceSchema.omit({ producerId: true }).partial();
+
+// Rien d'autre que la prétention : nom, prénom et email se lisent sur le compte.
+export const ProducerAccessRequestSchema = z.object({
+  farmClaim: texteRequis(500, 'Indiquez la ferme que vous représentez', 'Ferme'),
+});
