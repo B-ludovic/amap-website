@@ -932,7 +932,7 @@ const pauseSubscription = asyncHandler(async (req, res) => {
     success: true,
     message: dejaCommencee
       ? 'Abonnement mis en pause avec succès'
-      : `Pause enregistrée : elle prendra effet le ${pauseStartDate.toLocaleDateString('fr-FR')}`,
+      : `Pause enregistrée : elle prendra effet le ${pauseStartDate.toLocaleDateString('fr-FR', { timeZone: 'Europe/Paris' })}`,
     data: pause
   });
 });

@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import api from '../../../lib/api';
 import { useModal } from '../../../contexts/ModalContext';
 import AdminModal from '../../../components/admin/AdminModal';
@@ -8,14 +9,16 @@ import AdminPagination from '../../../components/admin/AdminPagination';
 import { monthYear, longDate, phone, plural } from '../../../lib/format';
 import '../../../styles/admin/users.css';
 
-/* Les trois rôles du schéma Prisma. L'ancienne page listait CUSTOMER et
-   PRODUCER, qui n'existent pas dans l'enum UserRole : le filtre ne rendait
-   jamais rien et les libellés retombaient sur la valeur brute. */
+// Les rôles de l'enum UserRole.
 const ROLES = [
   { value: 'MEMBER', label: 'Adhérent', tone: '' },
   { value: 'VOLUNTEER', label: 'Bénévole', tone: 'admin-badge-green' },
+  { value: 'PRODUCER', label: 'Producteur', tone: 'admin-badge-ink' },
   { value: 'ADMIN', label: 'Administrateur', shortLabel: 'Admin', tone: 'admin-badge-brown' }
 ];
+
+// PRODUCER ne s'attribue pas ici : il naît de l'approbation d'une demande d'accès.
+const ASSIGNABLE_ROLES = ROLES.filter(role => role.value !== 'PRODUCER');
 
 const PAGE_SIZE = 20;
 
@@ -110,9 +113,10 @@ export default function AdminUsersPage() {
   const handleDelete = () => {
     const user = selected;
     const motDePasse = password;
+    const accesProducteur = user.role === 'PRODUCER' ? ' Son accès producteur est retiré avec le compte.' : '';
     showConfirm(
       'Supprimer le compte',
-      `Supprimer ${user.firstName} ${user.lastName} ? Cette action est irréversible.`,
+      `Supprimer ${user.firstName} ${user.lastName} ? Cette action est irréversible.${accesProducteur}`,
       async () => {
         try {
           const response = await api.admin.users.delete(user.id, motDePasse);
@@ -128,6 +132,8 @@ export default function AdminUsersPage() {
       }
     );
   };
+
+  const isProducer = selected?.role === 'PRODUCER';
 
   const changeFilter = (setter) => (event) => {
     setter(event.target.value);
@@ -251,19 +257,30 @@ export default function AdminUsersPage() {
             </div>
           </dl>
 
-          <div style={{ marginBottom: '26px' }}>
-            <label htmlFor="admin-user-role" className="admin-field-label">Rôle</label>
-            <select
-              id="admin-user-role"
-              className="admin-select-full"
-              value={draftRole}
-              onChange={(event) => setDraftRole(event.target.value)}
-            >
-              {ROLES.map(item => (
-                <option key={item.value} value={item.value}>{item.label}</option>
-              ))}
-            </select>
-          </div>
+          {isProducer ? (
+            <div style={{ marginBottom: '26px' }}>
+              <span className="admin-field-label">Rôle</span>
+              <p className="admin-fact-value">Producteur · {selected.producer?.name ?? 'fiche introuvable'}</p>
+              <p className="admin-user-password-hint">
+                Ce rôle se retire avec l&apos;accès, depuis les{' '}
+                <Link href="/admin/acces-producteurs">demandes d&apos;accès</Link> (filtre « Accordées »).
+              </p>
+            </div>
+          ) : (
+            <div style={{ marginBottom: '26px' }}>
+              <label htmlFor="admin-user-role" className="admin-field-label">Rôle</label>
+              <select
+                id="admin-user-role"
+                className="admin-select-full"
+                value={draftRole}
+                onChange={(event) => setDraftRole(event.target.value)}
+              >
+                {ASSIGNABLE_ROLES.map(item => (
+                  <option key={item.value} value={item.value}>{item.label}</option>
+                ))}
+              </select>
+            </div>
+          )}
 
           <div className="admin-user-password">
             <label htmlFor="admin-user-password" className="admin-field-label">Votre mot de passe</label>
@@ -283,14 +300,16 @@ export default function AdminUsersPage() {
           </div>
 
           <div className="admin-modal-actions">
-            <button
-              type="button"
-              className="admin-btn-primary"
-              onClick={handleSaveRole}
-              disabled={saving || (draftRole !== selected.role && !password)}
-            >
-              {saving ? 'Enregistrement…' : 'Enregistrer'}
-            </button>
+            {!isProducer && (
+              <button
+                type="button"
+                className="admin-btn-primary"
+                onClick={handleSaveRole}
+                disabled={saving || (draftRole !== selected.role && !password)}
+              >
+                {saving ? 'Enregistrement…' : 'Enregistrer'}
+              </button>
+            )}
             {!selected.emailVerified && (
               <button type="button" className="admin-btn-ghost" onClick={handleResendVerification}>
                 Renvoyer l&apos;email de vérification

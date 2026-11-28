@@ -250,8 +250,8 @@ class ContractService {
       basketWeight,
       pricingTypeLabel,
       price: subscription.price.toFixed(2),
-      startDate: new Date(subscription.startDate).toLocaleDateString('fr-FR'),
-      endDate: new Date(subscription.endDate).toLocaleDateString('fr-FR'),
+      startDate: new Date(subscription.startDate).toLocaleDateString('fr-FR', { timeZone: 'Europe/Paris' }),
+      endDate: new Date(subscription.endDate).toLocaleDateString('fr-FR', { timeZone: 'Europe/Paris' }),
       numberOfWeeks: numberOfWeeks,
 
       // Permanences
@@ -294,7 +294,7 @@ class ContractService {
       isPayment4: paymentType === '4',
 
       // Date du jour et ville de signature
-      contractDate: new Date().toLocaleDateString('fr-FR'),
+      contractDate: new Date().toLocaleDateString('fr-FR', { timeZone: 'Europe/Paris' }),
       contractCity: contractCity
     };
   }

@@ -128,7 +128,11 @@ describe('Approuver une demande d\'accès', () => {
       processedBy: admin.id,
       processedAt: expect.any(Date),
     });
-    expect(verrous).toEqual([{ table: 'User', id: membre.id }, { table: 'ProducerAccessRequest', id: 'demande-1' }]);
+    expect(verrous).toEqual([
+      { table: 'User', id: membre.id },
+      { table: 'ProducerAccessRequest', id: 'demande-1' },
+      { table: 'Producer', id: fiche.id },
+    ]);
     expect(journal).toEqual([{
       action: 'APPROVE_PRODUCER_ACCESS_REQUEST',
       severite: 'CRITICAL',

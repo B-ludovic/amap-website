@@ -48,11 +48,12 @@ export default function AdminSidebar({ currentPath, isOpen, onClose }) {
     };
 
     const fetchPendingCounts = () => {
-      api.subscriptionRequests.getAll({ status: 'PENDING' })
-        .then(data => setCounts(prev => ({ ...prev, subscriptions: data.data?.requests?.length ?? 0 })))
+      // Le total de la file, pas la longueur de sa première page.
+      api.subscriptionRequests.getAll({ status: 'PENDING', limit: 1 })
+        .then(data => setCounts(prev => ({ ...prev, subscriptions: data.data?.pagination?.total ?? 0 })))
         .catch(() => {});
-      api.producerInquiries.getAll({ status: 'PENDING' })
-        .then(data => setCounts(prev => ({ ...prev, producers: data.data?.inquiries?.length ?? 0 })))
+      api.producerInquiries.getAll({ status: 'PENDING', limit: 1 })
+        .then(data => setCounts(prev => ({ ...prev, producers: data.data?.pagination?.total ?? 0 })))
         .catch(() => {});
     };
 

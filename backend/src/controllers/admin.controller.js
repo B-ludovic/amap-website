@@ -94,18 +94,34 @@ const updateProducer = asyncHandler(async (req, res) => {
     }
   }
 
-  const updatedProducer = await prisma.producer.update({
-    where: { id },
-    data: {
-      name: name ? normalizeTitleCase(name) : undefined,
-      description,
-      email,
-      phone,
-      specialty,
-      image,
-      isActive,
-      ...farmFields(parsed.data)
+  /* Verrou partagé avec l'approbation d'un accès : une fiche ne se désactive pas
+     pendant qu'on y rattache un compte. */
+  const updatedProducer = await prisma.$transaction(async (tx) => {
+    await tx.$queryRaw`SELECT id FROM "Producer" WHERE id = ${id} FOR UPDATE`;
+
+    if (isActive === false) {
+      const comptes = await tx.user.count({ where: { producerId: id } });
+      if (comptes > 0) {
+        throw new HttpConflictError(
+          'Impossible de désactiver ce producteur car un compte producteur y est rattaché. ' +
+          'Veuillez d\'abord révoquer son accès.'
+        );
+      }
     }
+
+    return tx.producer.update({
+      where: { id },
+      data: {
+        name: name ? normalizeTitleCase(name) : undefined,
+        description,
+        email,
+        phone,
+        specialty,
+        image,
+        isActive,
+        ...farmFields(parsed.data)
+      }
+    });
   });
 
   await logAudit(req, 'UPDATE_PRODUCER', 'IMPORTANT', {
@@ -576,6 +592,7 @@ const getAllUsers = asyncHandler(async (req, res) => {
         emailVerified: true,
         createdAt: true,
         updatedAt: true,
+        producer: { select: { id: true, name: true } },
         _count: {
           select: {
             subscriptions: true,

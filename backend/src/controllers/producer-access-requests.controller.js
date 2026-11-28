@@ -273,6 +273,8 @@ export const approveAccessRequest = asyncHandler(async (req, res) => {
     if (user.role === 'ADMIN') return { motif: 'COMPTE_ADMIN' };
     if (user.role === 'PRODUCER' || user.producerId) return { motif: 'DEJA_RATTACHE' };
 
+    // Dernier des verrous, après compte et demande : la fiche ne se désactive pas pendant le rattachement.
+    await tx.$queryRaw`SELECT id FROM "Producer" WHERE id = ${producerId} FOR UPDATE`;
     const fiche = await tx.producer.findUnique({ where: { id: producerId }, select: { isExample: true, isActive: true } });
     if (!fiche) return { motif: 'FICHE_INTROUVABLE' };
     if (fiche.isExample) return { motif: 'FICHE_EXEMPLE' };
