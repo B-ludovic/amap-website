@@ -24,6 +24,7 @@ const authMiddleware = asyncHandler(async (req, _res, next) => {
                 emailVerified: true,
                 deletedAt: true,
                 tokenVersion: true,
+                producerId: true,
             },
         });
 

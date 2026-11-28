@@ -855,7 +855,7 @@ enum AuditAction {
   FAILED_PRODUCER_ACCESS_REVOCATION
   FAILED_PRODUCER_APPROVAL_EMAIL
   FAILED_PRODUCER_REJECTION_EMAIL
-  // Producteur qui vise une ressource hors de sa ferme
+  // Refus de la porte de l'espace producteur : rôle, rattachement ou ferme d'autrui
   FAILED_PRODUCER_SCOPE_CHECK
   // Espace producteur : catalogue
   REQUEST_PRODUCT_DELETION
