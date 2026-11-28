@@ -1035,6 +1035,35 @@ const api = {
         requiresAuth: true,
       });
     },
+
+    getAbsences: async () => {
+      return fetchAPI('/producer/absences', {
+        requiresAuth: true,
+      });
+    },
+
+    createAbsence: async (data) => {
+      return fetchAPI('/producer/absences', {
+        method: 'POST',
+        body: data,
+        requiresAuth: true,
+      });
+    },
+
+    updateAbsence: async (id, data) => {
+      return fetchAPI(`/producer/absences/${id}`, {
+        method: 'PUT',
+        body: data,
+        requiresAuth: true,
+      });
+    },
+
+    deleteAbsence: async (id) => {
+      return fetchAPI(`/producer/absences/${id}`, {
+        method: 'DELETE',
+        requiresAuth: true,
+      });
+    },
   },
 
   // Demande d'accès à l'espace producteur, portée par le compte connecté

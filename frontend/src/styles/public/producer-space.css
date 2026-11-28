@@ -107,6 +107,7 @@
 .pspace-pair {
   display: grid;
   gap: 22px;
+  align-items: start;
 }
 
 .pspace-photo {
@@ -354,4 +355,36 @@
 .pspace-choice:has(input:disabled) {
   cursor: not-allowed;
   color: var(--text-secondary);
+}
+
+/* ---------- Absences ---------- */
+
+.pspace-pair.pspace-pair-even {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* Deux dates côte à côte seulement quand elles tiennent sans déborder de la carte. */
+@media (min-width: 480px) {
+  .pspace-pair.pspace-pair-even {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+}
+
+.pspace-pair .input {
+  min-width: 0;
+}
+
+.pspace-section {
+  margin-bottom: 32px;
+}
+
+.pspace-section-title {
+  margin: 0 0 12px;
+  font-size: 15px;
+  font-weight: var(--font-weight-semibold);
+}
+
+.pspace-link {
+  color: var(--terracotta);
 }

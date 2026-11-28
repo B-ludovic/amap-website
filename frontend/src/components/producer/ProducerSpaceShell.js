@@ -3,14 +3,14 @@
 import { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Package, Tractor } from 'lucide-react';
+import { CalendarOff, Package, Tractor } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import '../../styles/public/producer-space.css';
 
-// Un onglet par écran livré : produits et absences s'ajoutent avec leur page.
 const TABS = [
   { href: '/espace-producteur/ferme', label: 'Ma ferme', Icon: Tractor },
   { href: '/espace-producteur/produits', label: 'Mes produits', Icon: Package },
+  { href: '/espace-producteur/absences', label: 'Mes absences', Icon: CalendarOff },
 ];
 
 /* Rien ne s'affiche ni ne s'appelle tant que le compte n'est pas producteur :
