@@ -159,7 +159,7 @@ function Header() {
                     Admin
                   </Link>
                 )}
-                <Link href="/compte" className="nav-link">
+                <Link href="/compte" className="nav-link header-greeting" title={`Bonjour ${user.firstName}`}>
                   Bonjour {user.firstName}
                 </Link>
                 <button onClick={handleLogout} className="btn btn-outline btn-sm" aria-label="Se déconnecter">

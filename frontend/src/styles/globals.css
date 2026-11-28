@@ -326,11 +326,6 @@ button {
   html {
     font-size: 15px; 
   }
-
-  /* Ajustement du rembourrage du conteneur */
-  .container {
-    padding: 0 var(--spacing-md);
-  }
 }
 
 /* Point de rupture pour les Mobiles et très petits écrans (max-width: 768px) */
@@ -338,10 +333,5 @@ button {
   /* Nouvelle réduction de la taille de police de base pour les mobiles */
   html {
     font-size: 14px;
-  }
-  
-  /* Conteneur avec un rembourrage minimal */
-  .container {
-    padding: 0 var(--spacing-sm);
   }
 }
