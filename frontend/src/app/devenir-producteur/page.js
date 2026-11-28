@@ -246,6 +246,11 @@ export default function BecomeProducerPage() {
   return (
     <div className="producer-page">
 
+      <p className="container producer-crosslink">
+        Votre ferme livre déjà l&apos;AMAP ?{' '}
+        <Link href="/acces-producteur">Demandez l&apos;accès à votre espace producteur.</Link>
+      </p>
+
       {/* Hero */}
       <section className="container producer-hero">
         <div>

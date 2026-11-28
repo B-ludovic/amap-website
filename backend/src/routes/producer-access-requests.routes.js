@@ -1,6 +1,7 @@
 import express from 'express';
 import {
   submitAccessRequest,
+  getMyAccessRequest,
   getAllAccessRequests,
   approveAccessRequest,
   rejectAccessRequest,
@@ -13,6 +14,7 @@ const router = express.Router();
 
 // Demande d'accès à l'espace producteur, déposée par un compte connecté
 router.post('/', authMiddleware, submitAccessRequest);
+router.get('/me', authMiddleware, getMyAccessRequest);
 
 // Routes admin
 router.get('/', authMiddleware, adminOnly, getAllAccessRequests);

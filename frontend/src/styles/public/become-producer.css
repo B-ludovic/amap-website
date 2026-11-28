@@ -6,6 +6,22 @@
   color: var(--text-primary);
 }
 
+/* Phrase de renvoi entre candidature et demande d'accès, en haut des deux pages */
+.producer-crosslink {
+  margin: 0;
+  padding-top: 24px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+
+.producer-crosslink a {
+  color: var(--terracotta);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 /* ---------- Hero ---------- */
 
 .producer-hero {

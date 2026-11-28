@@ -108,6 +108,38 @@ export const submitAccessRequest = asyncHandler(async (req, res) => {
   });
 });
 
+/* La dernière demande du compte, pour la page de demande d'accès. Jamais
+   adminNotes : le refus reste muet. Une demande ne naît qu'après la fermeture
+   de la précédente et son délai, la plus récente porte donc la date utile. */
+export const getMyAccessRequest = asyncHandler(async (req, res) => {
+  const derniere = await prisma.producerAccessRequest.findFirst({
+    where: { userId: req.user.id },
+    orderBy: { createdAt: 'desc' },
+    select: { status: true, farmClaim: true, createdAt: true, processedAt: true, revokedAt: true },
+  });
+
+  if (!derniere) {
+    return res.json({ success: true, data: { request: null } });
+  }
+
+  const fermeture = derniere.status === 'REJECTED' ? derniere.processedAt
+    : derniere.status === 'REVOKED' ? derniere.revokedAt
+      : null;
+  const redepot = fermeture ? new Date(fermeture.getTime() + DELAI_REDEPOT_MS) : null;
+
+  res.json({
+    success: true,
+    data: {
+      request: {
+        status: derniere.status,
+        farmClaim: derniere.farmClaim,
+        createdAt: derniere.createdAt,
+        nextRequestAt: redepot && redepot > new Date() ? redepot : null,
+      },
+    },
+  });
+});
+
 // TRAITEMENT PAR L'ADMIN
 
 const STATUTS = ['PENDING', 'APPROVED', 'REJECTED', 'REVOKED'];

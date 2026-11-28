@@ -984,6 +984,23 @@ const api = {
     },
   },
 
+  // Demande d'accès à l'espace producteur, portée par le compte connecté
+  producerAccessRequests: {
+    submit: async (farmClaim) => {
+      return fetchAPI('/producer-access-requests', {
+        method: 'POST',
+        body: { farmClaim },
+        requiresAuth: true,
+      });
+    },
+
+    getMine: async () => {
+      return fetchAPI('/producer-access-requests/me', {
+        requiresAuth: true,
+      });
+    },
+  },
+
   // Messages de contact
   contactMessages: {
     getAll: async (filters = {}) => {
