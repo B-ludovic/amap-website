@@ -26,6 +26,14 @@ createdb amap_test
 DATABASE_URL="postgresql://$(whoami)@localhost:5432/amap_test?schema=public" npx prisma migrate deploy
 ```
 
+Avant le premier test, `helpers/baseDeTest.js` compare `prisma/migrations/` à la
+table `_prisma_migrations` : une base injoignable, jamais migrée ou en retard
+d'une migration arrête la suite en nommant ce qui manque.
+
+La CI (`.github/workflows/ci.yml`, à chaque mise à jour de `main`) lance les deux
+suites du backend contre un Postgres 17 de service, puis les tests et le lint du
+frontend.
+
 ## Où va quoi
 
 ```
@@ -65,6 +73,7 @@ devienne lente et capricieuse sans que personne l'ait décidé.
 | `unit/panier.notification.test.js` | La notification du panier et sa reprise après un processus mort : qui reste à prévenir se lit dans `EmailLog`, les compteurs se recomptent au lieu de s'additionner, et la reprise n'écrit qu'aux abandonnés — jamais à un panier dont la distribution a déjà eu lieu. Défaut M3. |
 | `integration/espace-producteur.cloison.test.js` | La cloison entre deux fermes, par les vrais routeurs : le producteur de la ferme A qui modifie le produit de la ferme B, en demande ou en annule la suppression, corrige ou annule son absence reçoit le même 404 qu'un id inexistant, la ligne reste intacte et un refus `FAILED_PRODUCER_SCOPE_CHECK` est écrit en base. Un `producerId` glissé dans le corps est refusé en 400, sans rien créer. |
 | `integration/retention.demande-producteur.test.js` | Un compte non vérifié de plus de trente jours qui porte une demande d'accès producteur survit au job de rétention, avec sa demande ; le même compte sans demande est purgé. |
+| `integration/espace-producteur.parcours.test.js` | Le parcours complet, étape après étape : dépôt d'une demande unique, approbation refusée vers une fiche désactivée ou sans mot de passe, session coupée puis rôle PRODUCER, fiche sans champ réservé, produit dont la suppression demandée bloque la réactivation des deux côtés, absence, gestes admin refusés, révocation à trente jours ; enfin chaque action présente en base et aucune adresse sur la sortie `[Audit]`. |
 
 Un mot sur `helpers/attente.js`, qui revient dans `newsletter.envoi.test.js`. Depuis que
 la diffusion quitte la requête, il n'y a plus de promesse à attendre : le test
