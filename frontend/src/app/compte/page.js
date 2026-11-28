@@ -761,6 +761,22 @@ export default function ComptePage() {
             </div>
           </article>
 
+          {(user.role === 'MEMBER' || user.role === 'VOLUNTEER') && (
+            <article className="account-card">
+              <div className="account-card-head">
+                <h2 className="account-card-title">Espace producteur</h2>
+              </div>
+              <div className="account-data-body">
+                <p className="account-data-text">Votre ferme livre déjà l&apos;AMAP ?</p>
+                <div className="account-data-actions">
+                  <Link href="/acces-producteur" className="btn btn-secondary account-btn account-btn-block">
+                    Demander l&apos;accès
+                  </Link>
+                </div>
+              </div>
+            </article>
+          )}
+
           {/* Contact collectif */}
           <article className="account-help">
             <div className="account-label">Besoin d&apos;aide</div>

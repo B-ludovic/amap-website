@@ -939,6 +939,10 @@ const getStats = asyncHandler(async (req, res) => {
     where: { status: 'PENDING' }
   });
 
+  const producerAccessRequests = await prisma.producerAccessRequest.count({
+    where: { status: 'PENDING' }
+  });
+
   const unreadMessages = await prisma.contactMessage.count({
     where: { status: 'UNREAD' }
   });
@@ -1029,6 +1033,7 @@ const getStats = asyncHandler(async (req, res) => {
         expiringSoon: expiringSoon,
         pendingRequests: pendingRequests,
         producerInquiries: producerInquiries,
+        producerAccessRequests: producerAccessRequests,
         unreadMessages: unreadMessages,
         collected: collected,
         outstanding: Math.max(0, engagedTotal - collected),

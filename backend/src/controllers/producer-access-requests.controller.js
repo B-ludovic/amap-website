@@ -152,6 +152,7 @@ const ERREURS = {
   DEJA_RATTACHE:        () => new HttpConflictError('Ce compte est déjà rattaché à une ferme.'),
   FICHE_INTROUVABLE:    () => new HttpNotFoundError('Fiche producteur introuvable.'),
   FICHE_EXEMPLE:        () => new HttpBadRequestError('Une fiche d\'exemple ne peut pas recevoir de compte.'),
+  FICHE_INACTIVE:       () => new HttpConflictError('Une fiche désactivée ne peut pas recevoir de compte.'),
   ACCES_NON_ACTIF:      () => new HttpConflictError('Cet accès n\'est pas actif.'),
 };
 
@@ -272,9 +273,10 @@ export const approveAccessRequest = asyncHandler(async (req, res) => {
     if (user.role === 'ADMIN') return { motif: 'COMPTE_ADMIN' };
     if (user.role === 'PRODUCER' || user.producerId) return { motif: 'DEJA_RATTACHE' };
 
-    const fiche = await tx.producer.findUnique({ where: { id: producerId }, select: { isExample: true } });
+    const fiche = await tx.producer.findUnique({ where: { id: producerId }, select: { isExample: true, isActive: true } });
     if (!fiche) return { motif: 'FICHE_INTROUVABLE' };
     if (fiche.isExample) return { motif: 'FICHE_EXEMPLE' };
+    if (!fiche.isActive) return { motif: 'FICHE_INACTIVE' };
 
     // tokenVersion : la session ouverte avec l'ancien rôle tombe.
     await tx.user.update({

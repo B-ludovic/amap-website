@@ -81,7 +81,7 @@ export default function ProducerAccessPage() {
             confirmez votre adresse email.
           </p>
           <div className="access-actions">
-            <Link href="/auth/login" className="btn btn-primary btn-lg">Se connecter</Link>
+            <Link href="/auth/login?redirect=/acces-producteur" className="btn btn-primary btn-lg">Se connecter</Link>
             <Link href="/auth/register" className="btn btn-secondary btn-lg">Créer un compte</Link>
           </div>
         </>

@@ -16,6 +16,7 @@ const VIEW_TITLES = {
   '/admin/abonnements': 'Abonnements',
   '/admin/tresorerie': 'Trésorerie',
   '/admin/demandes-producteurs': 'Demandes producteurs',
+  '/admin/acces-producteurs': 'Demandes d\'accès',
   '/admin/producteurs': 'Producteurs',
   '/admin/produits': 'Produits',
   '/admin/panier-hebdomadaire': 'Panier hebdomadaire',

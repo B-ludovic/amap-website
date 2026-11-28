@@ -999,6 +999,37 @@ const api = {
         requiresAuth: true,
       });
     },
+
+    getAll: async (params = {}) => {
+      const queryString = new URLSearchParams(params).toString();
+      return fetchAPI(`/producer-access-requests${queryString ? `?${queryString}` : ''}`, {
+        requiresAuth: true,
+      });
+    },
+
+    approve: async (id, { producerId, adminNotes, password }) => {
+      return fetchAPI(`/producer-access-requests/${id}/approve`, {
+        method: 'POST',
+        body: { producerId, adminNotes, password },
+        requiresAuth: true,
+      });
+    },
+
+    reject: async (id, { adminNotes }) => {
+      return fetchAPI(`/producer-access-requests/${id}/reject`, {
+        method: 'POST',
+        body: { adminNotes },
+        requiresAuth: true,
+      });
+    },
+
+    revoke: async (id, password) => {
+      return fetchAPI(`/producer-access-requests/${id}/revoke`, {
+        method: 'POST',
+        body: { password },
+        requiresAuth: true,
+      });
+    },
   },
 
   // Messages de contact

@@ -59,6 +59,11 @@ function Footer() {
                   Devenir producteur
                 </Link>
               </li>
+              <li>
+                <Link href="/acces-producteur" className="footer-link">
+                  Accès producteur
+                </Link>
+              </li>
             </ul>
           </div>
 

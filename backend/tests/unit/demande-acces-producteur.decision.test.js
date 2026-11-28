@@ -84,7 +84,7 @@ const {
 
 const admin = { id: 'admin-0001', email: 'claire@example.org', role: 'ADMIN' };
 const membre = { id: 'user-0001', email: 'camille@example.org', role: 'MEMBER', producerId: null, deletedAt: null, tokenVersion: 1 };
-const fiche = { id: 'ferme-0001', name: 'La Ferme des Lilas', isExample: false };
+const fiche = { id: 'ferme-0001', name: 'La Ferme des Lilas', isExample: false, isActive: true };
 
 const geste = (controleur, body, id = 'demande-1', query = {}) => appeler(controleur, {
   params: { id },
@@ -104,7 +104,11 @@ const echec = (action, severite, motif) => ({ action, severite, cible, details: 
 beforeEach(() => {
   base.comptes = [{ ...membre }];
   base.demandes = [{ id: 'demande-1', userId: membre.id, status: 'PENDING', farmClaim: 'Les Lilas' }];
-  base.fiches = [{ ...fiche }, { id: 'ferme-exemple', name: 'Ferme d\'exemple', isExample: true }];
+  base.fiches = [
+    { ...fiche },
+    { id: 'ferme-exemple', name: 'Ferme d\'exemple', isExample: true, isActive: true },
+    { id: 'ferme-inactive', name: 'Ancienne ferme', isExample: false, isActive: false },
+  ];
   base.panne = null;
   journal.length = 0;
   verrous.length = 0;
@@ -141,6 +145,7 @@ describe('Approuver une demande d\'accès', () => {
     ['un compte déjà rattaché', () => { compteDe(membre.id).producerId = 'ferme-0002'; }, fiche.id, 409, 'DEJA_RATTACHE'],
     ['une fiche inconnue', () => {}, 'ferme-inconnue', 404, 'FICHE_INTROUVABLE'],
     ['une fiche d\'exemple', () => {}, 'ferme-exemple', 400, 'FICHE_EXEMPLE'],
+    ['une fiche désactivée', () => {}, 'ferme-inactive', 409, 'FICHE_INACTIVE'],
   ])('refuse %s, et le consigne', async (_cas, preparer, producerId, statutAttendu, motif) => {
     preparer();
     const avant = { ...compteDe(membre.id) };
