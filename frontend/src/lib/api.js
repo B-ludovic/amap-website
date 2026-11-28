@@ -984,6 +984,136 @@ const api = {
     },
   },
 
+  // Espace producteur : la ferme vient du compte côté serveur, jamais d'ici
+  producerSpace: {
+    getFarm: async () => {
+      return fetchAPI('/producer/farm', {
+        requiresAuth: true,
+      });
+    },
+
+    updateFarm: async (data) => {
+      return fetchAPI('/producer/farm', {
+        method: 'PUT',
+        body: data,
+        requiresAuth: true,
+      });
+    },
+
+    getProducts: async () => {
+      return fetchAPI('/producer/products', {
+        requiresAuth: true,
+      });
+    },
+
+    createProduct: async (data) => {
+      return fetchAPI('/producer/products', {
+        method: 'POST',
+        body: data,
+        requiresAuth: true,
+      });
+    },
+
+    updateProduct: async (id, data) => {
+      return fetchAPI(`/producer/products/${id}`, {
+        method: 'PUT',
+        body: data,
+        requiresAuth: true,
+      });
+    },
+
+    requestProductDeletion: async (id) => {
+      return fetchAPI(`/producer/products/${id}/deletion-request`, {
+        method: 'POST',
+        requiresAuth: true,
+      });
+    },
+
+    cancelProductDeletion: async (id) => {
+      return fetchAPI(`/producer/products/${id}/deletion-request`, {
+        method: 'DELETE',
+        requiresAuth: true,
+      });
+    },
+
+    getAbsences: async () => {
+      return fetchAPI('/producer/absences', {
+        requiresAuth: true,
+      });
+    },
+
+    createAbsence: async (data) => {
+      return fetchAPI('/producer/absences', {
+        method: 'POST',
+        body: data,
+        requiresAuth: true,
+      });
+    },
+
+    updateAbsence: async (id, data) => {
+      return fetchAPI(`/producer/absences/${id}`, {
+        method: 'PUT',
+        body: data,
+        requiresAuth: true,
+      });
+    },
+
+    deleteAbsence: async (id) => {
+      return fetchAPI(`/producer/absences/${id}`, {
+        method: 'DELETE',
+        requiresAuth: true,
+      });
+    },
+  },
+
+  // Demande d'accès à l'espace producteur, portée par le compte connecté
+  producerAccessRequests: {
+    submit: async (farmClaim) => {
+      return fetchAPI('/producer-access-requests', {
+        method: 'POST',
+        body: { farmClaim },
+        requiresAuth: true,
+      });
+    },
+
+    getMine: async () => {
+      return fetchAPI('/producer-access-requests/me', {
+        requiresAuth: true,
+      });
+    },
+
+    getAll: async (params = {}) => {
+      const queryString = new URLSearchParams(params).toString();
+      return fetchAPI(`/producer-access-requests${queryString ? `?${queryString}` : ''}`, {
+        requiresAuth: true,
+      });
+    },
+
+    approve: async (id, { producerId, adminNotes, password }) => {
+      return fetchAPI(`/producer-access-requests/${id}/approve`, {
+        method: 'POST',
+        body: { producerId, adminNotes, password },
+        requiresAuth: true,
+      });
+    },
+
+    reject: async (id, { adminNotes }) => {
+      return fetchAPI(`/producer-access-requests/${id}/reject`, {
+        method: 'POST',
+        body: { adminNotes },
+        requiresAuth: true,
+      });
+    },
+
+    revoke: async (id, password) => {
+      return fetchAPI(`/producer-access-requests/${id}/revoke`, {
+        method: 'POST',
+        body: { password },
+        requiresAuth: true,
+      });
+    },
+  },
+
   // Messages de contact
   contactMessages: {
     getAll: async (filters = {}) => {

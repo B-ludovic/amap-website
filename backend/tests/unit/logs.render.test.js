@@ -93,6 +93,20 @@ describe('Journal d\'audit sur la console', () => {
 
     expect(lignes(log)).toEqual(['[Audit] IMPORTANT DELETE_EXAMPLES par admin-0001']);
   });
+
+  it('ajoute le code d\'un échec, et lui seul', async () => {
+    await logAudit({ user: admin }, 'FAILED_PRODUCER_ACCESS_REQUEST', 'IMPORTANT',
+      { type: 'USER', id: 'user-0042', label: 'adherente@exemple.test' },
+      { motif: 'EMAIL_NON_VERIFIE' }, 'EMAIL_NON_VERIFIE');
+
+    expect(lignes(log)).toEqual(['[Audit] IMPORTANT FAILED_PRODUCER_ACCESS_REQUEST par admin-0001 sur USER user-0042 (EMAIL_NON_VERIFIE)']);
+  });
+
+  it.each(['Marie Dupont', 'marie@exemple.test', 'DUPONT Marie', 42])('écarte un code qui n\'est pas une constante : %s', async (code) => {
+    await logAudit({ user: admin }, 'FAILED_PRODUCER_ACCESS_REQUEST', 'IMPORTANT', { type: 'USER', id: 'user-0042' }, null, code);
+
+    expect(lignes(log)).toEqual(['[Audit] IMPORTANT FAILED_PRODUCER_ACCESS_REQUEST par admin-0001 sur USER user-0042']);
+  });
 });
 
 const erreurPrisma = (name, code) => Object.assign(new Error('Invalid `prisma.user.create()` invocation'), { name, code });

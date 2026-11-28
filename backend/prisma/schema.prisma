@@ -45,6 +45,14 @@ model User {
   shiftVolunteers     ShiftVolunteer[]
   newsletters         Newsletter[]
   recipes             Recipe[]
+
+  /* Ferme d'un compte PRODUCER. Le rôle ouvre l'espace, ce rattachement filtre
+     chaque requête : les deux s'écrivent et se retirent dans la même
+     transaction. Restrict : une fiche ne se supprime pas tant qu'un compte y
+     est rattaché, il faut révoquer d'abord. */
+  producerId             String?
+  producer               Producer? @relation(fields: [producerId], references: [id], onDelete: Restrict)
+  producerAccessRequests ProducerAccessRequest[]
   
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -54,6 +62,7 @@ model User {
   @@index([role])
   @@index([resetToken])
   @@index([emailVerifyToken])
+  @@index([producerId])
 }
 
 /* VOLUNTEER n'ouvre aucune porte que MEMBER n'ait déjà : aucun contrôle d'accès
@@ -64,6 +73,9 @@ enum UserRole {
   MEMBER      // Adhérent simple
   VOLUNTEER   // Bénévole — distinction d'affichage, pas de droit supplémentaire
   ADMIN       // Administrateur — seul rôle qui ouvre /admin
+  // Producteur partenaire — n'est jamais posé par changeUserRole, seulement
+  // par l'approbation d'une ProducerAccessRequest, avec User.producerId.
+  PRODUCER
 }
 
 model ContactMessage {
@@ -144,6 +156,7 @@ model Producer {
 
   products    Product[]
   absences    ProducerAbsence[]
+  accounts    User[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -196,6 +209,10 @@ model Product {
   isExample   Boolean      @default(false)
   seasons     Season[]     @default([])
   basketSizes BasketSize[] @default([SMALL, LARGE])
+
+  // Suppression demandée par le producteur, en attente de l'admin. Posée en
+  // même temps que isActive à false, pour sortir le produit du tirage.
+  deletionRequestedAt DateTime?
 
   producer    Producer    @relation(fields: [producerId], references: [id])
 
@@ -691,6 +708,43 @@ enum InquiryStatus {
   ARCHIVED
 }
 
+/* Demande d'accès à l'espace producteur, déposée par un compte connecté pour
+   une ferme déjà partenaire. Rien n'est recopié du compte : nom et email se
+   lisent par userId. farmClaim n'est qu'une prétention ; la fiche rattachée
+   est choisie par l'admin à l'approbation. */
+model ProducerAccessRequest {
+  id           String   @id @default(uuid())
+  userId       String
+  farmClaim    String
+
+  status       ProducerAccessStatus @default(PENDING)
+  previousRole UserRole?            // rendu au compte à la révocation
+  adminNotes   String?  @db.Text    // interne, jamais envoyée au demandeur
+  processedAt  DateTime?
+  processedBy  String?
+  // Le journal d'audit est purgé à 365 jours, la demande garde la ferme
+  // rattachée et la révocation. Sans relation : la trace survit à la fiche.
+  producerId   String?
+  revokedAt    DateTime?
+  revokedBy    String?
+
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+enum ProducerAccessStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  REVOKED
+}
+
 
 // FERMETURE AMAP //
 
@@ -710,6 +764,7 @@ model AmapClosure {
 model AuditLog {
   id          String   @id @default(uuid())
 
+  // Auteur de l'action : un admin, ou un producteur dans son espace.
   adminId     String?
   adminEmail  String
 
@@ -789,6 +844,21 @@ enum AuditAction {
      n'a pas tourné ». Voir jobs/dataRetention.job.js. */
   RETENTION_JOB_RUN
   RETENTION_JOB_FAILED
+  // Espace producteur : accès
+  CREATE_PRODUCER_ACCESS_REQUEST
+  FAILED_PRODUCER_ACCESS_REQUEST
+  APPROVE_PRODUCER_ACCESS_REQUEST
+  FAILED_PRODUCER_ACCESS_APPROVAL
+  REJECT_PRODUCER_ACCESS_REQUEST
+  FAILED_PRODUCER_ACCESS_REJECTION
+  REVOKE_PRODUCER_ACCESS
+  FAILED_PRODUCER_ACCESS_REVOCATION
+  FAILED_PRODUCER_APPROVAL_EMAIL
+  FAILED_PRODUCER_REJECTION_EMAIL
+  // Refus de la porte de l'espace producteur : rôle, rattachement ou ferme d'autrui
+  FAILED_PRODUCER_SCOPE_CHECK
+  // Espace producteur : catalogue
+  REQUEST_PRODUCT_DELETION
 }
 
 enum AuditSeverity {
@@ -949,6 +1019,8 @@ enum EmailKind {
   PRODUCER_INQUIRY_CONFIRMATION
   PRODUCER_INQUIRY_ACCEPTED
   PRODUCER_INQUIRY_REJECTED
+  PRODUCER_ACCESS_APPROVED
+  PRODUCER_ACCESS_REJECTED
   CONTACT_MESSAGE
 }
 

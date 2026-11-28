@@ -62,10 +62,20 @@ const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (character
    disent la même chose de la même façon. */
 const MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
 
+// Jour, mois et année lus à l'heure de Paris, pas à celle de l'hébergeur.
+const partiesParis = new Intl.DateTimeFormat('fr-FR', {
+  timeZone: 'Europe/Paris',
+  day: 'numeric',
+  month: 'numeric',
+  year: 'numeric',
+});
+
 const longDate = (value) => {
-  const date = new Date(value);
-  const jour = date.getDate();
-  return `${jour === 1 ? '1er' : jour} ${MOIS[date.getMonth()]} ${date.getFullYear()}`;
+  const parties = Object.fromEntries(
+    partiesParis.formatToParts(new Date(value)).map(({ type, value: texte }) => [type, texte])
+  );
+  const jour = Number(parties.day);
+  return `${jour === 1 ? '1er' : jour} ${MOIS[Number(parties.month) - 1]} ${parties.year}`;
 };
 
 /* Fuseau nommé plutôt qu'hérité : l'hébergeur tourne en UTC, où 23 h 30 à Paris
@@ -814,7 +824,7 @@ class EmailService {
 
   /* Permanence : Confirmation — proposition acceptée ou placement direct par un admin */
   async sendShiftConfirmation(shift, user) {
-    const date = new Date(shift.distributionDate).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    const date = new Date(shift.distributionDate).toLocaleDateString('fr-FR', { timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
     return this.#send({
       from: EMAIL_FROM,
@@ -841,7 +851,7 @@ class EmailService {
   /* Permanence : avis à un admin qu'une place confirmée se libère. Le désistement
      arrive au plus tard 48 h avant : le message dit ce qu'il reste à pourvoir. */
   async sendShiftWithdrawalNotice(shift, admin, { volunteer, confirmedCount, accountDeleted = false }) {
-    const date = new Date(shift.distributionDate).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    const date = new Date(shift.distributionDate).toLocaleDateString('fr-FR', { timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
     const qui = `${escapeHtml(volunteer.firstName)} ${escapeHtml(volunteer.lastName)}`;
 
     return this.#send({
@@ -875,7 +885,7 @@ class EmailService {
   /* Permanence : Proposition non retenue. Le refus est à la discrétion de l'admin,
      le message n'en donne donc aucun motif. */
   async sendShiftRefusal(shift, user) {
-    const date = new Date(shift.distributionDate).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    const date = new Date(shift.distributionDate).toLocaleDateString('fr-FR', { timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
     return this.#send({
       from: EMAIL_FROM,
@@ -895,7 +905,7 @@ class EmailService {
 
   /* Permanence : retrait de l'équipe par un admin. Comme le refus, sans motif. */
   async sendShiftRemoval(shift, user) {
-    const date = new Date(shift.distributionDate).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    const date = new Date(shift.distributionDate).toLocaleDateString('fr-FR', { timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
     return this.#send({
       from: EMAIL_FROM,
@@ -916,7 +926,7 @@ class EmailService {
   /* Permanence : nouvelle date ou nouvel horaire. L'ancien créneau est rappelé,
      sans quoi rien ne distingue ce message d'une confirmation. */
   async sendShiftRescheduled(shift, user, { before, pending = false }) {
-    const jour = (value) => new Date(value).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    const jour = (value) => new Date(value).toLocaleDateString('fr-FR', { timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
     const creneau = (value) => `${jour(value.distributionDate)}, ${escapeHtml(value.startTime)} - ${escapeHtml(value.endTime)}`;
     const date = jour(shift.distributionDate);
     const deplacee = jour(before.distributionDate) !== date;
@@ -947,7 +957,7 @@ class EmailService {
 
   /* Permanence : Annulation */
   async sendShiftCancellation(shift, user) {
-    const date = new Date(shift.distributionDate).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    const date = new Date(shift.distributionDate).toLocaleDateString('fr-FR', { timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
     return this.#send({
       from: EMAIL_FROM,
@@ -1123,6 +1133,7 @@ class EmailService {
       const batchSize = 50;
 
       const distDate = new Date(basket.distributionDate).toLocaleDateString('fr-FR', {
+        timeZone: 'Europe/Paris',
         weekday: 'long', day: 'numeric', month: 'long'
       });
 
@@ -1184,7 +1195,7 @@ class EmailService {
 
   /* Permanence : Confirmation de désistement (adhérent) */
   async sendShiftWithdrawal(shift, user) {
-    const date = new Date(shift.distributionDate).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    const date = new Date(shift.distributionDate).toLocaleDateString('fr-FR', { timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
     return this.#send({
       from: EMAIL_FROM,

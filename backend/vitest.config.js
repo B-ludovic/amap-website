@@ -1,38 +1,41 @@
-import { defineConfig } from 'vitest/config';
+import { configDefaults, defineConfig } from 'vitest/config';
+
+/* Les variables d'environnement du test sont posées ici, en clair.
+
+   Le backend lit normalement backend/.env au démarrage, par le dotenv que
+   charge config/database.js. Une suite de tests qui dépendrait de ce
+   fichier passerait ou échouerait selon la machine — et le jour où un
+   secret de production traînerait dans un .env local, il entrerait dans les
+   empreintes calculées par les tests. Les tests unitaires remplacent donc
+   ce module, et les quelques variables dont le rendu a besoin sont
+   déclarées ci-dessous, sans valeur ailleurs qu'ici. */
+export const envDeTest = {
+  NODE_ENV: 'test',
+  FRONTEND_URL: 'https://auxptitspois.test',
+  JWT_SECRET: 'jeton-de-test-sans-valeur-hors-de-cette-suite',
+  /* Sans elle, le récapitulatif du trésorier refuse de partir : il n'a pas
+     de destinataire à qui l'adresser. */
+  TREASURER_EMAIL: 'tresorerie@auxptitspois.test',
+  /* Volontairement différente de l'adresse de repli : c'est ce qui rend le
+     test capable de distinguer « la variable est lue » de « le repli est
+     codé en dur au bon endroit ». */
+  CONTACT_EMAIL: 'contact@auxptitspois.test',
+  /* Elle commande la variante « un clic » de l'en-tête de désabonnement :
+     la suite éprouve le chemin nominal, et un test dédié couvre le repli
+     quand elle manque. */
+  PUBLIC_API_URL: 'https://api.auxptitspois.test/api',
+  // Le laissez-passer du webhook Brevo, sans lequel la route refuse tout.
+  BREVO_WEBHOOK_SECRET: 'secret-de-webhook-sans-valeur-hors-de-cette-suite',
+  // Le laissez-passer de l'horloge externe des jobs.
+  JOBS_SECRET: 'secret-des-jobs-sans-valeur-hors-de-cette-suite',
+};
 
 export default defineConfig({
   test: {
     environment: 'node',
     include: ['tests/**/*.test.js'],
-
-    /* Les variables d'environnement du test sont posées ici, en clair.
-
-       Le backend lit normalement backend/.env au démarrage, par le dotenv que
-       charge config/database.js. Une suite de tests qui dépendrait de ce
-       fichier passerait ou échouerait selon la machine — et le jour où un
-       secret de production traînerait dans un .env local, il entrerait dans les
-       empreintes calculées par les tests. Les tests unitaires remplacent donc
-       ce module, et les quelques variables dont le rendu a besoin sont
-       déclarées ci-dessous, sans valeur ailleurs qu'ici. */
-    env: {
-      NODE_ENV: 'test',
-      FRONTEND_URL: 'https://auxptitspois.test',
-      JWT_SECRET: 'jeton-de-test-sans-valeur-hors-de-cette-suite',
-      /* Sans elle, le récapitulatif du trésorier refuse de partir : il n'a pas
-         de destinataire à qui l'adresser. */
-      TREASURER_EMAIL: 'tresorerie@auxptitspois.test',
-      /* Volontairement différente de l'adresse de repli : c'est ce qui rend le
-         test capable de distinguer « la variable est lue » de « le repli est
-         codé en dur au bon endroit ». */
-      CONTACT_EMAIL: 'contact@auxptitspois.test',
-      /* Elle commande la variante « un clic » de l'en-tête de désabonnement :
-         la suite éprouve le chemin nominal, et un test dédié couvre le repli
-         quand elle manque. */
-      PUBLIC_API_URL: 'https://api.auxptitspois.test/api',
-      // Le laissez-passer du webhook Brevo, sans lequel la route refuse tout.
-      BREVO_WEBHOOK_SECRET: 'secret-de-webhook-sans-valeur-hors-de-cette-suite',
-      // Le laissez-passer de l'horloge externe des jobs.
-      JOBS_SECRET: 'secret-des-jobs-sans-valeur-hors-de-cette-suite',
-    },
+    // Base de test requise : lancés par npm run test:integration.
+    exclude: [...configDefaults.exclude, 'tests/integration/**'],
+    env: envDeTest,
   },
 });

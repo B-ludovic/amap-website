@@ -7,28 +7,7 @@ import { useModal } from '../../../contexts/ModalContext';
 import AdminModal from '../../../components/admin/AdminModal';
 import { plural } from '../../../lib/format';
 import '../../../styles/admin/products.css';
-
-const CATEGORIES = [
-  { value: 'VEGETABLES', label: 'Légumes' },
-  { value: 'FRUITS', label: 'Fruits' },
-  { value: 'EGGS', label: 'Œufs' },
-  { value: 'GROCERY', label: 'Épicerie' }
-];
-
-/* Saisons et formats de panier : ce sont les deux seules entrées que consulte
-   le tirage hebdomadaire. La maquette ne les proposait pas au formulaire, ce
-   qui aurait figé le générateur sur ce que la base contenait déjà. */
-const SEASONS = [
-  { value: 'SPRING', label: 'Printemps' },
-  { value: 'SUMMER', label: 'Été' },
-  { value: 'AUTUMN', label: 'Automne' },
-  { value: 'WINTER', label: 'Hiver' }
-];
-
-const BASKET_SIZES = [
-  { value: 'SMALL', label: 'Petit panier' },
-  { value: 'LARGE', label: 'Grand panier' }
-];
+import { CATEGORIES, SEASONS, BASKET_SIZES } from '../../../lib/productLabels';
 
 const EMPTY_FORM = {
   name: '',

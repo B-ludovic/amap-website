@@ -29,6 +29,18 @@ const ACTION_LABELS = {
   UPDATE_SUBSCRIPTION_STATUS:   'Mise à jour abonnement',
   RETENTION_JOB_RUN:            'Passage de rétention',
   RETENTION_JOB_FAILED:         'Rétention interrompue',
+  CREATE_PRODUCER_ACCESS_REQUEST:    'Demande d\'accès producteur',
+  FAILED_PRODUCER_ACCESS_REQUEST:    'Demande d\'accès écartée au dépôt',
+  APPROVE_PRODUCER_ACCESS_REQUEST:   'Accès producteur accordé',
+  FAILED_PRODUCER_ACCESS_APPROVAL:   'Échec de l\'accord d\'accès',
+  REJECT_PRODUCER_ACCESS_REQUEST:    'Accès producteur refusé',
+  FAILED_PRODUCER_ACCESS_REJECTION:  'Échec du refus d\'accès',
+  REVOKE_PRODUCER_ACCESS:            'Accès producteur révoqué',
+  FAILED_PRODUCER_ACCESS_REVOCATION: 'Échec de la révocation',
+  FAILED_PRODUCER_APPROVAL_EMAIL:    'Email d\'accord non envoyé',
+  FAILED_PRODUCER_REJECTION_EMAIL:   'Email de refus non envoyé',
+  FAILED_PRODUCER_SCOPE_CHECK:       'Producteur hors de sa ferme',
+  REQUEST_PRODUCT_DELETION:          'Demande de suppression produit',
 };
 
 export default function AdminJournalPage() {

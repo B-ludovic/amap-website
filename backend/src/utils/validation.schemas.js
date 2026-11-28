@@ -47,10 +47,12 @@ export const UpdateProducerSchema = ProducerSchema.partial().extend({
   isActive: z.boolean().optional(),
 });
 
+const CATEGORIES_PRODUIT = ['VEGETABLES', 'FRUITS', 'EGGS', 'GROCERY'];
+
 export const ProductSchema = z.object({
   name:        z.string().min(1, 'Nom requis').max(200),
   producerId:  z.string().min(1, 'Producteur requis'),
-  category:    z.string().max(100).optional(),
+  category:    z.enum(CATEGORIES_PRODUIT, { error: 'Catégorie invalide' }).optional(),
   description: z.string().max(1000).optional(),
   isExample:   z.boolean().optional(),
   isActive:    z.boolean().optional(),
@@ -189,3 +191,53 @@ export const ProducerAbsenceSchema = z.object({
 });
 
 export const UpdateProducerAbsenceSchema = ProducerAbsenceSchema.omit({ producerId: true }).partial();
+
+// ESPACE PRODUCTEUR — la clé hors de ces listes est refusée par le contrôleur.
+
+const estUrlHttps = (valeur) => {
+  try {
+    return new URL(valeur).protocol === 'https:';
+  } catch {
+    return false;
+  }
+};
+
+export const OwnFarmSchema = z.object({
+  description:     texteRequis(5000, 'Description requise', 'Description').optional(),
+  specialty:       texteEffacable(200, 'Spécialité'),
+  farmDetailLabel: texteEffacable(40, 'Libellé'),
+  farmDetail:      texteEffacable(200, 'Détail'),
+  phone:           z.string({ error: 'Téléphone invalide' }).trim()
+    .regex(/^([0-9+\s.-]{6,20})?$/, 'Téléphone invalide').nullable().optional(),
+  image:           z.string({ error: 'Image invalide' }).trim()
+    .max(500, 'Image : 500 caractères maximum')
+    .refine((v) => v === '' || estUrlHttps(v), 'Image : adresse https:// requise')
+    .nullable().optional(),
+});
+
+export const OwnProductSchema = z.object({
+  name:        texteRequis(200, 'Nom requis', 'Nom'),
+  category:    z.enum(CATEGORIES_PRODUIT, { error: 'Catégorie invalide' }).nullable().optional(),
+  description: texteEffacable(1000, 'Description'),
+  isActive:    z.boolean({ error: 'Case « actif » invalide' }).optional(),
+  seasons:     ProductSchema.shape.seasons,
+  basketSizes: ProductSchema.shape.basketSizes,
+});
+
+export const UpdateOwnProductSchema = OwnProductSchema.partial();
+
+export const OwnAbsenceSchema = ProducerAbsenceSchema.omit({ producerId: true });
+
+// Rien d'autre que la prétention : nom, prénom et email se lisent sur le compte.
+export const ProducerAccessRequestSchema = z.object({
+  farmClaim: texteRequis(500, 'Indiquez la ferme que vous représentez', 'Ferme'),
+});
+
+export const ApproveProducerAccessSchema = z.object({
+  producerId: identifiant('Choisissez la fiche de la ferme'),
+  adminNotes: texteFacultatif(2000, 'Notes'),
+});
+
+export const RejectProducerAccessSchema = z.object({
+  adminNotes: texteFacultatif(2000, 'Notes'),
+});

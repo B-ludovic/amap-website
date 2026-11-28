@@ -17,6 +17,7 @@ import {
   UserPlus,
   CreditCard,
   Sprout,
+  KeyRound,
   UserCog
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
@@ -28,7 +29,7 @@ function Header() {
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [notifs, setNotifs] = useState({ requests: 0, producers: 0, messages: 0 });
+  const [notifs, setNotifs] = useState({ requests: 0, producers: 0, access: 0, messages: 0 });
   const { user, logout } = useAuth();
   const { showConfirm } = useModal();
   const isActivePath = (path) => pathname === path;
@@ -41,10 +42,11 @@ function Header() {
           api.admin.stats.get(),
           api.contactMessages.getAll({ status: 'UNREAD' }),
         ]);
-        const { pendingRequests = 0, producerInquiries = 0 } = statsRes.data.stats;
+        const { pendingRequests = 0, producerInquiries = 0, producerAccessRequests = 0 } = statsRes.data.stats;
         setNotifs({
           requests: pendingRequests,
           producers: producerInquiries,
+          access: producerAccessRequests,
           // Compte global des non-lus, indépendant de la pagination de la liste.
           messages: messagesRes.data.unread ?? 0,
         });
@@ -52,7 +54,11 @@ function Header() {
     }
     fetchNotifs();
     window.addEventListener('contact-unread-changed', fetchNotifs);
-    return () => window.removeEventListener('contact-unread-changed', fetchNotifs);
+    window.addEventListener('producer-access-changed', fetchNotifs);
+    return () => {
+      window.removeEventListener('contact-unread-changed', fetchNotifs);
+      window.removeEventListener('producer-access-changed', fetchNotifs);
+    };
   }, [user]);
 
   // Détecter le scroll pour changer le style du header
@@ -132,9 +138,16 @@ function Header() {
             <Link href="/nos-producteurs" className={`nav-link ${pathname === '/nos-producteurs' ? 'active' : ''}`}>
               Nos producteurs
             </Link>
-            <Link href="/devenir-producteur" className={`nav-link ${pathname === '/devenir-producteur' ? 'active' : ''}`}>
-              Devenir producteur
-            </Link>
+            {/* Un producteur rattaché n'a plus à devenir producteur : son espace prend la place. */}
+            {user?.role === 'PRODUCER' ? (
+              <Link href="/espace-producteur" className={`nav-link ${pathname.startsWith('/espace-producteur') ? 'active' : ''}`}>
+                Espace producteur
+              </Link>
+            ) : (
+              <Link href="/devenir-producteur" className={`nav-link ${pathname === '/devenir-producteur' ? 'active' : ''}`}>
+                Devenir producteur
+              </Link>
+            )}
           </nav>
 
           {/* Actions */}
@@ -146,7 +159,7 @@ function Header() {
                     Admin
                   </Link>
                 )}
-                <Link href="/compte" className="nav-link">
+                <Link href="/compte" className="nav-link header-greeting" title={`Bonjour ${user.firstName}`}>
                   Bonjour {user.firstName}
                 </Link>
                 <button onClick={handleLogout} className="btn btn-outline btn-sm" aria-label="Se déconnecter">
@@ -209,9 +222,15 @@ function Header() {
             <Link href="/nos-producteurs" className={`mobile-nav-link ${isActivePath('/nos-producteurs') ? 'active' : ''}`} onClick={closeMenu}>
               Nos producteurs
             </Link>
-            <Link href="/devenir-producteur" className={`mobile-nav-link ${isActivePath('/devenir-producteur') ? 'active' : ''}`} onClick={closeMenu}>
-              Devenir producteur
-            </Link>
+            {user?.role === 'PRODUCER' ? (
+              <Link href="/espace-producteur" className={`mobile-nav-link ${pathname.startsWith('/espace-producteur') ? 'active' : ''}`} onClick={closeMenu}>
+                Espace producteur
+              </Link>
+            ) : (
+              <Link href="/devenir-producteur" className={`mobile-nav-link ${isActivePath('/devenir-producteur') ? 'active' : ''}`} onClick={closeMenu}>
+                Devenir producteur
+              </Link>
+            )}
           </nav>
 
           <div className="mobile-nav-footer">
@@ -243,6 +262,11 @@ function Header() {
                       <Sprout size={18} aria-hidden="true" />
                       Demandes producteurs
                       {notifs.producers > 0 && <span className="mobile-nav-badge" aria-label={`${notifs.producers} demande(s) producteur en attente`}>{notifs.producers}</span>}
+                    </Link>
+                    <Link href="/admin/acces-producteurs" className="mobile-nav-link" onClick={closeMenu}>
+                      <KeyRound size={18} aria-hidden="true" />
+                      Demandes d&apos;accès
+                      {notifs.access > 0 && <span className="mobile-nav-badge" aria-label={`${notifs.access} demande(s) d'accès en attente`}>{notifs.access}</span>}
                     </Link>
                     <Link href="/admin/producteurs" className="mobile-nav-link" onClick={closeMenu}>
                       <Tractor size={18} aria-hidden="true" />

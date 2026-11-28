@@ -16,6 +16,7 @@ const MENU_ITEMS = [
   { title: 'Abonnements', path: '/admin/abonnements' },
   { title: 'Trésorerie', path: '/admin/tresorerie' },
   { title: 'Demandes producteurs', path: '/admin/demandes-producteurs', badge: 'producers' },
+  { title: 'Demandes d\'accès', path: '/admin/acces-producteurs', badge: 'access' },
   { title: 'Producteurs', path: '/admin/producteurs' },
   { title: 'Produits', path: '/admin/produits' },
   { title: 'Panier hebdomadaire', path: '/admin/panier-hebdomadaire' },
@@ -34,7 +35,7 @@ export default function AdminSidebar({ currentPath, isOpen, onClose }) {
   const router = useRouter();
   const { logout } = useAuth();
   const { showConfirm } = useModal();
-  const [counts, setCounts] = useState({ messages: 0, subscriptions: 0, producers: 0, shifts: 0 });
+  const [counts, setCounts] = useState({ messages: 0, subscriptions: 0, producers: 0, access: 0, shifts: 0 });
 
   useEffect(() => {
     const fetchUnreadCount = () => {
@@ -47,11 +48,18 @@ export default function AdminSidebar({ currentPath, isOpen, onClose }) {
     };
 
     const fetchPendingCounts = () => {
-      api.subscriptionRequests.getAll({ status: 'PENDING' })
-        .then(data => setCounts(prev => ({ ...prev, subscriptions: data.data?.requests?.length ?? 0 })))
+      // Le total de la file, pas la longueur de sa première page.
+      api.subscriptionRequests.getAll({ status: 'PENDING', limit: 1 })
+        .then(data => setCounts(prev => ({ ...prev, subscriptions: data.data?.pagination?.total ?? 0 })))
         .catch(() => {});
-      api.producerInquiries.getAll({ status: 'PENDING' })
-        .then(data => setCounts(prev => ({ ...prev, producers: data.data?.inquiries?.length ?? 0 })))
+      api.producerInquiries.getAll({ status: 'PENDING', limit: 1 })
+        .then(data => setCounts(prev => ({ ...prev, producers: data.data?.pagination?.total ?? 0 })))
+        .catch(() => {});
+    };
+
+    const fetchAccessCount = () => {
+      api.producerAccessRequests.getAll({ status: 'PENDING', limit: 1 })
+        .then(data => setCounts(prev => ({ ...prev, access: data.data?.pagination?.total ?? 0 })))
         .catch(() => {});
     };
 
@@ -63,11 +71,14 @@ export default function AdminSidebar({ currentPath, isOpen, onClose }) {
 
     fetchUnreadCount();
     fetchPendingCounts();
+    fetchAccessCount();
     fetchProposalCount();
     window.addEventListener('contact-unread-changed', fetchUnreadCount);
+    window.addEventListener('producer-access-changed', fetchAccessCount);
     window.addEventListener('shift-proposals-changed', fetchProposalCount);
     return () => {
       window.removeEventListener('contact-unread-changed', fetchUnreadCount);
+      window.removeEventListener('producer-access-changed', fetchAccessCount);
       window.removeEventListener('shift-proposals-changed', fetchProposalCount);
     };
   }, []);

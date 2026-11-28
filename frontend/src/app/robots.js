@@ -1,4 +1,4 @@
-const DISALLOW = ['/admin', '/api', '/auth', '/compte'];
+const DISALLOW = ['/admin', '/api', '/auth', '/compte', '/espace-producteur'];
 
 export default function robots() {
   return {

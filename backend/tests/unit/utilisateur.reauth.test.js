@@ -6,7 +6,7 @@ import bcrypt from 'bcryptjs';
 import { appeler } from '../helpers/expressFactice.js';
 
 const { base, journal, messages, depart } = vi.hoisted(() => ({
-  base: { comptes: [] },
+  base: { comptes: [], demandes: [] },
   journal: [],
   messages: [],
   depart: { places: [], liberations: [], avis: [] },
@@ -38,6 +38,11 @@ const trouver = (id) => base.comptes.find((c) => c.id === id);
 vi.mock('../../src/config/database.js', () => {
   const prisma = {
     $transaction: async (travail) => travail(prisma),
+    $queryRaw: async () => [],
+    producerAccessRequest: {
+      findFirst: async ({ where }) => base.demandes.find((d) => d.userId === where.userId && d.status === where.status) ?? null,
+      update: async ({ where, data }) => Object.assign(base.demandes.find((d) => d.id === where.id), data),
+    },
     user: {
       findUnique: async ({ where }) => {
         const compte = trouver(where.id);
@@ -90,6 +95,7 @@ beforeEach(() => {
   journal.length = 0;
   messages.length = 0;
   base.comptes = [{ ...admin }, { ...cible }];
+  base.demandes = [];
   depart.places = [];
   depart.liberations = [];
   depart.avis = [];
@@ -164,6 +170,41 @@ describe('Supprimer un compte redemande le mot de passe', () => {
     expect(statut).toBe(200);
     expect(trouver(cible.id).deletedAt).toBeInstanceOf(Date);
     expect(journal.map((ligne) => ligne.action)).toEqual(['DELETE_USER']);
+  });
+});
+
+describe('Un compte producteur ne change de rôle que par la révocation', () => {
+  it('refuse de poser le rôle PRODUCER', async () => {
+    const { statut, message } = await appeler(changeUserRole, requete({ role: 'PRODUCER', password: MOT_DE_PASSE_ADMIN }));
+
+    expect(statut).toBe(400);
+    expect(message).toContain('Rôle invalide');
+    expect(trouver(cible.id).role).toBe('MEMBER');
+  });
+
+  it('refuse de toucher au rôle d\'un compte rattaché à une ferme', async () => {
+    Object.assign(trouver(cible.id), { role: 'PRODUCER', producerId: 'ferme-0001' });
+
+    const { statut } = await appeler(changeUserRole, requete({ role: 'MEMBER', password: MOT_DE_PASSE_ADMIN }));
+
+    expect(statut).toBe(409);
+    expect(trouver(cible.id)).toMatchObject({ role: 'PRODUCER', producerId: 'ferme-0001' });
+    expect(messages).toHaveLength(0);
+    expect(journal).toHaveLength(0);
+  });
+});
+
+describe('Supprimer un compte producteur retire son accès', () => {
+  it('rend le rôle d\'avant, détache la ferme et clôt la demande', async () => {
+    Object.assign(trouver(cible.id), { role: 'PRODUCER', producerId: 'ferme-0001' });
+    base.demandes = [{ id: 'demande-1', userId: cible.id, status: 'APPROVED', previousRole: 'VOLUNTEER' }];
+
+    const { statut } = await supprimer(MOT_DE_PASSE_ADMIN);
+
+    expect(statut).toBe(200);
+    expect(trouver(cible.id)).toMatchObject({ role: 'VOLUNTEER', producerId: null });
+    expect(base.demandes[0]).toMatchObject({ status: 'REVOKED', revokedBy: admin.id });
+    expect(journal.map((ligne) => ligne.action)).toEqual(['DELETE_USER', 'REVOKE_PRODUCER_ACCESS']);
   });
 });
 

@@ -3,9 +3,11 @@ import { getUtcDayBounds } from '../utils/closurePeriod.js';
 
 /* Formatage serveur, pour les emails et les messages d'erreur. Aucun rendu
    côté navigateur ne passe par ici : le front a ses propres tables dans
-   lib/format.js, justement pour éviter les écarts d'hydratation. */
+   lib/format.js, justement pour éviter les écarts d'hydratation.
+   Fuseau nommé : l'hébergeur tourne en UTC, où 23 h 30 à Paris est la veille. */
 export function formatDateFR(date) {
   return new Date(date).toLocaleDateString('fr-FR', {
+    timeZone: 'Europe/Paris',
     day: 'numeric',
     month: 'long',
     year: 'numeric'

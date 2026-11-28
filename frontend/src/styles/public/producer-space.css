@@ -1,0 +1,390 @@
+/* Espace producteur — pensé d'abord pour un téléphone : une colonne, des
+   champs pleine largeur, les onglets en barre fixe au pouce. Sur un écran large,
+   les mêmes onglets passent en haut de page. */
+
+:root {
+  --pspace-tabs-height: 64px;
+}
+
+.pspace {
+  background-color: var(--surface-page);
+  color: var(--text-primary);
+  min-height: 60vh;
+}
+
+.pspace-loading {
+  padding-top: 40px;
+  padding-bottom: 40px;
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.pspace-main {
+  padding-top: 28px;
+  padding-bottom: 48px;
+  max-width: 760px;
+}
+
+/* La barre fixe ne doit rien cacher, pas même la dernière ligne du pied de page. */
+@media (max-width: 900px) {
+  body:has(.pspace-tabs) {
+    padding-bottom: calc(var(--pspace-tabs-height) + env(safe-area-inset-bottom));
+  }
+}
+
+/* ---------- Onglets : barre fixe en bas sur téléphone ---------- */
+
+.pspace-tabs {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: var(--z-sticky);
+  background-color: var(--surface-page);
+  border-top: var(--border-width) solid var(--border-section);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.pspace-tabs-inner {
+  display: flex;
+  height: var(--pspace-tabs-height);
+}
+
+.pspace-tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+  font-size: 12.5px;
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+
+.pspace-tab.is-active {
+  color: var(--terracotta);
+}
+
+/* ---------- En-tête de page ---------- */
+
+.pspace-head {
+  margin-bottom: 28px;
+}
+
+.pspace-head .eyebrow {
+  margin-bottom: 10px;
+}
+
+.pspace-title {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-style: italic;
+  font-size: 34px;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin: 0 0 12px;
+  overflow-wrap: anywhere;
+}
+
+.pspace-lede {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+/* ---------- Formulaire ---------- */
+
+.pspace-form {
+  display: grid;
+  gap: 22px;
+  margin-bottom: 40px;
+}
+
+.pspace-pair {
+  display: grid;
+  gap: 22px;
+  align-items: start;
+}
+
+.pspace-photo {
+  display: block;
+  width: 100%;
+  max-width: 420px;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  margin-top: 6px;
+  border: var(--border-width) solid var(--border-card);
+  border-radius: var(--border-radius-md);
+  background-color: var(--surface-sand);
+}
+
+.pspace-submit {
+  width: 100%;
+}
+
+/* ---------- Ce que tient l'AMAP ---------- */
+
+.pspace-card {
+  border: var(--border-width) solid var(--border-card);
+  border-radius: var(--border-radius-md);
+  background-color: var(--surface-sand);
+  padding: 22px 20px;
+}
+
+.pspace-card-title {
+  margin: 0 0 16px;
+  font-size: 15px;
+  font-weight: var(--font-weight-semibold);
+}
+
+.pspace-facts {
+  display: grid;
+  gap: 12px;
+  margin: 0 0 16px;
+}
+
+.pspace-facts > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.pspace-facts dt {
+  color: var(--text-secondary);
+}
+
+.pspace-facts dd {
+  margin: 0;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.pspace-card-note {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+
+.pspace-card-note a {
+  color: var(--terracotta);
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Écran large : onglets en haut, deux champs par ligne ---------- */
+
+@media (min-width: 901px) {
+  .pspace-tabs {
+    position: static;
+    border-top: 0;
+    border-bottom: var(--border-width) solid var(--border-section);
+    padding-bottom: 0;
+  }
+
+  .pspace-tabs-inner {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 0 var(--container-padding);
+    gap: 28px;
+    height: 56px;
+  }
+
+  .pspace-tab {
+    flex: 0 0 auto;
+    flex-direction: row;
+    gap: 8px;
+    font-size: 14px;
+    border-bottom: var(--border-width-thick) solid transparent;
+  }
+
+  .pspace-tab.is-active {
+    border-bottom-color: var(--terracotta);
+  }
+
+  .pspace-main {
+    padding-top: 40px;
+    padding-bottom: 80px;
+  }
+
+  .pspace-title {
+    font-size: 44px;
+  }
+
+  .pspace-pair {
+    grid-template-columns: 1fr 2fr;
+  }
+
+  .pspace-submit {
+    width: auto;
+    justify-self: start;
+  }
+}
+
+/* ---------- Produits ---------- */
+
+.pspace-add {
+  margin-bottom: 24px;
+}
+
+.pspace-product-list {
+  display: grid;
+  gap: 14px;
+}
+
+.pspace-product {
+  border: var(--border-width) solid var(--border-card);
+  border-radius: var(--border-radius-md);
+  background-color: var(--surface-page);
+  padding: 18px 16px;
+}
+
+.pspace-product.is-editing {
+  background-color: var(--surface-sand);
+  margin-bottom: 14px;
+}
+
+.pspace-product-form {
+  margin-bottom: 0;
+}
+
+.pspace-product-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.pspace-product-name {
+  margin: 0;
+  font-size: 17px;
+  font-weight: var(--font-weight-semibold);
+  overflow-wrap: anywhere;
+}
+
+.pspace-product-category {
+  flex-shrink: 0;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}
+
+.pspace-product-facts {
+  display: grid;
+  gap: 6px;
+  margin: 0 0 12px;
+}
+
+.pspace-product-facts > div {
+  display: flex;
+  gap: 10px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.pspace-product-facts dt {
+  flex: 0 0 72px;
+  color: var(--text-secondary);
+}
+
+.pspace-product-facts dd {
+  margin: 0;
+}
+
+.pspace-product-status {
+  margin: 0 0 12px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+
+.pspace-product-status.is-pending {
+  color: var(--notice-text);
+}
+
+.pspace-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* Cases à cocher : une cible large, au pouce */
+.pspace-choices {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.pspace-choice-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pspace-choice {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0 14px;
+  border: var(--border-width) solid var(--border-card);
+  border-radius: var(--border-radius-md);
+  background-color: var(--surface-page);
+  font-size: 14.5px;
+  cursor: pointer;
+}
+
+.pspace-choice input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--terracotta);
+}
+
+.pspace-choice-wide {
+  display: flex;
+}
+
+.pspace-choice:has(input:disabled) {
+  cursor: not-allowed;
+  color: var(--text-secondary);
+}
+
+/* ---------- Absences ---------- */
+
+.pspace-pair.pspace-pair-even {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* Deux dates côte à côte seulement quand elles tiennent sans déborder de la carte. */
+@media (min-width: 480px) {
+  .pspace-pair.pspace-pair-even {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+}
+
+.pspace-pair .input {
+  min-width: 0;
+}
+
+.pspace-section {
+  margin-bottom: 32px;
+}
+
+.pspace-section-title {
+  margin: 0 0 12px;
+  font-size: 15px;
+  font-weight: var(--font-weight-semibold);
+}
+
+.pspace-link {
+  color: var(--terracotta);
+}

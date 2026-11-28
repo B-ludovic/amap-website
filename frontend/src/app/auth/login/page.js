@@ -8,6 +8,7 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { auth as authApi } from '../../../lib/api';
 import { useModal } from '../../../contexts/ModalContext';
 import LoginForm from '../../../components/auth/LoginForm';
+import { safeRedirectPath } from '../../../lib/redirect';
 import '../../../styles/public/login.css';
 
 function LoginPage() {
@@ -27,8 +28,7 @@ function LoginPage() {
       // Mettre à jour le contexte (le cookie est posé automatiquement par le backend)
       login(data.data.user);
 
-      // Redirection vers la page d'accueil
-      router.push('/');
+      router.push(safeRedirectPath(new URLSearchParams(window.location.search).get('redirect')));
     } catch (err) {
       /* Une adresse non confirmée n'est pas une faute de saisie : réessayer n'y
          changera rien. On garde donc la page ouverte sur le recours plutôt que

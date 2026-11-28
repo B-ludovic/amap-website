@@ -9,7 +9,7 @@ import bcrypt from 'bcryptjs';
 import { appeler } from '../helpers/expressFactice.js';
 
 const { base, accuses, journal, depart } = vi.hoisted(() => ({
-  base: { comptes: [] },
+  base: { comptes: [], demandes: [] },
   accuses: [],
   journal: [],
   depart: { places: [], liberations: [], avis: [] },
@@ -41,6 +41,11 @@ const trouver = (id) => base.comptes.find((c) => c.id === id);
 vi.mock('../../src/config/database.js', () => {
   const prisma = {
     $transaction: async (travail) => travail(prisma),
+    $queryRaw: async () => [],
+    producerAccessRequest: {
+      findFirst: async ({ where }) => base.demandes.find((d) => d.userId === where.userId && d.status === where.status) ?? null,
+      update: async ({ where, data }) => Object.assign(base.demandes.find((d) => d.id === where.id), data),
+    },
     user: {
       findUnique: async ({ where }) => {
         const compte = trouver(where.id);
@@ -84,6 +89,7 @@ beforeEach(() => {
   accuses.length = 0;
   journal.length = 0;
   base.comptes = [compte()];
+  base.demandes = [];
   depart.places = [];
   depart.liberations = [];
   depart.avis = [];
@@ -159,6 +165,20 @@ describe('Supprimer son compte redemande le mot de passe', () => {
     expect(trouver('user-0001').deletedAt).toBeNull();
     expect(trouver('user-0001').tokenVersion).toBe(2);
     expect(journal[0].details.motif).toBe('mot de passe incorrect');
+  });
+});
+
+describe('Supprimer son compte producteur retire son accès', () => {
+  it('rend le rôle d\'avant, détache la ferme et clôt la demande', async () => {
+    base.comptes = [compte({ role: 'PRODUCER', producerId: 'ferme-0001' })];
+    base.demandes = [{ id: 'demande-1', userId: 'user-0001', status: 'APPROVED', previousRole: 'MEMBER' }];
+
+    const { statut } = await supprimer();
+
+    expect(statut).toBe(200);
+    expect(trouver('user-0001')).toMatchObject({ role: 'MEMBER', producerId: null });
+    expect(base.demandes[0]).toMatchObject({ status: 'REVOKED', revokedBy: 'user-0001' });
+    expect(journal.map((ligne) => ligne.action)).toEqual(['DELETE_USER', 'REVOKE_PRODUCER_ACCESS']);
   });
 });
 

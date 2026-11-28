@@ -53,6 +53,8 @@ const KIND_LABELS = {
   PRODUCER_INQUIRY_CONFIRMATION:    'Candidature reçue',
   PRODUCER_INQUIRY_ACCEPTED:        'Candidature acceptée',
   PRODUCER_INQUIRY_REJECTED:        'Candidature refusée',
+  PRODUCER_ACCESS_APPROVED:         'Accès producteur accordé',
+  PRODUCER_ACCESS_REJECTED:         'Accès producteur refusé',
   CONTACT_MESSAGE:                  'Message de contact',
 };
 

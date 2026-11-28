@@ -1,8 +1,7 @@
 import { prisma } from '../config/database.js';
 import { asyncHandler } from '../middlewares/error.middleware.js';
 import { HttpNotFoundError, HttpBadRequestError } from '../utils/httpErrors.js';
-import { validateAbsencePeriod } from '../services/producerAbsence.service.js';
-import { formatDateFR } from '../services/closure.service.js';
+import { validateAbsencePeriod, absenceSelect, describeAbsence } from '../services/producerAbsence.service.js';
 import { logAudit } from '../services/audit.service.js';
 import { ProducerAbsenceSchema, UpdateProducerAbsenceSchema } from '../utils/validation.schemas.js';
 
@@ -10,19 +9,6 @@ import { ProducerAbsenceSchema, UpdateProducerAbsenceSchema } from '../utils/val
    manque une distribution change ce que l'AMAP distribuera, et le registre doit
    pouvoir l'expliquer après coup. */
 const AUDIT_ACTION = 'UPDATE_PRODUCER';
-
-const absenceSelect = {
-  id: true,
-  producerId: true,
-  startDate: true,
-  endDate: true,
-  reason: true,
-  producer: { select: { id: true, name: true } }
-};
-
-function describeAbsence(absence) {
-  return `${absence.producer?.name ?? 'Ferme'} — du ${formatDateFR(absence.startDate)} au ${formatDateFR(absence.endDate)}`;
-}
 
 // LISTER LES ABSENCES, toutes ou celles d'une seule ferme
 const getAllProducerAbsences = asyncHandler(async (req, res) => {

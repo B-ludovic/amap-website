@@ -10,6 +10,7 @@ import { ProducerSchema, UpdateProducerSchema, ProductSchema, UpdateProductSchem
 import { logAudit } from '../services/audit.service.js';
 import { confirmPassword } from '../services/reauth.service.js';
 import { announceWithdrawal, releaseUpcomingShifts } from '../services/shiftRelease.service.js';
+import { revokeProducerAccess } from '../services/producerAccess.service.js';
 import emailService from '../services/email.service.js';
 import { normalizeTitleCase } from '../utils/normalize.js';
 
@@ -93,18 +94,34 @@ const updateProducer = asyncHandler(async (req, res) => {
     }
   }
 
-  const updatedProducer = await prisma.producer.update({
-    where: { id },
-    data: {
-      name: name ? normalizeTitleCase(name) : undefined,
-      description,
-      email,
-      phone,
-      specialty,
-      image,
-      isActive,
-      ...farmFields(parsed.data)
+  /* Verrou partagé avec l'approbation d'un accès : une fiche ne se désactive pas
+     pendant qu'on y rattache un compte. */
+  const updatedProducer = await prisma.$transaction(async (tx) => {
+    await tx.$queryRaw`SELECT id FROM "Producer" WHERE id = ${id} FOR UPDATE`;
+
+    if (isActive === false) {
+      const comptes = await tx.user.count({ where: { producerId: id } });
+      if (comptes > 0) {
+        throw new HttpConflictError(
+          'Impossible de désactiver ce producteur car un compte producteur y est rattaché. ' +
+          'Veuillez d\'abord révoquer son accès.'
+        );
+      }
     }
+
+    return tx.producer.update({
+      where: { id },
+      data: {
+        name: name ? normalizeTitleCase(name) : undefined,
+        description,
+        email,
+        phone,
+        specialty,
+        image,
+        isActive,
+        ...farmFields(parsed.data)
+      }
+    });
   });
 
   await logAudit(req, 'UPDATE_PRODUCER', 'IMPORTANT', {
@@ -130,7 +147,8 @@ const deleteProducer = asyncHandler(async (req, res) => {
   const producer = await prisma.producer.findUnique({
     where: { id },
     include: {
-      products: true
+      products: true,
+      _count: { select: { accounts: true } }
     }
   });
 
@@ -143,6 +161,13 @@ const deleteProducer = asyncHandler(async (req, res) => {
     throw new HttpConflictError(
       'Impossible de supprimer ce producteur car il a des produits associés. ' +
       'Veuillez d\'abord supprimer ou réassigner ses produits.'
+    );
+  }
+
+  if (producer._count.accounts > 0) {
+    throw new HttpConflictError(
+      'Impossible de supprimer ce producteur car un compte producteur y est rattaché. ' +
+      'Veuillez d\'abord révoquer son accès.'
     );
   }
 
@@ -236,14 +261,6 @@ const updateProduct = asyncHandler(async (req, res) => {
   const { name: rawName, producerId, category, description, isExample, isActive, seasons, basketSizes } = parsed.data;
   const name = rawName ? rawName.trim().charAt(0).toUpperCase() + rawName.trim().slice(1) : undefined;
 
-  const product = await prisma.product.findUnique({
-    where: { id }
-  });
-
-  if (!product) {
-    throw new HttpNotFoundError('Produit introuvable');
-  }
-
   if (producerId) {
     const producer = await prisma.producer.findUnique({
       where: { id: producerId }
@@ -254,21 +271,52 @@ const updateProduct = asyncHandler(async (req, res) => {
     }
   }
 
-  const updatedProduct = await prisma.product.update({
-    where: { id },
-    data: {
-      name,
-      producerId,
-      category,
-      description,
-      isExample,
-      isActive,
-      seasons,
-      basketSizes
-    },
-    include: {
-      producer: true
+  // Sous verrou : une demande de suppression du producteur ne passe pas entre la lecture et l'écriture.
+  const { product, updatedProduct } = await prisma.$transaction(async (tx) => {
+    await tx.$queryRaw`SELECT id FROM "Product" WHERE id = ${id} FOR UPDATE`;
+
+    const product = await tx.product.findUnique({
+      where: { id }
+    });
+
+    if (!product) {
+      throw new HttpNotFoundError('Produit introuvable');
     }
+
+    if (isActive === true && product.deletionRequestedAt) {
+      throw new HttpConflictError('Suppression demandée par le producteur : ce produit ne peut pas être réactivé tant que la demande est en cours.');
+    }
+
+    const nextName = name ?? product.name;
+    const nextProducerId = producerId ?? product.producerId;
+    if (nextName !== product.name || nextProducerId !== product.producerId) {
+      const doublon = await tx.product.findFirst({
+        where: { name: nextName, producerId: nextProducerId, id: { not: id } },
+        select: { id: true }
+      });
+      if (doublon) {
+        throw new HttpBadRequestError(`"${nextName}" existe déjà pour ce producteur`);
+      }
+    }
+
+    const updatedProduct = await tx.product.update({
+      where: { id },
+      data: {
+        name,
+        producerId,
+        category,
+        description,
+        isExample,
+        isActive,
+        seasons,
+        basketSizes
+      },
+      include: {
+        producer: true
+      }
+    });
+
+    return { product, updatedProduct };
   });
 
   await logAudit(req, 'UPDATE_PRODUCT', 'IMPORTANT', {
@@ -504,9 +552,15 @@ const deleteBasketType = asyncHandler(async (req, res) => {
 
 // RÉCUPÉRER UN UTILISATEUR PAR EMAIL
 
+// Les valeurs de l'enum UserRole : un filtre hors liste partirait en erreur Prisma.
+const USER_ROLES = ['MEMBER', 'VOLUNTEER', 'PRODUCER', 'ADMIN'];
+
 // RÉCUPÉRER TOUS LES UTILISATEURS
 const getAllUsers = asyncHandler(async (req, res) => {
   const { role, search, page = 1, limit = 20 } = req.query;
+  if (role && !USER_ROLES.includes(role)) {
+    throw new HttpBadRequestError(`Rôle invalide. Valeurs autorisées : ${USER_ROLES.join(', ')}`);
+  }
   const parsedPage = Math.max(parseInt(page) || 1, 1);
   const parsedLimit = Math.min(parseInt(limit) || 20, 100);
 
@@ -544,6 +598,7 @@ const getAllUsers = asyncHandler(async (req, res) => {
         emailVerified: true,
         createdAt: true,
         updatedAt: true,
+        producer: { select: { id: true, name: true } },
         _count: {
           select: {
             subscriptions: true,
@@ -624,6 +679,11 @@ const changeUserRole = asyncHandler(async (req, res) => {
     throw new HttpBadRequestError('Cet utilisateur est supprimé');
   }
 
+  // Rôle et rattachement ne se retirent qu'ensemble, par la révocation.
+  if (user.role === 'PRODUCER' || user.producerId) {
+    throw new HttpConflictError('Ce compte est rattaché à une ferme : retirez d\'abord son accès producteur depuis les demandes d\'accès.');
+  }
+
   if (user.role === 'ADMIN' && role !== 'ADMIN') {
     const admins = await prisma.user.count({
       where: { role: 'ADMIN', deletedAt: null }
@@ -695,17 +755,24 @@ const deleteUser = asyncHandler(async (req, res) => {
     refus: 'le compte n\'a pas été supprimé'
   });
 
-  const placesLiberees = await prisma.$transaction(async (tx) => {
+  const { placesLiberees, revocation } = await prisma.$transaction(async (tx) => {
     await tx.user.update({
       where: { id: userId },
       data: { deletedAt: new Date() }
     });
-    return releaseUpcomingShifts(tx, userId);
+    const revocation = await revokeProducerAccess(tx, userId, req.user.id);
+    return { placesLiberees: await releaseUpcomingShifts(tx, userId), revocation };
   });
 
   await logAudit(req, 'DELETE_USER', 'CRITICAL', { type: 'USER', id: userId, label: user.email }, {
     releasedShifts: placesLiberees.length
   });
+
+  if (revocation) {
+    await logAudit(req, 'REVOKE_PRODUCER_ACCESS', 'CRITICAL', { type: 'USER', id: userId, label: user.email }, {
+      cause: 'DELETE_USER', requestId: revocation.requestId, producerId: revocation.producerId
+    });
+  }
 
   await Promise.all(placesLiberees.map((place) => announceWithdrawal(place, { accountDeleted: true, actorId: req.user.id })));
 
@@ -895,6 +962,10 @@ const getStats = asyncHandler(async (req, res) => {
     where: { status: 'PENDING' }
   });
 
+  const producerAccessRequests = await prisma.producerAccessRequest.count({
+    where: { status: 'PENDING' }
+  });
+
   const unreadMessages = await prisma.contactMessage.count({
     where: { status: 'UNREAD' }
   });
@@ -985,6 +1056,7 @@ const getStats = asyncHandler(async (req, res) => {
         expiringSoon: expiringSoon,
         pendingRequests: pendingRequests,
         producerInquiries: producerInquiries,
+        producerAccessRequests: producerAccessRequests,
         unreadMessages: unreadMessages,
         collected: collected,
         outstanding: Math.max(0, engagedTotal - collected),

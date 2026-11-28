@@ -15,6 +15,7 @@ import { PasswordSchema, RegisterSchema } from '../utils/validation.schemas.js';
 import { logAudit } from '../services/audit.service.js';
 import { confirmPassword } from '../services/reauth.service.js';
 import { announceWithdrawal, releaseUpcomingShifts } from '../services/shiftRelease.service.js';
+import { revokeProducerAccess } from '../services/producerAccess.service.js';
 import { DELETED_ACCOUNT_RETENTION_DAYS } from '../jobs/dataRetention.job.js';
 
 /* Coût du hachage des mots de passe.
@@ -616,12 +617,13 @@ const deleteMe = asyncHandler(async (req, res) => {
         refus: 'votre compte n\'a pas été supprimé',
     });
 
-    const placesLiberees = await prisma.$transaction(async (tx) => {
+    const { placesLiberees, revocation } = await prisma.$transaction(async (tx) => {
         await tx.user.update({
             where: { id: req.user.id },
             data: { deletedAt: new Date(), tokenVersion: { increment: 1 } },
         });
-        return releaseUpcomingShifts(tx, user.id);
+        const revocation = await revokeProducerAccess(tx, user.id, user.id);
+        return { placesLiberees: await releaseUpcomingShifts(tx, user.id), revocation };
     });
 
     await logAudit(req, 'DELETE_USER', 'CRITICAL', {
@@ -629,6 +631,12 @@ const deleteMe = asyncHandler(async (req, res) => {
         id: user.id,
         label: user.email
     }, { initiatedByUser: true, releasedShifts: placesLiberees.length });
+
+    if (revocation) {
+        await logAudit(req, 'REVOKE_PRODUCER_ACCESS', 'CRITICAL', { type: 'USER', id: user.id, label: user.email }, {
+            cause: 'DELETE_USER', initiatedByUser: true, requestId: revocation.requestId, producerId: revocation.producerId,
+        });
+    }
 
     await Promise.all(placesLiberees.map((place) => announceWithdrawal(place, { accountDeleted: true })));
 

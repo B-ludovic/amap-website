@@ -1,0 +1,18 @@
+/* File des demandes d'accès producteur : le gabarit des candidatures (kit.css),
+   plus les blocs de la fiche en fenêtre. */
+
+.admin-access-block {
+  margin-bottom: 24px;
+}
+
+.admin-access-claim {
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.admin-access-hint {
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-light);
+}

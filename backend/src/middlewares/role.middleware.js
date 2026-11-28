@@ -1,4 +1,6 @@
 import { HttpForbiddenError } from '../utils/httpErrors.js';
+import { asyncHandler } from './error.middleware.js';
+import { logAudit } from '../services/audit.service.js';
 
 // Middleware pour vérifier que l'utilisateur est admin
 const adminOnly = (req, res, next) => {
@@ -15,10 +17,30 @@ const adminOnly = (req, res, next) => {
   next();
 };
 
-/* Un `adminOrProducer` vivait ici, monté sur aucune route et laissant passer un
-   rôle PRODUCER absent de l'enum UserRole : il ne pouvait qu'autoriser un
-   administrateur, sous un nom qui promettait l'inverse. Le retirer évite qu'on
-   le monte un jour en croyant ouvrir une porte aux producteurs — l'écran des
-   utilisateurs avait déjà trébuché sur ce rôle fantôme. */
+/* Porte de l'espace producteur, après authMiddleware. Il faut le rôle ET le
+   rattachement : l'un sans l'autre est un état que rien ne doit produire, donc
+   un refus. req.producerId est la seule ferme que les contrôleurs de l'espace
+   ont le droit de filtrer, jamais un identifiant venu du corps ou de l'URL. */
+const producerOnly = asyncHandler(async (req, _res, next) => {
+  if (!req.user) {
+    throw new HttpForbiddenError('Accès refusé. Authentification requise.');
+  }
 
-export { adminOnly };
+  const motif = req.user.role !== 'PRODUCER'
+    ? 'ROLE_NON_PRODUCTEUR'
+    : !req.user.producerId ? 'SANS_RATTACHEMENT' : null;
+
+  if (motif) {
+    await logAudit(req, 'FAILED_PRODUCER_SCOPE_CHECK', 'CRITICAL', { type: 'USER', id: req.user.id }, {
+      motif,
+      method: req.method,
+      path: req.originalUrl?.split('?')[0],
+    }, motif);
+    throw new HttpForbiddenError('Accès refusé. Espace réservé aux producteurs partenaires.');
+  }
+
+  req.producerId = req.user.producerId;
+  next();
+});
+
+export { adminOnly, producerOnly };

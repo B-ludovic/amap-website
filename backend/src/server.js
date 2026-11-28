@@ -29,6 +29,8 @@ import recipesRoutes from './routes/recipes.routes.js';
 import contactRoutes from './routes/contact.routes.js';
 import closuresRoutes from './routes/closures.routes.js';
 import producerAbsencesRoutes from './routes/producer-absences.routes.js';
+import producerAccessRequestsRoutes from './routes/producer-access-requests.routes.js';
+import producerSpaceRoutes from './routes/producer-space.routes.js';
 import emailsRoutes from './routes/emails.routes.js';
 import jobsRoutes from './routes/jobs.routes.js';
 import { startScheduler } from './jobs/scheduler.js';
@@ -209,6 +211,18 @@ const recipeLimiter = limiteur('recettes', {
   message: { success: false, error: { message: 'Trop de recherches, réessayez dans 15 minutes.' } },
 });
 
+/* Rate limiting — demande d'accès producteur
+
+   Un compte en dépose une, rarement deux. Monté sur le seul POST : les routes
+   admin qui partageront ce chemin restent sous adminLimiter. */
+const producerAccessLimiter = limiteur('demande d\'accès producteur', {
+  windowMs: 60 * 60 * 1000, // 1 heure
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, error: { message: 'Trop de demandes, réessayez dans une heure.' } },
+});
+
 // Rate limiting — recherche utilisateur par email (anti-énumération)
 // Rate limiting — routes admin générales
 const adminLimiter = limiteur('admin', {
@@ -271,6 +285,9 @@ app.use('/api/contact', publicLimiter);
 app.use('/api/contact', contactRoutes);
 app.use('/api/closures', closuresRoutes);
 app.use('/api/producer-absences', producerAbsencesRoutes);
+app.post('/api/producer-access-requests', producerAccessLimiter);
+app.use('/api/producer-access-requests', producerAccessRequestsRoutes);
+app.use('/api/producer', producerSpaceRoutes);
 app.use('/api/emails/brevo', webhookLimiter);
 app.use('/api/emails', emailsRoutes);
 app.use('/api/jobs', jobsRoutes);

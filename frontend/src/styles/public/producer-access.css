@@ -1,0 +1,55 @@
+/* Demande d'accès à l'espace producteur. Hero, titres et renvoi viennent de
+   become-producer.css : la page reste sœur de la candidature. */
+
+.access-hero {
+  grid-template-columns: 1fr;
+}
+
+.access-body {
+  padding-top: 56px;
+  padding-bottom: 96px;
+}
+
+.access-panel {
+  display: grid;
+  gap: 20px;
+  max-width: 640px;
+}
+
+.access-text {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.access-claim {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text-primary);
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.access-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.access-form {
+  display: grid;
+  gap: 20px;
+}
+
+.access-counter {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 900px) {
+  .access-body {
+    padding-top: 40px;
+    padding-bottom: 64px;
+  }
+}

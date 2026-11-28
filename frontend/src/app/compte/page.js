@@ -34,7 +34,7 @@ const STATUS = {
 const TYPE_LABEL = { ANNUAL: 'Annuel', DISCOVERY: 'Découverte' };
 const SIZE_LABEL = { SMALL: 'petit panier', LARGE: 'grand panier' };
 const SIZE_WEIGHT = { SMALL: '2 à 4 kg', LARGE: '6 à 8 kg' };
-const ROLE_LABEL = { MEMBER: 'Adhérent', VOLUNTEER: 'Bénévole', ADMIN: 'Administrateur' };
+const ROLE_LABEL = { MEMBER: 'Adhérent', VOLUNTEER: 'Bénévole', ADMIN: 'Administrateur', PRODUCER: 'Producteur' };
 
 /* Le sort de chaque chèque, dit du point de vue de celui qui l'a écrit. Un
    adhérent ne se demande pas dans quel état est une ligne de sa fiche : il se
@@ -760,6 +760,37 @@ export default function ComptePage() {
               </div>
             </div>
           </article>
+
+          {(user.role === 'MEMBER' || user.role === 'VOLUNTEER') && (
+            <article className="account-card">
+              <div className="account-card-head">
+                <h2 className="account-card-title">Espace producteur</h2>
+              </div>
+              <div className="account-data-body">
+                <p className="account-data-text">Votre ferme livre déjà l&apos;AMAP ?</p>
+                <div className="account-data-actions">
+                  <Link href="/acces-producteur" className="btn btn-secondary account-btn account-btn-block">
+                    Demander l&apos;accès
+                  </Link>
+                </div>
+              </div>
+            </article>
+          )}
+
+          {user.role === 'PRODUCER' && (
+            <article className="account-card">
+              <div className="account-card-head">
+                <h2 className="account-card-title">Espace producteur</h2>
+              </div>
+              <div className="account-data-body">
+                <div className="account-data-actions">
+                  <Link href="/espace-producteur" className="btn btn-secondary account-btn account-btn-block">
+                    Ouvrir mon espace producteur
+                  </Link>
+                </div>
+              </div>
+            </article>
+          )}
 
           {/* Contact collectif */}
           <article className="account-help">

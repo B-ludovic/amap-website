@@ -4,10 +4,35 @@ Lanceur : [Vitest](https://vitest.dev). Rien à démarrer, aucune base à
 provisionner pour les tests unitaires.
 
 ```bash
-npm test              # la suite entière, une fois
+npm test              # la suite unitaire, une fois
 npm run test:watch    # relance à chaque sauvegarde
 npm test -- tests/unit/email.mentions.test.js   # un seul fichier
+npm run test:integration   # tests/integration/, contre la base amap_test
 ```
+
+## Base des tests d'intégration
+
+`npm test` ne lance jamais `tests/integration/`. Ces fichiers ont leur propre
+configuration, `vitest.integration.config.js`, qui vise
+`postgresql://localhost:5432/amap_test` ; `TEST_DATABASE_URL` la remplace. Une
+base dont le nom ne finit pas par `_test` est refusée au démarrage : le job de
+rétention, éprouvé ici, purge la base entière où il tourne.
+
+Préparer la base une fois, puis après chaque nouvelle migration (la CLI Prisma
+exige l'utilisateur dans l'adresse, le client de la suite s'en passe) :
+
+```bash
+createdb amap_test
+DATABASE_URL="postgresql://$(whoami)@localhost:5432/amap_test?schema=public" npx prisma migrate deploy
+```
+
+Avant le premier test, `helpers/baseDeTest.js` compare `prisma/migrations/` à la
+table `_prisma_migrations` : une base injoignable, jamais migrée ou en retard
+d'une migration arrête la suite en nommant ce qui manque.
+
+La CI (`.github/workflows/ci.yml`, à chaque mise à jour de `main`) lance les deux
+suites du backend contre un Postgres 17 de service, puis les tests et le lint du
+frontend.
 
 ## Où va quoi
 
@@ -15,9 +40,8 @@ npm test -- tests/unit/email.mentions.test.js   # un seul fichier
 tests/
 ├── unit/        Une fonction, un module, sans sortie vers le monde extérieur.
 │                Ni base de données, ni SMTP, ni réseau : ce qui dépasse est
-│                remplacé par un double. C'est le seul type peuplé à ce jour.
+│                remplacé par un double.
 ├── integration/ Plusieurs modules ensemble, avec une vraie base de test.
-│                (vide pour l'instant)
 ├── e2e/         L'application entière, par ses routes HTTP. (vide pour l'instant)
 ├── fixtures/    Les jeux de données partagés : une adhérente, une candidate
 │                productrice, un contrat. Aucune assertion ici, seulement des
@@ -47,6 +71,9 @@ devienne lente et capricieuse sans que personne l'ait décidé.
 | `unit/panier.publication.test.js` | La publication d'un panier hebdomadaire, qui prévient tous les abonnés actifs : verrou pris en base pour que deux clics croisés ne notifient pas deux fois, gardes du panier introuvable et du panier vide. Le verrou de M2, appliqué au panier. |
 | `unit/validation.messages.test.js` | Les refus de validation zod : chaque contrôleur qui valide un formulaire renvoie un 400 portant le message français du schéma, pas une erreur 500. Les données acceptées gardent leur forme (nombre vide ramené à undefined, chaîne vide conservée pour effacer un champ, email normalisé), et un `ZodError` levé ressort en 422. Écrit sous zod 3 et resté vert après le passage en zod 4. |
 | `unit/panier.notification.test.js` | La notification du panier et sa reprise après un processus mort : qui reste à prévenir se lit dans `EmailLog`, les compteurs se recomptent au lieu de s'additionner, et la reprise n'écrit qu'aux abandonnés — jamais à un panier dont la distribution a déjà eu lieu. Défaut M3. |
+| `integration/espace-producteur.cloison.test.js` | La cloison entre deux fermes, par les vrais routeurs : le producteur de la ferme A qui modifie le produit de la ferme B, en demande ou en annule la suppression, corrige ou annule son absence reçoit le même 404 qu'un id inexistant, la ligne reste intacte et un refus `FAILED_PRODUCER_SCOPE_CHECK` est écrit en base. Un `producerId` glissé dans le corps est refusé en 400, sans rien créer. |
+| `integration/retention.demande-producteur.test.js` | Un compte non vérifié de plus de trente jours qui porte une demande d'accès producteur survit au job de rétention, avec sa demande ; le même compte sans demande est purgé. |
+| `integration/espace-producteur.parcours.test.js` | Le parcours complet, étape après étape : dépôt d'une demande unique, approbation refusée vers une fiche désactivée ou sans mot de passe, session coupée puis rôle PRODUCER, fiche sans champ réservé, produit dont la suppression demandée bloque la réactivation des deux côtés, absence, gestes admin refusés, révocation à trente jours ; enfin chaque action présente en base et aucune adresse sur la sortie `[Audit]`. |
 
 Un mot sur `helpers/attente.js`, qui revient dans `newsletter.envoi.test.js`. Depuis que
 la diffusion quitte la requête, il n'y a plus de promesse à attendre : le test

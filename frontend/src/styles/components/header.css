@@ -37,6 +37,14 @@
   height: 76px;
 }
 
+/* Un prénom long ne doit pas pousser l'en-tête hors de l'écran. */
+.header-greeting {
+  max-width: 16ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* Logo */
 .header-logo {
   display: flex;
@@ -403,8 +411,8 @@
   }
 }
 
-/* Responsive */
-@media (max-width: 1180px) {
+/* Responsive : écarts resserrés juste au-dessus du menu replié, qui prend le relais à 1180px. */
+@media (max-width: 1280px) {
   .header-content {
     gap: 28px;
   }
@@ -423,7 +431,7 @@
   }
 }
 
-@media (max-width: 992px) {
+@media (max-width: 1180px) {
   .header-nav,
   .header-actions {
     display: none;

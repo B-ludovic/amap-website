@@ -261,7 +261,7 @@ const exportDistributionList = asyncHandler(async (req, res) => {
     const pickup = sub.pickups[0] || null;
     const basket = sub.basketSize === 'SMALL' ? 'Petit' : 'Grand';
     const pickedUp = pickup?.wasPickedUp ? 'Oui' : 'Non';
-    const pickedUpAt = pickup?.pickedUpAt ? new Date(pickup.pickedUpAt).toLocaleString('fr-FR') : '';
+    const pickedUpAt = pickup?.pickedUpAt ? new Date(pickup.pickedUpAt).toLocaleString('fr-FR', { timeZone: 'Europe/Paris' }) : '';
     return [
       sub.subscriptionNumber,
       sub.user.lastName,
