@@ -14,6 +14,7 @@ process.env.TZ = 'UTC';
 
 const { formatDateFR } = await import('../../src/services/closure.service.js');
 const emails = (await import('../../src/services/email.service.js')).default;
+const { parisYear } = await import('../../src/utils/parisDate.js');
 
 beforeAll(() => {
   vi.spyOn(console, 'log').mockImplementation(() => {});
@@ -30,6 +31,13 @@ describe('formatDateFR', () => {
     ['une date du calendrier, minuit UTC', '2026-12-21', '21 décembre 2026'],
   ])('%s', (_cas, valeur, attendu) => {
     expect(formatDateFR(valeur)).toBe(attendu);
+  });
+});
+
+describe('parisYear', () => {
+  it('passe à l\'année suivante à minuit à Paris, une heure avant UTC', () => {
+    expect(parisYear('2026-12-31T23:30:00Z')).toBe(2027);
+    expect(parisYear('2026-12-31T22:30:00Z')).toBe(2026);
   });
 });
 

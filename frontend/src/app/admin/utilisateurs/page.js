@@ -263,7 +263,7 @@ export default function AdminUsersPage() {
               <p className="admin-fact-value">Producteur · {selected.producer?.name ?? 'fiche introuvable'}</p>
               <p className="admin-user-password-hint">
                 Ce rôle se retire avec l&apos;accès, depuis les{' '}
-                <Link href="/admin/acces-producteurs">demandes d&apos;accès</Link> (filtre « Accordées »).
+                <Link href="/admin/acces-producteurs?statut=APPROVED">demandes d&apos;accès accordées</Link>.
               </p>
             </div>
           ) : (

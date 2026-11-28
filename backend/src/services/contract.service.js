@@ -18,6 +18,7 @@ import {
   formatInstallments,
 } from '../utils/subscriptionPricing.js';
 import { safeMessage } from '../utils/safeMessage.js';
+import { parisYear } from '../utils/parisDate.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -218,7 +219,7 @@ class ContractService {
        Elle y figurait en dur — « Saison 2026 », « débité début janvier 2026 » —
        à quatre endroits : le premier contrat édité en janvier prochain aurait
        annoncé la saison précédente à un adhérent qui signe la suivante. */
-    const contractYear = new Date(subscription.startDate).getFullYear();
+    const contractYear = parisYear(subscription.startDate);
 
     // Nombre de permanences (exemple: 2 permanences par défaut, à adapter selon vos règles)
     const permanences = subscription.type === 'ANNUAL' ? '2 à 3' : '1';

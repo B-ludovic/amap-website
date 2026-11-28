@@ -1,0 +1,216 @@
+/* Espace producteur — pensé d'abord pour un téléphone : une colonne, des
+   champs pleine largeur, les onglets en barre fixe au pouce. Sur un écran large,
+   les mêmes onglets passent en haut de page. */
+
+.pspace {
+  --pspace-tabs-height: 64px;
+  background-color: var(--surface-page);
+  color: var(--text-primary);
+  min-height: 60vh;
+}
+
+.pspace-loading {
+  padding-top: 40px;
+  padding-bottom: 40px;
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.pspace-main {
+  padding-top: 28px;
+  padding-bottom: calc(var(--pspace-tabs-height) + 48px + env(safe-area-inset-bottom));
+  max-width: 760px;
+}
+
+/* ---------- Onglets : barre fixe en bas sur téléphone ---------- */
+
+.pspace-tabs {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: var(--z-sticky);
+  background-color: var(--surface-page);
+  border-top: var(--border-width) solid var(--border-section);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.pspace-tabs-inner {
+  display: flex;
+  height: var(--pspace-tabs-height);
+}
+
+.pspace-tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+  font-size: 12.5px;
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+
+.pspace-tab.is-active {
+  color: var(--terracotta);
+}
+
+/* ---------- En-tête de page ---------- */
+
+.pspace-head {
+  margin-bottom: 28px;
+}
+
+.pspace-head .eyebrow {
+  margin-bottom: 10px;
+}
+
+.pspace-title {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-style: italic;
+  font-size: 34px;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin: 0 0 12px;
+  overflow-wrap: anywhere;
+}
+
+.pspace-lede {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+/* ---------- Formulaire ---------- */
+
+.pspace-form {
+  display: grid;
+  gap: 22px;
+  margin-bottom: 40px;
+}
+
+.pspace-pair {
+  display: grid;
+  gap: 22px;
+}
+
+.pspace-photo {
+  display: block;
+  width: 100%;
+  max-width: 420px;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  margin-top: 6px;
+  border: var(--border-width) solid var(--border-card);
+  border-radius: var(--border-radius-md);
+  background-color: var(--surface-sand);
+}
+
+.pspace-submit {
+  width: 100%;
+}
+
+/* ---------- Ce que tient l'AMAP ---------- */
+
+.pspace-card {
+  border: var(--border-width) solid var(--border-card);
+  border-radius: var(--border-radius-md);
+  background-color: var(--surface-sand);
+  padding: 22px 20px;
+}
+
+.pspace-card-title {
+  margin: 0 0 16px;
+  font-size: 15px;
+  font-weight: var(--font-weight-semibold);
+}
+
+.pspace-facts {
+  display: grid;
+  gap: 12px;
+  margin: 0 0 16px;
+}
+
+.pspace-facts > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.pspace-facts dt {
+  color: var(--text-secondary);
+}
+
+.pspace-facts dd {
+  margin: 0;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.pspace-card-note {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+
+.pspace-card-note a {
+  color: var(--terracotta);
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Écran large : onglets en haut, deux champs par ligne ---------- */
+
+@media (min-width: 901px) {
+  .pspace-tabs {
+    position: static;
+    border-top: 0;
+    border-bottom: var(--border-width) solid var(--border-section);
+    padding-bottom: 0;
+  }
+
+  .pspace-tabs-inner {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 0 var(--container-padding);
+    gap: 28px;
+    height: 56px;
+  }
+
+  .pspace-tab {
+    flex: 0 0 auto;
+    flex-direction: row;
+    gap: 8px;
+    font-size: 14px;
+    border-bottom: var(--border-width-thick) solid transparent;
+  }
+
+  .pspace-tab.is-active {
+    border-bottom-color: var(--terracotta);
+  }
+
+  .pspace-main {
+    padding-top: 40px;
+    padding-bottom: 80px;
+  }
+
+  .pspace-title {
+    font-size: 44px;
+  }
+
+  .pspace-pair {
+    grid-template-columns: 1fr 2fr;
+  }
+
+  .pspace-submit {
+    width: auto;
+    justify-self: start;
+  }
+}

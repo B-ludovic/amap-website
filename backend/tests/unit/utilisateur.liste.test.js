@@ -68,4 +68,10 @@ describe('Liste admin des utilisateurs', () => {
 
     expect(corps.data.users.map((u) => u.id)).toEqual(['user-0001']);
   });
+
+  it('refuse un rôle inconnu avant la base', async () => {
+    const { statut } = await appeler(getAllUsers, { query: { role: 'CUSTOMER' }, user: admin });
+
+    expect(statut).toBe(400);
+  });
 });

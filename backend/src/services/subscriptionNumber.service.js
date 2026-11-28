@@ -1,4 +1,5 @@
 import { prisma } from '../config/database.js';
+import { parisYear } from '../utils/parisDate.js';
 
 /* NUMÉRO DE CONTRAT
 
@@ -36,7 +37,7 @@ const MAX_ATTEMPTS = 5;
    arrière. On relit donc les numéros de l'année — une centaine de chaînes — et
    l'on prend le maximum arithmétique. */
 const nextNumber = async (tx) => {
-  const prefix = PREFIX(new Date().getFullYear());
+  const prefix = PREFIX(parisYear());
 
   const existing = await tx.subscription.findMany({
     where: { subscriptionNumber: { startsWith: prefix } },

@@ -984,6 +984,23 @@ const api = {
     },
   },
 
+  // Espace producteur : la ferme vient du compte côté serveur, jamais d'ici
+  producerSpace: {
+    getFarm: async () => {
+      return fetchAPI('/producer/farm', {
+        requiresAuth: true,
+      });
+    },
+
+    updateFarm: async (data) => {
+      return fetchAPI('/producer/farm', {
+        method: 'PUT',
+        body: data,
+        requiresAuth: true,
+      });
+    },
+  },
+
   // Demande d'accès à l'espace producteur, portée par le compte connecté
   producerAccessRequests: {
     submit: async (farmClaim) => {

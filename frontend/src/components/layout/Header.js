@@ -152,6 +152,11 @@ function Header() {
                     Admin
                   </Link>
                 )}
+                {user.role === 'PRODUCER' && (
+                  <Link href="/espace-producteur" className={`nav-link ${pathname.startsWith('/espace-producteur') ? 'active' : ''}`}>
+                    Espace producteur
+                  </Link>
+                )}
                 <Link href="/compte" className="nav-link">
                   Bonjour {user.firstName}
                 </Link>
@@ -286,6 +291,12 @@ function Header() {
                     </Link>
                     <div className="mobile-nav-divider"></div>
                   </div>
+                )}
+                {user.role === 'PRODUCER' && (
+                  <Link href="/espace-producteur" className="mobile-nav-link" onClick={closeMenu}>
+                    <Tractor size={18} aria-hidden="true" />
+                    Espace producteur
+                  </Link>
                 )}
                 <Link href="/compte" className="mobile-nav-link" onClick={closeMenu}>
                   Mon Compte

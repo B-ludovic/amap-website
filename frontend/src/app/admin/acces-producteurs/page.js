@@ -1,6 +1,7 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { Suspense, useCallback, useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import api from '../../../lib/api';
 import { useModal } from '../../../contexts/ModalContext';
 import AdminModal from '../../../components/admin/AdminModal';
@@ -32,14 +33,19 @@ const nameOf = (request) => (
 // Le compteur du menu se relit après chaque geste.
 const announceChange = () => window.dispatchEvent(new Event('producer-access-changed'));
 
-export default function AdminProducerAccessPage() {
+function AdminProducerAccess() {
   const { showConfirm, showSuccess, showError } = useModal();
+  const searchParams = useSearchParams();
 
   const [requests, setRequests] = useState([]);
   const [pagination, setPagination] = useState({ total: 0, page: 1, pages: 1 });
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('PENDING');
+  // ?statut=APPROVED : l'écran Utilisateurs ouvre la file sur les accès accordés.
+  const [filter, setFilter] = useState(() => {
+    const wanted = searchParams.get('statut');
+    return FILTERS.some((item) => item.key === wanted) ? wanted : 'PENDING';
+  });
   const [farms, setFarms] = useState([]);
   const [selected, setSelected] = useState(null);
   const [producerId, setProducerId] = useState('');
@@ -347,5 +353,13 @@ export default function AdminProducerAccessPage() {
         </AdminModal>
       )}
     </div>
+  );
+}
+
+export default function AdminProducerAccessPage() {
+  return (
+    <Suspense fallback={<p className="admin-empty">Chargement…</p>}>
+      <AdminProducerAccess />
+    </Suspense>
   );
 }

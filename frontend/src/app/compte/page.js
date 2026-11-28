@@ -777,6 +777,21 @@ export default function ComptePage() {
             </article>
           )}
 
+          {user.role === 'PRODUCER' && (
+            <article className="account-card">
+              <div className="account-card-head">
+                <h2 className="account-card-title">Espace producteur</h2>
+              </div>
+              <div className="account-data-body">
+                <div className="account-data-actions">
+                  <Link href="/espace-producteur" className="btn btn-secondary account-btn account-btn-block">
+                    Ouvrir mon espace producteur
+                  </Link>
+                </div>
+              </div>
+            </article>
+          )}
+
           {/* Contact collectif */}
           <article className="account-help">
             <div className="account-label">Besoin d&apos;aide</div>

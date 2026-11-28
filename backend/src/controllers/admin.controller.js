@@ -552,9 +552,15 @@ const deleteBasketType = asyncHandler(async (req, res) => {
 
 // RÉCUPÉRER UN UTILISATEUR PAR EMAIL
 
+// Les valeurs de l'enum UserRole : un filtre hors liste partirait en erreur Prisma.
+const USER_ROLES = ['MEMBER', 'VOLUNTEER', 'PRODUCER', 'ADMIN'];
+
 // RÉCUPÉRER TOUS LES UTILISATEURS
 const getAllUsers = asyncHandler(async (req, res) => {
   const { role, search, page = 1, limit = 20 } = req.query;
+  if (role && !USER_ROLES.includes(role)) {
+    throw new HttpBadRequestError(`Rôle invalide. Valeurs autorisées : ${USER_ROLES.join(', ')}`);
+  }
   const parsedPage = Math.max(parseInt(page) || 1, 1);
   const parsedLimit = Math.min(parseInt(limit) || 20, 100);
 

@@ -93,7 +93,16 @@ export default function ProducerAccessPage() {
     }
 
     if (user.role === 'PRODUCER' || request?.status === 'APPROVED') {
-      return <Notice>Votre compte est déjà rattaché à une ferme.</Notice>;
+      return (
+        <>
+          <Notice>Votre compte est déjà rattaché à une ferme.</Notice>
+          {user.role === 'PRODUCER' && (
+            <div className="access-actions">
+              <Link href="/espace-producteur" className="btn btn-primary btn-lg">Ouvrir mon espace producteur</Link>
+            </div>
+          )}
+        </>
+      );
     }
 
     if (!user.emailVerified) {
