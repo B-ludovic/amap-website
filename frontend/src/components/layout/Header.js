@@ -138,9 +138,16 @@ function Header() {
             <Link href="/nos-producteurs" className={`nav-link ${pathname === '/nos-producteurs' ? 'active' : ''}`}>
               Nos producteurs
             </Link>
-            <Link href="/devenir-producteur" className={`nav-link ${pathname === '/devenir-producteur' ? 'active' : ''}`}>
-              Devenir producteur
-            </Link>
+            {/* Un producteur rattaché n'a plus à devenir producteur : son espace prend la place. */}
+            {user?.role === 'PRODUCER' ? (
+              <Link href="/espace-producteur" className={`nav-link ${pathname.startsWith('/espace-producteur') ? 'active' : ''}`}>
+                Espace producteur
+              </Link>
+            ) : (
+              <Link href="/devenir-producteur" className={`nav-link ${pathname === '/devenir-producteur' ? 'active' : ''}`}>
+                Devenir producteur
+              </Link>
+            )}
           </nav>
 
           {/* Actions */}
@@ -150,11 +157,6 @@ function Header() {
                 {user.role === 'ADMIN' && (
                   <Link href="/admin" className="nav-link">
                     Admin
-                  </Link>
-                )}
-                {user.role === 'PRODUCER' && (
-                  <Link href="/espace-producteur" className={`nav-link ${pathname.startsWith('/espace-producteur') ? 'active' : ''}`}>
-                    Espace producteur
                   </Link>
                 )}
                 <Link href="/compte" className="nav-link">
@@ -220,9 +222,15 @@ function Header() {
             <Link href="/nos-producteurs" className={`mobile-nav-link ${isActivePath('/nos-producteurs') ? 'active' : ''}`} onClick={closeMenu}>
               Nos producteurs
             </Link>
-            <Link href="/devenir-producteur" className={`mobile-nav-link ${isActivePath('/devenir-producteur') ? 'active' : ''}`} onClick={closeMenu}>
-              Devenir producteur
-            </Link>
+            {user?.role === 'PRODUCER' ? (
+              <Link href="/espace-producteur" className={`mobile-nav-link ${pathname.startsWith('/espace-producteur') ? 'active' : ''}`} onClick={closeMenu}>
+                Espace producteur
+              </Link>
+            ) : (
+              <Link href="/devenir-producteur" className={`mobile-nav-link ${isActivePath('/devenir-producteur') ? 'active' : ''}`} onClick={closeMenu}>
+                Devenir producteur
+              </Link>
+            )}
           </nav>
 
           <div className="mobile-nav-footer">
@@ -291,12 +299,6 @@ function Header() {
                     </Link>
                     <div className="mobile-nav-divider"></div>
                   </div>
-                )}
-                {user.role === 'PRODUCER' && (
-                  <Link href="/espace-producteur" className="mobile-nav-link" onClick={closeMenu}>
-                    <Tractor size={18} aria-hidden="true" />
-                    Espace producteur
-                  </Link>
                 )}
                 <Link href="/compte" className="mobile-nav-link" onClick={closeMenu}>
                   Mon Compte
