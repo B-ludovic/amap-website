@@ -245,14 +245,6 @@ const updateProduct = asyncHandler(async (req, res) => {
   const { name: rawName, producerId, category, description, isExample, isActive, seasons, basketSizes } = parsed.data;
   const name = rawName ? rawName.trim().charAt(0).toUpperCase() + rawName.trim().slice(1) : undefined;
 
-  const product = await prisma.product.findUnique({
-    where: { id }
-  });
-
-  if (!product) {
-    throw new HttpNotFoundError('Produit introuvable');
-  }
-
   if (producerId) {
     const producer = await prisma.producer.findUnique({
       where: { id: producerId }
@@ -263,21 +255,52 @@ const updateProduct = asyncHandler(async (req, res) => {
     }
   }
 
-  const updatedProduct = await prisma.product.update({
-    where: { id },
-    data: {
-      name,
-      producerId,
-      category,
-      description,
-      isExample,
-      isActive,
-      seasons,
-      basketSizes
-    },
-    include: {
-      producer: true
+  // Sous verrou : une demande de suppression du producteur ne passe pas entre la lecture et l'écriture.
+  const { product, updatedProduct } = await prisma.$transaction(async (tx) => {
+    await tx.$queryRaw`SELECT id FROM "Product" WHERE id = ${id} FOR UPDATE`;
+
+    const product = await tx.product.findUnique({
+      where: { id }
+    });
+
+    if (!product) {
+      throw new HttpNotFoundError('Produit introuvable');
     }
+
+    if (isActive === true && product.deletionRequestedAt) {
+      throw new HttpConflictError('Suppression demandée par le producteur : ce produit ne peut pas être réactivé tant que la demande est en cours.');
+    }
+
+    const nextName = name ?? product.name;
+    const nextProducerId = producerId ?? product.producerId;
+    if (nextName !== product.name || nextProducerId !== product.producerId) {
+      const doublon = await tx.product.findFirst({
+        where: { name: nextName, producerId: nextProducerId, id: { not: id } },
+        select: { id: true }
+      });
+      if (doublon) {
+        throw new HttpBadRequestError(`"${nextName}" existe déjà pour ce producteur`);
+      }
+    }
+
+    const updatedProduct = await tx.product.update({
+      where: { id },
+      data: {
+        name,
+        producerId,
+        category,
+        description,
+        isExample,
+        isActive,
+        seasons,
+        basketSizes
+      },
+      include: {
+        producer: true
+      }
+    });
+
+    return { product, updatedProduct };
   });
 
   await logAudit(req, 'UPDATE_PRODUCT', 'IMPORTANT', {

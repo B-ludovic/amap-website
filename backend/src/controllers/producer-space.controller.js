@@ -125,7 +125,7 @@ async function ecrireProduit(req, id, travail) {
 
   if (issue.autreFerme) await refuserPortee(req, { type: 'PRODUCT', id }, 'PRODUIT_AUTRE_FERME');
   if (issue.introuvable || issue.autreFerme) throw new HttpNotFoundError('Produit introuvable');
-  if (issue.conflit) throw new HttpConflictError(issue.conflit);
+  if (issue.refus) throw issue.refus;
   return issue;
 }
 
@@ -174,7 +174,14 @@ export const updateOwnProduct = asyncHandler(async (req, res) => {
 
   const { avant, product } = await ecrireProduit(req, id, async (tx, avant) => {
     if (data.isActive === true && avant.deletionRequestedAt) {
-      return { conflit: 'Suppression demandée : annulez la demande avant de réactiver ce produit.' };
+      return { refus: new HttpConflictError('Suppression demandée : annulez la demande avant de réactiver ce produit.') };
+    }
+    if (data.name !== undefined && data.name !== avant.name) {
+      const doublon = await tx.product.findFirst({
+        where: { name: data.name, producerId: req.producerId, id: { not: id } },
+        select: { id: true },
+      });
+      if (doublon) return { refus: new HttpBadRequestError(`"${data.name}" existe déjà dans votre catalogue`) };
     }
     const product = await tx.product.update({ where: { id }, data, select: produitSelect });
     return { avant, product };
@@ -193,7 +200,7 @@ export const requestProductDeletion = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
   const { avant, product } = await ecrireProduit(req, id, async (tx, avant) => {
-    if (avant.deletionRequestedAt) return { conflit: 'La suppression de ce produit est déjà demandée.' };
+    if (avant.deletionRequestedAt) return { refus: new HttpConflictError('La suppression de ce produit est déjà demandée.') };
     const product = await tx.product.update({
       where: { id },
       data: { deletionRequestedAt: new Date(), isActive: false },
@@ -214,7 +221,7 @@ export const cancelProductDeletion = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
   const { avant, product } = await ecrireProduit(req, id, async (tx, avant) => {
-    if (!avant.deletionRequestedAt) return { conflit: 'Aucune demande de suppression en cours pour ce produit.' };
+    if (!avant.deletionRequestedAt) return { refus: new HttpConflictError('Aucune demande de suppression en cours pour ce produit.') };
     const product = await tx.product.update({
       where: { id },
       data: { deletionRequestedAt: null },

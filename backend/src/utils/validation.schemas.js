@@ -47,10 +47,12 @@ export const UpdateProducerSchema = ProducerSchema.partial().extend({
   isActive: z.boolean().optional(),
 });
 
+const CATEGORIES_PRODUIT = ['VEGETABLES', 'FRUITS', 'EGGS', 'GROCERY'];
+
 export const ProductSchema = z.object({
   name:        z.string().min(1, 'Nom requis').max(200),
   producerId:  z.string().min(1, 'Producteur requis'),
-  category:    z.string().max(100).optional(),
+  category:    z.enum(CATEGORIES_PRODUIT, { error: 'Catégorie invalide' }).optional(),
   description: z.string().max(1000).optional(),
   isExample:   z.boolean().optional(),
   isActive:    z.boolean().optional(),
@@ -215,7 +217,7 @@ export const OwnFarmSchema = z.object({
 
 export const OwnProductSchema = z.object({
   name:        texteRequis(200, 'Nom requis', 'Nom'),
-  category:    z.enum(['VEGETABLES', 'FRUITS', 'EGGS', 'GROCERY'], { error: 'Catégorie invalide' }).nullable().optional(),
+  category:    z.enum(CATEGORIES_PRODUIT, { error: 'Catégorie invalide' }).nullable().optional(),
   description: texteEffacable(1000, 'Description'),
   isActive:    z.boolean({ error: 'Case « actif » invalide' }).optional(),
   seasons:     ProductSchema.shape.seasons,

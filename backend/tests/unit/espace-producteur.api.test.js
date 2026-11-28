@@ -37,7 +37,9 @@ vi.mock('../../src/config/database.js', () => {
       findMany: async ({ where }) => base.produits
         .filter((p) => p.producerId === where.producerId && p.deletedAt === null)
         .map((p) => ({ ...p })),
-      findFirst: async ({ where }) => base.produits.find((p) => p.name === where.name && p.producerId === where.producerId) ?? null,
+      findFirst: async ({ where }) => base.produits.find((p) => p.name === where.name
+        && p.producerId === where.producerId
+        && p.id !== where.id?.not) ?? null,
       findUnique: async ({ where }) => (produitDe(where.id) ? { ...produitDe(where.id) } : null),
       create: async ({ data }) => {
         const produit = { id: `produit-${base.suivant++}`, deletionRequestedAt: null, deletedAt: null, isExample: false, ...data };
@@ -345,6 +347,24 @@ describe('Produits de la ferme', () => {
     expect(produitDe('produit-b')).toEqual(avant);
     expect(journalAutre).toEqual([refusPortee({ type: 'PRODUCT', id: 'produit-b' }, 'PRODUIT_AUTRE_FERME', 'PUT', '/api/producer/products/produit-b')]);
     expect(journal).toHaveLength(0);
+  });
+
+  it('refuse un renommage en doublon dans le catalogue de la ferme', async () => {
+    base.produits.push(produit({ id: 'produit-c', producerId: 'ferme-0001', name: 'Poireaux' }));
+    const { statut } = await appel(espace.updateOwnProduct, { params: { id: 'produit-a' }, body: { name: 'poireaux' } });
+
+    expect(statut).toBe(400);
+    expect(produitDe('produit-a').name).toBe('Carottes');
+    expect(journal).toHaveLength(0);
+  });
+
+  it('accepte un renommage vers un nom pris par une autre ferme, ou vers son propre nom', async () => {
+    const autreFerme = await appel(espace.updateOwnProduct, { params: { id: 'produit-a' }, body: { name: 'Pommes' } });
+    const memeNom = await appel(espace.updateOwnProduct, { params: { id: 'produit-a' }, body: { name: 'Pommes', isActive: false } });
+
+    expect(autreFerme.statut).toBe(200);
+    expect(memeNom.statut).toBe(200);
+    expect(produitDe('produit-a')).toMatchObject({ name: 'Pommes', isActive: false });
   });
 
   it('traite un produit retiré comme introuvable', async () => {

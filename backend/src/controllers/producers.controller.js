@@ -17,7 +17,7 @@ const publicProducerSelect = {
   farmDetail: true,
   partnerSince: true,
   products: {
-    where: { deletedAt: null },
+    where: { deletedAt: null, isActive: true },
     select: {
       id: true,
       name: true,
