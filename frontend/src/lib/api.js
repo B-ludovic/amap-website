@@ -999,6 +999,42 @@ const api = {
         requiresAuth: true,
       });
     },
+
+    getProducts: async () => {
+      return fetchAPI('/producer/products', {
+        requiresAuth: true,
+      });
+    },
+
+    createProduct: async (data) => {
+      return fetchAPI('/producer/products', {
+        method: 'POST',
+        body: data,
+        requiresAuth: true,
+      });
+    },
+
+    updateProduct: async (id, data) => {
+      return fetchAPI(`/producer/products/${id}`, {
+        method: 'PUT',
+        body: data,
+        requiresAuth: true,
+      });
+    },
+
+    requestProductDeletion: async (id) => {
+      return fetchAPI(`/producer/products/${id}/deletion-request`, {
+        method: 'POST',
+        requiresAuth: true,
+      });
+    },
+
+    cancelProductDeletion: async (id) => {
+      return fetchAPI(`/producer/products/${id}/deletion-request`, {
+        method: 'DELETE',
+        requiresAuth: true,
+      });
+    },
   },
 
   // Demande d'accès à l'espace producteur, portée par le compte connecté
