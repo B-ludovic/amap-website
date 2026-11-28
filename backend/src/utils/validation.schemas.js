@@ -194,3 +194,12 @@ export const UpdateProducerAbsenceSchema = ProducerAbsenceSchema.omit({ producer
 export const ProducerAccessRequestSchema = z.object({
   farmClaim: texteRequis(500, 'Indiquez la ferme que vous représentez', 'Ferme'),
 });
+
+export const ApproveProducerAccessSchema = z.object({
+  producerId: identifiant('Choisissez la fiche de la ferme'),
+  adminNotes: texteFacultatif(2000, 'Notes'),
+});
+
+export const RejectProducerAccessSchema = z.object({
+  adminNotes: texteFacultatif(2000, 'Notes'),
+});

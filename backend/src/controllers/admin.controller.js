@@ -10,6 +10,7 @@ import { ProducerSchema, UpdateProducerSchema, ProductSchema, UpdateProductSchem
 import { logAudit } from '../services/audit.service.js';
 import { confirmPassword } from '../services/reauth.service.js';
 import { announceWithdrawal, releaseUpcomingShifts } from '../services/shiftRelease.service.js';
+import { revokeProducerAccess } from '../services/producerAccess.service.js';
 import emailService from '../services/email.service.js';
 import { normalizeTitleCase } from '../utils/normalize.js';
 
@@ -632,6 +633,11 @@ const changeUserRole = asyncHandler(async (req, res) => {
     throw new HttpBadRequestError('Cet utilisateur est supprimé');
   }
 
+  // Rôle et rattachement ne se retirent qu'ensemble, par la révocation.
+  if (user.role === 'PRODUCER' || user.producerId) {
+    throw new HttpConflictError('Ce compte est rattaché à une ferme : retirez d\'abord son accès producteur depuis les demandes d\'accès.');
+  }
+
   if (user.role === 'ADMIN' && role !== 'ADMIN') {
     const admins = await prisma.user.count({
       where: { role: 'ADMIN', deletedAt: null }
@@ -703,17 +709,24 @@ const deleteUser = asyncHandler(async (req, res) => {
     refus: 'le compte n\'a pas été supprimé'
   });
 
-  const placesLiberees = await prisma.$transaction(async (tx) => {
+  const { placesLiberees, revocation } = await prisma.$transaction(async (tx) => {
     await tx.user.update({
       where: { id: userId },
       data: { deletedAt: new Date() }
     });
-    return releaseUpcomingShifts(tx, userId);
+    const revocation = await revokeProducerAccess(tx, userId, req.user.id);
+    return { placesLiberees: await releaseUpcomingShifts(tx, userId), revocation };
   });
 
   await logAudit(req, 'DELETE_USER', 'CRITICAL', { type: 'USER', id: userId, label: user.email }, {
     releasedShifts: placesLiberees.length
   });
+
+  if (revocation) {
+    await logAudit(req, 'REVOKE_PRODUCER_ACCESS', 'CRITICAL', { type: 'USER', id: userId, label: user.email }, {
+      cause: 'DELETE_USER', requestId: revocation.requestId, producerId: revocation.producerId
+    });
+  }
 
   await Promise.all(placesLiberees.map((place) => announceWithdrawal(place, { accountDeleted: true, actorId: req.user.id })));
 
