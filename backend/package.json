@@ -18,7 +18,8 @@
     "generate": "npx prisma generate",
     "studio": "npx prisma studio",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:integration": "vitest run --config vitest.integration.config.js"
   },
   "keywords": [
     "api",
