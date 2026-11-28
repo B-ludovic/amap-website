@@ -1,5 +1,20 @@
 import { prisma } from '../config/database.js';
 import { getUtcDayBounds } from '../utils/closurePeriod.js';
+import { formatDateFR } from './closure.service.js';
+
+// Partagés par l'écran admin et l'espace producteur.
+export const absenceSelect = {
+  id: true,
+  producerId: true,
+  startDate: true,
+  endDate: true,
+  reason: true,
+  producer: { select: { id: true, name: true } }
+};
+
+export function describeAbsence(absence) {
+  return `${absence.producer?.name ?? 'Ferme'} — du ${formatDateFR(absence.startDate)} au ${formatDateFR(absence.endDate)}`;
+}
 
 /* Quelles fermes manquent à l'appel ce jour-là ?
 

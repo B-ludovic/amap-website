@@ -190,6 +190,42 @@ export const ProducerAbsenceSchema = z.object({
 
 export const UpdateProducerAbsenceSchema = ProducerAbsenceSchema.omit({ producerId: true }).partial();
 
+// ESPACE PRODUCTEUR — la clé hors de ces listes est refusée par le contrôleur.
+
+const estUrlHttps = (valeur) => {
+  try {
+    return new URL(valeur).protocol === 'https:';
+  } catch {
+    return false;
+  }
+};
+
+export const OwnFarmSchema = z.object({
+  description:     texteRequis(5000, 'Description requise', 'Description').optional(),
+  specialty:       texteEffacable(200, 'Spécialité'),
+  farmDetailLabel: texteEffacable(40, 'Libellé'),
+  farmDetail:      texteEffacable(200, 'Détail'),
+  phone:           z.string({ error: 'Téléphone invalide' }).trim()
+    .regex(/^([0-9+\s.-]{6,20})?$/, 'Téléphone invalide').nullable().optional(),
+  image:           z.string({ error: 'Image invalide' }).trim()
+    .max(500, 'Image : 500 caractères maximum')
+    .refine((v) => v === '' || estUrlHttps(v), 'Image : adresse https:// requise')
+    .nullable().optional(),
+});
+
+export const OwnProductSchema = z.object({
+  name:        texteRequis(200, 'Nom requis', 'Nom'),
+  category:    z.enum(['VEGETABLES', 'FRUITS', 'EGGS', 'GROCERY'], { error: 'Catégorie invalide' }).nullable().optional(),
+  description: texteEffacable(1000, 'Description'),
+  isActive:    z.boolean({ error: 'Case « actif » invalide' }).optional(),
+  seasons:     ProductSchema.shape.seasons,
+  basketSizes: ProductSchema.shape.basketSizes,
+});
+
+export const UpdateOwnProductSchema = OwnProductSchema.partial();
+
+export const OwnAbsenceSchema = ProducerAbsenceSchema.omit({ producerId: true });
+
 // Rien d'autre que la prétention : nom, prénom et email se lisent sur le compte.
 export const ProducerAccessRequestSchema = z.object({
   farmClaim: texteRequis(500, 'Indiquez la ferme que vous représentez', 'Ferme'),
